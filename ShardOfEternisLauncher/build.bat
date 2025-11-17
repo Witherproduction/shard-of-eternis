@@ -6,6 +6,8 @@ echo ========================================
 echo    Shard of Eternis Launcher - Compilation
 echo ========================================
 echo.
+echo Dépôt GitHub: https://github.com/Witherproduction/shard-of-eternis
+echo.
 
 REM Vérifier si .NET SDK est installé
 dotnet --version >nul 2>&1

@@ -36,7 +36,7 @@
 
         <Border Grid.Row="1" Padding="30">
             <StackPanel VerticalAlignment="Center">
-                <TextBlock x:Name="StatusLabel" Text="Prêt" FontSize="16" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="MainStatusLabel" Text="Prêt" FontSize="16" HorizontalAlignment="Center"/>
             </StackPanel>
         </Border>
 
@@ -44,7 +44,7 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Button x:Name="PlayButton" Content="JOUER" Width="150" Height="50" Click="PlayButton_Click"/>
                 <Button x:Name="UpdateButton" Content="METTRE À JOUR" Width="150" Height="50" Margin="20,0,0,0" Click="UpdateButton_Click"/>
-                <Button x:Name="SettingsButton" Content="PARAMÈTRES" Width="150" Height="50" Margin="20,0,0,0" Click="SettingsButton_Click"/>
+                <Button x:Name="SettingsButton" Content="PARAMÈTRES" Width="150" Height="50" Margin="20,0,0,0" Click="SettingsButton_Click" Visibility="Collapsed"/>
             </StackPanel>
         </Border>
 

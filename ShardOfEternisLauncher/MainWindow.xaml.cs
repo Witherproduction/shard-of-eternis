@@ -152,27 +152,35 @@ namespace ShardOfEternisLauncher
             try
             {
                 var exeDir = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+                // Tenter d'identifier le dossier du projet (accepte espace, underscore, tiret)
                 DirectoryInfo dir = exeDir;
                 DirectoryInfo projectRoot = null;
                 while (dir != null)
                 {
-                    if (string.Equals(dir.Name, "shard of eternis", StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(dir.Name, "shard_of_eternis", StringComparison.OrdinalIgnoreCase))
+                    var name = dir.Name.ToLowerInvariant();
+                    if (name == "shard of eternis" || name == "shard_of_eternis" || name == "shard-of-eternis")
                     {
                         projectRoot = dir;
                         break;
                     }
                     dir = dir.Parent;
                 }
-                var parentOfProject = projectRoot?.Parent;
-                if (parentOfProject == null) return;
-                var candidates = parentOfProject.GetFiles("*.*");
+
+                // Si non trouvé, utiliser directement le parent du dossier contenant l'exe
+                var searchRoot = projectRoot?.Parent ?? exeDir.Parent ?? exeDir;
+
+                // Priorité aux fichiers nommés de manière explicite, sinon prendre la plus grande image
+                var candidates = searchRoot.GetFiles("*.*");
                 FileInfo chosen = null;
+                // Noms préférés
+                var preferred = new[] { "background", "bg", "launcher_bg", "wallpaper" };
                 foreach (var f in candidates)
                 {
                     var ext = f.Extension.ToLowerInvariant();
                     if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
                     {
+                        var baseName = Path.GetFileNameWithoutExtension(f.Name).ToLowerInvariant();
+                        if (Array.Exists(preferred, p => baseName.Contains(p))) { chosen = f; break; }
                         if (chosen == null || f.Length > chosen.Length) chosen = f;
                     }
                 }
@@ -209,6 +217,9 @@ namespace ShardOfEternisLauncher
             {
                 GAME_INSTALL_PATH = config.InstallPath;
             }
+            if (string.IsNullOrWhiteSpace(config.RepoOwner)) config.RepoOwner = "Witherproduction";
+            if (string.IsNullOrWhiteSpace(config.RepoName)) config.RepoName = "shard-of-eternis";
+            SaveConfig(config);
         }
 
         private void SaveConfig(LauncherConfig cfg)
