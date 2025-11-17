@@ -51,6 +51,14 @@ namespace ShardOfEternisLauncher
         {
             try
             {
+                // Synchroniser le chemin depuis le champ si valide
+                var inputPath = InstallPathBox.Text?.Trim();
+                if (!string.IsNullOrWhiteSpace(inputPath) && Directory.Exists(inputPath))
+                {
+                    GAME_INSTALL_PATH = inputPath;
+                    config.InstallPath = GAME_INSTALL_PATH;
+                    SaveConfig(config);
+                }
                 StopRunningGame();
                 SyncDataFiles();
                 if (!EnsureInstallPathSelected()) return;
@@ -82,6 +90,14 @@ namespace ShardOfEternisLauncher
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
+            // Synchroniser le chemin depuis le champ si valide
+            var inputPath = InstallPathBox.Text?.Trim();
+            if (!string.IsNullOrWhiteSpace(inputPath) && Directory.Exists(inputPath))
+            {
+                GAME_INSTALL_PATH = inputPath;
+                config.InstallPath = GAME_INSTALL_PATH;
+                SaveConfig(config);
+            }
             if (!EnsureInstallPathSelected()) { StatusLabel.Text = "Installation annulée."; return; }
             StatusLabel.Text = "Recherche des mises à jour…";
             var latest = await GetLatestReleaseAsync();
@@ -364,8 +380,17 @@ namespace ShardOfEternisLauncher
         {
             try
             {
+                // Si l'utilisateur a saisi un chemin valide dans la boîte, l'utiliser et persister
+                var typed = InstallPathBox.Text?.Trim();
+                if (!string.IsNullOrWhiteSpace(typed) && Directory.Exists(typed))
+                {
+                    GAME_INSTALL_PATH = typed;
+                    config.InstallPath = GAME_INSTALL_PATH;
+                    SaveConfig(config);
+                }
+
                 var exePath = Path.Combine(GAME_INSTALL_PATH ?? "", GAME_EXE_NAME);
-                if (!Directory.Exists(GAME_INSTALL_PATH) || !File.Exists(exePath))
+                if (string.IsNullOrWhiteSpace(GAME_INSTALL_PATH) || !Directory.Exists(GAME_INSTALL_PATH))
                 {
                     var dlg = new System.Windows.Forms.FolderBrowserDialog();
                     dlg.Description = "Choisissez le dossier d’installation du jeu";

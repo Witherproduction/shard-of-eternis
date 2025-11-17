@@ -323,8 +323,8 @@ function AI_SituationPriorityBonus(effect, target) {
     var eType = variable_struct_exists(effect, "effect_type") ? effect.effect_type : -1;
 
     // Lecture LP et contexte
-    var enemyLP = (instance_exists(LP_Hero) && variable_instance_exists(LP_Hero, "nbLP")) ? LP_Hero.nbLP : 8000;
-    var ourLP   = (instance_exists(LP_Enemy) && variable_instance_exists(LP_Enemy, "nbLP")) ? LP_Enemy.nbLP : 8000;
+    var enemyLP = (instance_exists(LP_Hero) && variable_instance_exists(LP_Hero, "nbLP")) ? LP_Hero.nbLP : 100;
+    var ourLP   = (instance_exists(LP_Enemy) && variable_instance_exists(LP_Enemy, "nbLP")) ? LP_Enemy.nbLP : 100;
     var handCount = (ds_exists(handEnemy.cards, ds_type_list)) ? ds_list_size(handEnemy.cards) : 0;
 
     // Évaluation du plateau
@@ -346,11 +346,11 @@ function AI_SituationPriorityBonus(effect, target) {
             if (scope2 == "lp") {
                 var amount2 = 0; if (variable_struct_exists(effect, "value")) amount2 = effect.value; else if (variable_struct_exists(effect, "amount")) amount2 = effect.amount; else if (variable_struct_exists(effect, "damage")) amount2 = effect.damage; else if (variable_struct_exists(effect, "heal")) amount2 = effect.heal; else amount2 = 300;
                 if (op2 == "damage") {
-                    if (amount2 >= enemyLP) { bonus += 8000; }
+                    if (amount2 >= enemyLP) { bonus += 100; }
                     else { bonus += floor(amount2 * (boardDelta >= 0 ? 1.5 : 1.0)); }
                 } else {
-                    if (ourLP <= 2000) { bonus += amount2 * 2 + max(0, 2000 - ourLP); }
-                    else if (ourLP <= 4000) { bonus += floor(amount2 * 1.0); }
+                    if (ourLP <= 25) { bonus += amount2 * 2 + max(0, 25 - ourLP); }
+                    else if (ourLP <= 50) { bonus += floor(amount2 * 1.0); }
                     else { bonus += floor(amount2 * 0.25); }
                 }
             } else {
@@ -359,8 +359,8 @@ function AI_SituationPriorityBonus(effect, target) {
                     if (targetIsHero) { bonus += floor(amount3 * (boardDelta >= 0 ? 1.5 : 1.0)); }
                 } else {
                     if (!targetIsHero) {
-                        if (ourLP <= 2000) { bonus += amount3 * 2 + max(0, 2000 - ourLP); }
-                        else if (ourLP <= 4000) { bonus += floor(amount3 * 1.0); }
+                        if (ourLP <= 25) { bonus += amount3 * 2 + max(0, 25 - ourLP); }
+                        else if (ourLP <= 50) { bonus += floor(amount3 * 1.0); }
                         else { bonus += floor(amount3 * 0.25); }
                     }
                 }

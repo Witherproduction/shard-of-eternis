@@ -1,11 +1,18 @@
 {
   "FolderOrderSettings":[
+    {"name":"magie","order":2,"path":"folders/Objets/carte/Card/Foret Clair de lune/magie.yy",},
+    {"name":"monstre","order":1,"path":"folders/Objets/carte/Card/Foret Clair de lune/monstre.yy",},
     {"name":"IA","order":1,"path":"folders/Scripts/IA.yy",},
     {"name":"Duel","order":2,"path":"folders/Sons/Duel.yy",},
     {"name":"lobby","order":1,"path":"folders/Sons/lobby.yy",},
+    {"name":"foret des voleurs","order":1,"path":"folders/Sprites/collection/Card/foret des voleurs.yy",},
+    {"name":"monstre","order":4,"path":"folders/Sprites/collection/Card/foret des voleurs/monstre.yy",},
   ],
   "ResourceOrderSettings":[
     {"name":"fontCardText","order":1,"path":"fonts/fontCardText/fontCardText.yy",},
+    {"name":"oGobelinFurtif","order":3,"path":"objects/oGobelinFurtif/oGobelinFurtif.yy",},
+    {"name":"oJeuneLoup","order":1,"path":"objects/oJeuneLoup/oJeuneLoup.yy",},
+    {"name":"oWorgRochenoire","order":2,"path":"objects/oWorgRochenoire/oWorgRochenoire.yy",},
     {"name":"sAIActionExec","order":2,"path":"scripts/sAIActionExec/sAIActionExec.yy",},
     {"name":"sAIActionSelect","order":1,"path":"scripts/sAIActionSelect/sAIActionSelect.yy",},
     {"name":"sAIAttackPlanner","order":7,"path":"scripts/sAIAttackPlanner/sAIAttackPlanner.yy",},
@@ -18,5 +25,7 @@
     {"name":"sAITargeting","order":5,"path":"scripts/sAITargeting/sAITargeting.yy",},
     {"name":"sDeckPersistence","order":1,"path":"scripts/sDeckPersistence/sDeckPersistence.yy",},
     {"name":"sEffectPoints","order":1,"path":"scripts/sEffectPoints/sEffectPoints.yy",},
+    {"name":"sMagic","order":2,"path":"sprites/sMagic/sMagic.yy",},
+    {"name":"sMonstre","order":3,"path":"sprites/sMonstre/sMonstre.yy",},
   ],
 }

@@ -1,19 +1,21 @@
 {
   "$GMObject":"",
-  "%Name":"oConvoyeur",
+  "%Name":"oWorgRochenoire",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"oConvoyeur",
-  "overriddenProperties":[],
+  "name":"oWorgRochenoire",
+  "overriddenProperties":[
+    {"$GMOverriddenProperty":"v1","%Name":"","name":"","objectId":{"name":"oCardParent","path":"objects/oCardParent/oCardParent.yy",},"propertyId":{"name":"type","path":"objects/oCardParent/oCardParent.yy",},"resourceType":"GMOverriddenProperty","resourceVersion":"2.0","value":"\"Monster\"",},
+  ],
   "parent":{
-    "name":"magie",
-    "path":"folders/Objets/carte/Card/Foret Clair de lune/magie.yy",
+    "name":"monstre",
+    "path":"folders/Objets/carte/Card/Foret Clair de lune/monstre.yy",
   },
   "parentObjectId":{
-    "name":"oCardMagic",
-    "path":"objects/oCardMagic/oCardMagic.yy",
+    "name":"oCardMonster",
+    "path":"objects/oCardMonster/oCardMonster.yy",
   },
   "persistent":false,
   "physicsAngularDamping":0.1,
