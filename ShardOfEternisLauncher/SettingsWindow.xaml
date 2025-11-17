@@ -1,0 +1,32 @@
+<Window x:Class="ShardOfEternisLauncher.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Paramètres" Height="240" Width="500" WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Chemin d’installation" VerticalAlignment="Center"/>
+        <TextBox x:Name="InstallPathText" Grid.Row="0" Grid.Column="1" Margin="5,0"/>
+        <Button Content="Parcourir…" Grid.Row="0" Grid.Column="2" Margin="5,0" Click="BrowseInstallPath_Click"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Repo owner" VerticalAlignment="Center"/>
+        <TextBox x:Name="RepoOwnerText" Grid.Row="1" Grid.Column="1" Margin="5,0"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Repo name" VerticalAlignment="Center"/>
+        <TextBox x:Name="RepoNameText" Grid.Row="2" Grid.Column="1" Margin="5,0"/>
+
+        <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Enregistrer" Width="120" Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

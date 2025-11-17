@@ -1,0 +1,272 @@
+function sEffectDiscard(card, effect, context) {
+    // Effet unifié de défausse (main uniquement) avec critères et options
+    // Déterminer le propriétaire ciblé
+    // Priorité: contexte explicite > effet.owner > source carte
+    var ownerIsHero = true;
+    if (variable_struct_exists(context, "owner_is_hero")) {
+        ownerIsHero = context.owner_is_hero;
+    } else if (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) {
+        ownerIsHero = card.isHeroOwner;
+    }
+    if (variable_struct_exists(effect, "owner")) {
+        var ow = string_lower(effect.owner);
+        if (ow == "hero") ownerIsHero = true; else if (ow == "enemy") ownerIsHero = false; // sinon: défaut = source
+    }
+
+    var handInst = ownerIsHero ? handHero : handEnemy;
+    var gyInst = ownerIsHero ? graveyardHero : graveyardEnemy;
+    if (!instance_exists(handInst) || !instance_exists(gyInst)) {
+        show_debug_message("### sEffectDiscard: main ou cimetière introuvables");
+        return false;
+    }
+
+    // Sélection et critères
+    var selection = variable_struct_exists(effect, "selection") ? effect.selection : {};
+    var mode = variable_struct_exists(selection, "mode") ? string_lower(selection.mode) : (variable_struct_exists(effect, "random_select") && effect.random_select ? "random" : "count");
+    var count = 1;
+    if (variable_struct_exists(selection, "count")) count = selection.count; else if (variable_struct_exists(effect, "value")) count = effect.value; else if (variable_struct_exists(effect, "discard_count")) count = effect.discard_count;
+    var allowPartial = variable_struct_exists(selection, "allow_partial") ? selection.allow_partial : true;
+    var excludeSelf = false;
+    if (variable_struct_exists(selection, "exclude_self")) excludeSelf = selection.exclude_self; else if (variable_struct_exists(effect, "as_cost")) excludeSelf = effect.as_cost;
+
+    // Filtres de cibles (simple)
+    var filter = {};
+    if (variable_struct_exists(effect, "target_filter")) filter = effect.target_filter;
+    else if (variable_struct_exists(effect, "search_criteria")) filter = effect.search_criteria; // alias
+
+    var nameWanted = "";
+    var archeWanted = "";
+    var typeWanted = ""; // "Monster" | "Magic" | "Spell" etc.
+    var faceUpReq = false;
+    if (variable_struct_exists(filter, "name")) nameWanted = filter.name;
+    if (variable_struct_exists(filter, "archetype")) archeWanted = filter.archetype;
+    if (variable_struct_exists(filter, "type")) typeWanted = filter.type;
+    if (variable_struct_exists(filter, "face_up")) faceUpReq = filter.face_up;
+
+    // Mode spécial: défausser la carte source elle-même
+    if (mode == "self") {
+        var selectedSelf = ds_list_create();
+        if (card == noone || !instance_exists(card)) {
+            show_debug_message("### sEffectDiscard: carte source invalide pour mode 'self'");
+            ds_list_destroy(selectedSelf);
+            return false;
+        }
+        // Vérifier que la carte est bien dans la main du bon propriétaire
+        var idxSelf = ds_list_find_index(handInst.cards, card);
+        if (idxSelf == -1) {
+            show_debug_message("### sEffectDiscard: carte source non trouvée en main pour mode 'self'");
+            ds_list_destroy(selectedSelf);
+            return false;
+        }
+        ds_list_add(selectedSelf, card);
+        var okSelf = discardSpecificCardsToGraveyard(ownerIsHero, selectedSelf);
+
+        // Contexte de chaîne
+        var ctxSelf = { from_discard: true, owner_is_hero: ownerIsHero };
+        if (card != noone && instance_exists(card)) ctxSelf.initiator_card_id = card.id;
+        if (variable_struct_exists(effect, "id")) ctxSelf.source_effect_id = effect.id;
+        ctxSelf.discarded_cards = selectedSelf;
+
+        if (okSelf) {
+            if (variable_struct_exists(effect, "flow") && is_array(effect.flow)) {
+                var Ls = array_length(effect.flow);
+                var idxs = 0;
+                while (idxs < Ls) {
+                    var stepEffS = effect.flow[idxs];
+                    if (is_struct(stepEffS) && variable_struct_exists(stepEffS, "effect_type")) {
+                        if (stepEffS.effect_type == EFFECT_TEMPO) {
+                            var framesS = 0;
+                            if (variable_struct_exists(stepEffS, "frames")) framesS = max(0, stepEffS.frames);
+                            else if (variable_struct_exists(stepEffS, "ms")) framesS = max(0, round((stepEffS.ms / 1000.0) * room_speed));
+                            if (framesS > 0 && instance_exists(card)) {
+                                var was_pending_s = (variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending);
+                                if (was_pending_s) break;
+                                var remaining_count_s = Ls - (idxs + 1);
+                                var remaining_s = array_create(remaining_count_s);
+                                var rs = 0;
+                                for (var js = idxs + 1; js < Ls; js++) { remaining_s[rs++] = effect.flow[js]; }
+                                card._flow_remaining_steps = remaining_s;
+                                card._flow_ctx = ctxSelf;
+                                card._flow_tempo_pending = true;
+                                call_later(framesS, time_source_units_frames, method(card, function() {
+                                    if (!instance_exists(self)) return;
+                                    if (!variable_instance_exists(self, "_flow_tempo_pending") || !self._flow_tempo_pending) return;
+                                    self._flow_tempo_pending = false;
+                                    var remaining_local_s = variable_instance_exists(self, "_flow_remaining_steps") ? self._flow_remaining_steps : undefined;
+                                    var ctx_local_s = variable_instance_exists(self, "_flow_ctx") ? self._flow_ctx : {};
+                                    if (is_array(remaining_local_s)) {
+                                        for (var r2s = 0; r2s < array_length(remaining_local_s); r2s++) {
+                                            var step2s = remaining_local_s[r2s];
+                                            if (is_struct(step2s) && variable_struct_exists(step2s, "effect_type")) {
+                                                executeEffect(self, step2s, ctx_local_s);
+                                            }
+                                        }
+                                    }
+                                    if (variable_instance_exists(self, "_flow_remaining_steps")) self._flow_remaining_steps = undefined;
+                                    if (variable_instance_exists(self, "_flow_ctx")) self._flow_ctx = undefined;
+                                    if (variable_instance_exists(self, "_consume_after_flow") && self._consume_after_flow) {
+                                        self._consume_after_flow = false;
+                                        if (!is_undefined(consumeSpellIfNeeded)) { consumeSpellIfNeeded(self, undefined); }
+                                    }
+                                }));
+                                break;
+                            }
+                        } else {
+                            executeEffect(card, stepEffS, ctxSelf);
+                        }
+                    }
+                    idxs++;
+                }
+            } else if (variable_struct_exists(effect, "flow_next") && is_struct(effect.flow_next)) {
+                executeEffect(card, effect.flow_next, ctxSelf);
+            }
+        }
+
+        ds_list_destroy(selectedSelf);
+        return okSelf;
+    }
+
+    // Construire la liste des candidats dans la main (respect des filtres et exclusion de la source au besoin)
+    var candidates = ds_list_create();
+    var n = ds_list_size(handInst.cards);
+    for (var i = 0; i < n; i++) {
+        var c = ds_list_find_value(handInst.cards, i);
+        if (c == noone || !instance_exists(c)) continue;
+        if (excludeSelf && c == card) continue;
+        if (!_discard__matchesFilter(c, nameWanted, archeWanted, typeWanted, faceUpReq)) continue;
+        ds_list_add(candidates, c);
+    }
+
+    // Sélectionner les cartes à défausser selon le mode
+    var selected = ds_list_create();
+    if (mode == "random") {
+        // Mélanger les candidats et prendre jusqu'à count
+        ds_list_shuffle(candidates);
+        var take = min(count, ds_list_size(candidates));
+        for (var r = 0; r < take; r++) {
+            ds_list_add(selected, ds_list_find_value(candidates, r));
+        }
+    } else if (mode == "all") {
+        // Prendre tous les candidats
+        var m = ds_list_size(candidates);
+        for (var j = 0; j < m; j++) { ds_list_add(selected, ds_list_find_value(candidates, j)); }
+    } else {
+        // Par défaut: prendre depuis la droite de la main (comportement historique), en respectant les filtres
+        var toTake = count;
+        var idx = ds_list_size(handInst.cards) - 1;
+        while (toTake > 0 && idx >= 0) {
+            var hc = ds_list_find_value(handInst.cards, idx);
+            idx--;
+            if (hc == noone || !instance_exists(hc)) continue;
+            if (excludeSelf && hc == card) continue;
+            if (!_discard__matchesFilter(hc, nameWanted, archeWanted, typeWanted, faceUpReq)) continue;
+            ds_list_add(selected, hc);
+            toTake--;
+        }
+    }
+
+    var selCount = ds_list_size(selected);
+    if (selCount <= 0) {
+        show_debug_message("### sEffectDiscard: aucun candidat correspondant");
+        ds_list_destroy(candidates);
+        ds_list_destroy(selected);
+        return false;
+    }
+    if (!allowPartial && selCount < count) {
+        show_debug_message("### sEffectDiscard: résolution refusée (partial non autorisé), requis=" + string(count) + ", trouvés=" + string(selCount));
+        ds_list_destroy(candidates);
+        ds_list_destroy(selected);
+        return false;
+    }
+
+    // Exécuter la défausse des cartes sélectionnées (utilise l’utilitaire spécifique pour supporter FX et rafraîchissement de main)
+    var ok = discardSpecificCardsToGraveyard(ownerIsHero, selected);
+
+    // Contexte de chaîne
+    var ctx = { from_discard: true, owner_is_hero: ownerIsHero };
+    if (card != noone && instance_exists(card)) ctx.initiator_card_id = card.id;
+    if (variable_struct_exists(effect, "id")) ctx.source_effect_id = effect.id;
+    ctx.discarded_cards = selected; // ds_list de cartes défaussées (instances au moment de la sélection)
+
+    if (ok) {
+        if (variable_struct_exists(effect, "flow") && is_array(effect.flow)) {
+            var L = array_length(effect.flow);
+            var idx = 0;
+            while (idx < L) {
+                var stepEff = effect.flow[idx];
+                if (is_struct(stepEff) && variable_struct_exists(stepEff, "effect_type")) {
+                    if (stepEff.effect_type == EFFECT_TEMPO) {
+                        var frames = 0;
+                        if (variable_struct_exists(stepEff, "frames")) frames = max(0, stepEff.frames);
+                        else if (variable_struct_exists(stepEff, "ms")) frames = max(0, round((stepEff.ms / 1000.0) * room_speed));
+                        if (frames > 0 && instance_exists(card)) {
+                            var was_pending = (variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending);
+                            if (was_pending) break;
+                            var remaining_count = L - (idx + 1);
+                            var remaining = array_create(remaining_count);
+                            var r = 0;
+                            for (var j = idx + 1; j < L; j++) { remaining[r++] = effect.flow[j]; }
+                            card._flow_remaining_steps = remaining;
+                            card._flow_ctx = ctx;
+                            card._flow_tempo_pending = true;
+                            call_later(frames, time_source_units_frames, method(card, function() {
+                                if (!instance_exists(self)) return;
+                                if (!variable_instance_exists(self, "_flow_tempo_pending") || !self._flow_tempo_pending) return;
+                                self._flow_tempo_pending = false;
+                                var remaining_local = variable_instance_exists(self, "_flow_remaining_steps") ? self._flow_remaining_steps : undefined;
+                                var ctx_local = variable_instance_exists(self, "_flow_ctx") ? self._flow_ctx : {};
+                                if (is_array(remaining_local)) {
+                                    for (var r2 = 0; r2 < array_length(remaining_local); r2++) {
+                                        var step2 = remaining_local[r2];
+                                        if (is_struct(step2) && variable_struct_exists(step2, "effect_type")) {
+                                            executeEffect(self, step2, ctx_local);
+                                        }
+                                    }
+                                }
+                                if (variable_instance_exists(self, "_flow_remaining_steps")) self._flow_remaining_steps = undefined;
+                                if (variable_instance_exists(self, "_flow_ctx")) self._flow_ctx = undefined;
+                                if (variable_instance_exists(self, "_consume_after_flow") && self._consume_after_flow) {
+                                    self._consume_after_flow = false;
+                                    if (!is_undefined(consumeSpellIfNeeded)) { consumeSpellIfNeeded(self, undefined); }
+                                }
+                            }));
+                            break;
+                        }
+                    } else {
+                        executeEffect(card, stepEff, ctx);
+                    }
+                }
+                idx++;
+            }
+        } else if (variable_struct_exists(effect, "flow_next") && is_struct(effect.flow_next)) {
+            executeEffect(card, effect.flow_next, ctx);
+        }
+    }
+
+    ds_list_destroy(candidates);
+    ds_list_destroy(selected);
+    return ok;
+}
+
+/// Helper: vérifie si une carte de la main correspond à des filtres de défausse
+function _discard__matchesFilter(c, nameWanted, archeWanted, typeWanted, faceUpReq) {
+    if (c == noone || !instance_exists(c)) return false;
+    if (faceUpReq) {
+        if (variable_instance_exists(c, "isFaceDown") && c.isFaceDown) return false;
+    }
+    if (nameWanted != undefined && nameWanted != "") {
+        var cn = variable_instance_exists(c, "name") ? c.name : object_get_name(c.object_index);
+        if (string_lower(cn) != string_lower(nameWanted)) return false;
+    }
+    if (archeWanted != undefined && archeWanted != "") {
+        if (!variable_instance_exists(c, "archetype") || string_lower(c.archetype) != string_lower(archeWanted)) return false;
+    }
+    if (typeWanted != undefined && typeWanted != "") {
+        // Normaliser quelques alias
+        var t = variable_instance_exists(c, "type") ? string_lower(c.type) : "";
+        var wanted = string_lower(typeWanted);
+        if (wanted == "spell") wanted = "magic"; // alias
+        if (t != wanted) return false;
+    }
+    return true;
+}

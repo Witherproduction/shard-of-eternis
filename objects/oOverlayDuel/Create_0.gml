@@ -1,0 +1,17 @@
+ownerIsHero = true;
+deckInst = noone;
+cards = [];
+selections = [];
+effectCard = noone;
+effectStruct = noone;
+scaleView = 0.5;
+overlayBtnX = 0;
+overlayBtnY = 0;
+overlayBtnW = 0;
+overlayBtnH = 0;
+depth = -100001;
+overlayAlpha = 0;
+fadeDir = 1;
+fadeSpeed = (variable_global_exists("OVERLAY_FADE_SPEED") ? global.OVERLAY_FADE_SPEED : 0.08);
+isClosing = false;
+didApply = false;

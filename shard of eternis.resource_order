@@ -1,0 +1,22 @@
+{
+  "FolderOrderSettings":[
+    {"name":"IA","order":1,"path":"folders/Scripts/IA.yy",},
+    {"name":"Duel","order":2,"path":"folders/Sons/Duel.yy",},
+    {"name":"lobby","order":1,"path":"folders/Sons/lobby.yy",},
+  ],
+  "ResourceOrderSettings":[
+    {"name":"fontCardText","order":1,"path":"fonts/fontCardText/fontCardText.yy",},
+    {"name":"sAIActionExec","order":2,"path":"scripts/sAIActionExec/sAIActionExec.yy",},
+    {"name":"sAIActionSelect","order":1,"path":"scripts/sAIActionSelect/sAIActionSelect.yy",},
+    {"name":"sAIAttackPlanner","order":7,"path":"scripts/sAIAttackPlanner/sAIAttackPlanner.yy",},
+    {"name":"sAIConfig","order":9,"path":"scripts/sAIConfig/sAIConfig.yy",},
+    {"name":"sAILogs","order":10,"path":"scripts/sAILogs/sAILogs.yy",},
+    {"name":"sAIPositioning","order":8,"path":"scripts/sAIPositioning/sAIPositioning.yy",},
+    {"name":"sAISacrifice","order":3,"path":"scripts/sAISacrifice/sAISacrifice.yy",},
+    {"name":"sAIScoring","order":6,"path":"scripts/sAIScoring/sAIScoring.yy",},
+    {"name":"sAISecret","order":4,"path":"scripts/sAISecret/sAISecret.yy",},
+    {"name":"sAITargeting","order":5,"path":"scripts/sAITargeting/sAITargeting.yy",},
+    {"name":"sDeckPersistence","order":1,"path":"scripts/sDeckPersistence/sDeckPersistence.yy",},
+    {"name":"sEffectPoints","order":1,"path":"scripts/sEffectPoints/sEffectPoints.yy",},
+  ],
+}

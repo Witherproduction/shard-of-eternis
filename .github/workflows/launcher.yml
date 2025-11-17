@@ -1,0 +1,52 @@
+name: Build Shard of Eternis Launcher
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'ShardOfEternisLauncher/**'
+      - '.github/workflows/launcher.yml'
+  pull_request:
+    paths:
+      - 'ShardOfEternisLauncher/**'
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore ShardOfEternisLauncher/ShardOfEternisLauncher.csproj
+        shell: pwsh
+      - name: Publish
+        run: dotnet publish ShardOfEternisLauncher/ShardOfEternisLauncher.csproj -c Release -r win-x64 --self-contained true -o out
+        shell: pwsh
+      - name: Archive
+        run: Compress-Archive -Path out/* -DestinationPath shard-of-eternis-launcher-windows.zip
+        shell: pwsh
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shard-of-eternis-launcher-windows
+          path: shard-of-eternis-launcher-windows.zip
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: shard-of-eternis-launcher-windows
+          path: dist
+      - name: Publish release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/shard-of-eternis-launcher-windows.zip
