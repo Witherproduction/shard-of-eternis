@@ -53,7 +53,17 @@ namespace ShardOfEternisLauncher
             {
                 StopRunningGame();
                 SyncDataFiles();
+                if (!EnsureInstallPathSelected()) return;
+                // Localiser l'exécutable si nécessaire
                 var exePath = Path.Combine(GAME_INSTALL_PATH, GAME_EXE_NAME);
+                if (!File.Exists(exePath))
+                {
+                    var located = LocateGameExePath();
+                    if (!string.IsNullOrEmpty(located))
+                    {
+                        exePath = Path.Combine(GAME_INSTALL_PATH, located);
+                    }
+                }
                 if (!File.Exists(exePath))
                 {
                     MessageBox.Show("Exécutable introuvable: " + exePath, "Shard of Eternis Launcher", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -72,6 +82,7 @@ namespace ShardOfEternisLauncher
 
         private async void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!EnsureInstallPathSelected()) { StatusLabel.Text = "Installation annulée."; return; }
             StatusLabel.Text = "Recherche des mises à jour…";
             var latest = await GetLatestReleaseAsync();
             if (latest == null)
@@ -82,7 +93,7 @@ namespace ShardOfEternisLauncher
             var assetUrl = latest.AssetUrl;
             if (string.IsNullOrEmpty(assetUrl))
             {
-                StatusLabel.Text = "Aucun paquet de mise à jour trouvé.";
+                StatusLabel.Text = "Aucun paquet de mise à jour trouvé pour la release.";
                 return;
             }
             var tmp = Path.Combine(Path.GetTempPath(), "soe_update.zip");
@@ -94,8 +105,17 @@ namespace ShardOfEternisLauncher
                     await s.CopyToAsync(f);
                 }
                 System.IO.Compression.ZipFile.ExtractToDirectory(tmp, GAME_INSTALL_PATH, true);
-                StatusLabel.Text = "Mise à jour installée.";
-                VersionLabel.Text = "Version: " + latest.Tag;
+                // Essayer de localiser l'exécutable après extraction
+                var located = LocateGameExePath();
+                if (!string.IsNullOrEmpty(located))
+                {
+                    StatusLabel.Text = "Mise à jour installée.";
+                    VersionLabel.Text = "Version: " + latest.Tag;
+                }
+                else
+                {
+                    StatusLabel.Text = "Mise à jour extraite, mais exécutable introuvable.";
+                }
             }
             catch (Exception ex)
             {
@@ -251,28 +271,152 @@ namespace ShardOfEternisLauncher
             if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(repo)) return null;
             try
             {
-                var url = $"https://api.github.com/repos/{owner}/{repo}/releases/latest";
+                var url = $"https://api.github.com/repos/{owner}/{repo}/releases?per_page=20";
                 var json = await httpClient.GetStringAsync(url);
                 using var doc = JsonDocument.Parse(json);
-                var root = doc.RootElement;
-                var tag = root.TryGetProperty("tag_name", out var tn) ? tn.GetString() : "";
-                string assetUrl = "";
-                if (root.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
+                if (doc.RootElement.ValueKind != JsonValueKind.Array) return null;
+                JsonElement best = default;
+                DateTime bestDate = DateTime.MinValue;
+                foreach (var rel in doc.RootElement.EnumerateArray())
                 {
-                    foreach (var a in assets.EnumerateArray())
-                    {
-                        var n = a.TryGetProperty("name", out var nn) ? nn.GetString() : "";
-                        var u = a.TryGetProperty("browser_download_url", out var bu) ? bu.GetString() : "";
-                        if (!string.IsNullOrEmpty(n) && n.Contains("windows", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                        {
-                            assetUrl = u; break;
-                        }
-                        if (string.IsNullOrEmpty(assetUrl) && n.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) assetUrl = u;
-                    }
+                    var draft = rel.TryGetProperty("draft", out var d) && d.ValueKind == JsonValueKind.True;
+                    var prerelease = rel.TryGetProperty("prerelease", out var p) && p.ValueKind == JsonValueKind.True;
+                    if (draft || prerelease) continue;
+                    var publishedAt = rel.TryGetProperty("published_at", out var pa) && pa.ValueKind == JsonValueKind.String ? DateTime.TryParse(pa.GetString(), out var dt) ? dt : DateTime.MinValue : DateTime.MinValue;
+                    if (publishedAt > bestDate) { bestDate = publishedAt; best = rel; }
                 }
-                return new ReleaseInfo { Tag = tag, AssetUrl = assetUrl };
+                if (best.ValueKind == JsonValueKind.Undefined) return null;
+                var tag = best.TryGetProperty("tag_name", out var tn) && tn.ValueKind == JsonValueKind.String ? tn.GetString() : "";
+                string assetUrl = GetBestAssetUrl(best);
+                return new ReleaseInfo { Tag = tag ?? "", AssetUrl = assetUrl ?? "" };
             }
             catch { return null; }
+        }
+
+        private string GetBestAssetUrl(JsonElement release)
+        {
+            if (release.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
+            {
+                string anyZip = null;
+                string anyAsset = null;
+                foreach (var a in assets.EnumerateArray())
+                {
+                    var n = a.TryGetProperty("name", out var nn) && nn.ValueKind == JsonValueKind.String ? nn.GetString() : "";
+                    var u = a.TryGetProperty("browser_download_url", out var bu) && bu.ValueKind == JsonValueKind.String ? bu.GetString() : "";
+                    if (string.IsNullOrEmpty(u)) continue;
+                    if (!string.IsNullOrEmpty(n))
+                    {
+                        if (n.IndexOf("windows", StringComparison.OrdinalIgnoreCase) >= 0 && n.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) return u;
+                        if (anyZip == null && n.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) anyZip = u;
+                    }
+                    if (anyAsset == null) anyAsset = u;
+                }
+                return anyZip ?? anyAsset;
+            }
+            return null;
+        }
+
+        private string LocateGameExePath()
+        {
+            try
+            {
+                var exeFiles = Directory.GetFiles(GAME_INSTALL_PATH, "*.exe", SearchOption.AllDirectories);
+                string best = null;
+                foreach (var f in exeFiles)
+                {
+                    var name = Path.GetFileName(f).ToLowerInvariant();
+                    if (name.Contains("launcher")) continue;
+                    if (name.Contains("shardofeternis"))
+                    {
+                        var rel = MakeRelativePath(GAME_INSTALL_PATH, f);
+                        if (best == null || rel.Length < best.Length) best = rel;
+                    }
+                }
+                // Si aucune correspondance stricte, prendre un exécutable au hasard (hors launcher)
+                if (best == null)
+                {
+                    foreach (var f in exeFiles)
+                    {
+                        var name = Path.GetFileName(f).ToLowerInvariant();
+                        if (name.Contains("launcher")) continue;
+                        var rel = MakeRelativePath(GAME_INSTALL_PATH, f);
+                        best = rel; break;
+                    }
+                }
+                return best;
+            }
+            catch { return null; }
+        }
+
+        private string MakeRelativePath(string baseDir, string fullPath)
+        {
+            try
+            {
+                var uBase = new Uri(Path.GetFullPath(baseDir).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar);
+                var uFull = new Uri(Path.GetFullPath(fullPath));
+                var rel = Uri.UnescapeDataString(uBase.MakeRelativeUri(uFull).ToString().Replace('/', Path.DirectorySeparatorChar));
+                return rel;
+            }
+            catch { return fullPath; }
+        }
+
+        private bool EnsureInstallPathSelected()
+        {
+            try
+            {
+                var exePath = Path.Combine(GAME_INSTALL_PATH ?? "", GAME_EXE_NAME);
+                if (!Directory.Exists(GAME_INSTALL_PATH) || !File.Exists(exePath))
+                {
+                    var dlg = new System.Windows.Forms.FolderBrowserDialog();
+                    dlg.Description = "Choisissez le dossier d’installation du jeu";
+                    dlg.UseDescriptionForTitle = true;
+                    if (Directory.Exists(InstallPathBox.Text)) dlg.SelectedPath = InstallPathBox.Text;
+                    if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        InstallPathBox.Text = dlg.SelectedPath;
+                        GAME_INSTALL_PATH = dlg.SelectedPath;
+                        config.InstallPath = GAME_INSTALL_PATH;
+                        SaveConfig(config);
+                        return true;
+                    }
+                    return false;
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        private async Task AutoInstallIfNeededAsync()
+        {
+            var exePath = Path.Combine(GAME_INSTALL_PATH, GAME_EXE_NAME);
+            if (File.Exists(exePath)) return;
+            StatusLabel.Text = "Installation du jeu…";
+            var latest = await GetLatestReleaseAsync();
+            if (latest == null || string.IsNullOrEmpty(latest.AssetUrl))
+            {
+                StatusLabel.Text = "Aucune release trouvée.";
+                return;
+            }
+            var tmp = Path.Combine(Path.GetTempPath(), "soe_install.zip");
+            try
+            {
+                using (var s = await httpClient.GetStreamAsync(latest.AssetUrl))
+                using (var f = File.Create(tmp))
+                {
+                    await s.CopyToAsync(f);
+                }
+                System.IO.Compression.ZipFile.ExtractToDirectory(tmp, GAME_INSTALL_PATH, true);
+                StatusLabel.Text = "Installation terminée.";
+                VersionLabel.Text = "Version: " + latest.Tag;
+            }
+            catch (Exception ex)
+            {
+                StatusLabel.Text = "Erreur installation: " + ex.Message;
+            }
+            finally
+            {
+                try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
+            }
         }
 
         private class ReleaseInfo
