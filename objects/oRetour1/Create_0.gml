@@ -3,9 +3,13 @@
 
 show_debug_message("### oRetour1.Create_0 - Objet créé à la position (" + string(x) + ", " + string(y) + ")");
 
-// Dimensions du bouton (identiques à celles dans Draw_0)
-button_width = 240;
-button_height = 80;
+// Dimensions du bouton basées sur le sprite `sButton`
+var baseW = sprite_get_width(sButton);
+var baseH = sprite_get_height(sButton);
+var scaleX = 0.6; // 400 * 0.6 = 240
+var scaleY = 0.8; // 100 * 0.8 = 80
+button_width = round(baseW * scaleX);
+button_height = round(baseH * scaleY);
 
 show_debug_message("### Dimensions du bouton: " + string(button_width) + "x" + string(button_height));
 

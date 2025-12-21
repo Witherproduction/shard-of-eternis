@@ -8,6 +8,10 @@ if (instance_exists(oPanelOptions)) {
     exit;
 }
 
+if (variable_global_exists("preventOptionsClick") && global.preventOptionsClick) {
+    exit;
+}
+
 // Assurer une seule instance (persistance) et positionnement par vue
 var first = instance_find(oOptionButton, 0);
 if (first != id) {

@@ -53,6 +53,19 @@ for (var row = 0; row < grid_rows; row++) {
         var current_cell_color = cell_color;
         var text_color = c_black;
         
+        // Vérifier si ce bot est disponible
+        var bot_available = false;
+        if (cell_index == 0) {
+            bot_available = true;
+        } else {
+            for (var i = 0; i < array_length(available_bots); i++) {
+                if (available_bots[i] == cell_index) {
+                    bot_available = true;
+                    break;
+                }
+            }
+        }
+        
         // Vérifier si cette cellule est sélectionnée
         if (selected_bot == cell_index) {
             current_cell_color = c_lime; // Vert pour la sélection
@@ -62,15 +75,6 @@ for (var row = 0; row < grid_rows; row++) {
             current_cell_color = c_yellow; // Jaune pour le bouton aléatoire
             text_color = c_black;
         } else {
-            // Vérifier si ce bot est disponible
-            var bot_available = false;
-            for (var i = 0; i < array_length(available_bots); i++) {
-                if (available_bots[i] == cell_index) {
-                    bot_available = true;
-                    break;
-                }
-            }
-            
             if (!bot_available) {
                 current_cell_color = c_gray; // Gris pour les bots non disponibles
                 text_color = c_dkgray;
@@ -97,23 +101,64 @@ for (var row = 0; row < grid_rows; row++) {
         draw_set_color(text_color);
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_text(cell_x + cell_width/2, cell_y + cell_height/2, cell_name);
+        
+        if (cell_index == 0) {
+             draw_text(cell_x + cell_width/2, cell_y + cell_height/2, "Aleatoire");
+        } else if (bot_available) {
+             // Vérifier si un portrait est défini
+             var has_portrait = false;
+             var bot_info = bot_data[cell_index];
+             if (variable_struct_exists(bot_info, "portrait") && bot_info.portrait != undefined) {
+                 var spr_idx = -1;
+                 if (is_string(bot_info.portrait)) {
+                     spr_idx = asset_get_index(bot_info.portrait);
+                 } else {
+                     spr_idx = bot_info.portrait;
+                 }
+                 
+                 if (spr_idx != -1) {
+                     // Dessiner le sprite adapté à la cellule (avec une petite marge)
+                     var draw_w = cell_width - 10;
+                     var draw_h = cell_height - 10;
+                     var spr_w = sprite_get_width(spr_idx);
+                     var spr_h = sprite_get_height(spr_idx);
+                     var scale_x = draw_w / spr_w;
+                     var scale_y = draw_h / spr_h;
+                     var scale = min(scale_x, scale_y); // Garder les proportions
+                     
+                     var ox = sprite_get_xoffset(spr_idx);
+                     var oy = sprite_get_yoffset(spr_idx);
+                     
+                     // Centrer
+                     var draw_px = cell_x + 5 + (draw_w - spr_w * scale) / 2;
+                     var draw_py = cell_y + 5 + (draw_h - spr_h * scale) / 2;
+                     
+                     // Ajuster pour l'origine du sprite
+                     draw_px += ox * scale;
+                     draw_py += oy * scale;
+                     
+                     draw_sprite_ext(spr_idx, 0, draw_px, draw_py, scale, scale, 0, c_white, 1);
+                     has_portrait = true;
+                 }
+             }
+
+             // Afficher le nom du bot si pas de portrait (ou un ID court)
+             if (!has_portrait) {
+                 draw_text(cell_x + cell_width/2, cell_y + cell_height/2, "Bot " + string(cell_index));
+             }
+        } else {
+             // Afficher un cadenas ou "Verrouillé"
+             draw_set_font(fontCardText); // Assurez-vous d'avoir une police petite si nécessaire, sinon defaut
+             draw_text(cell_x + cell_width/2, cell_y + cell_height/2, "Verrouille");
+             draw_set_font(-1);
+        }
 
         // Dessiner une croix rouge sur les bots non sélectionnables (hors "aléatoire")
-        if (cell_index != 0) {
-            var bot_allowed = false;
-            for (var j = 0; j < array_length(available_bots); j++) {
-                if (available_bots[j] == cell_index) {
-                    bot_allowed = true;
-                    break;
-                }
-            }
-            if (!bot_allowed) {
-                draw_set_color(c_red);
-                var lw = 4;
-                draw_line_width(cell_x + 6, cell_y + 6, cell_x + cell_width - 6, cell_y + cell_height - 6, lw);
-                draw_line_width(cell_x + cell_width - 6, cell_y + 6, cell_x + 6, cell_y + cell_height - 6, lw);
-            }
+        if (cell_index != 0 && !bot_available) {
+            draw_set_color(c_red);
+            var lw = 4;
+            draw_line_width(cell_x + 6, cell_y + 6, cell_x + cell_width - 6, cell_y + cell_height - 6, lw);
+            draw_line_width(cell_x + cell_width - 6, cell_y + 6, cell_x + 6, cell_y + cell_height - 6, lw);
         }
     }
 }

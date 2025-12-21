@@ -1,23 +1,49 @@
-/// FX_Poison Step: progression de l’animation, teinte fantomatique, et destruction différée
-if (duration_steps <= 0) duration_steps = 1;
-progress += 1;
+/// FX_Poison Step: progression de l’animation et destruction différée
+if (duration_ms <= 0) duration_ms = 1000;
+var elapsed = current_time - start_time;
 
-var t = clamp(progress / max(1, duration_steps), 0, 1);
-
-// Appliquer une teinte verte fantomatique sur la carte cible pendant l’animation
+// Suivre la position de la cible pour garantir l’overlay au bon endroit
 if (target != noone && instance_exists(target)) {
-    var ghost_col = make_color_rgb(60, 200, 80);
-    // Intensité qui décroit légèrement dans le temps
-    var mix_amt = 0.75 * (1.0 - t * 0.2);
-    target.image_blend = merge_color(orig_blend, ghost_col, mix_amt);
-    // On laisse image_alpha intacte pour éviter les effets de transparence non désirés
+    if (variable_instance_exists(target, "x")) x = target.x;
+    if (variable_instance_exists(target, "y")) y = target.y;
 }
 
-if (progress >= duration_steps) {
-    // Restaurer l’apparence de la carte puis la détruire
+// Ajuster la profondeur une fois la cible disponible ou appliquer un fallback fort
+if (!variable_instance_exists(self, "_depth_applied") || !_depth_applied) {
+    if (variable_instance_exists(self, "depth_override")) {
+        depth = depth_override;
+        _depth_applied = true;
+    } else if (target != noone && instance_exists(target) && variable_instance_exists(target, "depth")) {
+        depth = target.depth - 1;
+        _depth_applied = true;
+    } else {
+        depth = -100000;
+        _depth_applied = true;
+    }
+}
+
+if (elapsed >= duration_ms) {
     if (target != noone && instance_exists(target)) {
-        target.image_blend = orig_blend;
-        if (variable_instance_exists(target, "image_alpha")) target.image_alpha = orig_alpha;
+        if (variable_instance_exists(target, "_delay_instance_destroy_for_poison") && target._delay_instance_destroy_for_poison) {
+            var ctx = { destroyed_card: target };
+            if (variable_instance_exists(self, "source") && instance_exists(source)) { ctx.attacker = source; }
+            var gyInst = noone;
+            if (variable_instance_exists(target, "isHeroOwner") && target.isHeroOwner) { gyInst = global.graveyardHero; } else { gyInst = global.graveyardEnemy; }
+            if (gyInst != noone && instance_exists(gyInst)) { gyInst.addToGraveyard(target); }
+            if (variable_instance_exists(target, "zone") && (target.zone == "Field" || target.zone == "FieldSelected")) {
+                registerTriggerEvent(TRIGGER_LEAVE_FIELD, target, ctx);
+                var fm = noone;
+                if (instance_exists(fieldManagerHero) || instance_exists(fieldManagerEnemy)) {
+                    if (variable_instance_exists(target, "isHeroOwner") && target.isHeroOwner && instance_exists(fieldManagerHero)) { fm = fieldManagerHero; }
+                    else if (instance_exists(fieldManagerEnemy)) { fm = fieldManagerEnemy; }
+                }
+                if (fm != noone && variable_instance_exists(target, "fieldPosition")) { fm.remove(target); }
+            }
+            target.zone = "Graveyard";
+            target._delay_instance_destroy_for_poison = false;
+            target._skip_destruction_fx = true;
+            registerTriggerEvent(TRIGGER_ENTER_GRAVEYARD, target, ctx);
+        }
         if (!destroy_called) {
             destroy_called = true;
             if (instance_exists(target)) instance_destroy(target);

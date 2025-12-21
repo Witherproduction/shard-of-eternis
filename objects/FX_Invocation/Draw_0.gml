@@ -5,6 +5,23 @@
 var old_alpha = draw_get_alpha();
 var old_blend = gpu_get_blendmode();
 
+var _has_portal    = (variable_instance_exists(self, "ss_sprite_idx") && ss_sprite_idx != -1);
+var _draw_portal   = _has_portal && (variable_instance_exists(self, "ss_portal_t") && variable_instance_exists(self, "ss_portal_total_frames") && ss_portal_t < ss_portal_total_frames);
+var _zoom_total    = (variable_instance_exists(self, "ss_zoom_frames") ? ss_zoom_frames : round(0.5 * room_speed));
+var _pre_total     = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * room_speed));
+var _portal_total  = (variable_instance_exists(self, "ss_portal_total_frames") ? ss_portal_total_frames : _pre_total + round(1.0 * room_speed));
+
+if (_draw_portal) {
+    var zoom_p = clamp(ss_portal_t / max(1, _zoom_total), 0, 1);
+    var zoom_e = zoom_p * zoom_p * (3 - 2 * zoom_p);
+    var sc = (ss_portal_t < _zoom_total) ? (1.25 * zoom_e) : 1.25;
+    var fc_ss = sprite_get_number(ss_sprite_idx);
+    var pp = clamp(ss_portal_t / max(1, _portal_total), 0, 1);
+    var fi_ss = clamp(floor(pp * max(1, fc_ss - 1)), 0, max(0, fc_ss - 1));
+    draw_set_alpha(ss_alpha);
+    draw_sprite_ext(ss_sprite_idx, fi_ss, ss_x, ss_y, sc, sc, 0, c_white, 1);
+}
+
 // Phase fantôme (avant la pose)
 if (!finished_move) {
     if (variable_instance_exists(self, "spriteGhost") && spriteGhost != noone) {
@@ -43,9 +60,44 @@ else {
     var is_flash = (post_fx_t > post_fx_duration);
     var flash_p = is_flash ? clamp((post_fx_t - post_fx_duration) / max(1, flash_duration), 0, 1) : 0;
     var flash_str = is_flash ? max(0, 1.0 - (flash_p * flash_p * flash_p)) : 0;
+    var col_main = make_color_rgb(0, 180, 255);
     var col_fx = (flash_str > 0) ? merge_color(col_main, c_white, flash_str) : col_main;
     draw_set_color(col_fx);
-
+    var has_elec = (variable_instance_exists(self, "electric_sprite_idx") && electric_sprite_idx != -1);
+    if (has_elec) {
+        var fc = sprite_get_number(electric_sprite_idx);
+        var delay_half = round(0.3 * room_speed);
+        var cos_a = dcos(circ_angle);
+        var sin_a = dsin(circ_angle);
+        var vx_x = cos_a; var vx_y = sin_a;
+        var vy_x = -sin_a; var vy_y = cos_a;
+        var half_w = circ_w * 0.5;
+        var half_h = circ_h * 0.5;
+        var half_w_o = half_w + circuit_margin;
+        var half_h_o = half_h + circuit_margin;
+        var dirs = 10;
+        for (var ii = 0; ii < dirs; ii++) {
+            var ang = ii * (360 / dirs);
+            var cx = dcos(ang);
+            var cy = dsin(ang);
+            var sx = x + vx_x * (half_w * cx) + vy_x * (half_h * cy);
+            var sy = y + vx_y * (half_w * cx) + vy_y * (half_h * cy);
+            var ox = x + vx_x * (half_w_o * cx) + vy_x * (half_h_o * cy);
+            var oy = y + vx_y * (half_w_o * cx) + vy_y * (half_h_o * cy);
+            var dist_o = max(0.0001, point_distance(x, y, ox, oy));
+            var ex = ox + (ox - x) / dist_o * trace_out;
+            var ey = oy + (oy - y) / dist_o * trace_out;
+            var start_delay = (((ii & 1) == 1) ? delay_half : 0);
+            if (post_fx_t < start_delay) { continue; }
+            var p_loc = clamp((post_fx_t - start_delay) / max(1, post_fx_duration - start_delay), 0, 1);
+            var ex_p = sx + (ex - sx) * p_loc;
+            var ey_p = sy + (ey - sy) * p_loc;
+            var fi = clamp(floor(p_loc * max(1, fc - 1)), 0, max(0, fc - 1));
+            var dir_in = point_direction(ex_p, ey_p, x, y);
+            var angle_top_to_center = dir_in + 90;
+            draw_sprite_ext(electric_sprite_idx, fi, ex_p, ey_p, 0.5, 0.5, angle_top_to_center, c_white, 1);
+        }
+    } else {
     // Axes orientés et dimensions
     var cos_a = dcos(circ_angle);
     var sin_a = dsin(circ_angle);
@@ -98,112 +150,45 @@ else {
     var a_lx = lmx + (lmx - x) / max(0.0001, point_distance(x, y, lmx, lmy)) * trace_out;
     var a_ly = lmy + (lmy - y) / max(0.0001, point_distance(x, y, lmx, lmy)) * trace_out;
 
-    // Motif microchip: calcul du corps du chip (sans le dessiner)
-    var chip_scale = (variable_instance_exists(self, "chip_scale") ? chip_scale : 0.55);
-    var chw = half_w * chip_scale;
-    var chh = half_h * chip_scale;
-
-    // Coins du chip (orientés avec circ_angle) — utilisés comme origine des pins
-    var ch1x = x + vx_x * chw + vy_x * chh; var ch1y = y + vx_y * chw + vy_y * chh; // top-right
-    var ch2x = x - vx_x * chw + vy_x * chh; var ch2y = y - vx_y * chw + vy_y * chh; // top-left
-    var ch3x = x - vx_x * chw - vy_x * chh; var ch3y = y - vx_y * chw - vy_y * chh; // bottom-left
-    var ch4x = x + vx_x * chw - vy_x * chh; var ch4y = y + vx_y * chw - vy_y * chh; // bottom-right
-
-    // Ne pas dessiner le carré central ni le contour du chip: seulement les lignes (pins)
-
-
-
-    // Pins autour du chip: révélation par segments (A: sortie, B: latéral, C: sortie finale)
-    var base_margin = (variable_instance_exists(self, "circuit_margin") ? circuit_margin : 10);
-    var pin_out1    = base_margin * 0.8;
-    var pin_out2    = base_margin * 1.4;
-    var pin_lat_base= base_margin * 1.0;
-    var edge_inset  = max(2, base_margin * 0.5);
-
-    var tA = e_inner;
-    var tB = e_ring;
-    var tC = e_diag;
-
-    // Quantité de pins par côté (approximée sur l’image)
-    var pins_top    = (variable_instance_exists(self, "pins_top")    ? pins_top    : 5);
-    var pins_bottom = (variable_instance_exists(self, "pins_bottom") ? pins_bottom : 5);
-    var pins_left   = (variable_instance_exists(self, "pins_left")   ? pins_left   : 4);
-    var pins_right  = (variable_instance_exists(self, "pins_right")  ? pins_right  : 4);
-
-    // TOP
-    var top_left_x = c2x; var top_left_y = c2y;
-    var top_len = half_w * 2;
-    var gap_t = (top_len - edge_inset * 2) / max(1, pins_top - 1);
-    for (var i = 0; i < pins_top; i++) {
-        var along = edge_inset + i * gap_t;
-        var Sx = top_left_x + vx_x * along; var Sy = top_left_y + vx_y * along;
-        var side_factor = abs((i - (pins_top - 1) * 0.5)) / max(1, (pins_top - 1) * 0.5);
-        var lat = pin_lat_base * side_factor;
-        var sgn = ((i & 1) == 0) ? 1 : -1;
-        var P1x = Sx + vy_x * pin_out1; var P1y = Sy + vy_y * pin_out1;
-        var P2x = P1x + vx_x * (sgn * lat); var P2y = P1y + vx_y * (sgn * lat);
-        var P3x = P2x + vy_x * pin_out2; var P3y = P2y + vy_y * pin_out2;
-        if (tA > 0) { var e1x = Sx + (P1x - Sx) * tA; var e1y = Sy + (P1y - Sy) * tA; draw_line_width(Sx, Sy, e1x, e1y, trace_w); }
-        if (tB > 0) { var e2x = P1x + (P2x - P1x) * tB; var e2y = P1y + (P2y - P1y) * tB; draw_line_width(P1x, P1y, e2x, e2y, trace_w); }
-        if (tC > 0) { var e3x = P2x + (P3x - P2x) * tC; var e3y = P2y + (P3y - P2y) * tC; draw_line_width(P2x, P2y, e3x, e3y, trace_w); }
-        if (node_r > 1) { draw_circle_color(P3x, P3y, node_r, col_fx, col_fx, false); }
+    var th = max(2, trace_thickness * 2.0);
+    var segs = 12;
+    var amp = max(2, 12 * (1 - p) + 6);
+    var dirs = 12;
+    for (var ii = 0; ii < dirs; ii++) {
+        var ang = ii * (360 / dirs);
+        var cx = dcos(ang);
+        var cy = dsin(ang);
+        var sx = x + vx_x * (half_w * cx) + vy_x * (half_h * cy);
+        var sy = y + vx_y * (half_w * cx) + vy_y * (half_h * cy);
+        var ox = x + vx_x * (half_w_o * cx) + vy_x * (half_h_o * cy);
+        var oy = y + vx_y * (half_w_o * cx) + vy_y * (half_h_o * cy);
+        var dist_o = max(0.0001, point_distance(x, y, ox, oy));
+        var ex = ox + (ox - x) / dist_o * trace_out;
+        var ey = oy + (oy - y) / dist_o * trace_out;
+        var ex_p = sx + (ex - sx) * p;
+        var ey_p = sy + (ey - sy) * p;
+        var dx = ex_p - sx;
+        var dy = ey_p - sy;
+        var dist_l = max(1, point_distance(sx, sy, ex_p, ey_p));
+        var nx = -dy / dist_l;
+        var ny = dx / dist_l;
+        var txv_x = -vx_x * half_w_o * dsin(ang) + vy_x * half_h_o * dcos(ang);
+        var txv_y = -vx_y * half_w_o * dsin(ang) + vy_y * half_h_o * dcos(ang);
+        var tlen = max(1, point_distance(0, 0, txv_x, txv_y));
+        var txu = txv_x / tlen;
+        var tyu = txv_y / tlen;
+        for (var jj = 0; jj < segs; jj++) {
+            var t0 = jj / segs; var t1 = (jj + 1) / segs;
+            var sx0 = sx + dx * t0; var sy0 = sy + dy * t0;
+            var sx1 = sx + dx * t1; var sy1 = sy + dy * t1;
+            var j0 = amp * 0.6 * sin(t0 * pi);
+            var j1 = amp * 0.6 * sin(t1 * pi);
+            var s0 = amp * 0.3 * sin(t0 * pi);
+            var s1 = amp * 0.3 * sin(t1 * pi);
+            draw_line_width(sx0 + nx * j0 + txu * s0, sy0 + ny * j0 + tyu * s0, sx1 + nx * j1 + txu * s1, sy1 + ny * j1 + tyu * s1, th);
+        }
     }
-
-    // BOTTOM
-    var bottom_left_x = c3x; var bottom_left_y = c3y;
-    var gap_b = (top_len - edge_inset * 2) / max(1, pins_bottom - 1);
-    for (var j = 0; j < pins_bottom; j++) {
-        var alongb = edge_inset + j * gap_b;
-        var Sbx = bottom_left_x + vx_x * alongb; var Sby = bottom_left_y + vx_y * alongb;
-        var side_factor_b = abs((j - (pins_bottom - 1) * 0.5)) / max(1, (pins_bottom - 1) * 0.5);
-        var lat_b = pin_lat_base * side_factor_b;
-        var sgn_b = ((j & 1) == 0) ? -1 : 1;
-        var P1bx = Sbx - vy_x * pin_out1; var P1by = Sby - vy_y * pin_out1;
-        var P2bx = P1bx + vx_x * (sgn_b * lat_b); var P2by = P1by + vx_y * (sgn_b * lat_b);
-        var P3bx = P2bx - vy_x * pin_out2; var P3by = P2by - vy_y * pin_out2;
-        if (tA > 0) { var e1bx = Sbx + (P1bx - Sbx) * tA; var e1by = Sby + (P1by - Sby) * tA; draw_line_width(Sbx, Sby, e1bx, e1by, trace_w); }
-        if (tB > 0) { var e2bx = P1bx + (P2bx - P1bx) * tB; var e2by = P1by + (P2by - P1by) * tB; draw_line_width(P1bx, P1by, e2bx, e2by, trace_w); }
-        if (tC > 0) { var e3bx = P2bx + (P3bx - P2bx) * tC; var e3by = P2by + (P3by - P2by) * tC; draw_line_width(P2bx, P2by, e3bx, e3by, trace_w); }
-        if (node_r > 1) { draw_circle_color(P3bx, P3by, node_r, col_fx, col_fx, false); }
-    }
-
-    // LEFT
-    var left_top_x = c2x; var left_top_y = c2y;
-    var left_len = half_h * 2;
-    var gap_l = (left_len - edge_inset * 2) / max(1, pins_left - 1);
-    for (var k = 0; k < pins_left; k++) {
-        var alongl = edge_inset + k * gap_l;
-        var Slx = left_top_x - vy_x * alongl; var Sly = left_top_y - vy_y * alongl;
-        var side_factor_l = abs((k - (pins_left - 1) * 0.5)) / max(1, (pins_left - 1) * 0.5);
-        var lat_l = pin_lat_base * side_factor_l;
-        var sgn_l = ((k & 1) == 0) ? -1 : 1; // vers l'extérieur gauche
-        var P1lx = Slx - vx_x * pin_out1; var P1ly = Sly - vx_y * pin_out1;
-        var P2lx = P1lx + vy_x * (sgn_l * lat_l); var P2ly = P1ly + vy_y * (sgn_l * lat_l);
-        var P3lx = P2lx - vx_x * pin_out2; var P3ly = P2ly - vx_y * pin_out2;
-        if (tA > 0) { var e1lx = Slx + (P1lx - Slx) * tA; var e1ly = Sly + (P1ly - Sly) * tA; draw_line_width(Slx, Sly, e1lx, e1ly, trace_w); }
-        if (tB > 0) { var e2lx = P1lx + (P2lx - P1lx) * tB; var e2ly = P1ly + (P2ly - P1ly) * tB; draw_line_width(P1lx, P1ly, e2lx, e2ly, trace_w); }
-        if (tC > 0) { var e3lx = P2lx + (P3lx - P2lx) * tC; var e3ly = P2ly + (P3ly - P2ly) * tC; draw_line_width(P2lx, P2ly, e3lx, e3ly, trace_w); }
-        if (node_r > 1) { draw_circle_color(P3lx, P3ly, node_r, col_fx, col_fx, false); }
-    }
-
-    // RIGHT
-    var right_top_x = c1x; var right_top_y = c1y;
-    var right_len = half_h * 2;
-    var gap_r = (right_len - edge_inset * 2) / max(1, pins_right - 1);
-    for (var m = 0; m < pins_right; m++) {
-        var alongr = edge_inset + m * gap_r;
-        var Srx = right_top_x - vy_x * alongr; var Sry = right_top_y - vy_y * alongr;
-        var side_factor_r = abs((m - (pins_right - 1) * 0.5)) / max(1, (pins_right - 1) * 0.5);
-        var lat_r = pin_lat_base * side_factor_r;
-        var sgn_r = ((m & 1) == 0) ? 1 : -1; // vers l'extérieur droite
-        var P1rx = Srx + vx_x * pin_out1; var P1ry = Sry + vx_y * pin_out1;
-        var P2rx = P1rx + vy_x * (sgn_r * lat_r); var P2ry = P1ry + vy_y * (sgn_r * lat_r);
-        var P3rx = P2rx + vx_x * pin_out2; var P3ry = P2ry + vx_y * pin_out2;
-        if (tA > 0) { var e1rx = Srx + (P1rx - Srx) * tA; var e1ry = Sry + (P1ry - Sry) * tA; draw_line_width(Srx, Sry, e1rx, e1ry, trace_w); }
-        if (tB > 0) { var e2rx = P1rx + (P2rx - P1rx) * tB; var e2ry = P1ry + (P2ry - P1ry) * tB; draw_line_width(P1rx, P1ry, e2rx, e2ry, trace_w); }
-        if (tC > 0) { var e3rx = P2rx + (P3rx - P2rx) * tC; var e3ry = P2ry + (P3ry - P2ry) * tC; draw_line_width(P2rx, P2ry, e3rx, e3ry, trace_w); }
-        if (node_r > 1) { draw_circle_color(P3rx, P3ry, node_r, col_fx, col_fx, false); }
-    }
+}
 }
 
 // Restore state

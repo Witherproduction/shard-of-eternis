@@ -15,11 +15,7 @@ if (room == rCollection) {
     var spriteY = filterBarY + (filterBarHeight - spriteHeight) / 2;
     draw_sprite_stretched(sButton, 0, spriteX, spriteY, spriteWidth, spriteHeight);
 
-    // Dessiner le champ de texte (centré dans la barre)
-    draw_set_color(currentBoxColor);
-    draw_rectangle(filterBoxX, filterBoxY, filterBoxX + filterBoxWidth, filterBoxY + filterBoxHeight, false);
-    draw_set_color(borderColor);
-    draw_rectangle(filterBoxX, filterBoxY, filterBoxX + filterBoxWidth, filterBoxY + filterBoxHeight, true);
+    // Champ de texte sans cadre ni fond
 
     // Style du texte (ombre + crème dorée)
     var text_shadow_color = make_color_rgb(80, 50, 20);

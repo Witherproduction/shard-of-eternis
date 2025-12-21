@@ -63,7 +63,7 @@ var my = mouse_y;
 
 // Vérifier si la souris est dans la zone des cartes
 var cards_area_x = x + 10;
-var cards_area_y = y + 80;
+var cards_area_y = y + 70;
 var cards_area_width = frame_width - 20;
 var cards_area_height = calculate_cards_area_height();
 

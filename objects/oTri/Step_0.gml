@@ -13,9 +13,11 @@ if (mouse_check_button_pressed(mb_left)) {
     show_debug_message("### Clic gauche detecte a (" + string(mouse_x) + ", " + string(mouse_y) + ")");
     
     // Parametres identiques a ceux du Draw
-    var barWidth = 920; // Plus long pour correspondre au visuel
-    var barHeight = 90;  // Hauteur augmentée pour correspondre au fond
-    var barX = 310; // Décalé vers la gauche pour correspondre au fond
+    var baseW = sprite_get_width(sButton);
+    var baseH = sprite_get_height(sButton);
+    var barWidth = round(baseW * (570.0 / 300.0));
+    var barHeight = round(baseH * (90.0 / 100.0));
+    var barX = 610;
     var barY = room_height - 130; // Descendu légèrement pour correspondre au fond
     var buttonRadius = 15;
     var buttonSpacing = 60; // Espacement légèrement réduit pour resserrer les boutons

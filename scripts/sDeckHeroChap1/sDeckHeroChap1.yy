@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sDeckHeroChap1",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sDeckHeroChap1",
+  "parent":{
+    "name":"Chapitre1",
+    "path":"folders/Scripts/Deck/Chapitre1.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sEntrave",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sEntrave",
+  "parent":{
+    "name":"effet",
+    "path":"folders/Scripts/Duel/effet.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

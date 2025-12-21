@@ -23,6 +23,10 @@ with (parentCard) {
     // Vérifier si on peut changer l'orientation
     if (orientationChangedThisTurn) {
         show_debug_message("Orientation already changed this turn");
+    } else if (variable_instance_exists(id, "entrave_turns_remaining") && entrave_turns_remaining > 0 && variable_instance_exists(id, "entrave_block_position") && entrave_block_position) {
+        show_debug_message("### Entrave: changement de position bloqué");
+        position_anim_active = false;
+        exit;
     } else {
         // Paramètres d'animation (ralentis via constantes globales)
         position_anim_active = true;

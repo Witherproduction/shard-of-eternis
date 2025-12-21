@@ -6,6 +6,10 @@ show_debug_message("### oGame.create")
 
 // Charger et appliquer les options utilisateur au lancement du jeu
 if (!variable_global_exists("options_loaded") || !global.options_loaded) {
+    // Note: L'initialisation se fait désormais dans oGlobalManager (rAcceuil)
+    // Ce bloc est gardé en secours si on lance le jeu directement depuis rDuel
+    progression_init();
+
     // Volume
     ini_open("options.ini");
     var _ini_vol = ini_read_real("audio", "volume_percent", 100);
@@ -40,6 +44,7 @@ if (!variable_global_exists("options_loaded") || !global.options_loaded) {
     }
 
     global.options_loaded = true;
+    show_debug_message("### Options chargées par oGame (fallback)");
 }
 
 // Initialiser le générateur pseudo-aléatoire une seule fois par session
@@ -125,18 +130,24 @@ if (!instance_exists(oDataBase)) {
 nextPhase = function() {
     show_debug_message("### oGame.nextPhase")
 
+    var prev_phase = phase[phase_current];
+    registerTriggerEvent(TRIGGER_END_PHASE, noone, { phase: prev_phase });
+
     if (phase[phase_current] == "Attack") {
         // Fin du tour: déclenche les effets de fin
         registerTriggerEvent(TRIGGER_END_TURN, noone, {});
         if (instance_exists(handHero)) { handHero.reveal_override = false; if (variable_instance_exists(handHero, "updateDisplay")) { handHero.updateDisplay(); } }
         if (instance_exists(handEnemy)) { handEnemy.reveal_override = false; if (variable_instance_exists(handEnemy, "updateDisplay")) { handEnemy.updateDisplay(); } }
         player_current = (player_current + 1) % 2;
-        nextStep.image_alpha = 0.5;
+        nextStep.image_index = 1;
         nbTurn++;
     }
 
     phase_current = (phase_current + 1) % 3;
     global.current_phase = phase[phase_current];
+    if (phase[phase_current] == "Attack") {
+        registerTriggerEvent(TRIGGER_BATTLE_PHASE, noone, {});
+    }
 
     // Réinitialisation des états au début du tour
   if (phase[phase_current] == "Pick") {

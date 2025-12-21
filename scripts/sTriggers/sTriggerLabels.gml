@@ -4,12 +4,12 @@
 /// @param {string} triggerId - Macro TRIGGER_*
 /// @returns {string}
 function getTriggerLabel(triggerId) {
-    if (triggerId == TRIGGER_END_TURN)       return "Finalisation";         // Fin de tour
-    if (triggerId == TRIGGER_START_TURN)     return "Initialisation";       // Début de tour
-    if (triggerId == TRIGGER_ON_DESTROY)     return "tombe";               // Détruit
-    if (triggerId == TRIGGER_ENTER_GRAVEYARD)return "perdu";               // Envoyé au cimetière
+    if (triggerId == TRIGGER_END_TURN)       return "Crépuscule";          // Fin de tour
+    if (triggerId == TRIGGER_START_TURN)     return "Aube";                // Début de tour
+    if (triggerId == TRIGGER_ON_DESTROY)     return "brisé";               // Détruit
+    if (triggerId == TRIGGER_ENTER_GRAVEYARD)return "rupture";             // Envoyé au cimetière
     if (triggerId == TRIGGER_ON_DEFENSE)     return "défenseur";           // Après avoir été attaqué (se défendre)
-    if (triggerId == TRIGGER_ON_SUMMON)      return "appel";               // À l'invocation (normal ou sacrifice)
+    if (triggerId == TRIGGER_ON_SUMMON)      return "Eveil";               // À l'invocation (normal ou sacrifice)
     if (triggerId == TRIGGER_ON_ATTACK)      return "attaque";             // Déclaration d'attaque
     if (triggerId == TRIGGER_AFTER_ATTACK)   return "post-attaque";        // Après résolution d'une attaque
     if (triggerId == TRIGGER_AFTER_DEFENSE)  return "post-défense";        // Après résolution d'une défense

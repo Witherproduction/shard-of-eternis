@@ -3,6 +3,14 @@
 
 show_debug_message("### oButtonHistoire.Create_0 - Objet créé à la position (" + string(x) + ", " + string(y) + ")");
 
+// FAIL-SAFE: Créer le manager de musique s'il n'existe pas
+if (!instance_exists(oGlobalMusicManager)) {
+    show_debug_message("### oButtonHistoire: oGlobalMusicManager MANQUANT ! Création immédiate par code.");
+    instance_create_depth(0, 0, 0, oGlobalMusicManager);
+} else {
+    show_debug_message("### oButtonHistoire: oGlobalMusicManager existe déjà.");
+}
+
 // Dimensions du bouton (identiques à celles dans Draw_0)
 button_width = 400;
 button_height = 100;

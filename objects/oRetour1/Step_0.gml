@@ -10,8 +10,8 @@ if (instance_exists(oPanelOptions)) {
 }
 
 // Vérifier si on est dans une room qui a un bouton retour
-if (room != rCollection && room != rHistoire && room != rMode && room != rPartieRapide && 
-    room != rChallenge && room != rContreIa && room != rPuzzle) {
+if (room != rCollection && room != rHistoire && room != rMode && room != rCardCreator && 
+    room != rContreIa && room != rDuel) {
     exit; // Sortir si on n'est pas dans une room appropriée
 }
 
@@ -37,7 +37,11 @@ if (mouse_check_button_pressed(mb_left)) {
         show_debug_message("### Zone bouton: (" + string(button_left) + ", " + string(button_top) + ") à (" + string(button_right) + ", " + string(button_bottom) + ")");
         
         // Déterminer la destination selon la room actuelle
-        if (room == rChallenge || room == rContreIa || room == rPuzzle) {
+        if (room == rDuel) {
+            clear_selected_decks();
+            show_debug_message("### Navigation vers rMode depuis rDuel avec nettoyage des decks");
+            room_goto(rMode);
+        } else if (room == rContreIa) {
             show_debug_message("### Navigation vers rMode depuis " + string(room_get_name(room)));
             room_goto(rMode);
         } else {

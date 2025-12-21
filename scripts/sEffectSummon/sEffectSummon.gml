@@ -27,8 +27,6 @@ function summonToken(card, effect, context) {
     token.is_player_card = ownerIsHero;
     token.fieldPosition = pos;
     fieldMgr.add(token);
-    token.image_xscale = 0.2475;
-    token.image_yscale = 0.2475;
     token.zone = "Field";
     token.depth = 0;
     token.orientation = "Attack";
@@ -36,10 +34,114 @@ function summonToken(card, effect, context) {
     token.image_index = 0;
     token.image_angle = ownerIsHero ? 0 : 180;
     token.attackModeActivated = false;
-    registerTriggerEvent(TRIGGER_ON_SUMMON, token, { summon_mode: "SpecialSummon", owner_is_hero: ownerIsHero });
-    // Diffuser aussi l’événement d’invocation de monstre (utile pour Secrets)
-    registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, token, { summon_mode: "SpecialSummon", owner_is_hero: ownerIsHero });
-    return true;
+    token.visible = false;
+
+    var start_x_ss = 220;
+    var start_y_ss = room_height * 0.5;
+    var ghost_idx = 0;
+    var ghost_angle = ownerIsHero ? 0 : 180;
+    var fx = instance_create_layer(start_x_ss, start_y_ss, "UI", FX_Invocation);
+    if (fx != noone) {
+        fx.spriteGhost         = token.sprite_index;
+        fx.imageGhost          = ghost_idx;
+        fx.image_angle         = ghost_angle;
+        fx.image_xscale        = 0;
+        fx.image_yscale        = 0;
+        fx.target_x            = X;
+        fx.target_y            = Y;
+        fx.field_position      = pos;
+        fx.duration_ms         = 200;
+        fx.post_fx_duration_ms = 1000;
+        fx.card_real           = token;
+        fx.owner_is_hero       = ownerIsHero;
+        fx.summon_mode         = "SpecialSummon";
+        fx.card_type           = "Monster";
+        fx.desired_orientation = "Attack";
+        fx.col_main            = make_color_rgb(255, 215, 0);
+        fx.trace_thickness     = 2;
+        fx.node_radius         = 4;
+        return true;
+    }
+    return false;
+}
+
+/// @function copySummonFromTarget(card, effect, context)
+/// @description Invoque sur votre terrain une copie du monstre ciblé (adverse). La copie ne peut pas attaquer.
+/// @returns {bool}
+function copySummonFromTarget(card, effect, context) {
+    if (!variable_struct_exists(context, "target")) return false;
+    var srcTarget = context.target;
+    if (srcTarget == noone || !instance_exists(srcTarget)) return false;
+    if (!(variable_instance_exists(srcTarget, "type") && string_lower(srcTarget.type) == "monster")) return false;
+    if (!(variable_instance_exists(srcTarget, "zone") && (srcTarget.zone == "Field" || srcTarget.zone == "FieldSelected"))) return false;
+
+    var ownerIsHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
+                       : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+    var slot = getLeftmostFreeMonsterSlot(ownerIsHero);
+    if (slot == noone) { show_debug_message("### copySummonFromTarget: Aucun slot libre"); return false; }
+    var fieldMgr = slot.fieldMgr;
+    var pos = slot.pos;
+    var X = slot.x;
+    var Y = slot.y;
+
+    var objIndex = srcTarget.object_index;
+    var copy = instance_create_layer(X, Y, "Instances", objIndex);
+    if (copy == noone) return false;
+
+    // Copier les propriétés essentielles
+    if (variable_instance_exists(srcTarget, "name")) copy.name = srcTarget.name;
+    if (variable_instance_exists(srcTarget, "attack")) copy.attack = srcTarget.attack;
+    if (variable_instance_exists(srcTarget, "defense")) copy.defense = srcTarget.defense;
+    if (variable_instance_exists(srcTarget, "type")) copy.type = srcTarget.type;
+    if (variable_instance_exists(srcTarget, "archetype")) copy.archetype = srcTarget.archetype;
+    if (variable_instance_exists(srcTarget, "star")) copy.star = srcTarget.star;
+
+    // Poser la copie côté lanceur
+    copy.isHeroOwner = ownerIsHero;
+    copy.is_player_card = ownerIsHero;
+    copy.fieldPosition = pos;
+    fieldMgr.add(copy);
+    copy.zone = "Field";
+    copy.depth = 0;
+    copy.orientation = "Attack";
+    copy.isFaceDown = false;
+    copy.image_index = 0;
+    copy.image_angle = ownerIsHero ? 0 : 180;
+    copy.attackModeActivated = false;
+    copy.visible = false;
+
+    // Interdiction d'attaquer
+    copy.entrave_block_attack = true;
+    copy.entrave_turns_remaining = 9999;
+
+    // FX d'invocation
+    var start_x = 220;
+    var start_y = room_height * 0.5;
+    var ghost_idx = 0;
+    var ghost_angle = ownerIsHero ? 0 : 180;
+    var fx = instance_create_layer(start_x, start_y, "UI", FX_Invocation);
+    if (fx != noone) {
+        fx.spriteGhost         = copy.sprite_index;
+        fx.imageGhost          = ghost_idx;
+        fx.image_angle         = ghost_angle;
+        fx.image_xscale        = 0;
+        fx.image_yscale        = 0;
+        fx.target_x            = X;
+        fx.target_y            = Y;
+        fx.field_position      = pos;
+        fx.duration_ms         = 200;
+        fx.post_fx_duration_ms = 1000;
+        fx.card_real           = copy;
+        fx.owner_is_hero       = ownerIsHero;
+        fx.summon_mode         = "SpecialSummon";
+        fx.card_type           = "Monster";
+        fx.desired_orientation = "Attack";
+        fx.col_main            = make_color_rgb(255, 215, 0);
+        fx.trace_thickness     = 2;
+        fx.node_radius         = 4;
+        return true;
+    }
+    return false;
 }
 
 function activateSpellByCriteria(card, effect, context) {
@@ -271,6 +373,8 @@ function applySummonBySpec(card, effect, context) {
         return specialSummonSelf(card, effect, context);
     } else if (mode == "named") {
         return specialSummonNamed(card, effect, context);
+    } else if (mode == "copy_target") {
+        return copySummonFromTarget(card, effect, context);
     } else if (mode == "activate_spell") {
         return activateSpellByCriteria(card, effect, context);
     } else if (mode == "source_from_hand" || mode == "source") {
@@ -290,3 +394,4 @@ function applySummonBySpec(card, effect, context) {
     // À défaut, tenter l’invocation de la carte elle-même si en main
     return specialSummonSelf(card, effect, context);
 }
+

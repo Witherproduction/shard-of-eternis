@@ -280,23 +280,29 @@ if (show_preview) {
     draw_text(preview_x + 10, preview_y_offset, "Type: " + string(card_type));
     preview_y_offset += 18;
 
-    // Aperçu graphique du sprite de la carte (centré sur l'écran)
+    var spr_id = -1;
     if (is_string(input_fields.sprite) && string_length(input_fields.sprite) > 0) {
-        var spr_id = asset_get_index(input_fields.sprite);
-        if (spr_id != -1 && sprite_exists(spr_id)) {
-            var spr_w = sprite_get_width(spr_id);
-            var spr_h = sprite_get_height(spr_id);
-            var box_w = 180;
-            var box_h = 240;
-            var scale = min(box_w / spr_w, box_h / spr_h) * 2; // taille doublée
-            var center_x = ui_x + ui_width * 0.5;
-            var center_y = ui_y + ui_height * 0.5;
-            var xoff = sprite_get_xoffset(spr_id);
-            var yoff = sprite_get_yoffset(spr_id);
-            var draw_x = center_x + xoff * scale - spr_w * scale * 0.5;
-            var draw_y = center_y + yoff * scale - spr_h * scale * 0.5;
-            draw_sprite_ext(spr_id, 0, draw_x, draw_y, scale, scale, 0, c_white, 1);
+        spr_id = asset_get_index(input_fields.sprite);
+        if (spr_id == -1) {
+            var spr_num = real(input_fields.sprite);
+            if (sprite_exists(spr_num)) spr_id = spr_num;
         }
+    } else if (is_real(input_fields.sprite)) {
+        spr_id = input_fields.sprite;
+    }
+    if (spr_id != -1 && sprite_exists(spr_id)) {
+        var spr_w = sprite_get_width(spr_id);
+        var spr_h = sprite_get_height(spr_id);
+        var box_w = 180;
+        var box_h = 240;
+        var scale = min(box_w / spr_w, box_h / spr_h) * 2;
+        var center_x = ui_x + ui_width * 0.5;
+        var center_y = ui_y + ui_height * 0.5;
+        var xoff = sprite_get_xoffset(spr_id);
+        var yoff = sprite_get_yoffset(spr_id);
+        var draw_x = center_x + xoff * scale - spr_w * scale * 0.5;
+        var draw_y = center_y + yoff * scale - spr_h * scale * 0.5;
+        draw_sprite_ext(spr_id, 0, draw_x, draw_y, scale, scale, 0, c_white, 1);
     }
 
     // Stats basiques
@@ -311,8 +317,7 @@ if (show_preview) {
     var desc_h = string_height_ext(desc_text, 14, preview_w - 20);
     preview_y_offset += desc_h + 6;
 
-    // Statut du sprite
-    var spr_status = (is_string(input_fields.sprite) && string_length(input_fields.sprite) > 0) ? "Sprite: " + string(input_fields.sprite) : "Sprite: (aucun)";
+    var spr_status = (is_string(input_fields.sprite) && string_length(input_fields.sprite) > 0) ? "Sprite: " + string(input_fields.sprite) : (is_real(input_fields.sprite) ? "Sprite: " + string(input_fields.sprite) : "Sprite: (aucun)");
     draw_text(preview_x + 10, preview_y_offset, spr_status);
     preview_y_offset += 18;
 }

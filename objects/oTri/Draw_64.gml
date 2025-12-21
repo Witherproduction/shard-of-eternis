@@ -1,10 +1,12 @@
 // === Barre de tri a cote du filtre ===
 
-// Position et dimensions (elargie pour 7 boutons + bouton d'inversion)
-var barWidth = 920; // Plus long pour un changement net
-var barHeight = 90; // Hauteur augmentée pour un fond plus lisible
-var barX = 310; // Décalé vers la gauche pour étendre par la gauche
-var barY = room_height - 130; // Descendu légèrement pour meilleure position
+// Position et dimensions basées sur `sButton`
+var baseW = sprite_get_width(sButton);
+var baseH = sprite_get_height(sButton);
+var barWidth = round(baseW * (570.0 / 300.0));
+var barHeight = round(baseH * (90.0 / 100.0));
+var barX = 610;
+var barY = room_height - 130;
 
 // Dessiner le fond de la barre avec le sprite sButton (étiré sur la largeur/hauteur)
 draw_sprite_stretched(sButton, 0, barX, barY, barWidth, barHeight);

@@ -43,7 +43,7 @@ if (spr != -1) {
     draw_set_color(make_color_rgb(40, 40, 40));
     draw_roundrect(btn_x1, btn_y1, btn_x2, btn_y2, false);
     
-    // Bouton Abandonner (à côté du bouton Retour, uniquement en duel)
+    // Bouton secondaire (à côté du bouton Retour)
     if (abandon_enabled) {
         // Fond du bouton Abandonner (utilise la géométrie calculée dans Step)
         draw_set_alpha(0.95);
@@ -52,6 +52,14 @@ if (spr != -1) {
 
         // Bordure rouge pour Abandonner
         draw_set_color(c_red);
+        draw_roundrect(abandon_btn_x1, abandon_btn_y1, abandon_btn_x2, abandon_btn_y2, true);
+    } else if (quit_enabled) {
+        // Fond du bouton Quitter
+        draw_set_alpha(0.95);
+        draw_set_color(make_color_rgb(40, 40, 40));
+        draw_roundrect(abandon_btn_x1, abandon_btn_y1, abandon_btn_x2, abandon_btn_y2, false);
+        // Bordure dorée comme Retour
+        draw_set_color(make_color_rgb(220, 200, 120));
         draw_roundrect(abandon_btn_x1, abandon_btn_y1, abandon_btn_x2, abandon_btn_y2, true);
     }
 
@@ -66,13 +74,17 @@ if (spr != -1) {
     draw_set_color(c_white);
     draw_text_transformed((btn_x1 + btn_x2) * 0.5, (btn_y1 + btn_y2) * 0.5, "Retour", ui_text_scale, ui_text_scale, 0);
     
-    // Texte du bouton Abandonner
+    // Texte du bouton secondaire
     if (abandon_enabled) {
         var abandon_btn_center_x = (abandon_btn_x1 + abandon_btn_x2) * 0.5;
         var abandon_btn_center_y = (abandon_btn_y1 + abandon_btn_y2) * 0.5;
         draw_text_transformed(abandon_btn_center_x, abandon_btn_center_y, "Abandonner", ui_text_scale, ui_text_scale, 0);
+    } else if (quit_enabled) {
+        var quit_btn_center_x = (abandon_btn_x1 + abandon_btn_x2) * 0.5;
+        var quit_btn_center_y = (abandon_btn_y1 + abandon_btn_y2) * 0.5;
+        draw_text_transformed(quit_btn_center_x, quit_btn_center_y, "Quitter", ui_text_scale, ui_text_scale, 0);
 
-        // Pop-up de confirmation
+        // Pop-up de confirmation (uniquement pour Abandonner)
         if (abandon_confirm_open) {
             // Overlay semi-transparent
             draw_set_alpha(0.7);

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sStoryDeckManager",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sStoryDeckManager",
+  "parent":{
+    "name":"Deck",
+    "path":"folders/Scripts/Deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

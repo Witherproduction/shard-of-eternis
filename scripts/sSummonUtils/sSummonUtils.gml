@@ -26,6 +26,7 @@ function specialSummonNamed(card, effect, context) {
 
     var targetName = variable_struct_exists(effect, "target_name") ? effect.target_name : "";
     var targetObjectName = variable_struct_exists(effect, "target_object") ? effect.target_object : "";
+    var objectName = variable_struct_exists(effect, "object_name") ? effect.object_name : "";
 
     // Debug global supprimé: conserver uniquement les logs liés aux artéfacts
 
@@ -42,31 +43,57 @@ function specialSummonNamed(card, effect, context) {
     if (variable_struct_exists(effect, "criteria")) criteria = effect.criteria;
     if (targetName != "") criteria.name = targetName;
     if (targetObjectName != "") criteria.object_name = targetObjectName;
+    if (objectName != "") criteria.object_name = objectName;
 
     var found = findCard(ownerIsHero, criteria, allowedSources);
-    if (found == noone) {
-        return false;
-    }
-
     var fieldMgr = slot.fieldMgr;
     var pos = slot.pos;
     var X = slot.x;
     var Y = slot.y;
-
     var cardToSummon = noone;
+    if (found == noone) {
+        var objIndex = noone;
+        if (objectName != "") {
+            var idxO = asset_get_index(objectName);
+            if (idxO != -1) objIndex = idxO;
+        } else if (targetObjectName != "") {
+            var idxT = asset_get_index(targetObjectName);
+            if (idxT != -1) objIndex = idxT;
+        } else if (targetName != "") {
+            var cardsByName = dbGetCardsByName(targetName);
+            if (is_array(cardsByName) && array_length(cardsByName) > 0) {
+                var cdata = cardsByName[0];
+                if (variable_struct_exists(cdata, "objectId")) {
+                    var idxDb = asset_get_index(cdata.objectId);
+                    if (idxDb != -1) objIndex = idxDb;
+                }
+            }
+            if (objIndex == noone) {
+                var idxNm = asset_get_index(targetName);
+                if (idxNm != -1) objIndex = idxNm;
+            }
+        }
+        if (objIndex == noone) {
+            return false;
+        }
+        cardToSummon = instance_create_layer(X, Y, layer_get_id("Instances"), objIndex);
+        if (cardToSummon != noone) { cardToSummon.isHeroOwner = ownerIsHero; }
+    }
+
+    // Si la carte a déjà été créée par fallback ci-dessus, sa pose sur le terrain sera gérée ci-après
 
     // Selon la source trouvée, retirer et invoquer
-    if (found.source == "Hand") {
+    if (found != noone && found.source == "Hand") {
         UIManager.selectedSummonOrSet = "SpecialSummon";
         var summoned = (ownerIsHero ? handHero : handEnemy).summon(found.card, [X, Y, pos]);
         UIManager.selectedSummonOrSet = "";
         cardToSummon = found.card;
-    } else if (found.source == "Deck") {
+    } else if (found != noone && found.source == "Deck") {
         var deck = ownerIsHero ? deckHero : deckEnemy;
         var didx = (found.data != noone && variable_struct_exists(found.data, "index")) ? found.data.index : ds_list_find_index(deck.cards, found.card);
         if (didx != -1) ds_list_delete(deck.cards, didx);
         cardToSummon = found.card;
-    } else if (found.source == "Graveyard") {
+    } else if (found != noone && found.source == "Graveyard") {
         var graveyard = ownerIsHero ? graveyardHero : graveyardEnemy;
         var objIndex = noone;
         var gdataSummon = found.card;
@@ -88,37 +115,42 @@ function specialSummonNamed(card, effect, context) {
         }
         var gidx = (found.data != noone && variable_struct_exists(found.data, "index")) ? found.data.index : -1;
         if (gidx != -1) { array_delete(graveyard.cards, gidx, 1); }
-    } else {
-        return false;
     }
 
     if (cardToSummon == noone) return false;
 
-    cardToSummon.x = X;
-    cardToSummon.y = Y;
     cardToSummon.fieldPosition = pos;
     fieldMgr.add(cardToSummon);
-
-    cardToSummon.image_xscale = 0.2475;
-    cardToSummon.image_yscale = 0.2475;
     cardToSummon.zone = "Field";
     cardToSummon.depth = 0;
-    cardToSummon.orientation = "Attack";
-    cardToSummon.isFaceDown = false;
-    cardToSummon.image_index = 0;
-    cardToSummon.image_angle = ownerIsHero ? 0 : 180;
+    cardToSummon.visible = false;
 
-    if (cardToSummon.type == "Monster") {
-        cardToSummon.orientationChangedThisTurn = true;
+    var ghost_idx = 0;
+    var ghost_angle = ownerIsHero ? 0 : 180;
+    var start_x_ss = 220;
+    var start_y_ss = room_height * 0.5;
+    var fx = instance_create_layer(start_x_ss, start_y_ss, "UI", FX_Invocation);
+    if (fx != noone) {
+        fx.spriteGhost         = cardToSummon.sprite_index;
+        fx.imageGhost          = ghost_idx;
+        fx.image_angle         = ghost_angle;
+        fx.image_xscale        = 0;
+        fx.image_yscale        = 0;
+        fx.target_x            = X;
+        fx.target_y            = Y;
+        fx.field_position      = pos;
+        fx.duration_ms         = 1200;
+        fx.post_fx_duration_ms = 1000;
+        fx.card_real           = cardToSummon;
+        fx.owner_is_hero       = ownerIsHero;
+        fx.summon_mode         = "SpecialSummon";
+        fx.card_type           = (variable_instance_exists(cardToSummon, "type") ? cardToSummon.type : "Monster");
+        fx.desired_orientation = "Attack";
+        fx.col_main            = make_color_rgb(255, 215, 0);
+        fx.trace_thickness     = 2;
+        fx.node_radius         = 4;
+        if (is_struct(context)) { context.summoned = cardToSummon; }
+        return true;
     }
-
-    // Exposer l'instance invoquée dans le contexte et déclencher les triggers d'invocation spéciale
-    if (is_struct(context)) {
-        context.summoned = cardToSummon;
-        registerTriggerEvent(TRIGGER_ON_SUMMON, cardToSummon, { summon_mode: "SpecialSummon", owner_is_hero: ownerIsHero });
-        // Assurer la diffusion de l’événement d’invocation de monstre
-        registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, cardToSummon, { summon_mode: "SpecialSummon", owner_is_hero: ownerIsHero });
-    }
-
-    return true;
+    return false;
 }

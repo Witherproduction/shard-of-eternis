@@ -31,30 +31,17 @@ draw_rectangle(frame_x + frame_width - 2, frame_y, frame_x + frame_width, frame_
 // Obtenir les informations du bot depuis le système de données
 var bot_id = grid_instance.selected_bot;
 var bot_info = grid_instance.bot_data[bot_id];
-// Rétablir le nom du bot et afficher la thématique dans la description
-var theme_name = get_bot_deck_name(bot_info.deck_id);
+
+// Rétablir le nom du bot et utiliser la description du deck
 var bot_name = bot_info.name;
-var bot_description = "";
-switch (bot_info.deck_id) {
-    case 1:
-        bot_description = "Un deck Rose noire utilisant uniquement des cartes d'archétype Rose noire";
-        break;
-    case 2:
-        bot_description = "Un deck Dragon axé sur les cartes de genre Dragon";
-        break;
-    case 3:
-        bot_description = "Un deck Bête utilisant principalement des cartes de genre Bête";
-        break;
-    case 4:
-        bot_description = "Un deck Mort-vivant utilisant principalement des cartes de genre Mort-vivant";
-        break;
-    default:
-        bot_description = bot_info.description;
-        break;
-}
+var bot_description = bot_info.description;
+
 // Ajouter l'information de profil
 var profile_name = get_bot_deck_profile(bot_info.deck_id);
-bot_description = bot_description + "\n\nProfil: " + profile_name;
+if (profile_name != undefined && profile_name != "") {
+    bot_description = bot_description + "\n\nProfil: " + profile_name;
+}
+
 var bot_deck = bot_info.deck_name;
 var bot_difficulty = bot_info.difficulty;
 
@@ -89,15 +76,52 @@ var portrait_height = 120;
 // Fond blanc pour le portrait
 draw_rectangle(portrait_x, portrait_y, portrait_x + portrait_width, portrait_y + portrait_height, false);
 
+// Vérifier si un portrait est défini
+var has_portrait = false;
+if (variable_struct_exists(bot_info, "portrait") && bot_info.portrait != undefined) {
+    var spr_idx = -1;
+    if (is_string(bot_info.portrait)) {
+        spr_idx = asset_get_index(bot_info.portrait);
+    } else {
+        spr_idx = bot_info.portrait;
+    }
+    
+    if (spr_idx != -1) {
+        // Dessiner le sprite adapté à la zone
+        var spr_w = sprite_get_width(spr_idx);
+        var spr_h = sprite_get_height(spr_idx);
+        var scale_x = portrait_width / spr_w;
+        var scale_y = portrait_height / spr_h;
+        // Garder le ratio (fill) ou fit ? Fit est mieux pour ne pas couper.
+        var scale = min(scale_x, scale_y);
+        
+        var ox = sprite_get_xoffset(spr_idx);
+        var oy = sprite_get_yoffset(spr_idx);
+        
+        // Centrer
+        var draw_px = portrait_x + (portrait_width - spr_w * scale) / 2;
+        var draw_py = portrait_y + (portrait_height - spr_h * scale) / 2;
+        
+        // Ajuster pour l'origine du sprite
+        draw_px += ox * scale;
+        draw_py += oy * scale;
+        
+        draw_sprite_ext(spr_idx, 0, draw_px, draw_py, scale, scale, 0, c_white, 1);
+        has_portrait = true;
+    }
+}
+
 // Bordure du portrait
 draw_set_color(border_color);
 draw_rectangle(portrait_x, portrait_y, portrait_x + portrait_width, portrait_y + portrait_height, true);
 
-// Texte placeholder
-draw_set_color(c_gray);
-draw_set_halign(fa_center);
-draw_set_valign(fa_middle);
-draw_text(portrait_x + portrait_width/2, portrait_y + portrait_height/2, "PORTRAIT\nPLACEHOLDER");
+// Texte placeholder si pas de portrait
+if (!has_portrait) {
+    draw_set_color(c_gray);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_text(portrait_x + portrait_width/2, portrait_y + portrait_height/2, "PORTRAIT\nPLACEHOLDER");
+}
 
 content_y += portrait_height + 30;
 
@@ -119,24 +143,7 @@ draw_set_color(text_color);
 draw_text(content_x, content_y, "Deck:");
 draw_set_color(title_color);
 // Afficher le nom thématique du deck
-var deck_theme_name = "";
-switch (bot_info.deck_id) {
-    case 1:
-        deck_theme_name = "deck rose noir";
-        break;
-    case 2:
-        deck_theme_name = "deck dragon";
-        break;
-    case 3:
-        deck_theme_name = "deck bête";
-        break;
-    case 4:
-        deck_theme_name = "deck mort-vivant";
-        break;
-    default:
-        deck_theme_name = bot_deck;
-        break;
-}
+var deck_theme_name = bot_deck;
 draw_text(content_x + 60, content_y, deck_theme_name);
 content_y += 30;
 
@@ -187,3 +194,31 @@ content_y = btn_y + diff_btn_h + 20;
 // Remettre les alignements par défaut
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
+
+draw_set_color(text_color);
+draw_text(content_x, content_y, "Deck du bot :");
+content_y += 26;
+
+var deck_cards = get_bot_deck_cards(bot_info.deck_id);
+var counts = {};
+for (var i = 0; i < array_length(deck_cards); i++) {
+    var cid = deck_cards[i];
+    var cur = variable_struct_exists(counts, cid) ? counts[$ cid] : 0;
+    variable_struct_set(counts, cid, cur + 1);
+}
+var keys = variable_struct_get_names(counts);
+var db = getDatabase();
+for (var j = 0; j < array_length(keys); j++) {
+    var objId = keys[j];
+    var qty = counts[$ objId];
+    var disp = objId;
+    if (db != noone && instance_exists(db)) {
+        var cards_all = dbGetAllCards();
+        for (var k = 0; k < array_length(cards_all); k++) {
+            var card = cards_all[k];
+            if (variable_struct_exists(card, "objectId") && card.objectId == objId) { disp = card.name; break; }
+        }
+    }
+    draw_text(content_x, content_y, "x" + string(qty) + " - " + disp);
+    content_y += 22;
+}

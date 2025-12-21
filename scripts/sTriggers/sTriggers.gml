@@ -119,13 +119,13 @@
 /// @returns {bool} - True si le déclencheur doit être activé
 
 function checkTrigger(card, triggerType, context = {}) {
-
+    
     // Vérifier si la carte a des effets
-
-    if (!variable_struct_exists(card, "effects") || array_length(card.effects) == 0) {
-
+    
+    if (!variable_instance_exists(card, "effects") || array_length(card.effects) == 0) {
+        
         return false;
-
+        
     }
 
     
@@ -175,6 +175,15 @@ function checkTrigger(card, triggerType, context = {}) {
 /// @returns {bool} - True si les conditions sont remplies
 
 function checkTriggerConditions(card, effect, context) {
+
+    if (((variable_instance_exists(card, "type") && string_lower(card.type) == "monster")
+        || object_is_ancestor(card.object_index, oCardMonster))
+        && variable_instance_exists(card, "zone")
+        && (card.zone == "Field" || card.zone == "FieldSelected")
+        && variable_instance_exists(card, "isFaceDown")
+        && card.isFaceDown) {
+        return false;
+    }
 
     // Vérifier les conditions de base
 
@@ -285,6 +294,21 @@ function checkTriggerConditions(card, effect, context) {
             var isMonReq = object_is_ancestor(def_req.object_index, oCardMonster) || (variable_instance_exists(def_req, "type") && string_lower(def_req.type) == "monster");
             if (!isMonReq) { return false; }
         }
+        // Orientation du défenseur (ex: "Defense" ou "DefenseVisible")
+        if (variable_struct_exists(conditions, "defender_orientation") || variable_struct_exists(conditions, "defender_orientation_in")) {
+            if (!variable_struct_exists(context, "defender_orientation")) { return false; }
+            var dOri = string(context.defender_orientation);
+            if (variable_struct_exists(conditions, "defender_orientation")) {
+                if (dOri != string(conditions.defender_orientation)) { return false; }
+            } else if (variable_struct_exists(conditions, "defender_orientation_in")) {
+                var arrOr = conditions.defender_orientation_in;
+                var okOri = false;
+                if (is_array(arrOr)) {
+                    for (var oi = 0; oi < array_length(arrOr); oi++) { if (dOri == string(arrOr[oi])) { okOri = true; break; } }
+                }
+                if (!okOri) { return false; }
+            }
+        }
         
 
         // Vérifier la condition de phase
@@ -300,6 +324,36 @@ function checkTriggerConditions(card, effect, context) {
         }
 
 
+        // Source owner relative to card owner (ally/enemy)
+        if (variable_struct_exists(conditions, "source_owner")) {
+            var ow_src = string_lower(conditions.source_owner);
+            var srcHero = variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : undefined;
+            var cardHero = (variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : undefined;
+            if (is_undefined(srcHero) || is_undefined(cardHero)) { return false; }
+            var isAllySrc = (srcHero == cardHero);
+            if (ow_src == "ally" && !isAllySrc) { return false; }
+            if (ow_src == "enemy" && isAllySrc) { return false; }
+        }
+
+        // Source name contains substring
+        if (variable_struct_exists(conditions, "source_name_contains")) {
+            if (!variable_struct_exists(context, "source")) { return false; }
+            var src = context.source;
+            if (src == noone || !instance_exists(src)) { return false; }
+            var nmSrc = variable_instance_exists(src, "name") ? string(src.name) : object_get_name(src.object_index);
+            var wantSub = string(conditions.source_name_contains);
+            if (string_pos(wantSub, nmSrc) <= 0) { return false; }
+        }
+
+        // Source genre equals
+        if (variable_struct_exists(conditions, "source_genre")) {
+            if (!variable_struct_exists(context, "source")) { return false; }
+            var src2 = context.source;
+            if (src2 == noone || !instance_exists(src2)) { return false; }
+            var gSrc = variable_instance_exists(src2, "genre") ? string(src2.genre) : "";
+            var wantG = string(conditions.source_genre);
+            if (gSrc != wantG) { return false; }
+        }
 
         // Vérifier le propriétaire si précisé ("Hero" ou "Enemy")
 
@@ -423,6 +477,29 @@ function checkTriggerConditions(card, effect, context) {
             if (!has_genre_monster_on_field(isHero, gn)) {
                 return false;
             }
+        }
+
+        // Vérifier un minimum de cartes d'un genre sur le terrain (ex: au moins 2 Bêtes)
+        if (variable_struct_exists(conditions, "min_genre_count_on_field")) {
+            var cfg = conditions.min_genre_count_on_field;
+            var gn2 = variable_struct_exists(cfg, "genre") ? string(cfg.genre) : "";
+            var ownStr = variable_struct_exists(cfg, "owner") ? string_lower(cfg.owner) : "ally";
+            var req = variable_struct_exists(cfg, "count") ? max(1, cfg.count) : 1;
+            var cardOwnerIsHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            var targetIsHero = (ownStr == "ally") ? cardOwnerIsHero : !cardOwnerIsHero;
+            var arrX = targetIsHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards;
+            var cntX = 0;
+            for (var ix = 0; ix < array_length(arrX); ix++) {
+                var cx = arrX[ix];
+                if (cx != 0 && instance_exists(cx)) {
+                    var zX = variable_instance_exists(cx, "zone") ? string_lower(cx.zone) : "";
+                    if (zX == "field" || zX == "fieldselected") {
+                        var gX = variable_instance_exists(cx, "genre") ? string(cx.genre) : "";
+                        if (gX == gn2) { cntX += 1; }
+                    }
+                }
+            }
+            if (cntX < req) { return false; }
         }
 
         // Vérifier la présence d'un sort ennemi sur le terrain
@@ -553,7 +630,7 @@ function checkTriggerConditions(card, effect, context) {
 
 function hasEffectAvailable(card, effect_type) {
 
-    if (!variable_struct_exists(card, "effects") || array_length(card.effects) == 0) return false;
+    if (!variable_instance_exists(card, "effects") || array_length(card.effects) == 0) return false;
 
     for (var i = 0; i < array_length(card.effects); i++) {
 
@@ -588,7 +665,7 @@ function hasEffectAvailable(card, effect_type) {
 /// @returns {struct|noone} - L'effet disponible ou noone
 
 function getAvailableEffect(card) {
-    if (!variable_struct_exists(card, "effects") || array_length(card.effects) == 0) return noone;
+    if (!variable_instance_exists(card, "effects") || array_length(card.effects) == 0) return noone;
 
     // Rassembler tous les effets manuels disponibles (conditions OK)
     var eligible = [];
@@ -635,7 +712,7 @@ function activateTrigger(card, triggerType, context = {}) {
     var cardName = variable_instance_exists(card, "name") ? card.name : "unknown";
     
 
-    if (!variable_struct_exists(card, "effects")) return;
+    if (!variable_instance_exists(card, "effects")) return;
 
     
 
@@ -928,6 +1005,76 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
         }
     }
 
+    if (triggerType == TRIGGER_END_TURN) {
+        var activeIsHero3 = instance_exists(game) ? (game.player[game.player_current] == "Hero") : true;
+        if (!variable_global_exists("end_turn_queue") || !is_array(global.end_turn_queue)) { global.end_turn_queue = []; }
+        global.end_turn_queue = [];
+        global.end_turn_ptr = 0;
+        global.end_turn_processing = true;
+        global.end_turn_waiting = false;
+        var fm = activeIsHero3 ? fieldMonsterHero : fieldMonsterEnemy;
+        var fsp = activeIsHero3 ? fieldMagicTrapHero : fieldMagicTrapEnemy;
+        if (instance_exists(fm)) {
+            for (var i0 = 0; i0 < array_length(fm.cards); i0++) {
+                var c0 = fm.cards[i0];
+                if (c0 != 0 && instance_exists(c0)) {
+                    if (variable_instance_exists(c0, "entrave_turns_remaining") && c0.entrave_turns_remaining > 0) {
+                        c0.entrave_turns_remaining -= 1;
+                        if (c0.entrave_turns_remaining <= 0) {
+                            if (variable_instance_exists(c0, "entrave_block_attack")) c0.entrave_block_attack = false;
+                            if (variable_instance_exists(c0, "entrave_block_position")) c0.entrave_block_position = false;
+                        }
+                    }
+                    if (variable_instance_exists(c0, "effects") && is_array(c0.effects)) {
+                        for (var e0 = 0; e0 < array_length(c0.effects); e0++) {
+                            var eff0 = c0.effects[e0];
+                            if (is_struct(eff0) && variable_struct_exists(eff0, "trigger") && eff0.trigger == TRIGGER_END_TURN) {
+                                if (checkTriggerConditions(c0, eff0, context)) { array_push(global.end_turn_queue, { card: c0, effect: eff0 }); }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (instance_exists(fsp)) {
+            for (var j0 = 0; j0 < array_length(fsp.cards); j0++) {
+                var s0 = fsp.cards[j0];
+                if (s0 != 0 && instance_exists(s0)) {
+                    if (variable_instance_exists(s0, "effects") && is_array(s0.effects)) {
+                        for (var f0 = 0; f0 < array_length(s0.effects); f0++) {
+                            var se0 = s0.effects[f0];
+                            if (is_struct(se0) && variable_struct_exists(se0, "trigger") && se0.trigger == TRIGGER_END_TURN) {
+                                if (checkTriggerConditions(s0, se0, context)) { array_push(global.end_turn_queue, { card: s0, effect: se0 }); }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (variable_global_exists("endTurnSequencerNext") && !is_undefined(global.endTurnSequencerNext)) { global.endTurnSequencerNext(); } else {
+            global.endTurnSequencerNext = function() {
+                if (!variable_global_exists("end_turn_queue") || !is_array(global.end_turn_queue)) { global.end_turn_processing = false; return; }
+                if (!variable_global_exists("end_turn_ptr")) { global.end_turn_ptr = 0; }
+                if (global.end_turn_ptr >= array_length(global.end_turn_queue)) { global.end_turn_processing = false; global.end_turn_waiting = false; return; }
+                var it = global.end_turn_queue[global.end_turn_ptr];
+                var cd = variable_struct_exists(it, "card") ? it.card : noone;
+                var ef = variable_struct_exists(it, "effect") ? it.effect : noone;
+                if (cd == noone || ef == noone || !instance_exists(cd)) { global.end_turn_ptr += 1; global.endTurnSequencerNext(); return; }
+                var ctxX = { owner_is_hero: (variable_instance_exists(cd, "isHeroOwner") ? cd.isHeroOwner : true) };
+                var okx = executeEffect(cd, ef, ctxX);
+                if (!variable_global_exists("anim_fx_list") || !is_array(global.anim_fx_list) || array_length(global.anim_fx_list) == 0) {
+                    global.end_turn_ptr += 1;
+                    global.endTurnSequencerNext();
+                } else {
+                    global.end_turn_waiting = true;
+                }
+            };
+            global.endTurnSequencerNext();
+        }
+        return;
+    }
+
+    
     // Vérifier tous les monstres sur le terrain
     with (oCardMonster) {
         if (zone == "Field") {
@@ -936,6 +1083,15 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
                 var activeIsHero = instance_exists(game) ? (game.player[game.player_current] == "Hero") : true;
                 if (variable_instance_exists(self, "isHeroOwner") && self.isHeroOwner != activeIsHero) {
                     continue;
+                }
+                if (triggerType == TRIGGER_END_TURN) {
+                    if (variable_instance_exists(self, "entrave_turns_remaining") && self.entrave_turns_remaining > 0) {
+                        self.entrave_turns_remaining -= 1;
+                        if (self.entrave_turns_remaining <= 0) {
+                            if (variable_instance_exists(self, "entrave_block_attack")) self.entrave_block_attack = false;
+                            if (variable_instance_exists(self, "entrave_block_position")) self.entrave_block_position = false;
+                        }
+                    }
                 }
                 // Restriction: seulement face visible
                 if (variable_instance_exists(self, "isFaceDown") && self.isFaceDown) {

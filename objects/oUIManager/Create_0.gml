@@ -113,6 +113,11 @@ hideSummonAndSet = function() {show_debug_message("### oUIManager.hideSummonAndS
 #region Function displayPositionButton
 displayPositionButton = function(card) {show_debug_message("### oUIManager.displayPositionButton")
 	
+	if (card != noone && instance_exists(card)) {
+		if (variable_instance_exists(card, "entrave_turns_remaining") && card.entrave_turns_remaining > 0 && variable_instance_exists(card, "entrave_block_position") && card.entrave_block_position) {
+			return;
+		}
+	}
 	instancePositionButton = instance_create_layer(card.x + 10, card.y - 175, layer_get_id("Instances"), oPositionButton);
 	instancePositionButton.parentCard = card;
 	instancePositionButton.depth = -2000;
@@ -169,12 +174,20 @@ displayAttackButton = function(card) {show_debug_message("### oUIManager.display
         return;
     }
 
-    // Ne pas afficher si le monstre a déjà attaqué ce tour
-    if (instance_exists(game) && variable_instance_exists(game, "nbTurn") && variable_instance_exists(card, "lastTurnAttack")) {
-        if (card.lastTurnAttack >= game.nbTurn) {
-            show_debug_message("### UIManager.displayAttackButton: monstre a déjà attaqué ce tour -> bouton non affiché");
-            return;
-        }
+    if (variable_instance_exists(card, "entrave_turns_remaining") && card.entrave_turns_remaining > 0 && variable_instance_exists(card, "entrave_block_attack") && card.entrave_block_attack) {
+        show_debug_message("### UIManager.displayAttackButton: carte entravée (attaque) -> bouton non affiché");
+        return;
+    }
+
+    // Limite d'attaques par tour (2 si ambidextre, sinon 1)
+    var attack_limit = 1;
+    if (variable_instance_exists(card, "isAmbidextrous") && card.isAmbidextrous) {
+        attack_limit = 2;
+    }
+    var used_attacks = (variable_instance_exists(card, "attacksUsedThisTurn") ? card.attacksUsedThisTurn : 0);
+    if (used_attacks >= attack_limit) {
+        show_debug_message("### UIManager.displayAttackButton: limite d'attaques atteinte -> bouton non affiché");
+        return;
     }
 
     // Cache le bouton précédent s'il existe
@@ -226,7 +239,7 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
         var currentPhase = (instance_exists(game) && variable_instance_exists(game, "phase")) ? game.phase[game.phase_current] : "";
         // Détection d'au moins un effet continu
         var hasContinuous = false;
-        if (variable_struct_exists(card, "effects")) {
+        if (variable_instance_exists(card, "effects")) {
             for (var ci = 0; ci < array_length(card.effects); ci++) {
                 var ce = card.effects[ci];
                 if (is_struct(ce) && variable_struct_exists(ce, "trigger") && ce.trigger == TRIGGER_CONTINUOUS) { hasContinuous = true; break; }
@@ -272,7 +285,7 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
         if (card.type == "Magic" && isInHand && isOwnerHero && hasContinuous && isHeroTurn) {
             // Si la carte est un Artéfact avec sélection de cible, n'afficher le bouton que s'il existe une cible valide
             var equipEff = noone;
-            if (variable_struct_exists(card, "effects")) {
+            if (variable_instance_exists(card, "effects")) {
                 for (var ei = 0; ei < array_length(card.effects); ei++) {
                     var efx = card.effects[ei];
                     if (is_struct(efx) && variable_struct_exists(efx, "effect_type") && efx.effect_type == EFFECT_EQUIP_SELECT_TARGET) {
@@ -396,3 +409,4 @@ stopIndicator = function() {show_debug_message("### oUIManager.stopIndicator")
 	    instance_destroy(instance_find(oIndicatorParent, 0));
 }
 #endregion
+

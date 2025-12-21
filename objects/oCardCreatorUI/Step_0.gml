@@ -495,15 +495,14 @@ function auto_fill_fields_from_object(obj_name) {
         if (variable_instance_exists(inst, "booster")) {
             input_fields.booster = inst.booster;
         }
-        
-        // Tentative de trouver un sprite en utilisant conventions
-        var spr_name = "s" + string_delete(obj_name, 1, 1);
-        var spr_index = asset_get_index(spr_name);
-        if (spr_index == -1) {
-            spr_name = input_fields.sprite; // conserver l'existant si non trouvé
+        if (variable_instance_exists(inst, "rarity")) {
+            selected_rarity = _normalize_rarity(inst.rarity);
         }
-        if (spr_name != undefined && spr_name != "") {
-            input_fields.sprite = spr_name;
+        
+        if (instance_exists(inst)) {
+            var spr_idx = inst.sprite_index;
+            var nm = _resolve_sprite_name(obj_name, spr_idx);
+            if (nm != "") { input_fields.sprite = _normalize_sprite_field(nm); }
         }
         
         // Toujours mettre l'object_id saisi
@@ -648,13 +647,13 @@ function load_card_for_editing(card_id) {
     input_fields.genre = string(variable_struct_exists(card, "genre") ? card.genre : "");
     input_fields.archetype = string(variable_struct_exists(card, "archetype") ? card.archetype : "");
     input_fields.booster = string(variable_struct_exists(card, "booster") ? card.booster : "");
-    input_fields.sprite = string(variable_struct_exists(card, "sprite") ? card.sprite : "");
+    input_fields.sprite = _normalize_sprite_field(string(variable_struct_exists(card, "sprite") ? card.sprite : ""));
     input_fields.object_id = string(variable_struct_exists(card, "objectId") ? card.objectId : "");
     input_fields.description = string(variable_struct_exists(card, "description") ? card.description : "");
     
     // Type et rareté
     if (variable_struct_exists(card, "type")) card_type = card.type;
-    if (variable_struct_exists(card, "rarity")) selected_rarity = card.rarity;
+    if (variable_struct_exists(card, "rarity")) selected_rarity = _normalize_rarity(card.rarity);
     
     show_status_message("Carte chargée: " + input_fields.name);
     editing_mode = true; // activer le mode édition pour permettre la modification
@@ -740,6 +739,23 @@ function reset_fields() {
     active_field = "";
     show_status_message("Champs réinitialisés");
 }
+function reset_fields_keep_type() {
+    var t = card_type;
+    input_fields.card_id = "";
+    input_fields.name = "";
+    input_fields.attack = "0";
+    input_fields.defense = "0";
+    input_fields.star = "0";
+    input_fields.genre = "";
+    input_fields.archetype = "";
+    input_fields.booster = "";
+    input_fields.sprite = "";
+    input_fields.object_id = "";
+    input_fields.description = "";
+    selected_rarity = "commun";
+    active_field = "";
+    card_type = t;
+}
 
 // === CRÉER/Sauvegarder UNE NOUVELLE CARTE ===
 function create_new_card() {
@@ -753,7 +769,12 @@ function create_new_card() {
     var genre = string(input_fields.genre);
     var archetype = string(input_fields.archetype);
     var booster = string(input_fields.booster);
-    var sprite = string(input_fields.sprite);
+    var sprite = _normalize_sprite_field(string(input_fields.sprite));
+    if (is_real(input_fields.sprite) && input_fields.object_id != "") {
+        var objn = string(input_fields.object_id);
+        var nm = _resolve_sprite_name(objn, real(input_fields.sprite));
+        if (nm != "") sprite = _normalize_sprite_field(nm);
+    }
     var objectId = string(input_fields.object_id);
     var description = string(input_fields.description);
     var type_local = card_type;
@@ -779,5 +800,108 @@ function create_new_card() {
     
     add_card_and_save(new_id, card_data);
     show_status_message("Carte créée/sauvegardée: " + new_name);
+    reset_fields_keep_type();
+    editing_mode = false;
     return true;
+}
+function _resolve_sprite_name(obj_name, spr_idx) {
+    var base = obj_name;
+    if (string_copy(base, 1, 1) == "o") { base = string_delete(base, 1, 1); }
+    var cand = [];
+    cand[0] = base;
+    cand[1] = "s" + base;
+    cand[2] = "spr" + base;
+    cand[3] = "Sprite" + base;
+    cand[4] = string_lower(base);
+    cand[5] = "s" + string_lower(base);
+    for (var ci = 0; ci < array_length(cand); ci++) {
+        var nm = cand[ci];
+        var idxnm = asset_get_index(nm);
+        if (idxnm != -1 && sprite_exists(idxnm)) {
+            if (spr_idx != -1 && idxnm == spr_idx) return nm;
+        }
+    }
+    var names = _all_sprite_names();
+    for (var j = 0; j < array_length(names); j++) {
+        var n2 = names[j];
+        var i2 = asset_get_index(n2);
+        if (i2 != -1 && sprite_exists(i2)) {
+            if (spr_idx != -1 && i2 == spr_idx) return n2;
+        }
+    }
+    return "";
+}
+
+function _all_sprite_names() {
+    var a = [];
+    a[0] = "sMonstre";
+    a[1] = "sMagic";
+    a[2] = "sFondUi";
+    a[3] = "sM3";
+    a[4] = "Sprite37";
+    a[5] = "sT3";
+    a[6] = "sM2";
+    a[7] = "Sprite34";
+    a[8] = "sT2";
+    a[9] = "sM1";
+    a[10] = "Sprite33";
+    a[11] = "Sprite32";
+    a[12] = "sM0";
+    a[13] = "Sprite31";
+    a[14] = "sLP_Hero";
+    a[15] = "Sprite30";
+    a[16] = "sTerrain2";
+    a[17] = "sLP_Enemy";
+    a[18] = "Sprite29";
+    a[19] = "sTargetingArrow";
+    a[20] = "Sprite28";
+    a[21] = "sT1";
+    a[22] = "Sprite27";
+    a[23] = "sFond";
+    a[24] = "Sprite25";
+    a[25] = "sEffectButton";
+    a[26] = "Sprite24";
+    a[27] = "sDeckBuilder";
+    a[28] = "Sprite22";
+    a[29] = "sContour";
+    a[30] = "sT0";
+    a[31] = "sT4";
+    a[32] = "sprInvisible";
+    a[33] = "sCarteBack";
+    a[34] = "sSummon";
+    a[35] = "sOption";
+    a[36] = "sPositionButton";
+    a[37] = "sNextStep";
+    a[38] = "sButton";
+    a[39] = "sPlace";
+    a[40] = "sOptionP2";
+    a[41] = "sBackgroundCardStat";
+    a[42] = "sAttack";
+    a[43] = "sM4";
+    return a;
+}
+function _normalize_sprite_field(val) {
+    var s = string(val);
+    s = string_trim(s);
+    var sl = string_lower(s);
+    if (string_copy(sl, 1, 10) == "ref sprite") {
+        var p1 = string_pos("(", s);
+        var p2 = string_pos(")", s);
+        if (p1 > 0 && p2 > p1) {
+            s = string_copy(s, p1 + 1, p2 - p1 - 1);
+            s = string_trim(s);
+        }
+    }
+    return s;
+}
+function _normalize_rarity(val) {
+    var s = string(val);
+    s = string_trim(s);
+    var l = string_lower(s);
+    if (l == "commune" || l == "common") return "commun";
+    if (l == "rare") return "rare";
+    if (l == "epique" || l == "épique" || l == "epic") return "epique";
+    if (l == "legendaire" || l == "légendaire" || l == "legendary") return "legendaire";
+    if (l == "commun" || l == "rare" || l == "epique" || l == "legendaire") return l;
+    return "commun";
 }

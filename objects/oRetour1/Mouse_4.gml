@@ -1,6 +1,9 @@
 // === oRetour1 - Mouse Left Button Event ===
 // Bouton de retour vers le menu principal
 
+// Bloquer le clic si le panneau d'options est ouvert
+if (instance_exists(oPanelOptions)) exit;
+
 // Vérifier si la souris est dans la zone du bouton
 var mouse_x_pos = mouse_x;
 var mouse_y_pos = mouse_y;
@@ -18,8 +21,8 @@ if (mouse_x_pos >= button_left && mouse_x_pos <= button_right &&
     show_debug_message("### oRetour1.Mouse_4 - Clic détecté dans la zone du bouton");
     
     // Vérifier qu'on est dans une room appropriée et déterminer la destination
-    if (room == rCollection || room == rHistoire || room == rMode || room == rOption || room == rPartieRapide || 
-        room == rChallenge || room == rContreIa || room == rPuzzle || room == rDuel) {
+    if (room == rCollection || room == rHistoire || room == rMode || room == rCardCreator || 
+        room == rContreIa || room == rDuel) {
         
         // Nettoyer les variables globales si on quitte rDuel
         if (room == rDuel) {
@@ -28,7 +31,7 @@ if (mouse_x_pos >= button_left && mouse_x_pos <= button_right &&
             room_goto(rMode);
         }
         // Déterminer la destination selon la room actuelle
-        else if (room == rChallenge || room == rContreIa || room == rPuzzle) {
+        else if (room == rContreIa) {
             show_debug_message("### Navigation vers rMode depuis " + string(room_get_name(room)));
             room_goto(rMode);
         } else {

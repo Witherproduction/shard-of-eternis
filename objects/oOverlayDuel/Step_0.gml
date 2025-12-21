@@ -18,19 +18,44 @@ if (mouse_check_button_pressed(mb_left)) {
     var btnX = overlayBtnX; var btnY = overlayBtnY; var btnW = overlayBtnW; var btnH = overlayBtnH;
     var clickedValidate = mouse_x >= btnX && mouse_x <= btnX + btnW && mouse_y >= btnY && mouse_y <= btnY + btnH;
     if (clickedValidate) {
+        var pickOne = variable_instance_exists(self, "pick_one") && pick_one;
         var complete = true;
-        for (var k = 0; k < n; k++) { if (selections[k] <= 0) { complete = false; break; } }
+        if (pickOne) {
+            var selCount = 0;
+            for (var k = 0; k < n; k++) { if (selections[k] > 0) selCount++; }
+            complete = (selCount == 1);
+        } else {
+            for (var k2 = 0; k2 < n; k2++) { if (selections[k2] <= 0) { complete = false; break; } }
+        }
         if (!complete) exit;
         var sz = ds_list_size(deckInst.cards);
         if (sz <= 0) { instance_destroy(id); exit; }
         var count = min(n, sz);
+        // Retirer les top cartes actuelles
         ds_list_delete(deckInst.cards, sz - 1);
         if (count >= 2) ds_list_delete(deckInst.cards, sz - 2);
         if (count >= 3) ds_list_delete(deckInst.cards, sz - 3);
-        for (var num = count; num >= 1; num--) {
-            var idx = -1;
-            for (var m = 0; m < n; m++) { if (selections[m] == num) { idx = m; break; } }
-            if (idx != -1) { ds_list_add(deckInst.cards, cards[idx]); }
+
+        if (pickOne) {
+            // Trouver la sélection unique
+            var idxSel = -1;
+            for (var m0 = 0; m0 < n; m0++) { if (selections[m0] > 0) { idxSel = m0; break; } }
+            if (idxSel == -1) { instance_destroy(id); exit; }
+            // Ajouter la carte sélectionnée au dessus du deck
+            ds_list_add(deckInst.cards, cards[idxSel]);
+            // Réinsérer les autres 2 à des positions aléatoires dans le deck (sous le top)
+            for (var m1 = 0; m1 < n; m1++) {
+                if (m1 == idxSel) continue;
+                var insertPos = irandom(max(0, ds_list_size(deckInst.cards) - 1));
+                ds_list_insert(deckInst.cards, insertPos, cards[m1]);
+            }
+        } else {
+            // Réordonnancement complet en fonction des numéros
+            for (var num = count; num >= 1; num--) {
+                var idx = -1;
+                for (var m = 0; m < n; m++) { if (selections[m] == num) { idx = m; break; } }
+                if (idx != -1) { ds_list_add(deckInst.cards, cards[idx]); }
+            }
         }
         if (!is_undefined(markEffectAsUsed) && effectCard != noone && effectStruct != noone) { markEffectAsUsed(effectCard, effectStruct); }
         if (!is_undefined(consumeSpellIfNeeded) && effectCard != noone && effectStruct != noone) { consumeSpellIfNeeded(effectCard, effectStruct); }

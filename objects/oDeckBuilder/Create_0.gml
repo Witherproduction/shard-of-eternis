@@ -32,11 +32,11 @@ current_slots = 1; // Commencer avec 1 emplacement
 
 // Variables pour le système de scroll
 scroll_offset = 0; // Décalage du scroll (en nombre de lignes)
-max_visible_lines = 25; // Nombre maximum de lignes visibles
-max_cards_area_height = 560; // Hauteur maximale de la zone des cartes (25 lignes * 22px + 10px padding)
+max_visible_lines = 12; // Nombre maximum de lignes visibles
+max_cards_area_height = 274; // Hauteur maximale de la zone des cartes (12 lignes * 22px + 10px padding)
 
 // Variables pour l'interface
-frame_width = 250; // Largeur doublée
+frame_width = 200; // Largeur doublée
 frame_color = c_ltgray;
 frame_border_color = c_black;
 
@@ -55,7 +55,7 @@ function calculate_dynamic_height() {
     var base_height = 70; // Hauteur pour le titre et le nom
     var cards_height = calculate_cards_area_height(); // Hauteur dynamique des cartes
     var buttons_height = 30; // Hauteur des boutons
-    var padding = 50; // Espacement (augmenté pour les boutons)
+    var padding = 30; // Espacement (augmenté pour les boutons)
     return base_height + cards_height + buttons_height + padding;
 }
 

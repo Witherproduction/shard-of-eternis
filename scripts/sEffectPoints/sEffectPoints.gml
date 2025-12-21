@@ -54,7 +54,11 @@ function sEffectPoints(card, effect, context) {
         var tgtHero = srcHero;
         if (ownerSide == "ally") { tgtHero = srcHero; }
         else if (ownerSide == "enemy") { tgtHero = !srcHero; }
-        if (op == "damage") { return loseLPFor(tgtHero, val); }
+        if (op == "damage") {
+            var elem = (card != noone && instance_exists(card) && variable_instance_exists(card, "element")) ? string_lower(card.element) : "neutre";
+            if (!is_undefined(animEffectRequestProjectile)) animEffectRequestProjectile(elem, card, val, tgtHero);
+            return true;
+        }
         else { return gainLPFor(tgtHero, val); }
     } else {
         var selectMode = variable_struct_exists(effect, "select_mode") ? string_lower(effect.select_mode) : "filter";

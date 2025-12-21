@@ -11,6 +11,12 @@ function _cardMatchesCriteria(card, criteria) {
         var name_to_check = is_struct(card_data) ? (variable_struct_exists(card_data, "name") ? card_data.name : "") : (variable_instance_exists(card_data, "name") ? card_data.name : "");
         if (name_to_check != criteria.name) return false;
     }
+    if (variable_struct_exists(criteria, "name_contains")) {
+        var ncheck = is_struct(card_data) ? (variable_struct_exists(card_data, "name") ? card_data.name : "") : (variable_instance_exists(card_data, "name") ? card_data.name : "");
+        var nc_l = string_lower(ncheck);
+        var want_l = string_lower(criteria.name_contains);
+        if (want_l == "" || string_pos(want_l, nc_l) <= 0) return false;
+    }
     if (variable_struct_exists(criteria, "archetype")) {
         var archetype_to_check = is_struct(card_data) ? (variable_struct_exists(card_data, "archetype") ? card_data.archetype : "") : (variable_instance_exists(card_data, "archetype") ? card_data.archetype : "");
         if (archetype_to_check != criteria.archetype) return false;
@@ -18,6 +24,18 @@ function _cardMatchesCriteria(card, criteria) {
     if (variable_struct_exists(criteria, "object_name")) {
         var object_index_to_check = is_struct(card_data) ? (variable_struct_exists(card_data, "object_index") ? card_data.object_index : noone) : (instance_exists(card_data) ? card_data.object_index : noone);
         if (object_index_to_check == noone || object_get_name(object_index_to_check) != criteria.object_name) return false;
+    }
+    if (variable_struct_exists(criteria, "is_magic")) {
+        var wantMagic = criteria.is_magic;
+        if (wantMagic) {
+            var obj_idx = is_struct(card_data) ? (variable_struct_exists(card_data, "object_index") ? card_data.object_index : noone) : (instance_exists(card_data) ? card_data.object_index : noone);
+            var isMagicAncestor = (obj_idx != noone) && object_is_ancestor(obj_idx, oCardMagic);
+            var type_to_check2 = is_struct(card_data)
+                ? (variable_struct_exists(card_data, "cardType") ? card_data.cardType : (variable_struct_exists(card_data, "type") ? card_data.type : ""))
+                : (variable_instance_exists(card_data, "type") ? card_data.type : "");
+            var isMagicType = (string_lower(string(type_to_check2)) == "magic");
+            if (!(isMagicAncestor || isMagicType)) return false;
+        }
     }
     
 
@@ -42,8 +60,8 @@ function _cardMatchesCriteria(card, criteria) {
         if (star_to_check != criteria.star_eq) return false;
     }
 
-    // Ajouter d'autres vérifications de critères ici (type, attribut, etc.)
-    return true;
+// Ajouter d'autres vérifications de critères ici (type, attribut, etc.)
+return true;
 }
 
 /// @function _findInDeck(ownerIsHero, criteria) -> { card, index }
@@ -174,6 +192,7 @@ function _transferSelectedCards(ownerIsHero, selectedData, destination, shuffleA
             case "Field":
                 var fieldMgr = ownerIsHero ? fieldManagerHero : fieldManagerEnemy;
                 if (instance_exists(fieldMgr) && variable_struct_exists(data.data, "pos") && variable_struct_exists(data.data, "zone_type")) {
+                    registerTriggerEvent(TRIGGER_LEAVE_FIELD, card, { owner_is_hero: ownerIsHero });
                     var field = fieldMgr.getField(data.data.zone_type);
                     field.cards[data.data.pos] = 0;
                 }
@@ -297,14 +316,14 @@ function _transferSelectedCards(ownerIsHero, selectedData, destination, shuffleA
                                     fx.shuffle_after = (variable_instance_exists(self, "_fx_shuffle_after") ? self._fx_shuffle_after : false);
                                     fx.deck_to_shuffle = (variable_instance_exists(self, "_fx_deck_inst") ? self._fx_deck_inst : noone);
                                 }
-                                // Nettoyer les paramètres
-                                if (variable_instance_exists(self, "_fx_slide_sprite"))      self._fx_slide_sprite = undefined;
-                                if (variable_instance_exists(self, "_fx_slide_image"))       self._fx_slide_image = undefined;
-                                if (variable_instance_exists(self, "_fx_slide_xscale"))      self._fx_slide_xscale = undefined;
-                                if (variable_instance_exists(self, "_fx_slide_yscale"))      self._fx_slide_yscale = undefined;
-                                if (variable_instance_exists(self, "_fx_slide_angle"))       self._fx_slide_angle = undefined;
-                                if (variable_instance_exists(self, "_fx_spawn_x"))           self._fx_spawn_x = undefined;
-                                if (variable_instance_exists(self, "_fx_spawn_y"))           self._fx_spawn_y = undefined;
+    // Nettoyer les paramètres
+    if (variable_instance_exists(self, "_fx_slide_sprite"))      self._fx_slide_sprite = undefined;
+    if (variable_instance_exists(self, "_fx_slide_image"))       self._fx_slide_image = undefined;
+    if (variable_instance_exists(self, "_fx_slide_xscale"))      self._fx_slide_xscale = undefined;
+    if (variable_instance_exists(self, "_fx_slide_yscale"))      self._fx_slide_yscale = undefined;
+    if (variable_instance_exists(self, "_fx_slide_angle"))       self._fx_slide_angle = undefined;
+    if (variable_instance_exists(self, "_fx_spawn_x"))           self._fx_spawn_x = undefined;
+    if (variable_instance_exists(self, "_fx_spawn_y"))           self._fx_spawn_y = undefined;
                                 if (variable_instance_exists(self, "_fx_target_x"))          self._fx_target_x = undefined;
                                 if (variable_instance_exists(self, "_fx_target_y"))          self._fx_target_y = undefined;
                                 if (variable_instance_exists(self, "_fx_deck_inst"))         self._fx_deck_inst = undefined;

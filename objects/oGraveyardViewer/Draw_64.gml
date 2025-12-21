@@ -16,15 +16,15 @@ if (array_length(linkedGraveyard.cards) > 0) {
 }
 
 // === Géométrie du cadre sFond (origine centrée) ===
-var sprFond = sFond;
+var sprFond = sCimetiere;
 var fondW = sprite_get_width(sprFond);
 var fondH = sprite_get_height(sprFond);
 var centerX = room_width * 0.5;
 var centerY = room_height * 0.5;
-// Échelle du viewer augmentée de 10%
-var frameScale = 1.1;
-var scaledW = fondW * frameScale;
-var scaledH = fondH * frameScale;
+var frameScaleX = 1;
+var frameScaleY = 1;
+var scaledW = fondW * frameScaleX;
+var scaledH = fondH * frameScaleY;
 var frame_left = centerX - scaledW * 0.5;
 var frame_top = centerY - scaledH * 0.5;
 var frame_right = centerX + scaledW * 0.5;
@@ -43,8 +43,9 @@ var cell_w = (content_w - (columns - 1) * spacing) / columns;
 var cell_h = (content_h - (rows - 1) * spacing) / rows;
 
 // === Affiche le fond ===
-// Dessine sFond centré avec échelle 110%
-draw_sprite_ext(sFond, 0, centerX, centerY, frameScale, frameScale, 0, c_white, 1);
+draw_sprite_ext(sprFond, 0, centerX, centerY, frameScaleX, frameScaleY, 0, c_white, 1);
+
+// Dessine le fond du cimetière à l'intérieur du cadre
 
 // === Vérification de sécurité ===
 if (linkedGraveyard == noone || !instance_exists(linkedGraveyard)) {

@@ -11,7 +11,7 @@ if (room != rDuel) {
 if (global.isGraveyardViewerOpen) exit;
 
 // Si le bouton est activé
-if(image_alpha == 1) {
+if (image_index == 0) {
 	
 	// Repose toutes les cartes sélectionnées
 	selectManager.unSelectAll();

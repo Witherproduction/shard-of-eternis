@@ -27,6 +27,10 @@ if (parentCard != "" && selectManager.attackMode == false) {
     if (!(variable_instance_exists(parentCard, "orientation") && parentCard.orientation == "Attack")) {
         exit;
     }
+    if (variable_instance_exists(parentCard, "entrave_turns_remaining") && parentCard.entrave_turns_remaining > 0 && variable_instance_exists(parentCard, "entrave_block_attack") && parentCard.entrave_block_attack) {
+        show_debug_message("### oAttack.Click: carte entravée -> mode attaque bloqué");
+        exit;
+    }
     
     selectManager.attackMode = true;
     UIManager.hideAttackButton();

@@ -3,21 +3,26 @@
 
 // Position à droite de l'écran avec décalage de 55 pixels (décalé de 20 pixels vers la gauche)
 var sprite_x = room_width - sprite_get_width(sDeckBuilder) + 55;
-var sprite_y = -60; // Décaler vers le haut pour dépasser davantage
+var sprite_y = -10; // Décaler vers le haut pour dépasser davantage
+var sprW = sprite_get_width(sDeckBuilder);
 
 // Calculer l'échelle pour dépasser légèrement en haut et en bas (120 pixels de plus)
-var scale_y = (room_height + 120) / sprite_get_height(sDeckBuilder);
-// Calculer l'échelle horizontale pour rétrécir de 20 pixels
-var scale_x = (sprite_get_width(sDeckBuilder) - 20) / sprite_get_width(sDeckBuilder);
+var scale_y = (room_height + 10) / sprite_get_height(sDeckBuilder);
+// Calculer l'échelle horizontale pour rétrécir davantage
+var scale_x = (sprW - 100) / sprW;
+var scaled_w = sprW * scale_x;
+sprite_x = room_width - scaled_w + 55 - 55;
 
 // Dessiner le sprite sDeckBuilder étiré sur toute la hauteur et allongé de 30 pixels
 draw_sprite_ext(sDeckBuilder, 0, sprite_x, sprite_y, scale_x, scale_y, 0, c_white, 1);
 
 // Dessiner le bouton "nouveau deck" à 1/3 de la hauteur, remonté de 140 pixels
 var button_x = sprite_x + 50;
-var button_y = room_height / 3 - 170;
-var button_width = 320;
-var button_height = 80;
+var button_y = room_height / 3 - 270;
+var baseW_btn = sprite_get_width(sButton);
+var baseH_btn = sprite_get_height(sButton);
+var button_width = round(baseW_btn * 0.8);
+var button_height = round(baseH_btn * 0.8);
 
 // Dessiner le bouton avec le sprite sButton (comme les autres boutons)
 draw_sprite_stretched(sButton, 0, button_x, button_y, button_width, button_height);

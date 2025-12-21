@@ -143,3 +143,35 @@ function clear_selected_decks() {
     
     show_debug_message("### Global variables cleaned");
 }
+
+/// @function heroDeck(deck_list)
+/// @description Fallback function to load a default hero deck if custom deck loading fails
+function heroDeck(deck_list) {
+    show_debug_message("### heroDeck - Loading default fallback deck");
+    
+    var cards = [
+        "oJeuneLoup", "oJeuneLoup", "oJeuneLoup", 
+        "oLoupGrisForet", "oLoupGrisForet",
+        "oJeuneOursForet", "oJeuneOursForet",
+        "oVieilOurs",
+        "oRenardMystique", "oRenardMystique",
+        "oTarentuleForet", "oTarentuleForet",
+        "oAraigneeForestiere", "oAraigneeForestiere", "oAraigneeForestiere"
+    ];
+
+    var added_count = 0;
+    for (var i = 0; i < array_length(cards); i++) {
+        var card_name = cards[i];
+        var card_obj = asset_get_index(card_name);
+        
+        if (card_obj != -1) {
+            ds_list_add(deck_list, card_obj);
+            added_count++;
+        } else {
+             show_debug_message("### heroDeck: Card not found " + card_name);
+        }
+    }
+    
+    ds_list_shuffle(deck_list);
+    show_debug_message("### heroDeck - Loaded " + string(added_count) + " cards");
+}

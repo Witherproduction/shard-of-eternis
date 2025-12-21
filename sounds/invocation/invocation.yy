@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"invocation",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":4.5,
+  "exportDir":"",
+  "name":"invocation",
+  "parent":{
+    "name":"invocation",
+    "path":"folders/Sons/Duel/animation/invocation.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"invocation.mp3",
+  "volume":1.0,
+}

@@ -10,11 +10,6 @@ total_cells = grid_cols * grid_rows; // 30 emplacements
 selected_bot = -1; // -1 = aucune sélection, 0 = aléatoire, 1-29 = bot spécifique
 available_bots = []; // Liste des bots disponibles
 
-// Rendre disponibles les bots 1 à 5 (incluant Maître du Contrôle)
-for (var i = 1; i <= 5; i++) {
-    array_push(available_bots, i);
-}
-
 // === SYSTÈME DE DONNÉES DES BOTS ===
 // Structure: bot_data[bot_id] = {nom, description, deck_name, deck_id, difficulty}
 
@@ -34,95 +29,55 @@ bot_data[0] = {
     difficulty: "Variable"
 };
 
-// Bot 1 - Débutant
-bot_data[1] = {
-    name: "Novice",
-    description: "Bot débutant utilisant des stratégies simples et directes. Parfait pour apprendre les bases du jeu.",
-    deck_name: "Deck Basique",
-    deck_id: 1,
-    difficulty: "Facile"
-};
+// === Récupération dynamique des données depuis TOUS les chapitres ===
+var all_available_decks = get_all_bot_decks(); // Utilise la fonction agrégée du StoryDeckManager
 
-// Bot 2 - Intermédiaire
-bot_data[2] = {
-    name: "Tacticien",
-    description: "Bot intermédiaire avec des combos de base et une stratégie équilibrée.",
-    deck_name: "Deck Équilibré",
-    deck_id: 2,
-    difficulty: "Moyen"
-};
-
-// Bot 3 - Agressif
-bot_data[3] = {
-    name: "Berserker",
-    description: "Bot agressif privilégiant l'attaque rapide et les dégâts directs.",
-    deck_name: "Deck Agressif",
-    deck_id: 3,
-    difficulty: "Moyen"
-};
-
-// Bot 4 - Défensif
-bot_data[4] = {
-    name: "Gardien",
-    description: "Bot défensif spécialisé dans la protection et les stratégies à long terme.",
-    deck_name: "Deck Défensif",
-    deck_id: 4,
-    difficulty: "Difficile"
-};
-
-// Bot 5 - Contrôle
-bot_data[5] = {
-    name: "Maître du Contrôle",
-    description: "Bot expert en contrôle du terrain et manipulation des cartes adverses.",
-    deck_name: "Deck Contrôle",
-    deck_id: 5,
-    difficulty: "Difficile"
-};
-
-// Bots 6-29 - Génériques avec variations
-for (var i = 6; i < total_cells; i++) {
-    var bot_type = (i % 4) + 1; // Cycle entre 4 types de base
-    var bot_number = i;
+for (var i = 0; i < array_length(all_available_decks); i++) {
+    var deck = all_available_decks[i];
+    var bot_id = deck.id; // L'ID du deck détermine la position dans la grille
     
-    switch(bot_type) {
-        case 1: // Type Agressif
-            bot_data[i] = {
-                name: "Guerrier " + string(bot_number),
-                description: "Bot spécialisé dans les attaques directes et les stratégies offensives.",
-                deck_name: "Deck Guerrier",
-                deck_id: 10 + bot_type,
-                difficulty: "Moyen"
-            };
-            break;
-        case 2: // Type Magique
-            bot_data[i] = {
-                name: "Mage " + string(bot_number),
-                description: "Bot utilisant la magie et les sorts pour contrôler le combat.",
-                deck_name: "Deck Magique",
-                deck_id: 10 + bot_type,
-                difficulty: "Difficile"
-            };
-            break;
-        case 3: // Type Support
-            bot_data[i] = {
-                name: "Soutien " + string(bot_number),
-                description: "Bot axé sur le support et les synergies entre cartes.",
-                deck_name: "Deck Support",
-                deck_id: 10 + bot_type,
-                difficulty: "Moyen"
-            };
-            break;
-        case 4: // Type Hybride
-            bot_data[i] = {
-                name: "Hybride " + string(bot_number),
-                description: "Bot polyvalent combinant plusieurs stratégies.",
-                deck_name: "Deck Hybride",
-                deck_id: 10 + bot_type,
-                difficulty: "Difficile"
-            };
-            break;
+    if (bot_id < total_cells) {
+        bot_data[bot_id] = {
+            name: deck.name,
+            description: variable_struct_exists(deck, "description") ? deck.description : "Pas de description disponible.",
+            deck_name: variable_struct_exists(deck, "deck_name") ? deck.deck_name : deck.name,
+            deck_id: deck.id,
+            difficulty: variable_struct_exists(deck, "difficulty") ? deck.difficulty : "Inconnue",
+            portrait: variable_struct_exists(deck, "portrait") ? deck.portrait : undefined
+        };
     }
 }
+
+// Mettre à jour la liste des bots disponibles en fonction de la progression
+available_bots = [];
+
+// Vérifier les bots
+for (var i = 1; i < total_cells; i++) {
+    if (variable_struct_exists(bot_data[i], "name")) {
+        // Vérifier si le bot est débloqué via le gestionnaire de progression
+        if (is_bot_unlocked(i)) {
+            array_push(available_bots, i);
+        }
+    }
+}
+
+/* 
+// Bot 5 - Contrôle (Désactivé)
+if (array_length(bot_data) > 5 && !variable_struct_exists(bot_data[5], "name")) {
+    bot_data[5] = {
+        name: "Maître du Contrôle",
+        description: "Bot expert en contrôle du terrain et manipulation des cartes adverses.",
+        deck_name: "Deck Contrôle",
+        deck_id: 5,
+        difficulty: "Difficile"
+    };
+}
+
+// Bots 6-29 - Génériques (Désactivés)
+for (var i = 6; i < total_cells; i++) {
+    // Code supprimé pour le moment
+}
+*/
 
 // Variables pour le calcul des positions (reprises du Draw event)
 grid_height = room_height * 0.6;

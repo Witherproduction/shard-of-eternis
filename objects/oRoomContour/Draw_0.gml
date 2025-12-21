@@ -3,7 +3,7 @@ var W = room_width;
 var H = room_height;
 
 // Marges pour faire largement déborder le sprite au-delà de la room
-var extra = 260; // pixels supplémentaires au total (130 px par bord)
+var extra = 60;
 
 // Dimensions du sprite de contour
 var spr = sContour;

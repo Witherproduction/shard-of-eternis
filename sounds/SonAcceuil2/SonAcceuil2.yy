@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"SonAcceuil2",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":391.96,
+  "exportDir":"",
+  "name":"SonAcceuil2",
+  "parent":{
+    "name":"lobby",
+    "path":"folders/Sons/lobby.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"SonAcceuil2.mp3",
+  "volume":1.0,
+}

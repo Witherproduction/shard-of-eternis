@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"SonDuel2",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":288.6,
+  "exportDir":"",
+  "name":"SonDuel2",
+  "parent":{
+    "name":"Duel",
+    "path":"folders/Sons/Duel.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"SonDuel2.mp3",
+  "volume":1.0,
+}

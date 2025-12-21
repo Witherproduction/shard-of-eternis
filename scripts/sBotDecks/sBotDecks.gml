@@ -6,121 +6,13 @@
 /// @param {real} deck_id - L'ID du deck à récupérer
 function get_bot_deck_cards(deck_id) {
     
+    // Tenter de récupérer via le nouveau gestionnaire par chapitre
+    var new_deck_cards = get_bot_deck_cards_new(deck_id);
+    if (!is_undefined(new_deck_cards)) {
+        return new_deck_cards;
+    }
+
     switch(deck_id) {
-        case 1: // Bot 1 - Deck Rose noire (25 monstres, 15 magies) — Chemin perdu, profil Balanced
-            return [
-                // Monstres (25) — mettre à 2 exemplaires, sauf exceptions indiquées
-                "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire",
-                "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire",
-                "oAraigneeDeLaRoseNoire", "oAraigneeDeLaRoseNoire",
-                "oDragonnetBeniRoseNoire", "oDragonnetBeniRoseNoire",
-                "oChevalierSqueletteReanimeParLaRose", "oChevalierSqueletteReanimeParLaRose",
-                "oTreant", "oTreant",
-                "oAraigneeSombreForet", "oAraigneeSombreForet",
-                "oPetiteSorciereDeLaRoseNoire", "oPetiteSorciereDeLaRoseNoire",
-                "oSorciereDeLaRoseNoire", "oSorciereDeLaRoseNoire",
-                "oSquelettePossedeParLaRoseNoire", "oSquelettePossedeParLaRoseNoire",
-                // Exceptions
-                "oEruditDeLaRoseNoire",
-                // Limite unique
-                "oDragonSacreRoseNoire",
-                // Compléments pour atteindre 25
-                "oChevalierSqueletteReanime",
-                "oChevalForet",
-                "oLacEnvahiParLaRoseNoire",
-                // Magies (15)
-                "oRoseNoire", "oRoseNoire", "oRoseNoire",
-                "oBaguetteRoseNoire", "oBaguetteRoseNoire", "oBaguetteRoseNoire",
-                "oBrumeRoseNoire", "oBrumeRoseNoire",
-                "oMaledictionRoseNoire", "oMaledictionRoseNoire",
-                "oFloraisonRosePerdue", "oFloraisonRosePerdue",
-                // Secrets
-                "oRonceNoire", "oRonceNoire",
-                "oMaladieRonceNoire"
-            ];
-            
-        case 2: // Bot 2 - Deck Dragon (25 monstres, 15 magies) — Chemin perdu, profil Stompy
-            return [
-                // Monstres (25)
-                "oDragonSacreClairLune", "oDragonSacreClairLune", "oDragonSacreClairLune",
-                "oDragonnetForet", "oDragonnetForet", "oDragonnetForet",
-                "oDragonnetBeniRoseNoire", "oDragonnetBeniRoseNoire", "oDragonnetBeniRoseNoire",
-                "oAncienDragonBeniForet", "oAncienDragonBeniForet", "oAncienDragonBeniForet",
-                // Limite unique
-                "oDragonSacreRoseNoire",
-                "oChevalForet", "oChevalForet", "oChevalForet",
-                "oSorciereForet", "oSorciereForet", "oSorciereForet",
-                "oTreant", "oTreant", "oTreant",
-                "oEruditForet",
-                // Ajouts: loups pour invocation facile
-                "oLoupAlphaForet", "oLoupAlphaForet",
-                // Magies (15)
-                "oAileForet", "oAileForet",
-                "oEcailleForet", "oEcailleForet",
-                "oGriffeForet", "oGriffeForet",
-                "oRoseNoire", "oRoseNoire",
-                "oClairLuneForetMaudite", "oClairLuneForetMaudite",
-                // Secrets ajoutés (remplace ClairLune Béni)
-                "oRonceNoire", "oRonceNoire", "oRonceNoire",
-                "oMaladieRonceNoire", "oMaladieRonceNoire"
-            ];
-            
-        case 3: // Bot 3 - Deck Bête (30 monstres, 10 magies) — profil Aggro
-            return [
-                // Monstres (30)
-                "oChevalForet", "oChevalForet", "oChevalForet",
-                "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire",
-                "oLoupAlphaForet", "oLoupAlphaForet", "oLoupAlphaForet",
-                "oNueeCorbeaux", "oNueeCorbeaux", "oNueeCorbeaux",
-                "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire",
-                "oAraigneeSombreForet", "oAraigneeSombreForet", "oAraigneeSombreForet",
-                // Ajout pour compenser Érudit réduit
-                "oAraigneeDeLaRoseNoire", "oAraigneeDeLaRoseNoire",
-                "oDragonnetForet", "oDragonnetForet", "oDragonnetForet",
-                "oTreant", "oTreant", "oTreant",
-                "oEruditForet",
-                "oSorciereForet", "oSorciereForet", "oSorciereForet",
-                // Magies (10)
-                "oSacrificeMeute", "oSacrificeMeute", "oSacrificeMeute",
-                "oMaledictionClairLune", "oMaledictionClairLune",
-                "oRoseNoire",
-                "oEcailleForet",
-                "oRonceNoire", "oRonceNoire",
-                "oMaladieRonceNoire"
-            ];
-            
-        case 4: // Bot 4 - Deck Contrôle (Mort-vivant & Humanoïde) (25 monstres, 15 magies) — Chemin perdu
-            return [
-                // Monstres (25)
-                "oChevalierSqueletteReanime", "oChevalierSqueletteReanime", "oChevalierSqueletteReanime",
-                "oSqueletteReanime", "oSqueletteReanime", "oSqueletteReanime",
-                "oChevalierSqueletteReanimeParLaRose", "oChevalierSqueletteReanimeParLaRose", "oChevalierSqueletteReanimeParLaRose",
-                "oOmbreClairLune", "oOmbreClairLune", "oOmbreClairLune",
-                "oEruditForet", "oEruditForet", "oEruditForet",
-                "oSorciereForet", "oSorciereForet", "oSorciereForet",
-                "oEruditDeLaRoseNoire", "oEruditDeLaRoseNoire", "oEruditDeLaRoseNoire",
-                "oPetiteSorciereForet", "oPetiteSorciereForet", "oPetiteSorciereForet",
-                "oCorbeauDeLaRoseNoire",
-                // Magies (15)
-                "oRonceNoire", "oRonceNoire", "oRonceNoire",
-                "oMaladieRonceNoire", "oMaladieRonceNoire",
-                "oMaledictionRoseNoire", "oMaledictionRoseNoire",
-                "oClairLuneForetMaudite", "oClairLuneForetMaudite", "oClairLuneForetMaudite",
-                "oClairLuneBeni", "oClairLuneBeni",
-                "oBaguetteRoseNoire", "oBaguetteRoseNoire",
-                "oTalismanPerdu"
-            ];
-            
-        case 5: // Deck Bot 5 — Test Rose noire & Baguette (15 cartes, complété à 40)
-            return [
-                // 5x Petite Sorcière de la Rose noire
-                "oPetiteSorciereDeLaRoseNoire", "oPetiteSorciereDeLaRoseNoire", "oPetiteSorciereDeLaRoseNoire", "oPetiteSorciereDeLaRoseNoire", "oPetiteSorciereDeLaRoseNoire",
-                // 5x Baguette de la Rose noire
-                "oBaguetteRoseNoire", "oBaguetteRoseNoire", "oBaguetteRoseNoire", "oBaguetteRoseNoire", "oBaguetteRoseNoire",
-                // 5x La Rose noire
-                "oRoseNoire", "oRoseNoire", "oRoseNoire", "oRoseNoire", "oRoseNoire"
-            ];
-            
         // Decks génériques pour les bots 6-29
         case "Guerrier": // Deck agressif
             return [
@@ -234,12 +126,11 @@ function get_random_deck_type() {
 /// @description Retourne le nom du deck pour l'affichage
 /// @param {real} deck_id - L'ID du deck
 function get_bot_deck_name(deck_id) {
+    var deck = get_bot_deck_by_id_new(deck_id);
+    if (!is_undefined(deck) && variable_struct_exists(deck, "name")) return deck.name;
+
     switch(deck_id) {
-        case 1: return "Rose noire";
-        case 2: return "Dragon";
-        case 3: return "Bête";
-        case 4: return "Mort-vivant";
-        case 5: return "Maître du Contrôle";
+        // Decks génériques pour les bots 6-29
         default: return "Bot " + string(deck_id);
     }
 }
@@ -248,11 +139,11 @@ function get_bot_deck_name(deck_id) {
 /// @description Retourne le libellé de profil d'archétype pour affichage
 /// @param {real} deck_id - L'ID du deck
 function get_bot_deck_profile(deck_id) {
+    var deck = get_bot_deck_by_id_new(deck_id);
+    if (!is_undefined(deck) && variable_struct_exists(deck, "profile")) return deck.profile;
+
     switch(deck_id) {
-        case 1: return "Balanced";
-        case 2: return "Stompy";
-        case 3: return "Aggro";
-        case 4: return "Control";
-        default: return "Balanced";
+        // Profils génériques
+        default: return "";
     }
 }

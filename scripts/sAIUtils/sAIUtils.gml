@@ -13,7 +13,7 @@ function AI_IsTargetedEffect(effectType) {
 /// Retourne un score (positif si bénéfique, négatif si nuisible)
 function AI_EvaluateContinuousNetGain(card) {
     if (card == noone || !instance_exists(card)) return 0;
-    if (!variable_struct_exists(card, "effects")) return 0;
+    if (!variable_instance_exists(card, "effects")) return 0;
 
     var net = 0;
 

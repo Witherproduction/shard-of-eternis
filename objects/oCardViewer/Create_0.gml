@@ -5,10 +5,12 @@ show_debug_message("### oCardViewer.create");
 // Configuration du sprite invisible pour la detection des clics
 show_debug_message("### oCardViewer: sprite_index = " + string(sprite_index));
 
-// Zone d'affichage : 8 cartes par ligne * 120px d'espacement = 960px de largeur
-// 4 lignes * 120px d'espacement = 480px de hauteur
-var display_width = 8 * 120;  // 960px
-var display_height = 4 * 120; // 480px
+// Zone d'affichage calculée dynamiquement selon la taille de carte de référence (dos de carte)
+var refW = sprite_get_width(sCarteBack);
+var refH = sprite_get_height(sCarteBack);
+var gridScale = 0.2;
+var display_width = 8 * round(refW * gridScale);
+var display_height = 4 * round(refH * gridScale);
 image_xscale = display_width / sprite_get_width(sprite_index);
 image_yscale = display_height / sprite_get_height(sprite_index);
 
@@ -17,8 +19,8 @@ show_debug_message("### oCardViewer: Position (" + string(x) + ", " + string(y) 
 // Variables pour l'affichage
 cardInstances = [];
 cardsPerRow = 8;
-cardSpacing = 120; // Espacement horizontal
-cardSpacingVertical = 150; // Espacement vertical plus grand pour éviter le chevauchement
+cardSpacing = round(refW * gridScale) + 8; // marge légère
+cardSpacingVertical = round(refH * gridScale) + 12; // marge pour éviter chevauchement
 startX = 200; // Décalage de +50px vers la droite pour rCollection
 startY = 300;
 scrollY = 0;
@@ -79,6 +81,48 @@ function filterOutTokens(cards) {
     return res;
 }
 
+// Filtrage: exclure les cartes non débloquées (progression)
+function filterOutLocked(cards) {
+    show_debug_message("### filterOutLocked: Début filtrage sur " + string(array_length(cards)) + " cartes.");
+    show_debug_message("### Admin Mode: " + string(global.admin_mode));
+    if (variable_global_exists("progression_data")) {
+        show_debug_message("### Unlocked Cards Count: " + string(array_length(global.progression_data.unlocked_cards)));
+    } else {
+        show_debug_message("### Progression Data MISSING!");
+    }
+
+    var res = [];
+    var debug_count_unlocked = 0;
+    var debug_count_locked = 0;
+
+    for (var i = 0; i < array_length(cards); i++) {
+        var c = cards[i];
+        // On suppose que is_card_unlocked est global (défini dans sProgressionManager)
+        // et prend l'ID de la carte en string.
+        if (variable_struct_exists(c, "id")) {
+            var unlocked = is_card_unlocked(string(c.id));
+            if (unlocked) {
+                array_push(res, c);
+                if (debug_count_unlocked < 3) {
+                    var reason = (global.admin_mode) ? "ADMIN" : "OWNED";
+                    show_debug_message("### Card " + string(c.id) + " UNLOCKED (" + reason + ")");
+                    debug_count_unlocked++;
+                }
+            } else {
+                 if (debug_count_locked < 3) {
+                    show_debug_message("### Card " + string(c.id) + " LOCKED");
+                    debug_count_locked++;
+                 }
+            }
+        } else {
+            // Debug: carte sans ID ?
+            // show_debug_message("### SKIP: Carte sans ID -> " + (variable_struct_exists(c, "name") ? c.name : "???"));
+        }
+    }
+    show_debug_message("### filterOutLocked: Fin filtrage. Reste " + string(array_length(res)) + " cartes.");
+    return res;
+}
+
 // === Menu déroulant (filtre booster) ===
 // Construire dynamiquement la liste des boosters disponibles à partir de la base
 dropdown_items = [];
@@ -87,6 +131,7 @@ var _seenBoosters = ds_map_create();
 ds_map_add(_seenBoosters, string_lower("Tout"), true);
 var _cardsForBoosters = dbGetAllCards();
 _cardsForBoosters = filterOutTokens(_cardsForBoosters);
+_cardsForBoosters = filterOutLocked(_cardsForBoosters);
 for (var i = 0; i < array_length(_cardsForBoosters); i++) {
     var c = _cardsForBoosters[i];
     if (variable_struct_exists(c, "booster")) {
@@ -428,7 +473,10 @@ function selectCardByName(cardName) {
     // S'assurer que la base est chargée
     if (!cardsLoaded) {
         cardsLoaded = true;
-        allCards = filterOutTokens(dbGetAllCards());
+        allCards = dbGetAllCards();
+        allCards = filterOutTokens(allCards);
+        allCards = filterOutLocked(allCards);
+        
         if (!variable_global_exists("sort_mode") || global.sort_mode == "none") {
             global.sort_mode = "alpha";
             global.sort_descending = false;
@@ -503,7 +551,9 @@ show_debug_message("### oCardViewer: Avant verification oDataBase");
 if (instance_exists(oDataBase)) {
     show_debug_message("### oCardViewer: oDataBase existe, recuperation des cartes...");
     // Initialiser la liste des cartes depuis la base
-    allCards = filterOutTokens(dbGetAllCards());
+    allCards = dbGetAllCards();
+    allCards = filterOutTokens(allCards);
+    allCards = filterOutLocked(allCards);
     cardsLoaded = true;
     // Initialiser tri/ordre par défaut si nécessaire
     if (!variable_global_exists("sort_mode") || global.sort_mode == "none") {

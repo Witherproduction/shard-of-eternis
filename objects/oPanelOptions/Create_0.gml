@@ -4,8 +4,8 @@ x = room_width * 0.5;
 y = room_height * 0.5;
 
 // Échelle et apparence du cadre
-image_xscale = 1.0;
-image_yscale = 1.0;
+image_xscale = 0.5;
+image_yscale = 0.5;
 image_blend = c_white;
 image_alpha = 1.0;
 
@@ -218,6 +218,7 @@ if (spr3 != -1) {
 
 // ==== Bouton Abandonner (uniquement en room de duel) ====
 abandon_enabled = (room == rDuel);
+quit_enabled = (room == rScenario);
 abandon_confirm_open = false;
 abandon_btn_x1 = 0; // géométrie initialisée dans Step
 abandon_btn_y1 = 0;

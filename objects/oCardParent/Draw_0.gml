@@ -3,6 +3,7 @@
 // Dessiner la carte à sa position
 draw_sprite_ext(sprite_index, image_index, x, y, image_xscale, image_yscale, image_angle, image_blend, image_alpha);
 
+
 // --- Bordure de rareté pour les petites cartes ---
 if (room == rCollection && variable_instance_exists(self, "rarity")) {
     var rarity_color = getRarityColor(rarity);

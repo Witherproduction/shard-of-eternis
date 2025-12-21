@@ -1,15 +1,14 @@
-// Musique de fond pour les rooms hors Duel
-if (!variable_global_exists("bgm_asset")) {
-    var _nm = "MainTheme";
-    var _idx = asset_get_index(_nm);
-    if (_idx == -1) { _idx = asset_get_index("sndMainTheme"); }
-    global.bgm_asset = _idx;
+// Initialisation du gestionnaire global
+if (!instance_exists(oGlobalManager)) {
+    instance_create_depth(0, 0, 0, oGlobalManager);
 }
-if (!variable_global_exists("bgm_enabled")) global.bgm_enabled = true;
-if (!variable_global_exists("bgm_should_resume")) global.bgm_should_resume = false;
-if (global.bgm_enabled && global.bgm_asset != -1) {
-    if (global.bgm_should_resume || !audio_is_playing(global.bgm_asset)) {
-        audio_play_sound(global.bgm_asset, 0, true);
-        global.bgm_should_resume = false;
-    }
+
+// Note: L'initialisation des options est maintenant gérée par oGlobalManager
+// qui est présent dans cette room.
+if (variable_global_exists("bgm_asset") && global.bgm_asset != -1) {
+    audio_stop_sound(global.bgm_asset);
 }
+global.bgm_enabled = false;
+global.bgm_should_resume = false;
+global.bgm_asset = -1;
+

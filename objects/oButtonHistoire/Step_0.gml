@@ -1,6 +1,16 @@
 // === oButtonHistoire - Step Event ===
 // Détection manuelle des clics sur le bouton Histoire
 
+// DEBUG F1: Vérifier que oButtonHistoire reçoit bien les inputs
+if (keyboard_check_pressed(vk_f1)) {
+    show_debug_message("### DEBUG F1 from oButtonHistoire: Je suis vivant dans la room " + room_get_name(room));
+    if (instance_exists(oGlobalMusicManager)) {
+        show_debug_message("### DEBUG F1: oGlobalMusicManager EST PRÉSENT.");
+    } else {
+        show_debug_message("### DEBUG F1: oGlobalMusicManager EST ABSENT !");
+    }
+}
+
 // Garde directe pour bloquer les clics quand le panneau d'options est ouvert
 if (instance_exists(oPanelOptions)) { exit; }
 

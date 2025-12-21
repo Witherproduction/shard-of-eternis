@@ -116,9 +116,28 @@ function healCard(card, amount) {
 /// @description Détruit une carte et enregistre le contexte (incluant l'attaquant si fourni)
 function destroyCard(card, source = noone) {
     if (card == noone) return false;
+    if (instance_exists(card)) {
+        var cancelled_by_secret = false;
+        if (!is_undefined(activateSecretsOnDestroyAttempt)) {
+            cancelled_by_secret = activateSecretsOnDestroyAttempt(card, source);
+        }
+        if (cancelled_by_secret) {
+            return false;
+        }
+    }
+    if (instance_exists(card) && variable_instance_exists(card, "protection_sources") && is_array(card.protection_sources) && array_length(card.protection_sources) > 0) {
+        return false;
+    }
     var ctx = { destroyed_card: card };
     if (source != noone && instance_exists(source)) { ctx.attacker = source; }
+    if (instance_exists(card) && variable_instance_exists(card, "Shield") && card.Shield > 0) {
+        card.Shield -= 1;
+        if (variable_instance_exists(card, "defense") && card.defense <= 0) { card.defense = 1; }
+        if (variable_instance_exists(card, "current_hp") && card.current_hp <= 0) { card.current_hp = 1; }
+        return true;
+    }
     registerTriggerEvent(TRIGGER_ON_DESTROY, card, ctx);
+    var delay_destroy = (instance_exists(card) && variable_instance_exists(card, "_delay_instance_destroy_for_poison") && card._delay_instance_destroy_for_poison);
     
     // Utiliser les variables globales des cimetières
     var gyInst = noone;
@@ -128,23 +147,26 @@ function destroyCard(card, source = noone) {
         gyInst = global.graveyardEnemy;
     }
     
-    if (gyInst != noone && instance_exists(gyInst)) {
-        gyInst.addToGraveyard(card);
-    } else {
-        show_debug_message("### destroyCard: cimetière introuvable pour owner=" + string(card.isHeroOwner) + " (global.graveyardHero=" + string(global.graveyardHero) + ", global.graveyardEnemy=" + string(global.graveyardEnemy) + ")");
+    if (!delay_destroy) {
+        if (gyInst != noone && instance_exists(gyInst)) {
+            gyInst.addToGraveyard(card);
+        } else {
+            show_debug_message("### destroyCard: cimetière introuvable pour owner=" + string(card.isHeroOwner) + " (global.graveyardHero=" + string(global.graveyardHero) + ", global.graveyardEnemy=" + string(global.graveyardEnemy) + ")");
+        }
     }
     if (instance_exists(card) && variable_instance_exists(card, "zone")) {
-        if (card.zone == "Field" || card.zone == "FieldSelected") {
-            // Déclencher la sortie du terrain afin d'activer les nettoyages (auras, etc.)
-            registerTriggerEvent(TRIGGER_LEAVE_FIELD, card, ctx);
-            var fm = noone;
-            if (instance_exists(fieldManagerHero) || instance_exists(fieldManagerEnemy)) {
-                if (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner && instance_exists(fieldManagerHero)) { fm = fieldManagerHero; }
-                else if (instance_exists(fieldManagerEnemy)) { fm = fieldManagerEnemy; }
+        if (!delay_destroy) {
+            if (card.zone == "Field" || card.zone == "FieldSelected") {
+                registerTriggerEvent(TRIGGER_LEAVE_FIELD, card, ctx);
+                var fm = noone;
+                if (instance_exists(fieldManagerHero) || instance_exists(fieldManagerEnemy)) {
+                    if (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner && instance_exists(fieldManagerHero)) { fm = fieldManagerHero; }
+                    else if (instance_exists(fieldManagerEnemy)) { fm = fieldManagerEnemy; }
+                }
+                if (fm != noone && variable_instance_exists(card, "fieldPosition")) { fm.remove(card); }
             }
-            if (fm != noone && variable_instance_exists(card, "fieldPosition")) { fm.remove(card); }
+            card.zone = "Graveyard";
         }
-        card.zone = "Graveyard";
         var dCard = card;
         with (oCardMagic) {
             if (zone == "Field") {
@@ -204,10 +226,17 @@ function spawnPoisonFX(target, source) {
         if (instance_exists(source)) fx.source = source;
         fx.target = target;
         fx.depth_override = -100000;
-        if (variable_instance_exists(target, "image_xscale")) fx.image_xscale = target.image_xscale;
-        if (variable_instance_exists(target, "image_yscale")) fx.image_yscale = target.image_yscale;
-        if (!variable_instance_exists(fx, "duration_steps")) fx.duration_steps = max(1, floor(room_speed * 0.6));
+        fx.visible = true;
+        fx.image_xscale = 1;
+        fx.image_yscale = 1;
+        if (!variable_instance_exists(fx, "duration_steps")) fx.duration_steps = max(1, round(room_speed * 1.0));
         if (!variable_instance_exists(fx, "color")) fx.color = make_color_rgb(60, 200, 80);
+        var spr_poison = asset_get_index("sPoison");
+        if (spr_poison != -1) {
+            fx.sprite_index = spr_poison;
+            fx.image_speed = sprite_get_number(spr_poison) / max(1, fx.duration_steps);
+        }
+        show_debug_message("### spawnPoisonFX: target=" + string(target) + " source=" + string(source) + " pos=(" + string(lx) + "," + string(ly) + ") spr_set=" + string(spr_poison != -1));
         if (instance_exists(target)) {
             target._skip_destruction_fx = true;
             target._delay_instance_destroy_for_poison = true;

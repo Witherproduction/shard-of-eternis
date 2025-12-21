@@ -40,8 +40,9 @@ function consumeSpellIfNeeded(card, effect) {
         }
     }
 
-    // Retirer du terrain si nécessaire
+    // Retirer du terrain si nécessaire (déclencher leave_field immédiatement)
     if (variable_instance_exists(card, "zone") && (card.zone == "Field" || card.zone == "FieldSelected")) {
+        registerTriggerEvent(TRIGGER_LEAVE_FIELD, card, { owner_is_hero: ownerIsHero });
         if (instance_exists(fm) && variable_instance_exists(card, "fieldPosition")) { fm.remove(card); }
     }
 

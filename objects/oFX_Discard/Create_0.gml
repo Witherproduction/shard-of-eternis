@@ -56,3 +56,20 @@ flame_jitter_amp = 4;
 flame_thickness = 8;
 flame_col1 = make_color_rgb(255, 220, 96);
 flame_col2 = make_color_rgb(255, 120, 0);
+
+// Sprite d'effet de flamme personnalisé et son
+spr_discard = asset_get_index("sDiscardFire");
+spr_discard_frames = (spr_discard != -1) ? sprite_get_number(spr_discard) : 0;
+discard_cycle_ms = 1000;
+discard_start_time = current_time;
+discard_scale_x = 1;
+discard_scale_y = 1;
+
+snd_discard = asset_get_index("FireDiscard");
+snd_discard_id = -1;
+if (snd_discard != -1) {
+    var dur_ms = round((duration / room_speed) * 1000);
+    var pitchD = clamp(3000.0 / max(1, dur_ms), 0.5, 3.0);
+    snd_discard_id = audio_play_sound(snd_discard, 0, false);
+    if (snd_discard_id != -1) { audio_sound_pitch(snd_discard_id, pitchD); }
+}

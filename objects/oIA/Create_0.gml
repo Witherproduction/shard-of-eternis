@@ -29,6 +29,9 @@ manageOrientation = function() {
         }
 
         if (cardEnemy != 0 && instance_exists(cardEnemy) && !cardEnemy.orientationChangedThisTurn) {
+            if (variable_instance_exists(cardEnemy, "entrave_turns_remaining") && cardEnemy.entrave_turns_remaining > 0 && variable_instance_exists(cardEnemy, "entrave_block_position") && cardEnemy.entrave_block_position) {
+                continue;
+            }
             if (cardEnemy.isFaceDown) { continue; }
 
             // Analyser les menaces du héros
@@ -473,20 +476,28 @@ iaAttackResetEngagement = function() {
 
 iaAttackTryLaunchNext = function() {
     var difficulty = (variable_global_exists("IA_DIFFICULTY") ? global.IA_DIFFICULTY : 0);
+    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.iaAttackTryLaunchNext:start diff=" + string(difficulty));
     
     if (difficulty == 0) {
         // Mode Normal : ordre séquentiel simple (comportement existant)
         for (var i = 0; i < 5; i++) {
             var cardEnemy = fieldMonsterEnemy.cards[i];
             if (cardEnemy != 0 && instance_exists(cardEnemy) && cardEnemy.orientation == "Attack" && (variable_instance_exists(cardEnemy, "lastTurnAttack") ? cardEnemy.lastTurnAttack < game.nbTurn : true)) {
-                // Vérifie s'il y a des monstres héros
+                // Vérifie s'il existe un défenseur héros valide (non camouflé)
                 var heroHasMonsters = false;
-                for (var j = 0; j < array_length(fieldMonsterHero.cards); j++) { var ch = fieldMonsterHero.cards[j]; if (ch != 0 && instance_exists(ch)) { heroHasMonsters = true; break; } }
+                for (var j = 0; j < array_length(fieldMonsterHero.cards); j++) {
+                    var ch = fieldMonsterHero.cards[j];
+                    if (ch != 0 && instance_exists(ch)) {
+                        var isCamoH = (variable_instance_exists(ch, "isCamouflage") && ch.isCamouflage);
+                        if (!isCamoH) { heroHasMonsters = true; break; }
+                    }
+                }
                 if (heroHasMonsters) {
                     var bestTarget = -1; var bestValue = -1;
                     for (var j2 = 0; j2 < array_length(fieldMonsterHero.cards); j2++) {
                         var cardHero = fieldMonsterHero.cards[j2];
                         if (cardHero != 0 && instance_exists(cardHero)) {
+                            if (variable_instance_exists(cardHero, "isCamouflage") && cardHero.isCamouflage) continue;
                             if (variable_instance_exists(cardHero, "engagedThisPhase") && cardHero.engagedThisPhase) continue;
                             var effEnemyAtk = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack;
                             var effEnemyDef = variable_struct_exists(cardEnemy, "effective_defense") ? cardEnemy.effective_defense : cardEnemy.defense;
@@ -517,28 +528,41 @@ iaAttackTryLaunchNext = function() {
                         }
                     }
                     if (bestTarget != -1) {
+                        if (variable_instance_exists(cardEnemy, "entrave_turns_remaining") && cardEnemy.entrave_turns_remaining > 0 && variable_instance_exists(cardEnemy, "entrave_block_attack") && cardEnemy.entrave_block_attack) {
+                            continue;
+                        }
                         var cardHeroPick = fieldMonsterHero.cards[bestTarget];
+                        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
+                            var logAtkE = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack;
+                            var logDefE = variable_struct_exists(cardEnemy, "effective_defense") ? cardEnemy.effective_defense : cardEnemy.defense;
+                            var logAtkH = variable_struct_exists(cardHeroPick, "effective_attack") ? cardHeroPick.effective_attack : cardHeroPick.attack;
+                            var logDefH = variable_struct_exists(cardHeroPick, "effective_defense") ? cardHeroPick.effective_defense : cardHeroPick.defense;
+                            show_debug_message("### oIA.iaAttackTryLaunchNext: vsMonster attacker=" + string(cardEnemy) + " target=" + string(cardHeroPick) + " atkE=" + string(logAtkE) + " defE=" + string(logDefE) + " atkH=" + string(logAtkH) + " defH=" + string(logDefH));
+                        }
                         if (variable_global_exists("USE_COMBAT_FX") && global.USE_COMBAT_FX) {
                             var fx = instance_create_layer(cardEnemy.x, cardEnemy.y, "Instances", FX_Combat);
                             if (fx != noone) { fx.attacker = cardEnemy; fx.defender = cardHeroPick; fx.mode = "vsMonster"; }
                         } else {
                             var dm = instance_find(oDamageManager, 0);
                             if (dm != noone) { with (dm) resolveAttackMonsterEnemy(cardEnemy, cardHeroPick); }
+                            cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1; cardEnemy.lastTurnAttack = game.nbTurn;
                         }
-                        cardEnemy.lastTurnAttack = game.nbTurn; cardHeroPick.engagedThisPhase = true; return true;
+                        cardHeroPick.engagedThisPhase = true; return true;
                     }
                 } else {
                     // Attaque directe (éviter d'attaquer avec ATK=0)
                     var effEnemyAtkDir = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : (variable_instance_exists(cardEnemy, "attack") ? cardEnemy.attack : 0);
                     if (effEnemyAtkDir <= 0) { continue; }
+                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.iaAttackTryLaunchNext: direct attacker=" + string(cardEnemy) + " atk=" + string(effEnemyAtkDir));
                     if (variable_global_exists("USE_COMBAT_FX") && global.USE_COMBAT_FX) {
                         var fx2 = instance_create_layer(cardEnemy.x, cardEnemy.y, "Instances", FX_Combat);
                         if (fx2 != noone) { fx2.attacker = cardEnemy; fx2.defender = noone; fx2.mode = "direct"; }
                     } else {
                         var dm2 = instance_find(oDamageManager, 0);
                         if (dm2 != noone) { with (dm2) resolveAttackDirectEnemy(cardEnemy); }
+                        cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1; cardEnemy.lastTurnAttack = game.nbTurn;
                     }
-                    cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1; cardEnemy.lastTurnAttack = game.nbTurn; return true;
+                    return true;
                 }
             }
         }
@@ -559,11 +583,14 @@ iaAttackTryLaunchNext = function() {
         
         if (array_length(availableAttackers) == 0) return false;
         
-        // 2. Vérifier s'il y a des monstres héros
+        // 2. Vérifier s'il existe un défenseur héros valide (non camouflé)
         var heroHasMonsters = false;
         for (var j = 0; j < array_length(fieldMonsterHero.cards); j++) { 
             var ch = fieldMonsterHero.cards[j]; 
-            if (ch != 0 && instance_exists(ch)) { heroHasMonsters = true; break; } 
+            if (ch != 0 && instance_exists(ch)) {
+                var isCamoH2 = (variable_instance_exists(ch, "isCamouflage") && ch.isCamouflage);
+                if (!isCamoH2) { heroHasMonsters = true; break; }
+            } 
         }
         
         if (!heroHasMonsters) {
@@ -579,14 +606,16 @@ iaAttackTryLaunchNext = function() {
             }
             
             var cardEnemy = bestDirectAttacker.card;
+            if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.iaAttackTryLaunchNext: direct-hard attacker=" + string(cardEnemy) + " atk=" + string(bestDirectAtk));
             if (variable_global_exists("USE_COMBAT_FX") && global.USE_COMBAT_FX) {
                 var fx2 = instance_create_layer(cardEnemy.x, cardEnemy.y, "Instances", FX_Combat);
                 if (fx2 != noone) { fx2.attacker = cardEnemy; fx2.defender = noone; fx2.mode = "direct"; }
             } else {
                 var dm2 = instance_find(oDamageManager, 0);
                 if (dm2 != noone) { with (dm2) resolveAttackDirectEnemy(cardEnemy); }
+                cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1; cardEnemy.lastTurnAttack = game.nbTurn;
             }
-            cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1; cardEnemy.lastTurnAttack = game.nbTurn; return true;
+            return true;
             return true;
         }
         
@@ -600,10 +629,11 @@ iaAttackTryLaunchNext = function() {
             var effEnemyAtk = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack;
             var effEnemyDef = variable_struct_exists(cardEnemy, "effective_defense") ? cardEnemy.effective_defense : cardEnemy.defense;
             
-            for (var j2 = 0; j2 < array_length(fieldMonsterHero.cards); j2++) {
-                var cardHero = fieldMonsterHero.cards[j2];
-                if (cardHero != 0 && instance_exists(cardHero)) {
-                    if (variable_instance_exists(cardHero, "engagedThisPhase") && cardHero.engagedThisPhase) continue;
+                    for (var j2 = 0; j2 < array_length(fieldMonsterHero.cards); j2++) {
+                        var cardHero = fieldMonsterHero.cards[j2];
+                        if (cardHero != 0 && instance_exists(cardHero)) {
+                            if (variable_instance_exists(cardHero, "isCamouflage") && cardHero.isCamouflage) continue;
+                            if (variable_instance_exists(cardHero, "engagedThisPhase") && cardHero.engagedThisPhase) continue;
                     
                     var effHeroAtk = variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack;
                     var effHeroDef = variable_struct_exists(cardHero, "effective_defense") ? cardHero.effective_defense : cardHero.defense;
@@ -721,8 +751,8 @@ iaAttackTryLaunchNext = function() {
             } else {
                 var dm = instance_find(oDamageManager, 0);
                 if (dm != noone) { with (dm) resolveAttackMonsterEnemy(cardEnemy, cardHeroPick); }
+                cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1; cardEnemy.lastTurnAttack = game.nbTurn;
             }
-            cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1; cardEnemy.lastTurnAttack = game.nbTurn; 
             cardHeroPick.engagedThisPhase = true; 
             return true;
         }
@@ -747,6 +777,7 @@ attack = function() {
     if (variable_instance_exists(id, "attackDelayFrames") == false) attackDelayFrames = 0;
 
     var launched = iaAttackTryLaunchNext();
+    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.attack: launched=" + string(launched));
     
     // Toujours dépiler via Step, avec délai configurable, que les FX soient activés ou non
     attackProcessing = launched;

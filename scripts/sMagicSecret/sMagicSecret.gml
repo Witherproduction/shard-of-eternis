@@ -254,3 +254,56 @@ function activateSecretsOnMonsterSummon(summoned) {
         destroyCard(id);
     }
 }
+
+/// Activation des Secrets lors d'une tentative de destruction par un effet
+function activateSecretsOnDestroyAttempt(target, source) {
+    if (target == noone || !instance_exists(target)) return false;
+    var ownerIsHero = (variable_instance_exists(target, "isHeroOwner") ? target.isHeroOwner : true);
+    var sourceIsEffect = (source != noone && instance_exists(source) && variable_instance_exists(source, "type") && (source.type == "Magic" || source.type == "Monster"));
+    var isCombat = false;
+    if (instance_exists(game) && variable_instance_exists(game, "phase") && source != noone && instance_exists(source)) {
+        var curPh = game.phase[game.phase_current];
+        if (curPh == "Attack" && variable_instance_exists(source, "type") && source.type == "Monster") {
+            var srcZone = variable_instance_exists(source, "zone") ? source.zone : "";
+            if (srcZone == "Field" || srcZone == "FieldSelected") { isCombat = true; }
+        }
+    }
+    var sourceOwnerIsHero = (source != noone && instance_exists(source) && variable_instance_exists(source, "isHeroOwner")) ? source.isHeroOwner : ownerIsHero;
+
+    with (all) {
+        if (!instance_exists(id)) continue;
+        if (!variable_instance_exists(self, "type") || type != "Magic") continue;
+        if (!variable_instance_exists(self, "zone") || zone != "Field") continue;
+        if (!variable_instance_exists(self, "genre") || string_lower(genre) != string_lower("Secret")) continue;
+        if (!variable_instance_exists(self, "isFaceDown") || !isFaceDown) continue;
+        if (!variable_instance_exists(self, "isHeroOwner") || isHeroOwner != ownerIsHero) continue;
+        if (!variable_instance_exists(self, "effects") || array_length(effects) <= 0) continue;
+
+        var chosenEffect = noone;
+        for (var i = 0; i < array_length(effects); i++) {
+            var e = effects[i];
+            if (!is_struct(e)) continue;
+            if (variable_struct_exists(e, "secret_activation") && variable_struct_exists(e.secret_activation, "on_destroy_attempt") && e.secret_activation.on_destroy_attempt) {
+                var allowCombat = (variable_struct_exists(e.secret_activation, "allow_combat") && e.secret_activation.allow_combat);
+                var onlyOpponent = (variable_struct_exists(e.secret_activation, "only_if_opponent") && e.secret_activation.only_if_opponent);
+                if (isCombat && !allowCombat) continue;
+                if (onlyOpponent) {
+                    if (source == noone || !instance_exists(source)) continue;
+                    if (sourceOwnerIsHero == ownerIsHero) continue;
+                }
+                chosenEffect = e; break;
+            }
+        }
+        if (chosenEffect == noone) continue;
+
+        isFaceDown = false;
+        image_index = 0;
+        var ctx = { target: target, source: source };
+        if (variable_struct_exists(chosenEffect, "effect_type")) {
+            executeEffect(self, chosenEffect, ctx);
+        }
+        destroyCard(id);
+        return true;
+    }
+    return false;
+}

@@ -7,15 +7,21 @@ isTyping = false; // Indique si l'utilisateur est en train de taper
 
 // Position et dimensions de la barre de filtre (fond avec sButton)
 // Alignement visuel par rapport à la barre de tri (oTri) actuellement :
-// oTri: barX=310, barY=room_height-130, barWidth=920, barHeight=90
-filterBarWidth = 550; // Réduit de 10px en longueur
-filterBarHeight = 100; // Légèrement moins haut
+// oTri: barX=310, barY=room_height-130
+var baseW = sprite_get_width(sButton);
+var baseH = sprite_get_height(sButton);
+filterBarHeight = round(baseH * (100.0 / 100.0));
 filterBarY = room_height - 130;
-filterBarX = 310 - filterBarWidth + 200; // Décale tout l'objet vers la droite de 200px au total
 
 // Position et taille de la zone de saisie (centrée dans la barre de filtre)
 filterBoxWidth = 300;
 filterBoxHeight = 40;
+
+// Réduire la largeur du bouton filtre pour qu'il soit proche du cadre d'écriture
+// Ajouter une petite marge latérale de 20 px
+filterBarWidth = filterBoxWidth + 50;
+filterBarX = 310 - filterBarWidth + 200; // Décale tout l'objet vers la droite de 200px au total
+
 filterBoxX = filterBarX + (filterBarWidth - filterBoxWidth) / 2;
 filterBoxY = filterBarY + (filterBarHeight - filterBoxHeight) / 2;
 

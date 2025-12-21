@@ -3,6 +3,7 @@
 var cam = noone;
 // Activer le bouton Abandonner uniquement dans la room de duel
 abandon_enabled = (room == rDuel);
+quit_enabled = (room == rScenario);
 if (view_enabled) {
     for (var i = 0; i < 8; i++) {
         if (view_visible[i]) { cam = view_camera[i]; break; }
@@ -58,7 +59,7 @@ if (spr != -1) {
     retour_btn_y1 = base_y1;
     retour_btn_y2 = base_y2;
 
-    // Bouton Abandonner (à droite du centre)
+    // Bouton secondaire (à droite du centre): Abandonner (Duel) ou Quitter (Scénario)
     abandon_btn_x1 = content_center_x + gap * 0.5;
     abandon_btn_x2 = abandon_btn_x1 + btn_w;
     abandon_btn_y1 = base_y1;
@@ -69,6 +70,33 @@ if (spr != -1) {
         if (point_in_rectangle(mouse_x, mouse_y, retour_btn_x1, retour_btn_y1, retour_btn_x2, retour_btn_y2)) {
             instance_destroy();
             exit;
+        }
+    }
+
+    // ==========================
+    // Bouton Quitter (room Scénario uniquement)
+    // ==========================
+    if (quit_enabled && !abandon_enabled) {
+        if (mouse_check_button_pressed(mb_left)) {
+            if (point_in_rectangle(mouse_x, mouse_y, abandon_btn_x1, abandon_btn_y1, abandon_btn_x2, abandon_btn_y2)) {
+                var runner = instance_find(oScenarioRunner, 0);
+                if (runner != noone) {
+                    if (variable_instance_exists(runner, "chapter_id") && variable_instance_exists(runner, "scene_index") && variable_instance_exists(runner, "act_num")) {
+                        story_progress_write_last_scene(runner.chapter_id, runner.scene_index, runner.act_num);
+                    }
+                    if (variable_instance_exists(runner, "bg_sound_asset_current") && runner.bg_sound_asset_current != -1) {
+                        audio_stop_sound(runner.bg_sound_asset_current);
+                        runner.bg_sound_asset_current = -1;
+                    }
+                    if (variable_instance_exists(runner, "bg2_sound_asset_current") && runner.bg2_sound_asset_current != -1) {
+                        audio_stop_sound(runner.bg2_sound_asset_current);
+                        runner.bg2_sound_asset_current = -1;
+                    }
+                }
+                instance_destroy();
+                room_goto(rHistoire);
+                exit;
+            }
         }
     }
 

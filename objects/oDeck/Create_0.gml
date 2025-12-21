@@ -91,7 +91,7 @@ for(var i=0; i<ds_list_size(deck); i++) {
 	instance.image_angle = image_angle;
 	instance.image_xscale = image_xscale;
 	instance.image_yscale = image_yscale;
-	instance.depth = -i;
+    instance.depth = 150;
 	instance.isHeroOwner = isHeroOwner;
 	instance.zone = "Deck";  // Initialiser la zone de la carte
 	

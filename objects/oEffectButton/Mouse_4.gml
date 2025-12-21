@@ -20,7 +20,7 @@ var currentPhase = (instance_exists(game) && variable_instance_exists(game, "pha
 var isQuick = (effect != noone && variable_struct_exists(effect, "trigger") && effect.trigger == TRIGGER_QUICK_EFFECT);
 // Détection d'un effet continu (permet d'afficher un bouton même sans effet manuel)
 var hasContinuous = false;
-if (variable_struct_exists(card, "effects")) {
+if (variable_instance_exists(card, "effects")) {
     for (var ci = 0; ci < array_length(card.effects); ci++) {
         var ce = card.effects[ci];
         if (is_struct(ce) && variable_struct_exists(ce, "trigger") && ce.trigger == TRIGGER_CONTINUOUS) { hasContinuous = true; break; }

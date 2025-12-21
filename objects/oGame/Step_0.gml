@@ -6,6 +6,16 @@ if (!variable_instance_exists(id, "graveyardsInitialized") || !graveyardsInitial
     }
 }
 
+// === GESTION DU MODE ADMIN ===
+// Désactivé ici car géré par oGlobalManager (persistent)
+// Le code est conservé commenté pour référence ou fallback si besoin
+/*
+if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_pressed(ord("P"))) {
+    global.admin_mode = !global.admin_mode;
+    show_debug_message("### MODE ADMIN " + (global.admin_mode ? "ACTIVÉ" : "DÉSACTIVÉ"));
+}
+*/
+
 // Vérifier les points de vie pour déclencher la fin de partie
 if (instance_exists(LP_Hero) && instance_exists(LP_Enemy)) {
     var heroLP = LP_Hero.nbLP;
@@ -45,6 +55,8 @@ if (instance_exists(LP_Hero) && instance_exists(LP_Enemy)) {
     }
 }
 
+
+
 if(timerPick > 0 && timerEnabledPick) {
 	timerPick -= 1/room_speed;
 }
@@ -65,7 +77,7 @@ else if(timerEnabledPick) {
 	} else {
 		timerEnabledPick = false;
 		game.nextPhase();
-		nextStep.image_alpha = 1;
+		nextStep.image_index = 0;
 	}
 }
 

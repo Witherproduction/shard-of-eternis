@@ -15,15 +15,67 @@ if (!variable_instance_exists(self, "_post_fx_duration_applied")) {
 }
 
 if (!finished_move) {
+    if (!variable_instance_exists(self, "snd_invocation_played") || !snd_invocation_played) {
+        if (variable_instance_exists(self, "summon_mode")) {
+            var si_local = -1;
+            if (summon_mode == "SpecialSummon") {
+                si_local = asset_get_index("invocationspecial");
+                if (si_local == -1) si_local = asset_get_index("InvocationSpecial");
+            } else if (summon_mode == "Summon") {
+                si_local = asset_get_index("invocation");
+                if (si_local == -1) si_local = asset_get_index("Invocation");
+            }
+            if (si_local != -1) {
+                var total_frames_local = duration + post_fx_duration + flash_duration;
+                if (summon_mode == "SpecialSummon") {
+                    var pre_total_local2 = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * room_speed));
+                    var move_total_local2 = (variable_instance_exists(self, "ss_move_total_frames") ? ss_move_total_frames : round(1.0 * room_speed));
+                    total_frames_local = pre_total_local2 + move_total_local2 + post_fx_duration + flash_duration;
+                }
+                var total_ms_local = max(1, round((total_frames_local / room_speed) * 1000));
+                var snd_len_ms_local = 3000;
+                snd_invocation_id = audio_play_sound(si_local, 0, false);
+                if (snd_invocation_id != -1) { audio_sound_pitch(snd_invocation_id, clamp(snd_len_ms_local / total_ms_local, 0.5, 3.0)); }
+                snd_invocation_played = true;
+            } else {
+                snd_invocation_played = true;
+            }
+        }
+    }
     _t++;
-    var progress = clamp(_t / duration, 0, 1);
+    var progress_total = clamp(_t / duration, 0, 1);
+    var move_t = _t;
+    if (variable_instance_exists(self, "summon_mode") && summon_mode == "SpecialSummon") {
+        if (variable_instance_exists(self, "ss_portal_t") && variable_instance_exists(self, "ss_portal_total_frames")) {
+            ss_portal_t = min(ss_portal_t + 1, ss_portal_total_frames);
+        }
+        var pre_total = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * room_speed));
+        var move_total = (variable_instance_exists(self, "ss_move_total_frames") ? ss_move_total_frames : round(1.0 * room_speed));
+        move_t = max(0, _t - pre_total);
+        duration = max(1, move_total);
+    }
+    var progress = clamp(move_t / duration, 0, 1);
     var ease = progress * progress * (3 - 2 * progress);
+
+    if (variable_instance_exists(self, "summon_mode") && summon_mode == "SpecialSummon" && !_ss_init_done) {
+        var spr_idx = asset_get_index("sSpécialSummon");
+        if (spr_idx == -1) spr_idx = asset_get_index("sSpecialSummon");
+        if (spr_idx != -1) { ss_sprite_idx = spr_idx; }
+        ss_x = 220;
+        ss_y = room_height * 0.5;
+        _ss_init_done = true;
+    }
 
     // Position fantôme
     var base_x = lerp(start_x, target_x, ease);
     var base_y = lerp(start_y, target_y, ease);
     x = base_x;
     y = base_y;
+
+    if (variable_instance_exists(self, "summon_mode") && summon_mode == "SpecialSummon") {
+        image_xscale = lerp(0, 0.2475, ease);
+        image_yscale = image_xscale;
+    }
 
     // Fin du mouvement: placer la carte réelle
     if (progress >= 1) {
@@ -148,6 +200,10 @@ if (!finished_move) {
     }
     if (post_fx_t >= post_fx_duration + flash_duration) {
         // Fin de l'effet total (après le flash)
+        if (variable_instance_exists(self, "snd_invocation_id") && snd_invocation_id != -1) {
+            audio_stop_sound(snd_invocation_id);
+            snd_invocation_id = -1;
+        }
         instance_destroy();
     }
 }

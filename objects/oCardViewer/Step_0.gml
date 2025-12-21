@@ -22,6 +22,9 @@ if (room == rCollection) {
 if (!cardsLoaded) {
     cardsLoaded = true;
     allCards = dbGetAllCards();
+    // Appliquer les filtres globaux (tokens et progression)
+    allCards = filterOutTokens(allCards);
+    allCards = filterOutLocked(allCards);
 
     // Tri par défaut A→Z si aucun mode défini ou si "none"
     if (!variable_global_exists("sort_mode") || global.sort_mode == "none") {
@@ -111,6 +114,9 @@ if (variable_global_exists("pending_card_selection") && global.pending_card_sele
 // Rafraîchir l'affichage manuellement avec 'R' : recharge, filtre, tri, et réaffiche
 if (keyboard_check_pressed(ord("R"))) {
     allCards = dbGetAllCards();
+    allCards = filterOutTokens(allCards);
+    allCards = filterOutLocked(allCards);
+    
     applyBoosterFilterNow();
     if (!variable_global_exists("sort_mode") || global.sort_mode == "none") {
         global.sort_mode = "alpha";

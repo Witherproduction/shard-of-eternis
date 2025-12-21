@@ -1,13 +1,11 @@
-// === Zone du cadre GraveyardViewer basée sur sFond centré ===
-var sprFond = sFond;
+// === Zone du cadre GraveyardViewer basée sur sCimetiere centré ===
+var sprFond = sCimetiere;
 var fondW = sprite_get_width(sprFond);
 var fondH = sprite_get_height(sprFond);
 var centerX = room_width * 0.5;
 var centerY = room_height * 0.5;
-// Échelle du viewer augmentée de 10% (doit matcher Draw)
-var frameScale = 1.1;
-var scaledW = fondW * frameScale;
-var scaledH = fondH * frameScale;
+var scaledW = fondW;
+var scaledH = fondH;
 var background_x1 = centerX - scaledW * 0.5;
 var background_y1 = centerY - scaledH * 0.5;
 var background_x2 = centerX + scaledW * 0.5;
@@ -39,27 +37,15 @@ if (mouse_x >= btn_x1 && mouse_x <= btn_x2 && mouse_y >= btn_y1 && mouse_y <= bt
 var columns = 4;
 var rows = 3;
 var spacing = 20;
-var scale = 0.25;             // Échelle d'affichage des cartes (identique au draw)
-
-var base_card_w = 100; // Default if no cards
-var base_card_h = 140; // Default if no cards
-
-if (array_length(linkedGraveyard.cards) > 0) {
-    var first_cardData = linkedGraveyard.cards[0];
-    base_card_w = sprite_get_width(first_cardData.sprite_index);
-    base_card_h = sprite_get_height(first_cardData.sprite_index);
-}
-
-// Taille d'une carte pour la détection de clic
-var card_w = base_card_w * scale;
-var card_h = base_card_h * scale;
-var card_w_click = card_w;
-var card_h_click = card_h;
 
 // Aligné avec Draw: zone intérieure du cadre
 var inner_margin = 40;
 var start_x = background_x1 + inner_margin;
 var start_y = background_y1 + inner_margin;
+var content_w = scaledW - 2 * inner_margin;
+var content_h = scaledH - 2 * inner_margin;
+var cell_w = (content_w - (columns - 1) * spacing) / columns;
+var cell_h = (content_h - (rows - 1) * spacing) / rows;
 
 // Vérification de sécurité
 if (linkedGraveyard == noone || !instance_exists(linkedGraveyard)) {
@@ -81,22 +67,36 @@ for (var i = 0; i < count; i++) {
     var col = i mod columns;
     var row = i div columns;
 
-    var draw_x_top_left = start_x + col * (card_w + spacing);
-    var draw_y_top_left = start_y + row * (card_h + spacing);
+    var draw_x_top_left = start_x + col * (cell_w + spacing);
+    var draw_y_top_left = start_y + row * (cell_h + spacing);
 
-    // Adjust draw_x and draw_y to be the center of the card, as the sprite origin is centered
-    var draw_x = draw_x_top_left + card_w / 2;
-    var draw_y = draw_y_top_left + card_h / 2;
+    // Taille réelle de la carte affichée (comme dans Draw)
+    var cardData_idx = total - 1 - (i + scrollIndex);
+    cardData_idx = clamp(cardData_idx, 0, total - 1);
+    var cardData_local = list[cardData_idx];
+    var sprLocal = cardData_local.sprite_index;
+    if (sprLocal == -1 && variable_struct_exists(cardData_local, "object_index")) {
+        sprLocal = object_get_sprite(cardData_local.object_index);
+    }
+    var cw_src = sprite_get_width(sprLocal);
+    var ch_src = sprite_get_height(sprLocal);
+    var s_local = (cw_src > 0 && ch_src > 0) ? min(cell_w / cw_src, cell_h / ch_src) * 0.95 : 0.25;
+    var cw_draw = cw_src * s_local;
+    var ch_draw = ch_src * s_local;
 
-    // Ajuster la position de la zone cliquable pour la centrer sur la carte affichée
-    var click_x = draw_x - card_w_click / 2;
-    var click_y = draw_y - card_h_click / 2;
+    // Centre de la zone dessinée
+    var draw_x = draw_x_top_left + cell_w * 0.5;
+    var draw_y = draw_y_top_left + cell_h * 0.5;
+
+    // Zone cliquable centrée sur la carte
+    var click_x = draw_x - cw_draw / 2;
+    var click_y = draw_y - ch_draw / 2;
 
     // Vérifier si la souris est sur la carte en utilisant la zone cliquable
-                if (mouse_x >= click_x && mouse_x <= click_x + card_w_click &&
-                    mouse_y >= click_y && mouse_y <= click_y + card_h_click) {
+                if (mouse_x >= click_x && mouse_x <= click_x + cw_draw &&
+                    mouse_y >= click_y && mouse_y <= click_y + ch_draw) {
 
-            var cardData = list[total - 1 - (i + scrollIndex)];
+            var cardData = list[cardData_idx];
             
             // Vérifier que les données de carte existent
             if (cardData != undefined) {
@@ -120,7 +120,9 @@ for (var i = 0; i < count; i++) {
         }
     }
     // Si aucune carte n'est survolée, réinitialiser selectedCard
-    if (selectedCard != noone && (mouse_x < start_x || mouse_x > start_x + columns * (card_w + spacing) ||
-        mouse_y < start_y || mouse_y > start_y + rows * (card_h + spacing))) {
+    var grid_w = columns * cell_w + (columns - 1) * spacing;
+    var grid_h = rows * cell_h + (rows - 1) * spacing;
+    if (selectedCard != noone && (mouse_x < start_x || mouse_x > start_x + grid_w ||
+        mouse_y < start_y || mouse_y > start_y + grid_h)) {
         selectedCard = noone;
-        }
+    }

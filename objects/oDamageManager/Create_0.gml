@@ -35,11 +35,9 @@ tryAttack = function(target) {
         return;
     }
 
-    // Vérifier si l'attaquant peut attaquer
-    if (variable_instance_exists(attacker, "attacksUsedThisTurn") && attacker.attacksUsedThisTurn >= 1) {
-        return;
-    }
-    if (variable_instance_exists(attacker, "lastTurnAttack") && attacker.lastTurnAttack == game.nbTurn) {
+    var _limit = 1;
+    if (variable_instance_exists(attacker, "isAmbidextrous") && attacker.isAmbidextrous) { _limit = 2; }
+    if (variable_instance_exists(attacker, "attacksUsedThisTurn") && attacker.attacksUsedThisTurn >= _limit) {
         return;
     }
     // Vérifier l'orientation
@@ -53,6 +51,24 @@ tryAttack = function(target) {
         if (variable_instance_exists(target, "isHeroOwner") && !target.isHeroOwner &&
             variable_instance_exists(target, "zone") && target.zone == "Field" &&
             variable_instance_exists(target, "type") && target.type == "Monster") {
+            if (variable_instance_exists(target, "isCamouflage") && target.isCamouflage) {
+                var enemyHasNonCamo = false;
+                if (instance_exists(fieldManagerEnemy)) {
+                    var arrEnemy = fieldMonsterEnemy.cards;
+                    for (var ie = 0; ie < array_length(arrEnemy); ie++) {
+                        var em = arrEnemy[ie];
+                        if (em != 0 && instance_exists(em)) {
+                            var camo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
+                            if (!camo) { enemyHasNonCamo = true; break; }
+                        }
+                    }
+                }
+                if (!enemyHasNonCamo) {
+                    defender = noone;
+                } else {
+                    return;
+                }
+            }
             defender = target;
         }
     }
@@ -178,6 +194,10 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
     if (instance_exists(cardHero)) {
         cardHero.attacksUsedThisTurn = (variable_instance_exists(cardHero, "attacksUsedThisTurn") ? cardHero.attacksUsedThisTurn : 0) + 1;
         cardHero.lastTurnAttack = game.nbTurn;
+        if (variable_instance_exists(cardHero, "isCamouflage") && cardHero.isCamouflage) {
+            var keepCamoThisTurn = (variable_instance_exists(cardHero, "keepCamouflageTurn") && instance_exists(game) && variable_instance_exists(game, "nbTurn") && cardHero.keepCamouflageTurn == game.nbTurn);
+            if (!keepCamoThisTurn) { cardHero.isCamouflage = false; }
+        }
     }
     
     // Désélectionner la carte
@@ -325,6 +345,10 @@ resolveAttackDirect = function(cardHero) {
         if (variable_instance_exists(cardHero, "effect_force_direct_attack") && cardHero.effect_force_direct_attack) {
             cardHero.effect_force_direct_attack = false;
         }
+        if (variable_instance_exists(cardHero, "isCamouflage") && cardHero.isCamouflage) {
+            var keepCamoDT = (variable_instance_exists(cardHero, "keepCamouflageTurn") && instance_exists(game) && variable_instance_exists(game, "nbTurn") && cardHero.keepCamouflageTurn == game.nbTurn);
+            if (!keepCamoDT) { cardHero.isCamouflage = false; }
+        }
     }
     
     // Désélectionner
@@ -336,6 +360,8 @@ resolveAttackDirect = function(cardHero) {
 // Version pour l'ennemi (si nécessaire)
 resolveAttackMonsterEnemy = function(attacker, defender) {
     if (attacker == noone || !instance_exists(attacker)) return;
+    var _limitE = 1; if (variable_instance_exists(attacker, "isAmbidextrous") && attacker.isAmbidextrous) { _limitE = 2; }
+    if (variable_instance_exists(attacker, "attacksUsedThisTurn") && attacker.attacksUsedThisTurn >= _limitE) { return; }
     
     if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
         return;
@@ -347,6 +373,7 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
         return;
     }
     
+    show_debug_message("### resolveAttackMonsterEnemy: entry attacker=" + string(attacker) + " defender=" + string(defender));
     
     // Révéler le défenseur si face cachée
     if (defender != noone && instance_exists(defender) && variable_instance_exists(defender, "isFaceDown") && defender.isFaceDown) {
@@ -383,6 +410,21 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
     if (defender == noone || !instance_exists(defender)) {
         return;
     }
+    if (variable_instance_exists(defender, "isCamouflage") && defender.isCamouflage) {
+        var heroHasNonCamo = false;
+        var arrHero = fieldMonsterHero.cards;
+        for (var ih = 0; ih < array_length(arrHero); ih++) {
+            var ch = arrHero[ih];
+            if (ch != 0 && instance_exists(ch)) {
+                var camoH = (variable_instance_exists(ch, "isCamouflage") && ch.isCamouflage);
+                if (!camoH) { heroHasNonCamo = true; break; }
+            }
+        }
+        if (!heroHasNonCamo) {
+            resolveAttackDirectEnemy(attacker);
+        }
+        return;
+    }
     
     if (defender != noone && instance_exists(defender) && defender.orientation == "Attack") {
         var effEnemyAtk = variable_struct_exists(attacker, "effective_attack") ? attacker.effective_attack : attacker.attack;
@@ -392,6 +434,7 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
             if (effEnemyAtk > effHeroAtk) {
                 var damage = effEnemyAtk - effHeroAtk;
                 LP_Hero_Instance.nbLP -= damage;
+                show_debug_message("### resolveAttackMonsterEnemy: vsAtk heroLP-=" + string(damage) + " now=" + string(LP_Hero_Instance.nbLP));
                 spawnPoisonFX(defender, attacker);
                 destroyCard(defender, attacker);
             } else if (effEnemyAtk == effHeroAtk) {
@@ -401,6 +444,7 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
             } else {
                 var damage2 = effHeroAtk - effEnemyAtk;
                 LP_Enemy_Instance.nbLP -= damage2;
+                show_debug_message("### resolveAttackMonsterEnemy: vsAtk enemyLP-=" + string(damage2) + " now=" + string(LP_Enemy_Instance.nbLP));
                 spawnPoisonFX(defender, attacker);
                 destroyCard(attacker, defender);
                 destroyCard(defender, attacker);
@@ -409,6 +453,7 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
             if (effEnemyAtk > effHeroAtk) {
                 var damage = effEnemyAtk - effHeroAtk;
                 LP_Hero_Instance.nbLP -= damage;
+                show_debug_message("### resolveAttackMonsterEnemy: vsAtk heroLP-=" + string(damage) + " now=" + string(LP_Hero_Instance.nbLP));
                 destroyCard(defender, attacker);
             } else if (effEnemyAtk == effHeroAtk) {
                 destroyCard(attacker, defender);
@@ -416,6 +461,7 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
             } else {
                 var damage = effHeroAtk - effEnemyAtk;
                 LP_Enemy_Instance.nbLP -= damage;
+                show_debug_message("### resolveAttackMonsterEnemy: vsAtk enemyLP-=" + string(damage) + " now=" + string(LP_Enemy_Instance.nbLP));
                 destroyCard(attacker, defender);
             }
         }
@@ -433,9 +479,10 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
             } else {
                 var damage3 = effHeroDef - effEnemyAtk2;
                 LP_Enemy_Instance.nbLP -= damage3;
+                show_debug_message("### resolveAttackMonsterEnemy: vsDef enemyLP-=" + string(damage3) + " now=" + string(LP_Enemy_Instance.nbLP));
                 spawnPoisonFX(defender, attacker);
                 destroyCard(defender, attacker);
-}
+            }
         } else {
             var effEnemyAtk = effEnemyAtk2;
             if (effEnemyAtk > effHeroDef) {
@@ -448,6 +495,7 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
             } else {
                 var damage = effHeroDef - effEnemyAtk;
                 LP_Enemy_Instance.nbLP -= damage;
+                show_debug_message("### resolveAttackMonsterEnemy: vsDef enemyLP-=" + string(damage) + " now=" + string(LP_Enemy_Instance.nbLP));
                 if (variable_struct_exists(attacker, "isPoisoner") && attacker.isPoisoner) {
                     spawnPoisonFX(defender, attacker);
                     destroyCard(defender, attacker);
@@ -460,6 +508,10 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
     if (instance_exists(attacker)) {
         attacker.attacksUsedThisTurn = (variable_instance_exists(attacker, "attacksUsedThisTurn") ? attacker.attacksUsedThisTurn : 0) + 1;
         attacker.lastTurnAttack = game.nbTurn;
+        if (variable_instance_exists(attacker, "isCamouflage") && attacker.isCamouflage) {
+            var keepCamoE = (variable_instance_exists(attacker, "keepCamouflageTurn") && instance_exists(game) && variable_instance_exists(game, "nbTurn") && attacker.keepCamouflageTurn == game.nbTurn);
+            if (!keepCamoE) { attacker.isCamouflage = false; }
+        }
     }
 
     // Déclencher l'événement post-attaque côté ennemi avec la cible (défenseur héros)
@@ -477,19 +529,19 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
 
 resolveAttackDirectEnemy = function(cardEnemy) {
     if (cardEnemy == noone || !instance_exists(cardEnemy)) return;
+    var _limitED = 1; if (variable_instance_exists(cardEnemy, "isAmbidextrous") && cardEnemy.isAmbidextrous) { _limitED = 2; }
+    if (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") && cardEnemy.attacksUsedThisTurn >= _limitED) { return; }
     
-    if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
-        var allow = (variable_instance_exists(cardEnemy, "effect_force_direct_attack") && cardEnemy.effect_force_direct_attack);
-        if (!allow) { return; }
-    }
     // Triggers & Secrets (attaque directe contre le héros)
     registerTriggerEvent(TRIGGER_ON_ATTACK, cardEnemy, { attacker: cardEnemy, defender: noone, direct_attack: true });
     var redirectedDefender = noone;
     if (!is_undefined(activateSecretsOnDirectAttack)) {
         redirectedDefender = activateSecretsOnDirectAttack(cardEnemy);
     }
+    show_debug_message("### resolveAttackDirectEnemy: entry attacker=" + string(cardEnemy) + " redirected=" + string(instance_exists(redirectedDefender)));
     // Si un Secret a redirigé l’attaque vers une invocation, résoudre comme une attaque vs monstre
     if (redirectedDefender != noone && instance_exists(redirectedDefender)) {
+        show_debug_message("### resolveAttackDirectEnemy: redirected to defender=" + string(redirectedDefender));
         if (variable_instance_exists(id, "resolveAttackMonsterEnemy")) {
             with (id) resolveAttackMonsterEnemy(cardEnemy, redirectedDefender);
         } else {
@@ -502,18 +554,28 @@ resolveAttackDirectEnemy = function(cardEnemy) {
         return;
     }
     var LP_Hero_Instance = instance_find(oLP_Hero, 0);
+    if (LP_Hero_Instance == noone && instance_exists(LP_Hero)) {
+        LP_Hero_Instance = LP_Hero;
+    }
     if (LP_Hero_Instance == noone) {
+        show_debug_message("### resolveAttackDirectEnemy: oLP_Hero introuvable, dégâts non appliqués");
         return;
     }
-    var effEnemyAtk = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack;
+    var effEnemyAtk = (variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : (variable_instance_exists(cardEnemy, "attack") ? cardEnemy.attack : 0));
     var damage = max(0, effEnemyAtk);
+    show_debug_message("### resolveAttackDirectEnemy: ATK=" + string(effEnemyAtk) + " dmg=" + string(damage));
     LP_Hero_Instance.nbLP -= damage;
+    show_debug_message("### resolveAttackDirectEnemy: LP_Hero now=" + string(LP_Hero_Instance.nbLP));
     
     if (instance_exists(cardEnemy)) {
         cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1;
         cardEnemy.lastTurnAttack = game.nbTurn;
         if (variable_instance_exists(cardEnemy, "effect_force_direct_attack") && cardEnemy.effect_force_direct_attack) {
             cardEnemy.effect_force_direct_attack = false;
+        }
+        if (variable_instance_exists(cardEnemy, "isCamouflage") && cardEnemy.isCamouflage) {
+            var keepCamoDE = (variable_instance_exists(cardEnemy, "keepCamouflageTurn") && instance_exists(game) && variable_instance_exists(game, "nbTurn") && cardEnemy.keepCamouflageTurn == game.nbTurn);
+            if (!keepCamoDE) { cardEnemy.isCamouflage = false; }
         }
     }
 };

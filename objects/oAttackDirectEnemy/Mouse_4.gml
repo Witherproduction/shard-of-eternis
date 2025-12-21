@@ -11,27 +11,39 @@ if (selectManager.attackMode && selectManager.selected != noone) {
     var card = selectManager.selected;
     
     if (card != noone && instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Attack" 
-        && card.zone == "FieldSelected" && card.lastTurnAttack < game.nbTurn) {
-        // Règle: pas d'attaque directe au tour 1 du duel
-        if (variable_instance_exists(game, "nbTurn") && game.nbTurn == 1) {
-            show_debug_message("### oAttackDirectEnemy: Attaque directe interdite au tour 1 du duel");
+        && card.zone == "FieldSelected") {
+        var atk_lim = (variable_instance_exists(card, "isAmbidextrous") && card.isAmbidextrous) ? 2 : 1;
+        var atk_used = (variable_instance_exists(card, "attacksUsedThisTurn") ? card.attacksUsedThisTurn : 0);
+        if (atk_used >= atk_lim) {
+            show_debug_message("### oAttackDirectEnemy: limite d'attaques atteinte");
             // Nettoyer l'UI et sortir du mode attaque
             image_alpha = 0;
             selectManager.attackMode = false;
             if (instance_exists(oAttack)) { instance_destroy(oAttack); }
             exit;
         }
+        // Règle: pas d'attaque directe au tour 1 du duel
+        if (variable_instance_exists(game, "nbTurn") && game.nbTurn == 1) {
+            show_debug_message("### oAttackDirectEnemy: Attaque directe interdite au tour 1 du duel");
+            image_alpha = 0;
+            selectManager.attackMode = false;
+            if (instance_exists(oAttack)) { instance_destroy(oAttack); }
+            exit;
+        }
         
-        // Vérifier qu'il n'y a pas de monstres ennemis
+        // Vérifier qu'il n'y a pas de défenseur ennemi valide (non camouflé)
         var enemyHasMonsters = false;
         var enemyMonsters = fieldMonsterEnemy.cards;
         
         for (var i = 0; i < array_length(enemyMonsters); i++) {
             var em = enemyMonsters[i];
             if (em != 0 && instance_exists(em)) {
-                enemyHasMonsters = true;
-                show_debug_message("### oAttackDirectEnemy: Monstre ennemi trouvé - attaque directe impossible");
-                break;
+                var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
+                if (!isCamo) {
+                    enemyHasMonsters = true;
+                    show_debug_message("### oAttackDirectEnemy: Défenseur ennemi valide trouvé - attaque directe impossible");
+                    break;
+                }
             }
         }
         

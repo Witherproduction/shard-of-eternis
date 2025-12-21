@@ -427,10 +427,16 @@ if (variable_instance_exists(self, "selected")) {
     var has_named_effect = false;
     var named_index = -1;
     var selected_label = "";
-    if (variable_instance_exists(card, "effects") && is_array(card.effects) && array_length(card.effects) > 0) {
-        var fr_labels2 = array_create(10);
-        fr_labels2[0] = "appel"; fr_labels2[1] = "appel spécialisé"; fr_labels2[2] = "perdu";
-        fr_labels2[3] = "tombe"; fr_labels2[4] = "initialisation"; fr_labels2[5] = "finalisation"; fr_labels2[6] = "défenseur"; fr_labels2[7] = "empoisonneur"; fr_labels2[8] = "protecteur"; fr_labels2[9] = "Protecteur";
+    // Détection poison passif via flag isPoisoner
+    if (variable_instance_exists(card, "isPoisoner") && card.isPoisoner) {
+        has_named_effect = true;
+        named_index = -1;
+        selected_label = "poison";
+    }
+    if (!has_named_effect && variable_instance_exists(card, "effects") && is_array(card.effects) && array_length(card.effects) > 0) {
+        var fr_labels2 = array_create(12);
+        fr_labels2[0] = "Eveil"; fr_labels2[1] = "Eveil spécialisé"; fr_labels2[2] = "rupture";
+        fr_labels2[3] = "brisé"; fr_labels2[4] = "Aube"; fr_labels2[5] = "Crépuscule"; fr_labels2[6] = "défenseur"; fr_labels2[7] = "poison"; fr_labels2[8] = "protecteur"; fr_labels2[9] = "Protecteur"; fr_labels2[10] = "attaque"; fr_labels2[11] = "post-attaque";
         for (var e = 0; e < array_length(card.effects); e++) {
             var effn = card.effects[e];
             var lbl2 = getEffectLabel(effn);
@@ -449,13 +455,18 @@ if (variable_instance_exists(self, "selected")) {
 
     if (has_named_effect) {
         // Construire la phrase: "<label> = ..." selon le trigger du premier effet correspondant
-        var effd = card.effects[named_index];
         var label = selected_label;
         var desc_text = label + " = ";
-        if (variable_instance_exists(effd, "trigger")) {
-            desc_text += getTriggerDetailedDescription(effd.trigger);
+        if (named_index >= 0 && variable_instance_exists(card, "effects") && is_array(card.effects) && named_index < array_length(card.effects)) {
+            var effd = card.effects[named_index];
+            if (variable_instance_exists(effd, "trigger")) {
+                desc_text += getTriggerDetailedDescription(effd.trigger);
+            } else {
+                desc_text += "activation manuelle";
+            }
         } else {
-            desc_text += "activation manuelle";
+            // Poison passif: description générique
+            desc_text += "effet passif en combat";
         }
     
         // Dimensions: même logique de largeur que rCollection, adaptées au panneau droit

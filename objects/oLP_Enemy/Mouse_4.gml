@@ -15,8 +15,11 @@ if (selectManager.attackMode && selectManager.selected != noone) {
     
     // Vérifier les conditions pour l'attaque directe
     if (selectedCard.isHeroOwner && selectedCard.type == "Monster" && selectedCard.zone == "FieldSelected" 
-        && selectedCard.orientation == "Attack" && selectedCard.lastTurnAttack < game.nbTurn
+        && selectedCard.orientation == "Attack"
         && instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Attack") {
+        var atk_lim2 = (variable_instance_exists(selectedCard, "isAmbidextrous") && selectedCard.isAmbidextrous) ? 2 : 1;
+        var atk_used2 = (variable_instance_exists(selectedCard, "attacksUsedThisTurn") ? selectedCard.attacksUsedThisTurn : 0);
+        if (atk_used2 >= atk_lim2) { show_debug_message("### oLP_Enemy: limite d'attaques atteinte"); exit; }
         
         // Vérifier qu'il n'y a pas de monstres ennemis
         var enemyHasMonsters = false;
@@ -40,8 +43,9 @@ if (selectManager.attackMode && selectManager.selected != noone) {
             }
             show_debug_message("### Attaque directe sur l'ennemi - dégâts infligés: " + string(selectedCard.attack));
             nbLP -= selectedCard.attack;
-            selectManager.unSelect(selectedCard);
+            selectedCard.attacksUsedThisTurn = (variable_instance_exists(selectedCard, "attacksUsedThisTurn") ? selectedCard.attacksUsedThisTurn : 0) + 1;
             selectedCard.lastTurnAttack = game.nbTurn;
+            selectManager.unSelect(selectedCard);
             selectManager.attackMode = false; // Sortir du mode attaque
         } else {
             show_debug_message("### Attaque directe impossible : monstres ennemis présents");

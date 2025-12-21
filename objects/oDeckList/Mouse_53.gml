@@ -6,9 +6,12 @@ if (instance_exists(oPanelOptions)) {
 }
 
 // Calculer les positions des éléments (même logique que dans Draw_0)
-var sprite_x = room_width - sprite_get_width(sDeckBuilder) + 55;
+var sprW = sprite_get_width(sDeckBuilder);
+var scale_x = (sprW - 100) / sprW;
+var scaled_w = sprW * scale_x;
+var sprite_x = room_width - scaled_w + 55 - 55;
 var button_x = sprite_x + 50;
-var button_y = room_height / 3 - 170;
+var button_y = room_height / 3 - 270;
 var button_width = 320;
 var button_height = 80;
 
@@ -39,7 +42,7 @@ if (!show_deck_builder && variable_global_exists("saved_decks") && array_length(
             // Créer l'instance oDeckBuilder si elle n'existe pas
             if (deck_builder_instance == noone || !instance_exists(deck_builder_instance)) {
                 var builder_x = x;
-                var builder_y = y + (sprite_get_height(sprInvisible) * image_yscale) + 10;
+                var builder_y = button_y + button_height + 20;
                 deck_builder_instance = instance_create_layer(builder_x, builder_y, "Instances", oDeckBuilder);
                 
                 // Charger le deck dans l'éditeur
@@ -65,7 +68,7 @@ if (!clicked_on_deck && point_in_rectangle(mouse_x, mouse_y, button_x, button_y,
         if (deck_builder_instance == noone || !instance_exists(deck_builder_instance)) {
             // Position du cadre sous le bouton
             var builder_x = x;
-            var builder_y = y + (sprite_get_height(sprInvisible) * image_yscale) + 10;
+            var builder_y = button_y + button_height + 20;
             deck_builder_instance = instance_create_layer(builder_x, builder_y, "Instances", oDeckBuilder);
         }
     } else {

@@ -128,8 +128,9 @@ for (var j = 0; j < n; j++) {
         draw_set_valign(fa_middle);
         draw_text(bx, by, string(num));
         draw_set_halign(fa_left);
-        draw_set_valign(fa_top);
-    }
+draw_set_valign(fa_top);
+}
+
 }
 var btnW = 200;
 var btnH = 60;

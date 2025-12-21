@@ -3,28 +3,27 @@
 /// @function banishCard(card)
 function banishCard(card) {
     if (card == noone) return false;
-    if (instance_exists(card)) {
-        card.zone = "Banished";
-        instance_destroy(card);
-    }
+    if (!instance_exists(card)) return false;
+    var wasOnField = (variable_instance_exists(card, "zone") && (card.zone == "Field" || card.zone == "FieldSelected"));
+    if (wasOnField) { registerTriggerEvent(TRIGGER_LEAVE_FIELD, card, {}); }
+    card.zone = "Banished";
+    instance_destroy(card);
     return true;
 }
 
 /// @function returnToHand(card)
 function returnToHand(card) {
     if (card == noone || !instance_exists(card) || !instance_exists(oHand)) return false;
-
     var isOnField = (variable_instance_exists(card, "zone") && (card.zone == "Field" || card.zone == "FieldSelected"));
     if (!isOnField) return false;
-
+    registerTriggerEvent(TRIGGER_LEAVE_FIELD, card, {});
     var fm = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? fieldManagerHero : fieldManagerEnemy;
     if (instance_exists(fm) && variable_instance_exists(card, "fieldPosition")) { fm.remove(card); }
-
     var h = noone; with (oHand) { if (variable_instance_exists(self, "isHeroOwner") && (isHeroOwner == card.isHeroOwner)) { h = id; break; } }
     if (h == noone) return false;
-
     h.addCard(card);
     card.zone = "Hand";
+    registerTriggerEvent(TRIGGER_ENTER_HAND, card, { owner_is_hero: (variable_instance_exists(card, "isHeroOwner") ? card.isHeroOwner : true) });
     return true;
 }
 
@@ -39,6 +38,7 @@ function getTargetsByFilter(effect) {
     var includeGraveyard = false;
     var hasMonsterType = false;
     var monsterTypeLower = "";
+    var criteria = noone;
     if (is_struct(effect)) {
         if (variable_struct_exists(effect, "target_zone")) {
             if (is_array(effect.target_zone)) {
@@ -54,6 +54,11 @@ function getTargetsByFilter(effect) {
         if (variable_struct_exists(effect, "owner")) ownerFilter = string_lower(effect.owner);
         if (variable_struct_exists(effect, "include_graveyard")) includeGraveyard = effect.include_graveyard;
         if (variable_struct_exists(effect, "monster_type")) { hasMonsterType = true; monsterTypeLower = string_lower(effect.monster_type); }
+        if (variable_struct_exists(effect, "criteria")) criteria = effect.criteria;
+        if (criteria != noone) {
+            if (variable_struct_exists(effect, "genre") && !variable_struct_exists(criteria, "genre")) criteria.genre = effect.genre;
+            if (variable_struct_exists(effect, "type") && !variable_struct_exists(criteria, "type")) criteria.type = effect.type;
+        }
     }
     with (oCardMonster) {
         var isValidTarget = true;
@@ -79,6 +84,14 @@ function getTargetsByFilter(effect) {
         }
         if (isValidTarget && hasMonsterType) {
             if (!variable_instance_exists(self, "type") || string_lower(type) != monsterTypeLower) { isValidTarget = false; }
+        }
+        var isMass = (is_struct(effect) && variable_struct_exists(effect, "scope") && string_lower(effect.scope) == "all");
+        var isRandom = (is_struct(effect) && variable_struct_exists(effect, "random_select") && effect.random_select);
+        if (isValidTarget && !isMass && !isRandom && ownerFilter == "enemy") {
+            if (variable_instance_exists(self, "isCamouflage") && self.isCamouflage) { isValidTarget = false; }
+        }
+        if (isValidTarget && criteria != noone) {
+            if (!_cardMatchesCriteria(self, criteria)) { isValidTarget = false; }
         }
         if (isValidTarget) { array_push(targets, self); }
     }
@@ -144,14 +157,18 @@ function hasValidTargetForEffect(card, effect) {
     }
 
     // Liste des effets nécessitant une cible manuelle
+    var scope_lower = string_lower(variable_struct_exists(effect, "scope") ? effect.scope : "single");
     var needsTarget = (
-                       etype == EFFECT_DESTROY_TARGET
-                       || etype == EFFECT_BANISH_TARGET
-                       || etype == EFFECT_RETURN_TO_HAND
-                       || etype == EFFECT_EQUIP_SELECT_TARGET
-                       || etype == EFFECT_BUFF
-                       || (etype == EFFECT_POINTS && string_lower(variable_struct_exists(effect, "scope") ? effect.scope : "lp") == "card" && string_lower(variable_struct_exists(effect, "select_mode") ? effect.select_mode : "filter") == "target")
-                      );
+                        etype == EFFECT_DESTROY_TARGET
+                        || etype == EFFECT_BANISH_TARGET
+                        || etype == EFFECT_RETURN_TO_HAND
+                        || etype == EFFECT_EQUIP_SELECT_TARGET
+                        || (etype == EFFECT_SUMMON && string_lower(variable_struct_exists(effect, "summon_mode") ? effect.summon_mode : "") == "copy_target")
+                        || (etype == EFFECT_BUFF && scope_lower == "single")
+                        || (etype == EFFECT_ENTRAVE && scope_lower == "single")
+                        || (etype == EFFECT_CAMOUFLAGE && scope_lower == "single")
+                        || (etype == EFFECT_POINTS && string_lower(variable_struct_exists(effect, "scope") ? effect.scope : "lp") == "card" && string_lower(variable_struct_exists(effect, "select_mode") ? effect.select_mode : "filter") == "target")
+                       );
 
     // Cas non-ciblé: certains effets ont tout de même des prérequis bloquants
     if (!needsTarget) {

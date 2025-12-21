@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"FireDiscard",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":3.25,
+  "exportDir":"",
+  "name":"FireDiscard",
+  "parent":{
+    "name":"discard",
+    "path":"folders/Sons/Duel/animation/discard.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"FireDiscard.mp3",
+  "volume":1.0,
+}

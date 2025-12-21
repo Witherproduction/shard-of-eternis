@@ -16,6 +16,9 @@ function performSacrifices(sacrificeList, isHero) {
     for (var i = 0; i < array_length(sacrificeList); i++) {
         var sacrificeCard = sacrificeList[i];
         if (instance_exists(sacrificeCard)) {
+            // Déclencher les triggers liés à la sortie et destruction (avec contexte sacrifice)
+            registerTriggerEvent(TRIGGER_LEAVE_FIELD, sacrificeCard, { from_sacrifice: true, owner_is_hero: isHero });
+            registerTriggerEvent(TRIGGER_ON_DESTROY, sacrificeCard, { from_sacrifice: true });
             // Trouver le bon cimetière
             var graveyard = noone;
             with (oGraveyard) {
@@ -35,6 +38,8 @@ function performSacrifices(sacrificeList, isHero) {
             // Ajouter la carte au cimetière
             if (graveyard != noone) {
                 graveyard.addToGraveyard(sacrificeCard);
+                if (instance_exists(sacrificeCard)) sacrificeCard.zone = "Graveyard";
+                registerTriggerEvent(TRIGGER_ENTER_GRAVEYARD, sacrificeCard, { owner_is_hero: isHero });
             }
             
             // Retirer la carte du terrain

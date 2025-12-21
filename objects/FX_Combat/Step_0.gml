@@ -354,16 +354,21 @@ else if (phase == "resolve") {
                 with (dm) resolveAttackDirect(other.attacker);
             } else {
                 if (variable_instance_exists(dm.id, "resolveAttackDirectEnemy")) {
+                    var effAtkEnemy = (variable_struct_exists(other.attacker, "effective_attack") ? other.attacker.effective_attack : other.attacker.attack);
+                    show_debug_message("### FX_Combat: enemy direct attack atk=" + string(effAtkEnemy));
                     with (dm) resolveAttackDirectEnemy(other.attacker);
+                    show_debug_message("### FX_Combat: called resolveAttackDirectEnemy");
                 } else {
                     // Fallback: résolution directe ennemie locale si la méthode n'existe pas
                     if (variable_instance_exists(self, "attacker") && attacker != noone && instance_exists(attacker)) {
+                        show_debug_message("### FX_Combat: enemy direct attack (fallback)");
                         var effAtkEnemy = (variable_struct_exists(other.attacker, "effective_attack") ? other.attacker.effective_attack : other.attacker.attack);
                         registerTriggerEvent(TRIGGER_ON_ATTACK, other.attacker, { attacker: other.attacker, defender: noone, direct_attack: true });
                         if (!is_undefined(activateSecretsOnDirectAttack)) activateSecretsOnDirectAttack(other.attacker);
-                        var LP_Hero_Instance = instance_find(LP_Hero, 0);
+                        var LP_Hero_Instance = instance_find(oLP_Hero, 0);
                         if (LP_Hero_Instance != noone) LP_Hero_Instance.nbLP -= effAtkEnemy;
-                        if (instance_exists(other.attacker)) { other.attacker.attacksUsedThisTurn = (variable_instance_exists(other.attacker, "attacksUsedThisTurn") ? other.attacker.attacksUsedThisTurn : 0) + 1; other.attacker.lastTurnAttack = game.nbTurn; }
+                        if (LP_Hero_Instance != noone) show_debug_message("### FX_Combat: LP_Hero now=" + string(LP_Hero_Instance.nbLP));
+                        if (instance_exists(other.attacker)) { other.attacker.attacksUsedThisTurn = (variable_instance_exists(other.attacker, "attacksUsedThisTurn") ? other.attacker.attacksUsedThisTurn : 0) + 1; other.attacker.lastTurnAttack = game.nbTurn; if (variable_instance_exists(other.attacker, "isCamouflage") && other.attacker.isCamouflage) { other.attacker.isCamouflage = false; } }
                     }
                 }
             }

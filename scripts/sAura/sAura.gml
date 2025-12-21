@@ -17,6 +17,17 @@ function cleanupAuraSource(card, effect) {
             }
             if (isMonster2) {
                 buffRemoveContribution(id, srcKey);
+                if (variable_instance_exists(self, "protection_sources") && is_array(self.protection_sources)) {
+                    var filteredProt = [];
+                    var lenPS = array_length(self.protection_sources);
+                    var i2 = 0;
+                    for (i2 = 0; i2 < lenPS; i2++) {
+                        var pk = string(self.protection_sources[i2]);
+                        if (pk != srcKey) { array_push(filteredProt, pk); }
+                    }
+                    self.protection_sources = filteredProt;
+                    if (array_length(self.protection_sources) <= 0) { if (variable_instance_exists(self, "protection_from_destroy")) self.protection_from_destroy = false; }
+                }
                 if (variable_instance_exists(self, "buff_contribs")) {
                     var filtered = [];
                     for (var i = 0; i < array_length(self.buff_contribs); i++) {
@@ -37,6 +48,7 @@ function cleanupAuraSource(card, effect) {
     }
     return true;
 }
+
 
 function applyAllMonstersAuraDebuff(card, effect) {
     if (card == noone || !instance_exists(card)) return false;

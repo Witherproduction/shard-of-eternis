@@ -4,8 +4,8 @@ margin_x = 50;
 margin_y = 50;
 
 // Échelle du bouton
-image_xscale = 0.8;
-image_yscale = 0.8;
+image_xscale = 0.5;
+image_yscale = 0.5;
 
 // Variables d'état
 hover = false;

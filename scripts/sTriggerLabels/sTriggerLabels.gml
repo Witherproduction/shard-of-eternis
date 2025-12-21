@@ -5,12 +5,12 @@
 /// @param {string} triggerId - Macro TRIGGER_*
 /// @returns {string}
 function getTriggerLabel(triggerId) {
-    if (triggerId == TRIGGER_END_TURN)        return "finalisation";   // Fin de tour
-    if (triggerId == TRIGGER_START_TURN)      return "initialisation"; // Début de tour
-    if (triggerId == TRIGGER_ON_DESTROY)      return "tombe";          // Détruit
-    if (triggerId == TRIGGER_ENTER_GRAVEYARD) return "perdu";          // Envoyé au cimetière
+    if (triggerId == TRIGGER_END_TURN)        return "Crépuscule";      // Fin de tour
+    if (triggerId == TRIGGER_START_TURN)      return "Aube";            // Début de tour
+    if (triggerId == TRIGGER_ON_DESTROY)      return "brisé";           // Détruit
+    if (triggerId == TRIGGER_ENTER_GRAVEYARD) return "rupture";         // Envoyé au cimetière
     if (triggerId == TRIGGER_ON_DEFENSE)      return "défenseur";      // Se défendre
-    if (triggerId == TRIGGER_ON_SUMMON)       return "appel";          // À l'invocation (normal ou sacrifice)
+    if (triggerId == TRIGGER_ON_SUMMON)       return "Eveil";          // À l'invocation (normal ou sacrifice)
     // Par défaut: identifiant brut s'il n'y a pas de mappage personnalisé
     if (triggerId == TRIGGER_ON_ATTACK)       return "attaque";         // Déclaration/avant calcul
     if (triggerId == TRIGGER_AFTER_ATTACK)    return "post-attaque";    // Après résolution d'une attaque
@@ -53,14 +53,21 @@ function normalizeEffectLabel(text) {
     t = string_replace_all(t, "î", "i");
     t = string_lower(t);
 
-    // Détection par préfixe (début de description)
-    if (string_pos("appel specialise", t) == 1) return "appel spécialisé";
-    if (string_pos("appel", t) == 1)            return "appel";
-    if (string_pos("initialisation", t) == 1)   return "initialisation";
-    if (string_pos("finalisation", t) == 1)     return "finalisation";
-    if (string_pos("tombe", t) == 1)            return "tombe";
-    if (string_pos("perdu", t) == 1 || string_pos("perdue", t) == 1) return "perdu";
+    // Détection par préfixe (début de description) - nouveaux libellés
+    if (string_pos("eveil specialise", t) == 1) return "Eveil spécialisé";
+    if (string_pos("eveil", t) == 1)            return "Eveil";
+    if (string_pos("aube", t) == 1)             return "Aube";
+    if (string_pos("crepuscule", t) == 1)       return "Crépuscule";
+    if (string_pos("brise", t) == 1)            return "brisé";
+    if (string_pos("rupture", t) == 1)          return "rupture";
     if (string_pos("defenseur", t) == 1)        return "défenseur";
+    // Compatibilité rétro (anciens préfixes -> nouveaux libellés)
+    if (string_pos("appel specialise", t) == 1) return "Eveil spécialisé";
+    if (string_pos("appel", t) == 1)            return "Eveil";
+    if (string_pos("initialisation", t) == 1)   return "Aube";
+    if (string_pos("finalisation", t) == 1)     return "Crépuscule";
+    if (string_pos("tombe", t) == 1)            return "brisé";
+    if (string_pos("perdu", t) == 1 || string_pos("perdue", t) == 1) return "rupture";
     return "";
 }
 
@@ -79,13 +86,13 @@ function getEffectLabel(effect) {
             var sm = effect.conditions.summon_mode;
             if (is_array(sm)) {
                 for (var i = 0; i < array_length_1d(sm); i++) {
-                    if (sm[i] == "SpecialSummon") return "appel spécialisé";
+                    if (sm[i] == "SpecialSummon") return "Eveil spécialisé";
                 }
             } else {
-                if (sm == "SpecialSummon") return "appel spécialisé";
+                if (sm == "SpecialSummon") return "Eveil spécialisé";
             }
         }
-        return "appel";
+        return "Eveil";
     }
     return getTriggerLabel(trig);
 }

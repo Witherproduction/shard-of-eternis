@@ -137,7 +137,7 @@ if(isHeroOwner && instance_exists(game) && game.player[game.player_current] == "
 	
 	deckHero.pick();
 	game.nextPhase();
-	nextStep.image_alpha = 1;
+	nextStep.image_index = 0;
 	return; // Evite de tester les autres actions ci-dessous
 }
 

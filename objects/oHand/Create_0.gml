@@ -168,18 +168,24 @@ summon = function(card, XYPos, desiredOrientation = "") {
     }
 
     // Crée l'effet d'invocation (glissade vers le terrain) sur le layer UI
-    var fx = instance_create_layer(card.x, card.y, "UI", FX_Invocation);
+    var start_x_ss = card.x;
+    var start_y_ss = card.y;
+    if (mode_resolved == "SpecialSummon") {
+        start_x_ss = 220;
+        start_y_ss = room_height * 0.5;
+    }
+    var fx = instance_create_layer(start_x_ss, start_y_ss, "UI", FX_Invocation);
     if (fx != noone) {
         fx.spriteGhost         = card.sprite_index;
         fx.imageGhost          = ghost_index;
         fx.image_angle         = ghost_angle;
-        fx.image_xscale        = card.image_xscale;
-        fx.image_yscale        = card.image_yscale;
+        fx.image_xscale        = (mode_resolved == "SpecialSummon") ? 0 : card.image_xscale;
+        fx.image_yscale        = (mode_resolved == "SpecialSummon") ? 0 : card.image_yscale;
         fx.target_x            = target_x;
         fx.target_y            = target_y;
         fx.field_position      = target_pos;
         fx.duration_ms         = 200;   // 0,2s de déplacement
-        fx.post_fx_duration_ms = 400;   // 0,4s de post-effet (total ~0,6s)
+        fx.post_fx_duration_ms = 1000;   // post-effet (~1,0s)
         fx.card_real           = card;
         fx.owner_is_hero       = isHeroOwner;
         fx.summon_mode         = mode_resolved;
@@ -259,6 +265,7 @@ summon = function(card, XYPos, desiredOrientation = "") {
             // Émettre l’événement d’invocation de monstre en fallback sans FX
             var ctxSummon = { summon_mode: mode_resolved, owner_is_hero: isHeroOwner };
             if (mode_resolved == "Summon" || mode_resolved == "SpecialSummon") {
+                registerTriggerEvent(TRIGGER_ON_SUMMON, card, ctxSummon);
                 registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, card, ctxSummon);
             }
         }

@@ -1,9 +1,7 @@
 // === oRetour1 - Draw Event ===
 // Dessine le sprite sButton à la taille cible et le texte "retour"
 
-// Définir les dimensions du bouton (doublées)
-var button_width = 240;
-var button_height = 80;
+// Utiliser les dimensions calculées en Create_0
 
 // Position centrée sur l'objet
 var draw_x = x - button_width / 2;

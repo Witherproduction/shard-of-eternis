@@ -229,19 +229,19 @@ trySelect = function(card) {
                     // Affiche le bouton d'attaque via UIManager (sécurisé côté UIManager)
                     UIManager.displayAttackButton(card);
 
-                    // Vérifie si l'adversaire a des monstres pour l'attaque directe
+                    // Vérifie s'il existe un défenseur valide (non camouflé) côté ennemi
                     var enemyHasMonsters = false;
                     var enemyMonsterField = fieldManagerEnemy.getField("Monster");
                     for (var i = 0; i < array_length(enemyMonsterField.cards); i++) {
                         var em = enemyMonsterField.cards[i];
                         if (em != 0 && instance_exists(em)) {
-                            enemyHasMonsters = true;
-                            break;
+                            var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
+                            if (!isCamo) { enemyHasMonsters = true; break; }
                         }
                     }
 
                     show_debug_message("### L'adversaire a des monstres: " + string(enemyHasMonsters));
-                    // Le bouton d'attaque directe n'est visible que si le mode attaque est activé ET qu'il n'y a pas de monstres ennemis
+                    // Le bouton d'attaque directe est visible si aucune cible valide n'existe (tous camouflés ou aucun)
                     if(!enemyHasMonsters && attackMode && attackDirectInstance != noone) {
                         attackDirectInstance.x = attackDirectX;
                         attackDirectInstance.y = attackDirectY;

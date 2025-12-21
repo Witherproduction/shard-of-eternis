@@ -11,7 +11,7 @@
   ],
   "parent":{
     "name":"monstre",
-    "path":"folders/Objets/carte/Card/Foret Clair de lune/monstre.yy",
+    "path":"folders/Objets/carte/Card/Foret des voleur/monstre.yy",
   },
   "parentObjectId":{
     "name":"oCardMonster",
@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sGobelinFurtif",
+    "path":"sprites/sGobelinFurtif/sGobelinFurtif.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }
