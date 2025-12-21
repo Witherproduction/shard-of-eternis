@@ -108,9 +108,9 @@
   "ForcedPrefabProjectReferences":[],
   "IncludedFiles":[
     {"$GMIncludedFile":"","%Name":"cards_database.json","CopyToMask":-1,"filePath":"datafiles","name":"cards_database.json","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
-    {"$GMIncludedFile":"","%Name":"favorite_cards.json","CopyToMask":-1,"filePath":"datafiles","name":"favorite_cards.json","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
-    {"$GMIncludedFile":"","%Name":"lastCompatBackupTime.txt","CopyToMask":-1,"filePath":"datafiles","name":"lastCompatBackupTime.txt","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+    {"$GMIncludedFile":"","%Name":"debug_paths.txt","CopyToMask":-1,"filePath":"datafiles","name":"debug_paths.txt","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"saved_decks.json","CopyToMask":-1,"filePath":"datafiles","name":"saved_decks.json","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+    {"$GMIncludedFile":"","%Name":"scenario_chapter_1_act_1.json","CopyToMask":-1,"filePath":"datafiles","name":"scenario_chapter_1_act_1.json","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
   ],
   "isEcma":false,
   "LibraryEmitters":[],

@@ -65,6 +65,43 @@ function AI_ActionExec_Perform(action) {
         var ctxS = { summon_mode: "Set", owner_is_hero: false };
         registerTriggerEvent(TRIGGER_ON_SUMMON, cS, ctxS);
         return true;
+    } else if (action.kind == "summon_monster") {
+        var card = action.card;
+        var sacrifices = variable_struct_exists(action, "sacrifices") ? action.sacrifices : [];
+        var mode = variable_struct_exists(action, "mode") ? action.mode : "Summon";
+        
+        // Exécuter les sacrifices
+        if (array_length(sacrifices) > 0) {
+            for (var s = 0; s < array_length(sacrifices); s++) {
+                var sac = sacrifices[s];
+                if (sac != noone && instance_exists(sac)) {
+                    destroyCard(sac, card); // source = la carte invoquée
+                }
+            }
+        }
+        
+        // Trouver un slot libre
+        var mtField = fieldManagerEnemy.getField("Monster"); 
+        if (mtField == noone || !variable_struct_exists(mtField, "cards")) return false;
+        var pos = -1; for (var mti = 0; mti < array_length(mtField.cards); mti++) { if (mtField.cards[mti] == 0) { pos = mti; break; } }
+        
+        // Si pas de slot (ne devrait pas arriver si sacrifices faits ou vérifiés, sauf race condition)
+        if (pos == -1) return false;
+        
+        var XY = fieldManagerEnemy.getPosLocation("Monster", pos);
+        
+        UIManager.selectedSummonOrSet = mode;
+        var summoned = handEnemy.summon(card, [XY[0], XY[1], pos], (mode == "Set" ? "Defense" : ""));
+        UIManager.selectedSummonOrSet = "";
+        
+        if (summoned) {
+             var ctx = { summon_mode: mode, owner_is_hero: false };
+             registerTriggerEvent(TRIGGER_ON_SUMMON, card, ctx);
+             registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, card, ctx);
+             if (instance_exists(game)) { game.hasSummonedThisTurn[1] = true; }
+             return true;
+        }
+        return false;
     } else if (action.kind == "effect") {
         var ctx = { owner_is_hero: false };
         if (variable_struct_exists(action, "target") && action.target != noone) ctx.target = action.target;

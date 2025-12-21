@@ -6,7 +6,8 @@ function AI_IsTargetedEffect(effectType) {
         || effectType == EFFECT_BANISH_TARGET
         || effectType == EFFECT_RETURN_TO_HAND
         || effectType == EFFECT_EQUIP_SELECT_TARGET
-        || effectType == EFFECT_POINTS);
+        || effectType == EFFECT_POINTS
+        || effectType == EFFECT_ENTRAVE);
 }
 
 /// Évalue le gain net attendu d’une carte Magie continue (auras) sur le terrain actuel
@@ -101,14 +102,30 @@ function AI_EvaluateContinuousNetGain(card) {
     return net;
 }
 
-/// Estime la "valeur" d’un monstre (ATK+DEF effectifs)
+/// Estime la "valeur" d’un monstre (ATK+DEF effectifs + capacités)
 function AI_EstimateCardStrength(mon) {
     if (mon == noone || !instance_exists(mon)) return 0;
     var atk = variable_instance_exists(mon, "attack") ? mon.attack : 0;
     var def = variable_instance_exists(mon, "defense") ? mon.defense : 0;
     var eatk = variable_instance_exists(mon, "effective_attack") ? mon.effective_attack : atk;
     var edef = variable_instance_exists(mon, "effective_defense") ? mon.effective_defense : def;
-    return max(0, eatk + edef);
+    
+    var val = max(0, eatk + edef);
+
+    // Bonus pour capacités spéciales
+    if (variable_instance_exists(mon, "isCamouflage") && mon.isCamouflage) {
+        val += 400; // Difficile à cibler
+    }
+    if (variable_instance_exists(mon, "isPoisoner") && mon.isPoisoner) {
+        val += 600; // Menace mortelle
+    }
+    
+    // Malus pour entrave
+    if (variable_instance_exists(mon, "entrave_turns_remaining") && mon.entrave_turns_remaining > 0) {
+        val -= 300; // Temporairement inutile
+    }
+
+    return val;
 }
 
 /// Évalue le gain net attendu d’un effet manuel (monstre/magie), en fonction de sa cible
@@ -261,6 +278,14 @@ function AI_EvaluateEffectNetGain(card, effect, target) {
         case EFFECT_RETURN_TO_HAND: {
             var val3 = AI_EstimateCardStrength(target);
             net = (targetIsHero ? +floor(val3 * 0.6) : -floor(val3 * 0.6));
+            break;
+        }
+        case EFFECT_ENTRAVE: {
+            // Entraver une unité bloque son attaque et sa position
+            var valE = AI_EstimateCardStrength(target);
+            // Si on entrave un ennemi (Hero) => positif
+            // Si on entrave un allié => négatif
+            net = (targetIsHero ? +(valE + 200) : -(valE + 200));
             break;
         }
         case EFFECT_POINTS: {

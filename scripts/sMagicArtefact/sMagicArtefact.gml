@@ -2,6 +2,16 @@
 
 function equipSelectTarget(card, effect, context) {
     if (card == noone || !instance_exists(card)) return false;
+
+    // Empêcher la réactivation si l'artefact est déjà équipé à une cible valide sur le terrain
+    if (variable_instance_exists(card, "equipped_target") && card.equipped_target != noone && instance_exists(card.equipped_target)) {
+        var tZone = variable_instance_exists(card.equipped_target, "zone") ? card.equipped_target.zone : "";
+        if (tZone == "Field" || tZone == "FieldSelected") {
+             show_debug_message("### Equip: Artefact déjà équipé à " + string(variable_instance_exists(card.equipped_target, "name") ? card.equipped_target.name : "???") + ". Réactivation bloquée.");
+             return false;
+        }
+    }
+
     var target = variable_struct_exists(context, "target") ? context.target : noone;
     if (target == noone || !instance_exists(target)) return false;
     // Valider cible: monstre sur le terrain (par héritage OU par type)
@@ -94,13 +104,31 @@ function equipSelectTarget(card, effect, context) {
 function equipCleanup(card, effect, context) {
     if (card == noone || !instance_exists(card)) return false;
     var t2 = (variable_instance_exists(card, "equipped_target")) ? card.equipped_target : noone;
+
+    // Filter: proceed only if the event source is the target OR the artifact itself
+    var src = variable_struct_exists(context, "source") ? context.source : noone;
+    if (src != noone && t2 != noone) {
+        if (src != t2 && src != card) return false;
+    }
+
     if (t2 != noone && instance_exists(t2)) {
         var srcKey = "equip:" + string(card.id);
         buffRemoveContribution(t2, srcKey);
         buffRecompute(t2);
     }
+    
+    // Keep reference to target for destruction check
+    var oldTarget = card.equipped_target;
     card.equipped_target = noone;
+
     if (variable_instance_exists(card, "equip_pending")) card.equip_pending = false;
     show_debug_message("### Equip: nettoyage sur destruction pour " + string(card.name));
+    
+    // If the target left the field (and it wasn't the artifact itself leaving), destroy the artifact
+    if (src != noone && oldTarget != noone && src == oldTarget) {
+         show_debug_message("### Equip: Linked target " + string(src.name) + " destroyed/left. Destroying artifact " + string(card.name));
+         if (!is_undefined(destroyCard)) { destroyCard(card); }
+    }
+
     return true;
 }

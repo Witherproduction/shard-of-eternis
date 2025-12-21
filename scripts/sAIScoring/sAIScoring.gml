@@ -11,10 +11,11 @@ function AI_EffectPriority(card, effect) {
     var heroHas = false; var ourCount = 0;
     for (var i = 0; i < 5; i++) { if (fieldMonsterHero.cards[i] != 0 && instance_exists(fieldMonsterHero.cards[i])) heroHas = true; if (fieldMonsterEnemy.cards[i] != 0 && instance_exists(fieldMonsterEnemy.cards[i])) ourCount++; }
 
-    if (eType == EFFECT_DESTROY_TARGET || eType == EFFECT_BANISH_TARGET || eType == EFFECT_RETURN_TO_HAND) {
+    if (eType == EFFECT_DESTROY_TARGET || eType == EFFECT_BANISH_TARGET || eType == EFFECT_RETURN_TO_HAND || eType == EFFECT_ENTRAVE) {
         var tgt = AI_Targeting_ChooseBestTarget(eType);
         var tAtk = (tgt != noone && variable_instance_exists(tgt, "attack")) ? tgt.attack : 0;
         base = (1000 + tAtk) * (profile.removal_weight / 50.0);
+        if (eType == EFFECT_ENTRAVE) base *= 0.8; // Entrave vaut un peu moins qu'une destruction
         if (dif == 1 && heroHas) base += 300;
     } else if (eType == EFFECT_BUFF || eType == EFFECT_SET_ATTACK || eType == EFFECT_SET_DEFENSE) {
         base = 600 * (profile.board_presence_weight / 50.0);

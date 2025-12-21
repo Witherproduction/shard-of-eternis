@@ -10,6 +10,9 @@ function AI_Targeting_ChooseBestTarget(effectType) {
     for (var i = 0; i < array_length(fieldMonsterHero.cards); i++) {
         var cand = fieldMonsterHero.cards[i];
         if (cand != 0 && instance_exists(cand)) {
+            // Ignorer les cibles camouflées (insaisissables)
+            if (variable_instance_exists(cand, "isCamouflage") && cand.isCamouflage) continue;
+
             var atk = variable_instance_exists(cand, "attack") ? cand.attack : 0;
             var def = variable_instance_exists(cand, "defense") ? cand.defense : 0;
             var eatk = variable_struct_exists(cand, "effective_attack") ? cand.effective_attack : atk;
@@ -146,6 +149,10 @@ function AI_Targeting_ChooseBestEquipTargetFor(card, effect) {
                 if (variable_instance_exists(cand2, "orientation") && variable_instance_exists(cand2, "isFaceDown")) {
                     if (cand2.orientation == "Defense" && cand2.isFaceDown) continue;
                 }
+                
+                // Ignorer les cibles camouflées (insaisissables)
+                if (variable_instance_exists(cand2, "isCamouflage") && cand2.isCamouflage) continue;
+
                 // Genres autorisés éventuels
                 if (allowedGenres != undefined) {
                     var g2 = variable_instance_exists(cand2, "genre") ? cand2.genre : "";

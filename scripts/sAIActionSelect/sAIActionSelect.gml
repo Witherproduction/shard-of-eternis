@@ -153,6 +153,131 @@ function AI_ActionSelect_BuildManualEffects() {
     return actions;
 }
 
+/// Construit les actions « Invocations de monstres depuis la main »
+function AI_ActionSelect_BuildSummons() {
+    var actions = [];
+    if (!instance_exists(game)) return actions;
+    // Vérifier si l'IA a déjà invoqué ce tour (index 1)
+    if (game.hasSummonedThisTurn[1]) return actions;
+    if (!ds_exists(handEnemy.cards, ds_type_list)) return actions;
+
+    var emptySlots = 0;
+    for (var i = 0; i < 5; i++) { if (fieldMonsterEnemy.cards[i] == 0) emptySlots++; }
+
+    // Analyser le terrain adverse (le plus fort ATK) pour décider du mode (Attaque vs Défense)
+    var maxEnemyAtk = 0;
+    // On suppose que fieldMonsterHero est accessible (comme fieldMonsterEnemy)
+    if (variable_instance_exists(global, "fieldMonsterHero") || (is_struct(fieldMonsterHero) || instance_exists(fieldMonsterHero))) {
+        for (var j = 0; j < 5; j++) {
+            var ec = fieldMonsterHero.cards[j];
+            if (ec != 0 && instance_exists(ec)) {
+                // Vérifier l'attaque effective (buffs inclus)
+                var eatk = variable_instance_exists(ec, "effective_attack") ? ec.effective_attack : (variable_instance_exists(ec, "attack") ? ec.attack : 0);
+                if (eatk > maxEnemyAtk) maxEnemyAtk = eatk;
+            }
+        }
+    }
+
+    var iaInst = instance_find(oIA, 0);
+    var profile = AI_Config_GetActiveProfile(); // Si on veut pondérer par le profil plus tard
+
+    var hsize = ds_list_size(handEnemy.cards);
+    for (var h = 0; h < hsize; h++) {
+        var c = ds_list_find_value(handEnemy.cards, h);
+        if (c != 0 && instance_exists(c) && c.type == "Monster") {
+             var star = variable_instance_exists(c, "star") ? c.star : 1;
+             var reqLevel = getSacrificeLevel(star);
+             var reqCount = (reqLevel == 0) ? 0 : (reqLevel == 1 ? 1 : 2);
+             
+             // Si pas de sacrifice nécessaire, il faut un slot libre
+             if (reqCount == 0 && emptySlots == 0) continue; 
+             
+             // Identifier les sacrifices potentiels
+             var availableMonsters = [];
+             for(var m = 0; m < 5; m++){
+                 var mc = fieldMonsterEnemy.cards[m];
+                 if(mc != 0 && instance_exists(mc)) {
+                     array_push(availableMonsters, mc);
+                 }
+             }
+             
+             if (array_length(availableMonsters) < reqCount) continue;
+             
+             // Sélectionner les sacrifices (les plus faibles en attaque)
+             var sacrifices = [];
+             if (reqCount > 0) {
+                 // Tri par attaque croissante
+                 for (var k = 0; k < array_length(availableMonsters) - 1; k++) {
+                    for (var l = k + 1; l < array_length(availableMonsters); l++) {
+                        var atkK = variable_instance_exists(availableMonsters[k], "attack") ? availableMonsters[k].attack : 0;
+                        var atkL = variable_instance_exists(availableMonsters[l], "attack") ? availableMonsters[l].attack : 0;
+                        if (atkK > atkL) {
+                            var tmp = availableMonsters[k];
+                            availableMonsters[k] = availableMonsters[l];
+                            availableMonsters[l] = tmp;
+                        }
+                    }
+                 }
+                 // Prendre les N premiers
+                 for(var s = 0; s < reqCount; s++) {
+                     array_push(sacrifices, availableMonsters[s]);
+                 }
+             }
+             
+             // --- Évaluation du mode (Attaque ou Défense/Set) ---
+             var atk = variable_instance_exists(c, "attack") ? c.attack : 0;
+             var def = variable_instance_exists(c, "defense") ? c.defense : 0;
+             
+             var mode = "Summon"; // Par défaut Attaque
+             var basePrio = 0;
+             
+             if (iaInst != noone) {
+                 basePrio = iaInst.evaluateCardPriority(c);
+             } else {
+                 basePrio = atk * 10 + def * 5 + star * 50;
+             }
+
+             // Logique de décision
+             // Si on peut battre ou égaler le plus fort ennemi, on attaque
+             if (atk >= maxEnemyAtk) {
+                 mode = "Summon";
+                 basePrio += 200; // Bonus agressif
+             } 
+             // Sinon, si on a une défense suffisante pour tanker, on se met en défense
+             else if (def >= maxEnemyAtk) {
+                 mode = "Set"; // Défense face cachée
+                 basePrio += 150; // Bonus défensif
+             }
+             // Si on est perdant sur les deux tableaux (ATK < Max et DEF < Max)
+             else {
+                 // On choisit le mode qui maximise la survie (la stat la plus haute)
+                 // Souvent Set est mieux pour cacher l'info et espérer que l'ennemi n'attaque pas
+                 if (def >= atk) {
+                     mode = "Set";
+                 } else {
+                     mode = "Summon"; // Si ATK > DEF, peut-être tenter d'infliger des dégâts avant de mourir ?
+                     // Mais si ATK < maxEnemyAtk, on va juste mourir au tour suivant.
+                     // On va dire Set par défaut si on est dominé, sauf si ATK est vraiment proche.
+                     mode = "Set"; 
+                 }
+                 // Pas de bonus, on est en difficulté
+             }
+             
+             // Boost de priorité global pour encourager l'invocation
+             basePrio += 400; 
+
+             array_push(actions, { 
+                 kind: "summon_monster", 
+                 card: c, 
+                 priority: basePrio, 
+                 sacrifices: sacrifices,
+                 mode: mode // "Summon" ou "Set"
+             });
+        }
+    }
+    return actions;
+}
+
 /// Construit un pool d’actions pour la Main Phase (Secrets + Magies continues + Effets)
 function AI_ActionSelect_BuildMainPhase() {
     var actions = [];
@@ -160,8 +285,12 @@ function AI_ActionSelect_BuildMainPhase() {
     // Secrets posés face cachée depuis la main
     var secretActions = AI_Secret_BuildActions();
     for (var i = 0; i < array_length(secretActions); i++) { array_push(actions, secretActions[i]); }
+    // Invocations de monstres
+    var summonActions = AI_ActionSelect_BuildSummons();
+    for (var s = 0; s < array_length(summonActions); s++) { array_push(actions, summonActions[s]); }
     // Magies continues
     var contActions = AI_ActionSelect_BuildContinuousFromHand();
+
     for (var j = 0; j < array_length(contActions); j++) { array_push(actions, contActions[j]); }
     // Magies directes (non continues) à jouer depuis la main
     var directMagicActions = AI_ActionSelect_BuildDirectMagicFromHand();

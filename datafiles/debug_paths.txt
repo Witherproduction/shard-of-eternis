@@ -1,0 +1,1 @@
+chosen_path=datafiles/cards_database.json

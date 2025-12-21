@@ -21,6 +21,24 @@ if (mouse_check_button_pressed(mb_left)) {
             selected_bot_deck_id = sc.duel_bot_id;
         }
 
+        // Set duel progression variables from scenario runner
+        if (instance_exists(oScenarioRunner)) {
+            var runner = instance_find(oScenarioRunner, 0);
+            if (variable_instance_exists(runner, "scenes") && variable_instance_exists(runner, "scene_index")) {
+                var scenes = runner.scenes;
+                var idx = runner.scene_index;
+                
+                global.duel_resume_scene = idx;
+                // If we lose, we restart the scene at the beginning (line 0)
+                global.duel_resume_line = 0; 
+                
+                global.duel_next_scene = idx + 1;
+                global.duel_is_last_scene = (idx >= array_length(scenes) - 1);
+                
+                show_debug_message("### Duel Progression Set: Resume=" + string(idx) + " Next=" + string(idx+1) + " IsLast=" + string(global.duel_is_last_scene));
+            }
+        }
+
         global.previous_room_before_duel = rScenario;
         global.selected_bot_deck_id = selected_bot_deck_id;
         

@@ -1,5 +1,25 @@
 if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.create")
 
+// Initialisation du profil de comportement IA selon le deck choisi
+if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
+    // Récupère le nom de profil associé au deck (ex: "aggro", "control", etc.)
+    var profileName = get_bot_deck_profile(global.selected_bot_deck_id);
+    if (profileName != "") {
+        AI_Config_SetBotProfile(1, profileName);
+        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
+            show_debug_message("### oIA - Profil IA activé: " + profileName);
+        }
+    } else {
+        AI_Config_SetBotProfile(1, "balanced");
+        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
+            show_debug_message("### oIA - Pas de profil spécifique, utilisation de 'balanced'");
+        }
+    }
+} else {
+    // Sécurité si aucun ID de deck n'est défini
+    AI_Config_SetBotProfile(1, "balanced");
+}
+
 ///////////////////////////////////////////////////////////////////////
 // Méthodes
 ///////////////////////////////////////////////////////////////////////
@@ -99,6 +119,14 @@ evaluateCardPriority = function(card) {
     var def = variable_instance_exists(card, "defense") ? card.defense : 0;
     var stars = variable_instance_exists(card, "star") ? card.star : 0;
     priority += atk * 10 + def * 5;
+
+    // Bonus capacités spéciales
+    if (variable_instance_exists(card, "isCamouflage") && card.isCamouflage) {
+        priority += 150; 
+    }
+    if (variable_instance_exists(card, "isPoisoner") && card.isPoisoner) {
+        priority += 200; 
+    }
 
     // Vérifier invocabilité (sacrifices)
     var reqLevel = getSacrificeLevel(stars);
@@ -383,15 +411,6 @@ useQuickEffectsBeforeAttack = function() {
 #region Function summon
 summon = function() {
     if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.summon")
-
-    if (game.hasSummonedThisTurn[1]) { 
-        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("IA a déjà invoqué un monstre ce tour"); 
-        // Si une file d’actions est en cours, ne pas forcer la transition ici
-        if (!manualEffectProcessing || array_length(manualEffectsQueue) == 0) {
-            scheduleNextPhase(); 
-        }
-        return; 
-    }
 
     // Boucle d’actions mélangées pendant la Main Phase: effets <-> invocation
     var actionLimit = 6; // garde de sécurité pour éviter les boucles excessives

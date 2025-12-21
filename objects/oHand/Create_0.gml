@@ -154,7 +154,7 @@ summon = function(card, XYPos, desiredOrientation = "") {
             ghost_index = 0; // face visible
         }
     } else {
-        if (desiredOrientation == "Defense") {
+        if (desiredOrientation == "Defense" || (card.type == "Monster" && mode_resolved == "Set")) {
             ghost_angle = 270; // 180° (retourne) + 90° (défense)
             ghost_index = 1; // face cachée
         } else if (card.type == "Magic" && isSecret && mode_resolved == "Set") {
@@ -238,7 +238,7 @@ summon = function(card, XYPos, desiredOrientation = "") {
                 card.isFaceDown = false;
             }
         } else {
-            if (desiredOrientation == "Defense") {
+            if (desiredOrientation == "Defense" || (card.type == "Monster" && mode_resolved == "Set")) {
                 card.orientation = "Defense";
                 card.image_angle = 270;
                 card.image_index = 1;

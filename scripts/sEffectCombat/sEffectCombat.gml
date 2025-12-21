@@ -170,10 +170,12 @@ function destroyCard(card, source = noone) {
         var dCard = card;
         with (oCardMagic) {
             if (zone == "Field") {
-                var isArtifact = (variable_instance_exists(self, "genre") && string_lower(genre) == string_lower("Artéfact"));
+                var g = variable_instance_exists(self, "genre") ? string_lower(self.genre) : "";
+                var isArtifact = (g == "artéfact" || g == "artefact");
                 if (isArtifact) {
                     var eqt = (variable_instance_exists(self, "equipped_target")) ? equipped_target : noone;
                     if (eqt != noone && eqt == dCard) {
+                        show_debug_message("### destroyCard: Linked artifact found (" + string(name) + "). Destroying.");
                         destroyCard(id);
                     }
                 }

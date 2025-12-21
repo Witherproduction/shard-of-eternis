@@ -1107,8 +1107,8 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
     // Vérifier les cartes magiques continues
 
     with (oCardMagic) {
-
-        var isArtifact2 = (variable_instance_exists(self, "genre") && string_lower(self.genre) == string_lower("Artéfact"));
+        var g = variable_instance_exists(self, "genre") ? string_lower(self.genre) : "";
+        var isArtifact2 = (g == "artéfact" || g == "artefact");
         var isContinuousByType = (variable_instance_exists(self, "type") && self.type == "Continuous");
         var isContinuousByGenre = (variable_instance_exists(self, "genre") && (string_lower(self.genre) == "continue" || string_lower(self.genre) == "continu"));
 
@@ -1129,6 +1129,7 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
                 if (isArtifact2 && variable_instance_exists(self, "equipped_target") && self.equipped_target != noone) {
                     var srcLv = variable_struct_exists(context, "source") ? context.source : noone;
                     if (srcLv != noone && instance_exists(srcLv) && self.equipped_target == srcLv) {
+                        show_debug_message("### Artifact cleanup: Target " + string(srcLv.name) + " left field. Destroying " + string(self.name));
                         if (!is_undefined(destroyCard)) { destroyCard(self.id); }
                     }
                 }
