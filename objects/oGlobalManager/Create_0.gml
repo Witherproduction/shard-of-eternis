@@ -3,6 +3,12 @@ show_debug_message("### oGlobalManager.create - INITIALISATION GLOBALE");
 // Assurer la persistance de l'objet
 persistent = true;
 
+// Assurer que la base de données est présente (Singleton persistant)
+if (!instance_exists(oDataBase)) {
+    instance_create_depth(0, 0, 0, oDataBase);
+    show_debug_message("### oGlobalManager - oDataBase créée");
+}
+
 // Initialiser le générateur pseudo-aléatoire une seule fois par session
 if (!variable_global_exists("rng_initialized") || !global.rng_initialized) {
     randomize();

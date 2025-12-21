@@ -1,4 +1,11 @@
 // === Base de données des cartes ===
+// Assurer la persistance pour que la DB soit accessible partout
+persistent = true;
+
+if (instance_number(object_index) > 1) {
+    instance_destroy();
+    exit;
+}
 show_debug_message("### oDataBase.create");
 
 // Structure principale de la base de données

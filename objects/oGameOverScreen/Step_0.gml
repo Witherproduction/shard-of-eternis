@@ -35,10 +35,25 @@ if (alpha >= targetAlpha) {
                          var deck_cards = global.selected_player_deck.cards;
                          if (is_array(deck_cards)) {
                              var cards_unlocked_count = 0;
+                             var all_db_cards = dbGetAllCards();
+                             
                              for (var i = 0; i < array_length(deck_cards); i++) {
                                  var c_id = deck_cards[i];
                                  if (is_string(c_id)) {
-                                     if (unlock_card(c_id)) {
+                                     var final_id = c_id;
+                                     // Tentative de mapping Object Name -> Card ID si c'est un nom d'objet (ex: oTortue)
+                                     // On parcourt la DB pour trouver l'ID correspondant
+                                     for (var k = 0; k < array_length(all_db_cards); k++) {
+                                          var db_card = all_db_cards[k];
+                                          if (variable_struct_exists(db_card, "objectId") && db_card.objectId == c_id) {
+                                              if (variable_struct_exists(db_card, "id")) {
+                                                  final_id = db_card.id;
+                                              }
+                                              break;
+                                          }
+                                     }
+                                     
+                                     if (unlock_card(final_id)) {
                                          cards_unlocked_count++;
                                      }
                                  }

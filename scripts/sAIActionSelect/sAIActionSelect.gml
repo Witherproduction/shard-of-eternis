@@ -12,7 +12,8 @@ function AI_ActionSelect_BuildContinuousFromHand() {
     if (mtField != noone && variable_struct_exists(mtField, "cards")) {
         for (var mti = 0; mti < array_length(mtField.cards); mti++) { if (mtField.cards[mti] == 0) { hasFreeMTSlot = true; break; } }
     }
-    if (!hasFreeMTSlot) return actions;
+    
+    // RÈGLE : L'IA ne doit pas essayer de jouer de magie si le terrain est plein (sauf exceptions gérées ailleurs)
     if (!hasFreeMTSlot) return actions;
 
     var hsize = ds_list_size(handEnemy.cards);
@@ -52,6 +53,9 @@ function AI_ActionSelect_BuildDirectMagicFromHand() {
     if (mtField != noone && variable_struct_exists(mtField, "cards")) {
         for (var mti = 0; mti < array_length(mtField.cards); mti++) { if (mtField.cards[mti] == 0) { hasFreeMTSlot = true; break; } }
     }
+    
+    // RÈGLE : L'IA ne doit pas essayer de jouer de magie si le terrain est plein
+    if (!hasFreeMTSlot) return actions;
 
     var hsize = ds_list_size(handEnemy.cards);
     for (var h = 0; h < hsize; h++) {
@@ -156,9 +160,10 @@ function AI_ActionSelect_BuildManualEffects() {
 /// Construit les actions « Invocations de monstres depuis la main »
 function AI_ActionSelect_BuildSummons() {
     var actions = [];
-    if (!instance_exists(game)) return actions;
+    var gameInst = instance_find(oGame, 0);
+    if (gameInst == noone || !instance_exists(gameInst)) return actions;
     // Vérifier si l'IA a déjà invoqué ce tour (index 1)
-    if (game.hasSummonedThisTurn[1]) return actions;
+    if (gameInst.hasSummonedThisTurn[1]) return actions;
     if (!ds_exists(handEnemy.cards, ds_type_list)) return actions;
 
     var emptySlots = 0;
@@ -166,13 +171,34 @@ function AI_ActionSelect_BuildSummons() {
 
     // Analyser le terrain adverse (le plus fort ATK) pour décider du mode (Attaque vs Défense)
     var maxEnemyAtk = 0;
-    // On suppose que fieldMonsterHero est accessible (comme fieldMonsterEnemy)
-    if (variable_instance_exists(global, "fieldMonsterHero") || (is_struct(fieldMonsterHero) || instance_exists(fieldMonsterHero))) {
+    
+    // Récupération sécurisée du fieldMonsterHero
+    var fHero = noone;
+    if (variable_instance_exists(self, "fieldMonsterHero")) {
+        fHero = fieldMonsterHero;
+    } else if (variable_global_exists("fieldMonsterHero")) {
+        fHero = global.fieldMonsterHero;
+    }
+
+    // On vérifie si fHero est valide (instance ou struct) et possède la propriété "cards"
+    var fHeroValid = false;
+    if (is_struct(fHero)) {
+        if (variable_struct_exists(fHero, "cards")) fHeroValid = true;
+    } else if (instance_exists(fHero)) {
+        if (variable_instance_exists(fHero, "cards")) fHeroValid = true;
+    }
+
+    if (fHeroValid) {
         for (var j = 0; j < 5; j++) {
-            var ec = fieldMonsterHero.cards[j];
+            var ec = fHero.cards[j];
             if (ec != 0 && instance_exists(ec)) {
                 // Vérifier l'attaque effective (buffs inclus)
-                var eatk = variable_instance_exists(ec, "effective_attack") ? ec.effective_attack : (variable_instance_exists(ec, "attack") ? ec.attack : 0);
+                var eatk = 0;
+                if (is_struct(ec)) {
+                    eatk = variable_struct_exists(ec, "effective_attack") ? ec.effective_attack : (variable_struct_exists(ec, "attack") ? ec.attack : 0);
+                } else {
+                    eatk = variable_instance_exists(ec, "effective_attack") ? ec.effective_attack : (variable_instance_exists(ec, "attack") ? ec.attack : 0);
+                }
                 if (eatk > maxEnemyAtk) maxEnemyAtk = eatk;
             }
         }
@@ -232,39 +258,40 @@ function AI_ActionSelect_BuildSummons() {
              var basePrio = 0;
              
              if (iaInst != noone) {
+                 // Utiliser l'évaluation de base de l'IA
                  basePrio = iaInst.evaluateCardPriority(c);
              } else {
+                 // Fallback simple
                  basePrio = atk * 10 + def * 5 + star * 50;
              }
 
-             // Logique de décision
-             // Si on peut battre ou égaler le plus fort ennemi, on attaque
+             // Logique de décision Stratégique (écrase ou modifie la priorité)
+             
+             // 1. Si on peut battre ou égaler le plus fort ennemi, on attaque
              if (atk >= maxEnemyAtk) {
                  mode = "Summon";
-                 basePrio += 200; // Bonus agressif
+                 basePrio += 300; // Gros bonus agressif pour forcer l'attaque si possible
              } 
-             // Sinon, si on a une défense suffisante pour tanker, on se met en défense
+             // 2. Sinon, si on a une défense suffisante pour tanker, on se met en défense
              else if (def >= maxEnemyAtk) {
                  mode = "Set"; // Défense face cachée
-                 basePrio += 150; // Bonus défensif
+                 basePrio += 250; // Bonus défensif significatif
              }
-             // Si on est perdant sur les deux tableaux (ATK < Max et DEF < Max)
+             // 3. Si on est perdant sur les deux tableaux (ATK < Max et DEF < Max)
              else {
                  // On choisit le mode qui maximise la survie (la stat la plus haute)
-                 // Souvent Set est mieux pour cacher l'info et espérer que l'ennemi n'attaque pas
                  if (def >= atk) {
                      mode = "Set";
                  } else {
-                     mode = "Summon"; // Si ATK > DEF, peut-être tenter d'infliger des dégâts avant de mourir ?
-                     // Mais si ATK < maxEnemyAtk, on va juste mourir au tour suivant.
-                     // On va dire Set par défaut si on est dominé, sauf si ATK est vraiment proche.
+                     // Si ATK > DEF mais toujours inférieur à l'ennemi, Set est généralement plus sûr pour bluffer
                      mode = "Set"; 
                  }
-                 // Pas de bonus, on est en difficulté
+                 // Pas de bonus, on est en difficulté (la priorité restera basse, l'IA jouera peut-être une magie avant)
              }
              
-             // Boost de priorité global pour encourager l'invocation
-             basePrio += 400; 
+             // Boost de priorité global pour encourager l'invocation (sinon l'IA risque de ne rien faire si elle n'a que des monstres faibles)
+             // On veut qu'elle invoque quelque chose pour se défendre même si c'est désespéré
+             basePrio += 500; 
 
              array_push(actions, { 
                  kind: "summon_monster", 

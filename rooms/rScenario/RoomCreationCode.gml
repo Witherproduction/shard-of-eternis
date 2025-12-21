@@ -36,7 +36,12 @@ if (file_exists(path)) {
         if (is_array(scenes) && array_length(scenes) > 0) {
             idx = clamp(sceneIndex, 0, array_length(scenes)-1);
             var sc = scenes[idx];
-            if (variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id > 0) {
+            
+            // Si on reprend après une défaite (ou chargement), on ne lance pas le duel tout de suite
+            // On vérifie si sc_load_line_index est défini (il vaut 0 après une défaite avec notre modif)
+            var is_resuming = (variable_global_exists("sc_load_line_index") && global.sc_load_line_index >= 0);
+            
+            if (!is_resuming && variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id > 0) {
                 global.previous_room_before_duel = rScenario;
                 global.selected_bot_deck_id = sc.duel_bot_id;
                 

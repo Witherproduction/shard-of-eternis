@@ -13,14 +13,44 @@ if (alpha >= targetAlpha) {
                  var deck_cards = global.selected_player_deck.cards;
                  if (is_array(deck_cards)) {
                      var cards_unlocked_count = 0;
+                     var all_db_cards = dbGetAllCards();
+                     
                      for (var i = 0; i < array_length(deck_cards); i++) {
-                         var c_id = deck_cards[i];
-                         if (is_string(c_id)) {
-                             if (unlock_card(c_id)) {
-                                 cards_unlocked_count++;
-                             }
-                         }
-                     }
+                          var c_entry = deck_cards[i];
+                          var c_obj_name = "";
+
+                          if (is_string(c_entry)) {
+                              c_obj_name = c_entry;
+                          } else if (is_struct(c_entry) && variable_struct_exists(c_entry, "objectId")) {
+                              c_obj_name = c_entry.objectId;
+                          }
+                          
+                          if (c_obj_name != "") {
+                              // Trouver l'ID de la carte correspondant au nom de l'objet
+                              var found_card_id = "";
+                              
+                              // Chercher dans la DB par objectId
+                              for (var k = 0; k < array_length(all_db_cards); k++) {
+                                  var db_card = all_db_cards[k];
+                                  if (variable_struct_exists(db_card, "objectId") && db_card.objectId == c_obj_name) {
+                                      if (variable_struct_exists(db_card, "id")) {
+                                          found_card_id = db_card.id;
+                                      }
+                                      break;
+                                  }
+                              }
+                              
+                              // Si trouvé, débloquer
+                              if (found_card_id != "") {
+                                  if (unlock_card(found_card_id)) {
+                                      cards_unlocked_count++;
+                                  }
+                              } else {
+                                  show_debug_message("### Warning: Impossible de trouver l'ID carte pour l'objet " + string(c_obj_name));
+                              }
+                          }
+                      }
+                     
                      if (cards_unlocked_count > 0) {
                          show_debug_message("### Victoire : " + string(cards_unlocked_count) + " nouvelles cartes débloquées !");
                      }

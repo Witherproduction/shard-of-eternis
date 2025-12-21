@@ -53,21 +53,28 @@ if (mouse_check_button_pressed(mb_left)) {
              }
         }
 
-        if (deck_invalid) {
+        // Check for Story Mode (Chapter 1) - FORCE deck selection
+        var is_story_chap1 = false;
+        var current_chapter = 1;
+        if (instance_exists(oScenarioRunner)) {
+             var runner = instance_find(oScenarioRunner, 0);
+             if (variable_instance_exists(runner, "chapter_id")) {
+                 current_chapter = real(runner.chapter_id);
+                 // If we are in Scenario Runner, we assume we are playing story
+                 if (current_chapter == 1) is_story_chap1 = true;
+             }
+        } else if (variable_global_exists("current_chapter")) {
+             // Fallback if global variable is used
+             if (global.current_chapter == 1) {
+                 current_chapter = 1;
+                 is_story_chap1 = true; // Assuming we are entering story duel
+             }
+        }
+
+        if (deck_invalid || is_story_chap1) {
              var story_deck_found = false;
              
              // Check for Story Deck (Chapter 1)
-             // We can check oScenarioRunner to be sure about the chapter
-             var current_chapter = 1; // Default
-             if (instance_exists(oScenarioRunner)) {
-                 var runner = instance_find(oScenarioRunner, 0);
-                 if (variable_instance_exists(runner, "chapter_id")) {
-                     current_chapter = real(runner.chapter_id);
-                 }
-             } else if (variable_global_exists("current_chapter")) {
-                 current_chapter = global.current_chapter;
-             }
-             
              if (current_chapter == 1) {
                  var chap1_decks = get_hero_decks_chap1();
                  for (var i = 0; i < array_length(chap1_decks); i++) {

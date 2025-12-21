@@ -134,6 +134,7 @@ line_index = 0;
 if (variable_global_exists("sc_load_line_index") && global.sc_load_line_index >= 0) {
     line_index = global.sc_load_line_index;
     global.sc_load_line_index = -1; // Reset
+    auto_mode = false; // Disable auto mode on resume to prevent instant loop
     show_debug_message("### oScenarioRunner: Reprise à la ligne " + string(line_index));
 }
 if (array_length(scenes) > 0) {
