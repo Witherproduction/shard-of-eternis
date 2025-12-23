@@ -7,25 +7,26 @@ function get_hero_decks_chap1() {
             name: "La Meute de la Lisière",
             description: "Un deck optimisé pour la force brute et la défense solide. Les bêtes écrasent les orcs !",
             cards: [
-                // Monstres (22)
+                // Monstres (25)
                 "oTortueVagabonde", "oTortueVagabonde", "oTortueVagabonde",
                 "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche",
                 "oLoupGuerreGeuleRoche", "oLoupGuerreGeuleRoche", "oLoupGuerreGeuleRoche",
                 "oJeuneOursForet", "oJeuneOursForet", "oJeuneOursForet",
                 "oAraigneeForestiere", "oAraigneeForestiere", "oAraigneeForestiere",
                 "oPeauRocRobuste", "oPeauRocRobuste", "oPeauRocRobuste",
+                "oVieilOurs", "oVieilOurs", "oVieilOurs",
                 "oTarentuleForet", "oTarentuleForet",
                 "oRodeurForet", "oRodeurForet",
                 
-                // Magies (12)
+                // Magies (11)
                 "oGriffePredateur", "oGriffePredateur", "oGriffePredateur",
                 "oSautPredateur", "oSautPredateur", "oSautPredateur",
-                "oRacineEnvahissante", "oRacineEnvahissante", "oRacineEnvahissante",
+                "oRacineEnvahissante", "oRacineEnvahissante",
                 "oRugissementForet", "oRugissementForet", "oRugissementForet",
                 
-                // Pièges / Secrets (6)
-                "oPiegeRonce", "oPiegeRonce", "oPiegeRonce",
-                "oFeuillageProtecteur", "oFeuillageProtecteur", "oFeuillageProtecteur"
+                // Pièges / Secrets (4)
+                "oPiegeRonce", "oPiegeRonce",
+                "oFeuillageProtecteur", "oFeuillageProtecteur"
             ]
         },
         {

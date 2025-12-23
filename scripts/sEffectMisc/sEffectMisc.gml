@@ -250,6 +250,14 @@ function hasValidTargetForEffect(card, effect) {
 /// @returns {bool}
 function isEffectActivatable(card, effect) {
     if (effect == noone) return false;
+    
+    // 1. Vérification des conditions génériques (Once per turn, LP, Main, Phase...)
+    // On utilise checkTriggerConditions si disponible pour valider les prérequis non-ciblés
+    if (!is_undefined(asset_get_index("checkTriggerConditions"))) {
+        // Contexte vide car on vérifie l'activabilité "à froid"
+        if (!checkTriggerConditions(card, effect, {})) return false;
+    }
+    
     var etype = variable_struct_exists(effect, "effect_type") ? effect.effect_type : "";
 
     // Sélection d’équipement (Artefact)

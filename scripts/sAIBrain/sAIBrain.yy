@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"sAISacrifice",
+  "%Name":"sAIBrain",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"sAISacrifice",
+  "name":"sAIBrain",
   "parent":{
     "name":"IA",
     "path":"folders/Scripts/IA.yy",

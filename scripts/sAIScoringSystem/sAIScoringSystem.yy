@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"sAIScoring",
+  "%Name":"sAIScoringSystem",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"sAIScoring",
+  "name":"sAIScoringSystem",
   "parent":{
     "name":"IA",
     "path":"folders/Scripts/IA.yy",

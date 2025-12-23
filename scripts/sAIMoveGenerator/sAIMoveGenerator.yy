@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"sAIUtils",
+  "%Name":"sAIMoveGenerator",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"sAIUtils",
+  "name":"sAIMoveGenerator",
   "parent":{
-    "name":"utils",
-    "path":"folders/Scripts/Duel/effet/utils.yy",
+    "name":"IA",
+    "path":"folders/Scripts/IA.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

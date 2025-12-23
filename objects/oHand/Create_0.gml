@@ -122,6 +122,14 @@ summon = function(card, XYPos, desiredOrientation = "") {
     }
     updateDisplay();
 
+    // --- Update Summon Limit (Fix: empêcher invocations multiples) ---
+    if (variable_instance_exists(card, "type") && card.type == "Monster" && mode_resolved != "SpecialSummon") {
+        var pIdx = isHeroOwner ? 0 : 1;
+        if (instance_exists(oGame)) {
+            oGame.hasSummonedThisTurn[pIdx] = true;
+        }
+    }
+
     card.zone = "Field";
     if (instance_exists(selectManager) && selectManager.selected == card) {
         var shouldKeepSelection = (selectManager.pendingEffect != noone) && (selectManager.pendingEffectCard != noone) && (selectManager.pendingEffectCard == card);

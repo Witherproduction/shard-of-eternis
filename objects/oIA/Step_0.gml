@@ -36,12 +36,32 @@ if (global.current_phase == "Summon" && manualEffectProcessing) {
         iaDelayFrames = delay_cfg; // attendre avant la prochaine activation
         exit;
     } else {
-        // File vidée: terminer le traitement et planifier la transition
+        // File vidée: terminer le traitement
         manualEffectProcessing = false;
-        iaNextPhasePending = true;
-        iaDelayFrames = delay_cfg;
+        
+        // Si on est dans la boucle Main Phase IA, on continue
+        if (variable_instance_exists(id, "aiMainPhaseActive") && aiMainPhaseActive) {
+             iaDelayFrames = delay_cfg;
+        } else {
+             // Sinon on termine la phase
+             iaNextPhasePending = true;
+             iaDelayFrames = delay_cfg;
+        }
         exit;
     }
+}
+
+// --- Boucle principale de la phase d'invocation (Main Phase) ---
+if (global.current_phase == "Summon" && variable_instance_exists(id, "aiMainPhaseActive") && aiMainPhaseActive) {
+    // Si des effets manuels sont en cours, on attend qu'ils finissent
+    if (manualEffectProcessing) exit;
+
+    // Attendre le délai (animations, etc.)
+    if (iaDelayFrames > 0) exit;
+    
+    // Relancer la logique de summon pour la prochaine action
+    summon();
+    exit;
 }
 
 // --- Séquencement d'attaque uniquement pendant la phase Attack ---

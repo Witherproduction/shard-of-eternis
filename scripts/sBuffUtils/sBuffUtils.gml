@@ -62,7 +62,10 @@ function buffRecompute(target) {
         }
     }
     // Clamp: les stats effectives ne doivent jamais descendre sous 0
-    target.effective_attack = max(0, target.attack + totalAtk);
-    target.effective_defense = max(0, target.defense + totalDef);
+    var tempAtk = variable_instance_exists(target, "temp_attack") ? target.temp_attack : 0;
+    var tempDef = variable_instance_exists(target, "temp_defense") ? target.temp_defense : 0;
+    
+    target.effective_attack = max(0, target.attack + totalAtk + tempAtk);
+    target.effective_defense = max(0, target.defense + totalDef + tempDef);
     return true;
 }

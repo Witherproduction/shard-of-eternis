@@ -7,6 +7,10 @@ function modifyAttack(card, amount, temporary = false) {
             card.temp_attack = 0;
         }
         card.temp_attack += amount;
+        // Mettre à jour les stats effectives pour inclure le temporaire
+        if (variable_instance_exists(card, "effective_attack") || variable_instance_exists(card, "buff_contribs")) {
+            if (!is_undefined(buffRecompute)) buffRecompute(card);
+        }
     } else {
         card.attack += amount;
         card.attack = max(0, card.attack);
@@ -33,6 +37,10 @@ function modifyDefense(card, amount, temporary = false) {
             card.temp_defense = 0;
         }
         card.temp_defense += amount;
+        // Mettre à jour les stats effectives pour inclure le temporaire
+        if (variable_instance_exists(card, "effective_defense") || variable_instance_exists(card, "buff_contribs")) {
+            if (!is_undefined(buffRecompute)) buffRecompute(card);
+        }
     } else {
         card.defense += amount;
         card.defense = max(0, card.defense);

@@ -1,0 +1,76 @@
+SYSTEME IA - SHARD OF ETERNIS (REFONTE 2025)
+==============================================
+
+Ce document résume la nouvelle architecture de l'IA pour le jeu de cartes (TCG).
+L'objectif est de remplacer l'approche "RPG temps réel" par une simulation "Tour par Tour" avec évaluation stratégique.
+
+1. ARCHITECTURE DES SCRIPTS
+---------------------------
+Le système repose sur 3 scripts principaux situés dans `scripts/` :
+
+A. sAIMoveGenerator.gml (Générateur de Coups)
+   - Rôle : Identifier toutes les actions légales possibles à un instant T.
+   - Fonctions clés :
+     - `AI_GetLegalMoves_Summon()`: Scanne la main pour trouver les monstres invocables (check sacrifices) et les magies jouables.
+     - `AI_GetLegalMoves_Attack()`: Scanne le plateau pour trouver les attaques valides (check orientation, "déjà attaqué", camouflage).
+
+B. sAIScoringSystem.gml (Système de Notation)
+   - Rôle : Donner une valeur numérique à une carte ou un état du plateau.
+   - Fonctions clés :
+     - `AI_Evaluate_BoardState()`: Score global (Monstres IA - Monstres Joueur + Card Advantage + PV).
+     - `AI_GetCardScore(card)`: Évalue une carte sur le terrain (ATK, DEF, Effets).
+     - `AI_GetCardScore_Predicted(card)`: Estime la valeur future d'une carte en main.
+   - Poids (Weights) : ATK=1, DEF=0.5, Body=500, CardInHand=1500.
+
+C. sAIBrain.gml (Cerveau / Prise de Décision)
+   - Rôle : Sélectionner le meilleur coup et l'exécuter.
+   - Fonctions clés :
+     - `AI_SelectBestMove(moves)`: Compare les scores des coups possibles (Minimax simplifié à 1 tour).
+     - `AI_ExecuteMove(move)`: Réalise l'action via les objets du jeu (`oHandEnemy.summon`, `oDamageManager`).
+     - Gère les sacrifices via `performSacrifices()` (fonction globale).
+
+2. BOUCLE DE JEU (oIA)
+----------------------
+L'objet `oIA` orchestre les phases.
+
+Phase SUMMON (Main Phase) :
+- Boucle tant qu'il y a des actions intéressantes à faire.
+- Utilise un flag `aiMainPhaseActive` et le `Step Event` pour espacer les actions (délai d'animation).
+- Logique : `AI_GetLegalMoves_Summon` -> `AI_SelectBestMove` -> `AI_ExecuteMove`.
+- Gère l'orientation des monstres (Attaque/Défense) à la fin de la phase si plus rien à jouer.
+
+Phase ATTACK (Battle Phase) :
+- Attaque séquentielle (une par une).
+- Logique : `AI_GetLegalMoves_Attack` -> `AI_SelectBestMove` -> `AI_ExecuteMove`.
+- Prend en compte :
+  - Camouflage (Interdiction de ciblage si non-camo présents).
+  - Empoisonnement (Priorité absolue pour tuer les gros thons).
+  - Attaques directes (Si pas de monstres ou conditions remplies).
+
+3. REGLES SPECIFIQUES GEREES
+----------------------------
+- Sacrifices :
+  - Niv 1-4 : 0 sacrifice.
+  - Niv 5-6 (Star 2) : 1 sacrifice.
+  - Niv 7+ (Star 3) : 2 sacrifices.
+  - Implémenté dans `sAIMoveGenerator` (vérif) et `sAIBrain` (exécution).
+
+- Camouflage :
+  - L'IA ne cible pas les monstres camouflés si d'autres cibles existent.
+  - Géré lors de la génération des coups d'attaque.
+
+- Orientation :
+  - L'IA pose en Attaque si ATK >= DEF (comportement agressif par défaut).
+  - L'IA passe en Défense si menacée par plus fort qu'elle.
+
+4. FICHIERS MODIFIES / CLES
+---------------------------
+- `objects/oIA/Create_0.gml` : Définition des fonctions `summon` et `attack` (wrappers).
+- `objects/oIA/Step_0.gml` : Gestion des délais et boucles d'actions.
+- `scripts/scr_sacrifice_system/scr_sacrifice_system.gml` : Fonctions utilitaires de sacrifice.
+
+5. A FAIRE / AMELIORATIONS FUTURES
+----------------------------------
+- Implémenter la gestion des effets "Targeted" complexes dans le scoring (ex: détruire un monstre précis avec une magie).
+- Ajouter une prédiction sur 2 tours (Anticipation des réponses adverses).
+- Affiner les poids de scoring selon le profil du deck (Aggro vs Control).

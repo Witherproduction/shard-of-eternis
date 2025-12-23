@@ -357,13 +357,76 @@ resolveAttackDirect = function(cardHero) {
     }
 }
 
-// Version pour l'ennemi (si nécessaire)
-resolveAttackMonsterEnemy = function(attacker, defender) {
+// Initiate Enemy Monster Attack (with FX)
+initiateAttackMonsterEnemy = function(attacker, defender) {
     if (attacker == noone || !instance_exists(attacker)) return;
     var _limitE = 1; if (variable_instance_exists(attacker, "isAmbidextrous") && attacker.isAmbidextrous) { _limitE = 2; }
     if (variable_instance_exists(attacker, "attacksUsedThisTurn") && attacker.attacksUsedThisTurn >= _limitE) { return; }
     
+    // Mark attack as used immediately
+    attacker.attacksUsedThisTurn = (variable_instance_exists(attacker, "attacksUsedThisTurn") ? attacker.attacksUsedThisTurn : 0) + 1;
+    if (instance_exists(game)) attacker.lastTurnAttack = game.nbTurn;
+    
+    if (variable_instance_exists(attacker, "isCamouflage") && attacker.isCamouflage) {
+        var keepCamoE = (variable_instance_exists(attacker, "keepCamouflageTurn") && instance_exists(game) && variable_instance_exists(game, "nbTurn") && attacker.keepCamouflageTurn == game.nbTurn);
+        if (!keepCamoE) { attacker.isCamouflage = false; }
+    }
+    
+    // FX check
+    if (variable_global_exists("USE_COMBAT_FX") && global.USE_COMBAT_FX) {
+        var fx = instance_create_layer(attacker.x, attacker.y, "Instances", FX_Combat);
+        if (fx != noone) {
+            fx.attacker = attacker;
+            fx.defender = defender;
+            fx.mode = "vsMonster";
+        }
+    } else {
+        resolveAttackMonsterEnemy(attacker, defender);
+    }
+};
+
+// Initiate Enemy Direct Attack (with FX)
+initiateAttackDirectEnemy = function(cardEnemy) {
+    if (cardEnemy == noone || !instance_exists(cardEnemy)) return;
+    var _limitED = 1; if (variable_instance_exists(cardEnemy, "isAmbidextrous") && cardEnemy.isAmbidextrous) { _limitED = 2; }
+    if (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") && cardEnemy.attacksUsedThisTurn >= _limitED) { return; }
+    
+    // Mark attack as used immediately
+    cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1;
+    if (instance_exists(game)) cardEnemy.lastTurnAttack = game.nbTurn;
+    
+    if (variable_instance_exists(cardEnemy, "effect_force_direct_attack") && cardEnemy.effect_force_direct_attack) {
+        cardEnemy.effect_force_direct_attack = false;
+    }
+    if (variable_instance_exists(cardEnemy, "isCamouflage") && cardEnemy.isCamouflage) {
+        var keepCamoDE = (variable_instance_exists(cardEnemy, "keepCamouflageTurn") && instance_exists(game) && variable_instance_exists(game, "nbTurn") && cardEnemy.keepCamouflageTurn == game.nbTurn);
+        if (!keepCamoDE) { cardEnemy.isCamouflage = false; }
+    }
+    
+    // FX check
+    if (variable_global_exists("USE_COMBAT_FX") && global.USE_COMBAT_FX) {
+        var fx = instance_create_layer(cardEnemy.x, cardEnemy.y, "Instances", FX_Combat);
+        if (fx != noone) {
+            fx.attacker = cardEnemy;
+            fx.defender = noone;
+            fx.mode = "direct";
+        }
+    } else {
+        resolveAttackDirectEnemy(cardEnemy);
+    }
+};
+
+// Version pour l'ennemi (si nécessaire)
+resolveAttackMonsterEnemy = function(attacker, defender) {
+    if (attacker == noone || !instance_exists(attacker)) return;
+    
+    // Note: On ne vérifie PLUS le nombre d'attaques ici car initiateAttackMonsterEnemy
+    // l'a déjà incémenté AVANT l'animation.
+    // var _limitE = 1; if (variable_instance_exists(attacker, "isAmbidextrous") && attacker.isAmbidextrous) { _limitE = 2; }
+    // if (variable_instance_exists(attacker, "attacksUsedThisTurn") && attacker.attacksUsedThisTurn >= _limitE) { return; }
+    
     if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
+
         return;
     }
     
@@ -504,15 +567,9 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
         }
     }
     
-    // Marquer l'attaque côté ennemi
-    if (instance_exists(attacker)) {
-        attacker.attacksUsedThisTurn = (variable_instance_exists(attacker, "attacksUsedThisTurn") ? attacker.attacksUsedThisTurn : 0) + 1;
-        attacker.lastTurnAttack = game.nbTurn;
-        if (variable_instance_exists(attacker, "isCamouflage") && attacker.isCamouflage) {
-            var keepCamoE = (variable_instance_exists(attacker, "keepCamouflageTurn") && instance_exists(game) && variable_instance_exists(game, "nbTurn") && attacker.keepCamouflageTurn == game.nbTurn);
-            if (!keepCamoE) { attacker.isCamouflage = false; }
-        }
-    }
+    // Marquer l'attaque côté ennemi - DÉPLACÉ DANS initiateAttackMonsterEnemy
+    // (pour éviter double compte lors des animations)
+
 
     // Déclencher l'événement post-attaque côté ennemi avec la cible (défenseur héros)
     if (instance_exists(attacker)) {
@@ -527,10 +584,14 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
     }
 };
 
+// Version pour l'ennemi (si nécessaire)
 resolveAttackDirectEnemy = function(cardEnemy) {
     if (cardEnemy == noone || !instance_exists(cardEnemy)) return;
-    var _limitED = 1; if (variable_instance_exists(cardEnemy, "isAmbidextrous") && cardEnemy.isAmbidextrous) { _limitED = 2; }
-    if (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") && cardEnemy.attacksUsedThisTurn >= _limitED) { return; }
+    
+    // Note: On ne vérifie PLUS le nombre d'attaques ici car initiateAttackDirectEnemy
+    // l'a déjà incémenté AVANT l'animation.
+    // var _limitED = 1; if (variable_instance_exists(cardEnemy, "isAmbidextrous") && cardEnemy.isAmbidextrous) { _limitED = 2; }
+    // if (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") && cardEnemy.attacksUsedThisTurn >= _limitED) { return; }
     
     // Triggers & Secrets (attaque directe contre le héros)
     registerTriggerEvent(TRIGGER_ON_ATTACK, cardEnemy, { attacker: cardEnemy, defender: noone, direct_attack: true });
@@ -567,17 +628,8 @@ resolveAttackDirectEnemy = function(cardEnemy) {
     LP_Hero_Instance.nbLP -= damage;
     show_debug_message("### resolveAttackDirectEnemy: LP_Hero now=" + string(LP_Hero_Instance.nbLP));
     
-    if (instance_exists(cardEnemy)) {
-        cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1;
-        cardEnemy.lastTurnAttack = game.nbTurn;
-        if (variable_instance_exists(cardEnemy, "effect_force_direct_attack") && cardEnemy.effect_force_direct_attack) {
-            cardEnemy.effect_force_direct_attack = false;
-        }
-        if (variable_instance_exists(cardEnemy, "isCamouflage") && cardEnemy.isCamouflage) {
-            var keepCamoDE = (variable_instance_exists(cardEnemy, "keepCamouflageTurn") && instance_exists(game) && variable_instance_exists(game, "nbTurn") && cardEnemy.keepCamouflageTurn == game.nbTurn);
-            if (!keepCamoDE) { cardEnemy.isCamouflage = false; }
-        }
-    }
+    // Marquer l'attaque côté ennemi - DÉPLACÉ DANS initiateAttackDirectEnemy
+
 };
 
 

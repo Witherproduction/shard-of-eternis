@@ -13,10 +13,11 @@ function get_bot_decks_chap1() {
             cards: [
                 "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche",
                 "oLoupGuerreGeuleRoche", "oLoupGuerreGeuleRoche", "oLoupGuerreGeuleRoche",
-                "oMassacreurGeuleRoche", "oMassacreurGeuleRoche",
+                "oMassacreurGeuleRoche", "oMassacreurGeuleRoche", "oMassacreurGeuleRoche",
                 "oLoupGrisForet", "oLoupGrisForet", "oLoupGrisForet",
                 "oLoupGaleux", "oLoupGaleux", "oLoupGaleux",
-                "oSousChefTunnelin", "oSousChefTunnelin", "oSousChefTunnelin",
+                "oBougimencienTunnelin", "oBougimencienTunnelin",
+                "oGeomancienTunnelin", "oGeomancienTunnelin",
                 "oPeauRocRobuste", "oPeauRocRobuste", "oPeauRocRobuste",
                 "oVieilOurs", "oVieilOurs",
                 "oCriMeute", "oCriMeute", "oCriMeute",
@@ -24,8 +25,8 @@ function get_bot_decks_chap1() {
                 "oDagueFilou", "oDagueFilou",
                 "oRacineEnvahissante", "oRacineEnvahissante",
                 "oSournoiserie", "oSournoiserie",
-                "oPiegeRonce", "oPiegeRonce", "oPiegeRonce",
-                "oFeuillageProtecteur", "oFeuillageProtecteur", "oFeuillageProtecteur"
+                "oPiegeRonce", "oPiegeRonce",
+                "oFeuillageProtecteur", "oFeuillageProtecteur"
             ]
         }
     ];
