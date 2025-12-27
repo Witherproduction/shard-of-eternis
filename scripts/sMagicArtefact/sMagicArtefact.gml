@@ -118,7 +118,7 @@ function equipCleanup(card, effect, context) {
     }
     
     // Keep reference to target for destruction check
-    var oldTarget = card.equipped_target;
+    var oldTarget = t2;
     card.equipped_target = noone;
 
     if (variable_instance_exists(card, "equip_pending")) card.equip_pending = false;

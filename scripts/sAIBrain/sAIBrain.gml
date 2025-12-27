@@ -55,7 +55,12 @@ function AI_SelectBestMove(moves) {
                     case "entrave":
                         if (target != noone) {
                             var targetVal = AI_GetCardScore(target);
-                            effectScore = targetVal * p_removal;
+                            var isAlly = (variable_instance_exists(move.card, "isHeroOwner") && variable_instance_exists(target, "isHeroOwner") && move.card.isHeroOwner == target.isHeroOwner);
+                            if (isAlly) {
+                                effectScore = -targetVal * 2; // Penalty for targeting ally with negative effect
+                            } else {
+                                effectScore = targetVal * p_removal;
+                            }
                         }
                         break;
                         
@@ -128,10 +133,18 @@ function AI_SelectBestMove(moves) {
                 case "destroy_target":
                 case "banish_target":
                 case "return_to_hand":
+                case "entrave":
+                case "damage_target":
                     if (target != noone) {
                         var targetVal = AI_GetCardScore(target);
-                        // On veut détruire les grosses menaces
-                        moveScoreVal = targetVal * p_removal;
+                        var isAlly = (variable_instance_exists(move.card, "isHeroOwner") && variable_instance_exists(target, "isHeroOwner") && move.card.isHeroOwner == target.isHeroOwner);
+                        
+                        if (isAlly) {
+                            moveScoreVal = -targetVal * 2; // Penalize targeting ally
+                        } else {
+                            // On veut détruire les grosses menaces adverses
+                            moveScoreVal = targetVal * p_removal;
+                        }
                     }
                     break;
                     
@@ -139,26 +152,38 @@ function AI_SelectBestMove(moves) {
                 case "set_attack":
                 case "equip_select_target":
                     if (target != noone) {
-                        // On veut buffer nos propres monstres forts ou ceux qui vont attaquer
-                        // Si le monstre peut attaquer ce tour-ci, c'est encore mieux
-                        var targetAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
-                        var canAttack = (variable_instance_exists(target, "orientation") && target.orientation == "Attack");
+                        var isAlly = (variable_instance_exists(move.card, "isHeroOwner") && variable_instance_exists(target, "isHeroOwner") && move.card.isHeroOwner == target.isHeroOwner);
                         
-                        moveScoreVal = 50 + (targetAtk * 0.5);
-                        if (canAttack) moveScoreVal += 200 * p_direct; // Bonus si agressif
+                        if (isAlly) {
+                            // On veut buffer nos propres monstres forts ou ceux qui vont attaquer
+                            var targetAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
+                            var canAttack = (variable_instance_exists(target, "orientation") && target.orientation == "Attack");
+                            
+                            moveScoreVal = 50 + (targetAtk * 0.5);
+                            if (canAttack) moveScoreVal += 200 * p_direct; // Bonus si agressif
+                        } else {
+                            // Ne pas buffer l'ennemi
+                            moveScoreVal = -100;
+                        }
                     }
                     break;
                     
                 case "heal_target":
                     if (target != noone) {
-                        var maxHP = variable_instance_exists(target, "max_hp") ? target.max_hp : 0;
-                        var curHP = variable_instance_exists(target, "current_hp") ? target.current_hp : 0;
-                        var damageTaken = maxHP - curHP;
+                        var isAlly = (variable_instance_exists(move.card, "isHeroOwner") && variable_instance_exists(target, "isHeroOwner") && move.card.isHeroOwner == target.isHeroOwner);
                         
-                        if (damageTaken > 0) {
-                            moveScoreVal = damageTaken * 2; // 1 PV soigné = 2 points
+                        if (isAlly) {
+                            var maxHP = variable_instance_exists(target, "max_hp") ? target.max_hp : 0;
+                            var curHP = variable_instance_exists(target, "current_hp") ? target.current_hp : 0;
+                            var damageTaken = maxHP - curHP;
+                            
+                            if (damageTaken > 0) {
+                                moveScoreVal = damageTaken * 2; // 1 PV soigné = 2 points
+                            } else {
+                                moveScoreVal = -100; // Inutile de soigner si full vie
+                            }
                         } else {
-                            moveScoreVal = -100; // Inutile de soigner si full vie
+                            moveScoreVal = -200; // Ne pas soigner l'ennemi
                         }
                     }
                     break;

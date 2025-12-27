@@ -6,6 +6,15 @@ show_debug_message("### oHand.create");
 
 cards = ds_list_create();
 
+// Initialisation des managers de terrain
+fieldManagerHero = noone;
+fieldManagerEnemy = noone;
+
+if (instance_exists(oFieldManagerHero)) fieldManagerHero = instance_find(oFieldManagerHero, 0);
+if (instance_exists(oFieldManagerEnemy)) fieldManagerEnemy = instance_find(oFieldManagerEnemy, 0);
+
+show_debug_message("### oHand initialized managers: Hero=" + string(fieldManagerHero) + ", Enemy=" + string(fieldManagerEnemy));
+
 ///////////////////////////////////////////////////////////////////////
 // Methodes
 ///////////////////////////////////////////////////////////////////////
