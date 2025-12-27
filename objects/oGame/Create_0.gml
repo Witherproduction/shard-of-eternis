@@ -103,6 +103,56 @@ initializeGraveyards = function() {
     }
 }
 
+// Fonction pour définir le fond d'écran du duel en fonction du bot
+setDuelBackground = function() {
+    if (variable_global_exists("selected_bot_deck_id")) {
+        // Par défaut, tout le monde utilise sTerrain1
+        var bg_sprite = asset_get_index("sTerrain1");
+        
+        // Configuration: Groupes de bots avec des fonds spécifiques
+        // Format: { sprite: "NomSprite", bots: [id1, id2, id3...] }
+        var bg_groups = [
+            {
+                sprite: "sTerrain2",
+                bots: [1] // Bot 1 utilise sTerrain2
+            }
+            // Ajoutez d'autres groupes ici pour d'autres exceptions
+        ];
+        
+        // Recherche si le bot actuel fait partie d'une exception
+        for (var i = 0; i < array_length(bg_groups); i++) {
+            var group = bg_groups[i];
+            var bot_list = group.bots;
+            
+            // Vérifie si l'ID du bot est dans la liste de ce groupe
+            for (var j = 0; j < array_length(bot_list); j++) {
+                if (bot_list[j] == global.selected_bot_deck_id) {
+                    bg_sprite = asset_get_index(group.sprite);
+                    break;
+                }
+            }
+        }
+        
+        if (bg_sprite != -1) {
+            var lay_id = layer_get_id("Background");
+            if (lay_id != -1) {
+                var back_id = layer_background_get_id(lay_id);
+                if (back_id != -1) {
+                    layer_background_sprite(back_id, bg_sprite);
+                    layer_background_stretch(back_id, true);
+                    
+                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
+                        show_debug_message("### Background défini pour bot " + string(global.selected_bot_deck_id) + ": " + sprite_get_name(bg_sprite));
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Appliquer le fond d'écran au démarrage
+setDuelBackground();
+
 phase = ["Pick", "Summon", "Attack"];
 player = ["Hero", "Enemy"];
 phase_current = 0;
