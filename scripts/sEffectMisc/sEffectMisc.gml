@@ -262,7 +262,13 @@ function isEffectActivatable(card, effect) {
 
     // Sélection d’équipement (Artefact)
     if (etype == EFFECT_EQUIP_SELECT_TARGET) {
-        var ownerIsHero = (instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
+        var ownerIsHero = true;
+        if (is_struct(card)) {
+            if (variable_struct_exists(card, "isHeroOwner")) ownerIsHero = card.isHeroOwner;
+        } else if (instance_exists(card)) {
+            if (variable_instance_exists(card, "isHeroOwner")) ownerIsHero = card.isHeroOwner;
+        }
+        
         var allyOnly = variable_struct_exists(effect, "ally_only") ? effect.ally_only : false;
         var allowedGenres = variable_struct_exists(effect, "allowed_genres") ? effect.allowed_genres : undefined;
         var foundEquip = false;
@@ -297,7 +303,13 @@ function isEffectActivatable(card, effect) {
 
     // Destruction moderne avec critères
     if (etype == EFFECT_DESTROY && variable_struct_exists(effect, "criteria")) {
-        var ownerIsHero_dm = (instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
+        var ownerIsHero_dm = true;
+        if (is_struct(card)) {
+            if (variable_struct_exists(card, "isHeroOwner")) ownerIsHero_dm = card.isHeroOwner;
+        } else if (instance_exists(card)) {
+            if (variable_instance_exists(card, "isHeroOwner")) ownerIsHero_dm = card.isHeroOwner;
+        }
+        
         var ownerFilter = variable_struct_exists(effect, "owner") ? effect.owner : "both";
         var targetZone = variable_struct_exists(effect, "target_zone") ? string_lower(effect.target_zone) : "field";
         var foundDestroy = false;

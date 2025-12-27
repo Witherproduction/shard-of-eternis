@@ -7,13 +7,13 @@ show_debug_message("### oHand.create");
 cards = ds_list_create();
 
 // Initialisation des managers de terrain
-fieldManagerHero = noone;
-fieldManagerEnemy = noone;
+fieldMgrHero = noone;
+fieldMgrEnemy = noone;
 
-if (instance_exists(oFieldManagerHero)) fieldManagerHero = instance_find(oFieldManagerHero, 0);
-if (instance_exists(oFieldManagerEnemy)) fieldManagerEnemy = instance_find(oFieldManagerEnemy, 0);
+if (instance_exists(oFieldManagerHero)) fieldMgrHero = instance_find(oFieldManagerHero, 0);
+if (instance_exists(oFieldManagerEnemy)) fieldMgrEnemy = instance_find(oFieldManagerEnemy, 0);
 
-show_debug_message("### oHand initialized managers: Hero=" + string(fieldManagerHero) + ", Enemy=" + string(fieldManagerEnemy));
+show_debug_message("### oHand initialized managers: Hero=" + string(fieldMgrHero) + ", Enemy=" + string(fieldMgrEnemy));
 
 ///////////////////////////////////////////////////////////////////////
 // Methodes
@@ -59,7 +59,9 @@ updateDisplay = function() {
             card.x = posXStart + distanceBetweenCards * i;
         }
         card.y = y;
-        card.image_index = (!isHeroOwner && !reveal_now) ? 1 : 0;
+        var isAdmin = (variable_global_exists("admin_mode") && global.admin_mode);
+        var show_face = isHeroOwner || reveal_now || isAdmin;
+        card.image_index = show_face ? 0 : 1;
     }
 }
 #endregion
@@ -102,7 +104,7 @@ summon = function(card, XYPos, desiredOrientation = "") {
     var target_pos = XYPos[2];
 
     // Vérification du terrain et réservation immédiate du slot pour éviter les empilements
-    var fieldMgrSummon = isHeroOwner ? fieldManagerHero : fieldManagerEnemy;
+    var fieldMgrSummon = isHeroOwner ? fieldMgrHero : fieldMgrEnemy;
     if (fieldMgrSummon == noone || !instance_exists(fieldMgrSummon)) {
         show_debug_message("### oHand.summon - Erreur: fieldManager introuvable");
         return false;
@@ -208,6 +210,7 @@ summon = function(card, XYPos, desiredOrientation = "") {
         fx.summon_mode         = mode_resolved;
         fx.card_type           = card.type;
         fx.desired_orientation = desiredOrientation;
+        fx.effect_target       = effectTarget;
         // Surcharges d'apparence (doré brillant + lignes plus fines + nœuds réduits)
          fx.col_main            = make_color_rgb(255, 215, 0);
          fx.trace_thickness     = 2;
@@ -280,7 +283,7 @@ summon = function(card, XYPos, desiredOrientation = "") {
         if (card.type == "Monster") {
             card.orientationChangedThisTurn = true;
             // Émettre l’événement d’invocation de monstre en fallback sans FX
-            var ctxSummon = { summon_mode: mode_resolved, owner_is_hero: isHeroOwner };
+            var ctxSummon = { summon_mode: mode_resolved, owner_is_hero: isHeroOwner, target: effectTarget };
             if (mode_resolved == "Summon" || mode_resolved == "SpecialSummon") {
                 registerTriggerEvent(TRIGGER_ON_SUMMON, card, ctxSummon);
                 registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, card, ctxSummon);

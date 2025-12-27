@@ -388,6 +388,13 @@ initiateAttackMonsterEnemy = function(attacker, defender) {
 // Initiate Enemy Direct Attack (with FX)
 initiateAttackDirectEnemy = function(cardEnemy) {
     if (cardEnemy == noone || !instance_exists(cardEnemy)) return;
+
+    // Vérification Entrave
+    if (variable_instance_exists(cardEnemy, "entrave_block_attack") && cardEnemy.entrave_block_attack) {
+        var turns = variable_instance_exists(cardEnemy, "entrave_turns_remaining") ? cardEnemy.entrave_turns_remaining : 0;
+        if (turns > 0) return;
+    }
+
     var _limitED = 1; if (variable_instance_exists(cardEnemy, "isAmbidextrous") && cardEnemy.isAmbidextrous) { _limitED = 2; }
     if (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") && cardEnemy.attacksUsedThisTurn >= _limitED) { return; }
     

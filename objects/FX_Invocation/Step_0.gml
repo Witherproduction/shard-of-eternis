@@ -164,16 +164,17 @@ if (!finished_move) {
 
             // Déclencher les événements d’entrée sur le terrain et d’invocation
             if (instance_exists(card_real)) {
-                registerTriggerEvent(TRIGGER_ENTER_FIELD, card_real, { summon_mode: mode, owner_is_hero: ownerHero });
+                var fxEffectTarget = variable_instance_exists(self, "effect_target") ? effect_target : noone;
+                registerTriggerEvent(TRIGGER_ENTER_FIELD, card_real, { summon_mode: mode, owner_is_hero: ownerHero, target: fxEffectTarget });
                 if (ctype == "Monster") {
                     if (mode == "Summon" || mode == "SpecialSummon") {
-                        registerTriggerEvent(TRIGGER_ON_SUMMON, card_real, { summon_mode: mode, owner_is_hero: ownerHero });
-                        registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, card_real, { summon_mode: mode, owner_is_hero: ownerHero });
+                        registerTriggerEvent(TRIGGER_ON_SUMMON, card_real, { summon_mode: mode, owner_is_hero: ownerHero, target: fxEffectTarget });
+                        registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, card_real, { summon_mode: mode, owner_is_hero: ownerHero, target: fxEffectTarget });
                     }
                 } else if (ctype == "Magic") {
                     if (mode == "Summon") {
-                        registerTriggerEvent(TRIGGER_ON_SUMMON, card_real, { summon_mode: mode, owner_is_hero: ownerHero });
-                        registerTriggerEvent(TRIGGER_ON_SPELL_CAST, card_real, { summon_mode: mode, owner_is_hero: ownerHero });
+                        registerTriggerEvent(TRIGGER_ON_SUMMON, card_real, { summon_mode: mode, owner_is_hero: ownerHero, target: fxEffectTarget });
+                        registerTriggerEvent(TRIGGER_ON_SPELL_CAST, card_real, { summon_mode: mode, owner_is_hero: ownerHero, target: fxEffectTarget });
                     } else {
                         // Mode Set: ne déclenche pas TRIGGER_ON_SUMMON pour éviter l'activation immédiate
                         // La carte reste posée face cachée et n'active rien ici

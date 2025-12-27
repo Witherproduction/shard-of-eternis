@@ -126,8 +126,8 @@ function AI_GetCardScore_Predicted(card) {
     var p_atk = (profile != undefined) ? (profile.attack_bias / 50.0) : 1.0;
     var p_def = (profile != undefined) ? (profile.defense_bias / 50.0) : 1.0;
 
-    var atk = variable_instance_exists(card, "attack") ? card.attack : 0;
-    var def = variable_instance_exists(card, "defense") ? card.defense : 0;
+    var atk = (is_struct(card) && variable_struct_exists(card, "attack")) ? card.attack : (variable_instance_exists(card, "attack") ? card.attack : 0);
+    var def = (is_struct(card) && variable_struct_exists(card, "defense")) ? card.defense : (variable_instance_exists(card, "defense") ? card.defense : 0);
     
     var currentScoreVal = SCORE_MONSTER_EXIST;
     currentScoreVal += atk * SCORE_PER_ATK * p_atk;
@@ -152,9 +152,11 @@ function AI_GetCardScore_Predicted(card) {
     if (atk > strongestEnemyAtk) orientation = "Attack"; // Control/Aggro
 
     var hasFlip = false;
-    if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
-         for(var i=0; i<array_length(card.effects); i++) {
-             var ef = card.effects[i];
+    var effects = (is_struct(card) && variable_struct_exists(card, "effects")) ? card.effects : ((variable_instance_exists(card, "effects")) ? card.effects : undefined);
+    
+    if (is_array(effects)) {
+         for(var i=0; i<array_length(effects); i++) {
+             var ef = effects[i];
              if (variable_struct_exists(ef, "trigger") && ef.trigger == "flip") {
                  hasFlip = true;
                  break;

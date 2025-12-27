@@ -216,6 +216,8 @@
     {"name":"sSummons","order":1,"path":"sprites/sSummons/sSummons.yy",},
     {"name":"sTarentuleForet","order":34,"path":"sprites/sTarentuleForet/sTarentuleForet.yy",},
     {"name":"sTarrinox","order":35,"path":"sprites/sTarrinox/sTarrinox.yy",},
+    {"name":"sTerrain1","order":1,"path":"sprites/sTerrain1/sTerrain1.yy",},
+    {"name":"sTerrain2","order":2,"path":"sprites/sTerrain2/sTerrain2.yy",},
     {"name":"sTortueVagabonde","order":36,"path":"sprites/sTortueVagabonde/sTortueVagabonde.yy",},
     {"name":"sTunnelin","order":37,"path":"sprites/sTunnelin/sTunnelin.yy",},
     {"name":"sValerius","order":5,"path":"sprites/sValerius/sValerius.yy",},

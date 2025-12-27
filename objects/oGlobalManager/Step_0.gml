@@ -9,6 +9,13 @@ if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_press
         global.admin_mode = true;
         show_debug_message("### MODE ADMIN ACTIVÉ (Force Init)");
     }
+    
+    // Mettre à jour l'affichage des mains immédiatement (pour voir/cacher la main adverse)
+    if (instance_exists(oHand)) {
+        with (oHand) {
+            if (variable_instance_exists(id, "updateDisplay")) updateDisplay();
+        }
+    }
 }
 
 // Reset Progression (Debug) : CTRL + ALT + R

@@ -35,6 +35,25 @@ chapter_id = variable_global_exists("current_chapter") ? global.current_chapter 
 act_num = variable_global_exists("current_act") ? global.current_act : 1;
 scene_index = variable_global_exists("current_scene_index") ? global.current_scene_index : 0;
 
+// Override from story_resume_info (set by oStoryCarousel)
+var was_resume = false;
+if (variable_global_exists("story_resume_info") && is_struct(global.story_resume_info)) {
+    was_resume = true;
+    if (variable_struct_exists(global.story_resume_info, "chapter_id")) chapter_id = global.story_resume_info.chapter_id;
+    if (variable_struct_exists(global.story_resume_info, "act")) act_num = global.story_resume_info.act;
+    if (variable_struct_exists(global.story_resume_info, "scene_index")) scene_index = global.story_resume_info.scene_index;
+    
+    // Update globals to match
+    global.current_chapter = chapter_id;
+    global.current_act = act_num;
+    global.current_scene_index = scene_index;
+    
+    show_debug_message("### oScenarioRunner: Init from story_resume_info (Ch" + string(chapter_id) + " Act" + string(act_num) + " Sc" + string(scene_index) + ")");
+    
+    // Clear it to prevent reuse if we change context
+    global.story_resume_info = noone;
+}
+
 current = { speaker: 1, text: "", bg_name: "", portrait1_name: "", portrait2_name: "", portrait3_name: "", obj1_name: "", obj2_name: "", duel_bot_id: 0, bg_sound: "", bg_sound2: "", portrait1_effect: "Aucune", portrait2_effect: "Aucune", portrait3_effect: "Aucune", obj1_effect: "Aucune", obj2_effect: "Aucune", text_effect: "Aucune" };
 scenes = [];
 debug_auto_log = true;
@@ -60,6 +79,25 @@ if (variable_global_exists("scenario_loaded_data") && is_struct(global.scenario_
         if (is_struct(data2) && variable_struct_exists(data2, "scenes")) {
             scenes = data2.scenes;
             scene_index = clamp(scene_index, 0, max(0, array_length(scenes)-1));
+        }
+    }
+}
+
+// Rewind logic if resuming on a duel
+if (was_resume && array_length(scenes) > 0) {
+    // Check bounds
+    if (scene_index >= 0 && scene_index < array_length(scenes)) {
+        var sc_check = scenes[scene_index];
+        // Check if this scene is a duel (has duel_bot_id > 0)
+        if (variable_struct_exists(sc_check, "duel_bot_id") && sc_check.duel_bot_id > 0) {
+            // It is a duel. Go back one scene if possible.
+            if (scene_index > 0) {
+                scene_index -= 1;
+                global.current_scene_index = scene_index;
+                show_debug_message("### oScenarioRunner: Resume targeted a Duel. Rewinding to previous scene (Index " + string(scene_index) + ")");
+            } else {
+                 show_debug_message("### oScenarioRunner: Resume targeted a Duel but it is the first scene. Cannot rewind.");
+            }
         }
     }
 }

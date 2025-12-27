@@ -55,7 +55,9 @@ function AI_SelectBestMove(moves) {
                     case "entrave":
                         if (target != noone) {
                             var targetVal = AI_GetCardScore(target);
-                            var isAlly = (variable_instance_exists(move.card, "isHeroOwner") && variable_instance_exists(target, "isHeroOwner") && move.card.isHeroOwner == target.isHeroOwner);
+                            var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
+                            var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
+                            var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
                             if (isAlly) {
                                 effectScore = -targetVal * 2; // Penalty for targeting ally with negative effect
                             } else {
@@ -137,7 +139,9 @@ function AI_SelectBestMove(moves) {
                 case "damage_target":
                     if (target != noone) {
                         var targetVal = AI_GetCardScore(target);
-                        var isAlly = (variable_instance_exists(move.card, "isHeroOwner") && variable_instance_exists(target, "isHeroOwner") && move.card.isHeroOwner == target.isHeroOwner);
+                        var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
+                        var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
+                        var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
                         
                         if (isAlly) {
                             moveScoreVal = -targetVal * 2; // Penalize targeting ally
@@ -152,7 +156,9 @@ function AI_SelectBestMove(moves) {
                 case "set_attack":
                 case "equip_select_target":
                     if (target != noone) {
-                        var isAlly = (variable_instance_exists(move.card, "isHeroOwner") && variable_instance_exists(target, "isHeroOwner") && move.card.isHeroOwner == target.isHeroOwner);
+                        var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
+                        var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
+                        var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
                         
                         if (isAlly) {
                             // On veut buffer nos propres monstres forts ou ceux qui vont attaquer
@@ -170,7 +176,9 @@ function AI_SelectBestMove(moves) {
                     
                 case "heal_target":
                     if (target != noone) {
-                        var isAlly = (variable_instance_exists(move.card, "isHeroOwner") && variable_instance_exists(target, "isHeroOwner") && move.card.isHeroOwner == target.isHeroOwner);
+                        var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
+                        var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
+                        var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
                         
                         if (isAlly) {
                             var maxHP = variable_instance_exists(target, "max_hp") ? target.max_hp : 0;
@@ -458,7 +466,8 @@ function AI_ExecuteMove(move) {
                     }
                 }
                 
-                oHandEnemy.summon(card, slotIndex, orientation);
+                var effectTarget = variable_struct_exists(move, "effect_target") ? move.effect_target : noone;
+                oHandEnemy.summon(card, slotIndex, orientation, effectTarget);
                 return true;
             }
         }

@@ -56,26 +56,42 @@ if (mouse_check_button_pressed(mb_left)) {
         // Check for Story Mode (Chapter 1) - FORCE deck selection
         var is_story_chap1 = false;
         var current_chapter = 1;
+        
+        show_debug_message("### oDuelConfirmation - Checking Story Mode status...");
+        
         if (instance_exists(oScenarioRunner)) {
              var runner = instance_find(oScenarioRunner, 0);
+             show_debug_message("### oDuelConfirmation - Found oScenarioRunner");
+             
              if (variable_instance_exists(runner, "chapter_id")) {
                  current_chapter = real(runner.chapter_id);
+                 show_debug_message("### oDuelConfirmation - Runner chapter_id: " + string(current_chapter));
                  // If we are in Scenario Runner, we assume we are playing story
                  if (current_chapter == 1) is_story_chap1 = true;
+             } else {
+                 show_debug_message("### oDuelConfirmation - Runner has no chapter_id, defaulting to 1");
+                 is_story_chap1 = true; // Default to story mode if runner exists
              }
         } else if (variable_global_exists("current_chapter")) {
              // Fallback if global variable is used
+             show_debug_message("### oDuelConfirmation - Checking global.current_chapter: " + string(global.current_chapter));
              if (global.current_chapter == 1) {
                  current_chapter = 1;
                  is_story_chap1 = true; // Assuming we are entering story duel
              }
+        } else {
+             show_debug_message("### oDuelConfirmation - No runner and no global chapter, assuming Chapter 1 default");
         }
+        
+        show_debug_message("### oDuelConfirmation - is_story_chap1: " + string(is_story_chap1));
+        show_debug_message("### oDuelConfirmation - deck_invalid: " + string(deck_invalid));
 
         if (deck_invalid || is_story_chap1) {
              var story_deck_found = false;
              
              // Check for Story Deck (Chapter 1)
              if (current_chapter == 1) {
+                 show_debug_message("### oDuelConfirmation - Searching for Chapter 1 decks...");
                  var chap1_decks = get_hero_decks_chap1();
                  for (var i = 0; i < array_length(chap1_decks); i++) {
                      if (variable_struct_exists(chap1_decks[i], "id") && chap1_decks[i].id == "rebellion_horde") {

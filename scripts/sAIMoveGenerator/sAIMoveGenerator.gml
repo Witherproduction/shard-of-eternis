@@ -227,30 +227,66 @@ function AI_GetLegalMoves_Summon() {
 /// @function AI_AddEffectMoves(card, moves, context)
 /// @description Helper pour ajouter les moves d'effets activables (Hand ou Field)
 function AI_AddEffectMoves(card, moves, context) {
-    if (!variable_instance_exists(card, "effects") || !is_array(card.effects)) return;
+    var effectsList = undefined;
+    
+    // Support hybride : Card peut être une Struct (Hand) ou une Instance (Field)
+    if (is_struct(card)) {
+        if (variable_struct_exists(card, "effects")) effectsList = card.effects;
+    } else if (instance_exists(card)) {
+        if (variable_instance_exists(card, "effects")) effectsList = card.effects;
+    }
 
-    for (var k = 0; k < array_length(card.effects); k++) {
-        var effect = card.effects[k];
+    if (!is_array(effectsList)) return;
+    
+    var len = 0;
+    try {
+        len = array_length(effectsList);
+    } catch(e) {
+        show_debug_message("AI_AddEffectMoves ERROR: array_length failed. " + string(e));
+        return;
+    }
+
+    if (!is_real(len)) len = 0;
+
+    var k = 0;
+    while (k < len) {
+        var effect = effectsList[k];
+        
+        // Attention: la variable k doit être différente de la variable ki utilisée dans la boucle interne (ligne 288)
+        // J'ai vérifié, la boucle interne utilise 'ki', donc pas de conflit.
+        
         var effectType = variable_struct_exists(effect, "effect_type") ? effect.effect_type : "";
         var trigger = variable_struct_exists(effect, "trigger") ? effect.trigger : "";
         
         // Filtres de contexte
-        if (trigger == "on_summon" || trigger == "on_play") continue;
+        if (trigger == "on_summon" || trigger == "on_play") {
+            k++;
+            continue;
+        }
         
-        var isMagicActivate = (card.type == "Magic" && (trigger == "activate" || trigger == ""));
-        var isMonsterActivate = (card.type == "Monster" && (trigger == "activate" || trigger == "ignition"));
+        var isMagicActivate = (card.type == "Magic" && (trigger == "activate" || trigger == "" || trigger == "main_phase" || trigger == "quick_effect"));
+        var isMonsterActivate = (card.type == "Monster" && (trigger == "activate" || trigger == "ignition" || trigger == "main_phase" || trigger == "quick_effect"));
         
         if (context == "hand") {
-             if (!isMagicActivate) continue; 
+             if (!isMagicActivate) {
+                 k++;
+                 continue;
+             }
         }
         if (context == "field") {
-             if (!isMagicActivate && !isMonsterActivate) continue;
+             if (!isMagicActivate && !isMonsterActivate) {
+                 k++;
+                 continue;
+             }
         }
 
         // Validation Générique (Conditions d'activation & Cibles valides)
         // On utilise les scripts partagés sEffectMisc pour garantir que l'IA respecte les mêmes règles que le joueur
         if (!is_undefined(asset_get_index("isEffectActivatable"))) {
-            if (!isEffectActivatable(card, effect)) continue;
+            if (!isEffectActivatable(card, effect)) {
+                k++;
+                continue;
+            }
         }
 
         // --- LOGIQUE DE CIBLAGE ---
@@ -263,7 +299,31 @@ function AI_AddEffectMoves(card, moves, context) {
         // Si ce n'est pas un effet de zone ou aléatoire, on cherche les cibles spécifiques
         if (!isMass && !isRandom) {
             if (!is_undefined(asset_get_index("getTargetsByFilter"))) {
-                var targetsFound = getTargetsByFilter(effect);
+                // --- PATCH IA : Traduction des cibles relatives (ally/enemy) en absolues (hero/enemy) ---
+                var filterStruct = {};
+                
+                // Copie des champs pertinents pour le filtre
+                var keysToCopy = ["target_zone", "include_hand", "include_graveyard", "monster_type", "criteria", "genre", "type", "scope", "random_select"];
+                for(var ki=0; ki<array_length(keysToCopy); ki++) {
+                    var k_prop = keysToCopy[ki];
+                    if (variable_struct_exists(effect, k_prop)) variable_struct_set(filterStruct, k_prop, variable_struct_get(effect, k_prop));
+                }
+                
+                // Gestion de l'owner
+                var rawOwner = "both";
+                if (variable_struct_exists(effect, "owner")) rawOwner = string_lower(effect.owner);
+                if (variable_struct_exists(effect, "ally_only") && effect.ally_only) rawOwner = "ally";
+                
+                // Traduction pour l'IA (qui est "enemy")
+                if (rawOwner == "ally") {
+                    filterStruct.owner = "enemy"; // L'allié de l'IA est le camp "enemy" (isHeroOwner=false)
+                } else if (rawOwner == "enemy") {
+                    filterStruct.owner = "hero";  // L'ennemi de l'IA est le camp "hero" (isHeroOwner=true)
+                } else {
+                    filterStruct.owner = rawOwner;
+                }
+                
+                var targetsFound = getTargetsByFilter(filterStruct);
                 if (array_length(targetsFound) > 0) {
                     potentialTargets = targetsFound;
                     needsTarget = true;
@@ -281,7 +341,10 @@ function AI_AddEffectMoves(card, moves, context) {
              var etype = effectType;
              var mustTarget = (etype == "destroy_target" || etype == "banish_target" || etype == "return_to_hand" || etype == "equip_select_target" || (etype == "buff" && scope == "single") || etype == "damage_target" || etype == "heal_target" || etype == "entrave");
              
-             if (mustTarget) continue; // Pas de cible -> pas de move
+             if (mustTarget) {
+                 k++;
+                 continue; // Pas de cible -> pas de move
+             }
              needsTarget = false; // Sinon, c'est un effet sans cible (ex: Draw)
         }
         
@@ -296,7 +359,9 @@ function AI_AddEffectMoves(card, moves, context) {
                 if (variable_instance_exists(tCard, "untargetable") && tCard.untargetable) continue;
                 
                 // Camouflage (Si ennemi)
-                var isEnemyTarget = (variable_instance_exists(tCard, "isHeroOwner") && variable_instance_exists(card, "isHeroOwner") && tCard.isHeroOwner != card.isHeroOwner);
+                var cOwner = (is_struct(card) && variable_struct_exists(card, "isHeroOwner")) ? card.isHeroOwner : ((variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : undefined);
+                var tOwner = (is_struct(tCard) && variable_struct_exists(tCard, "isHeroOwner")) ? tCard.isHeroOwner : ((variable_instance_exists(tCard, "isHeroOwner")) ? tCard.isHeroOwner : undefined);
+                var isEnemyTarget = (cOwner != undefined && tOwner != undefined && cOwner != tOwner);
                 if (isEnemyTarget && variable_instance_exists(tCard, "isCamouflage") && tCard.isCamouflage) continue;
 
                 array_push(moves, {
@@ -319,6 +384,8 @@ function AI_AddEffectMoves(card, moves, context) {
                 is_monster_effect: (card.type == "Monster")
             });
         }
+        
+        k++;
     }
 }
 
@@ -376,6 +443,12 @@ function AI_GetLegalMoves_Attack() {
         // Ensure stats are up-to-date (Buffs/Debuffs)
         if (script_exists(asset_get_index("buffRecompute"))) {
             buffRecompute(attacker);
+        }
+
+        // Vérification Entrave (Empêche l'attaque)
+        if (variable_instance_exists(attacker, "entrave_block_attack") && attacker.entrave_block_attack) {
+             var turns = variable_instance_exists(attacker, "entrave_turns_remaining") ? attacker.entrave_turns_remaining : 0;
+             if (turns > 0) continue;
         }
 
         // Vérifications de base (Attack Position, Pas encore attaqué)

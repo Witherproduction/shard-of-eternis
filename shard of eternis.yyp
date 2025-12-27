@@ -498,6 +498,7 @@
     {"id":{"name":"sTarentuleForet","path":"sprites/sTarentuleForet/sTarentuleForet.yy",},},
     {"id":{"name":"sTargetingArrow","path":"sprites/sTargetingArrow/sTargetingArrow.yy",},},
     {"id":{"name":"sTarrinox","path":"sprites/sTarrinox/sTarrinox.yy",},},
+    {"id":{"name":"sTerrain1","path":"sprites/sTerrain1/sTerrain1.yy",},},
     {"id":{"name":"sTerrain2","path":"sprites/sTerrain2/sTerrain2.yy",},},
     {"id":{"name":"sTortueVagabonde","path":"sprites/sTortueVagabonde/sTortueVagabonde.yy",},},
     {"id":{"name":"sTunnelin","path":"sprites/sTunnelin/sTunnelin.yy",},},
