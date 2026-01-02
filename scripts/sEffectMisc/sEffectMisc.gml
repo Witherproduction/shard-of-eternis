@@ -85,6 +85,9 @@ function getTargetsByFilter(effect) {
         if (isValidTarget && hasMonsterType) {
             if (!variable_instance_exists(self, "type") || string_lower(type) != monsterTypeLower) { isValidTarget = false; }
         }
+        if (isValidTarget && onlyCamouflaged) {
+            if (!variable_instance_exists(self, "isCamouflage") || !self.isCamouflage) { isValidTarget = false; }
+        }
         var isMass = (is_struct(effect) && variable_struct_exists(effect, "scope") && string_lower(effect.scope) == "all");
         var isRandom = (is_struct(effect) && variable_struct_exists(effect, "random_select") && effect.random_select);
         if (isValidTarget && !isMass && !isRandom && ownerFilter == "enemy") {
@@ -348,8 +351,12 @@ function negateEffect(targetEffect) {
 /// @function resetTemporaryEffects()
 function resetTemporaryEffects() {
     with (oCardMonster) {
-        if (variable_struct_exists(self, "temp_attack")) { temp_attack = 0; }
-        if (variable_struct_exists(self, "temp_defense")) { temp_defense = 0; }
+        var changed = false;
+        if (variable_struct_exists(self, "temp_attack") && temp_attack != 0) { temp_attack = 0; changed = true; }
+        if (variable_struct_exists(self, "temp_defense") && temp_defense != 0) { temp_defense = 0; changed = true; }
+        if (changed && script_exists(asset_get_index("buffRecompute"))) {
+            buffRecompute(id);
+        }
     }
 }
 

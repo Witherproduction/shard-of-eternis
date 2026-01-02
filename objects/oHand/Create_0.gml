@@ -67,7 +67,7 @@ updateDisplay = function() {
 #endregion
 
 #region Function summon
-summon = function(card, XYPos, desiredOrientation = "") {
+summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
     show_debug_message("### oHand.summon");
 	show_debug_message("SummonMode: " + string(UIManager.selectedSummonOrSet));
     show_debug_message("Card type: " + card.type);

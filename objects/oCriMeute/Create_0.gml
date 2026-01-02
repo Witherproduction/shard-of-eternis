@@ -18,13 +18,8 @@ effects = [
         owner: "ally",
         target_zone: "field",
         criteria: { type: "Monster", genre: "Bête" },
-        aggregate: true,
+        temporary: true,
         atk: 1,
         def: 0
-    },
-    {
-        id: 99,
-        trigger: TRIGGER_END_TURN,
-        effect_type: EFFECT_AURA_CLEANUP_SOURCE
     }
 ]

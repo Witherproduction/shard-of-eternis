@@ -22,6 +22,18 @@ if (iaNextPhasePending && iaDelayFrames <= 0) {
     exit; // ne pas enchaîner d'autres actions ce Step
 }
 
+// --- Boucle de phase principale (Summon/Main) ---
+// Si l'IA est active dans sa phase principale, on boucle tant qu'elle a des actions
+if (variable_instance_exists(id, "aiMainPhaseActive") && aiMainPhaseActive) {
+    if (iaDelayFrames <= 0) {
+        // Relancer la logique d'invocation pour voir s'il y a d'autres actions possibles
+        summon();
+        // Note: summon() va soit remettre un délai et garder active=true,
+        // soit mettre active=false et appeler scheduleNextPhase().
+        if (iaNextPhasePending) exit; // Si on passe à la phase suivante, on arrête là pour ce step
+    }
+}
+
 // --- Dépiler séquentiellement les activations manuelles pendant la phase Summon ---
 if (global.current_phase == "Summon" && manualEffectProcessing) {
     // Respecter délai configurable entre activations

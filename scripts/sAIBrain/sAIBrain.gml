@@ -557,7 +557,7 @@ function AI_ExecuteMove(move) {
         
         if (slotIndex != -1 && instance_exists(oHandEnemy)) {
             // oHand.summon gère automatiquement le mode "Set" si le genre est Secret
-            oHandEnemy.summon(card, slotIndex);
+            if (!oHandEnemy.summon(card, slotIndex)) return false;
             return true;
         }
 

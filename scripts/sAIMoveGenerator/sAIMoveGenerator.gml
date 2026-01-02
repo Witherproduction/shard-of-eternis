@@ -296,42 +296,80 @@ function AI_AddEffectMoves(card, moves, context) {
         var isMass = (scope == "all");
         var isRandom = (variable_struct_exists(effect, "random_select") && effect.random_select);
         
-        // Si ce n'est pas un effet de zone ou aléatoire, on cherche les cibles spécifiques
-        if (!isMass && !isRandom) {
-            if (!is_undefined(asset_get_index("getTargetsByFilter"))) {
-                // --- PATCH IA : Traduction des cibles relatives (ally/enemy) en absolues (hero/enemy) ---
-                var filterStruct = {};
-                
-                // Copie des champs pertinents pour le filtre
-                var keysToCopy = ["target_zone", "include_hand", "include_graveyard", "monster_type", "criteria", "genre", "type", "scope", "random_select"];
-                for(var ki=0; ki<array_length(keysToCopy); ki++) {
-                    var k_prop = keysToCopy[ki];
-                    if (variable_struct_exists(effect, k_prop)) variable_struct_set(filterStruct, k_prop, variable_struct_get(effect, k_prop));
-                }
-                
-                // Gestion de l'owner
-                var rawOwner = "both";
-                if (variable_struct_exists(effect, "owner")) rawOwner = string_lower(effect.owner);
-                if (variable_struct_exists(effect, "ally_only") && effect.ally_only) rawOwner = "ally";
-                
-                // Traduction pour l'IA (qui est "enemy")
-                if (rawOwner == "ally") {
-                    filterStruct.owner = "enemy"; // L'allié de l'IA est le camp "enemy" (isHeroOwner=false)
-                } else if (rawOwner == "enemy") {
-                    filterStruct.owner = "hero";  // L'ennemi de l'IA est le camp "hero" (isHeroOwner=true)
-                } else {
-                    filterStruct.owner = rawOwner;
-                }
-                
+        // --- PATCH IA : Traduction des cibles relatives (ally/enemy) en absolues (hero/enemy) ---
+        var filterStruct = {};
+        
+        // Copie des champs pertinents pour le filtre
+        var keysToCopy = ["target_zone", "include_hand", "include_graveyard", "monster_type", "criteria", "genre", "type", "scope", "random_select"];
+        for(var ki=0; ki<array_length(keysToCopy); ki++) {
+            var k_prop = keysToCopy[ki];
+            if (variable_struct_exists(effect, k_prop)) variable_struct_set(filterStruct, k_prop, variable_struct_get(effect, k_prop));
+        }
+
+        // Cas particuliers (Pillage, etc.) : Mapping source_zone -> target_zone pour le filtre
+        if (effectType == "pillage") {
+             if (!variable_struct_exists(filterStruct, "target_zone") && variable_struct_exists(effect, "source_zone")) {
+                 variable_struct_set(filterStruct, "target_zone", variable_struct_get(effect, "source_zone"));
+             }
+        }
+        
+        // Gestion de l'owner
+        var rawOwner = "both";
+        if (variable_struct_exists(effect, "owner")) rawOwner = string_lower(effect.owner);
+        else if (effectType == "pillage") rawOwner = "enemy"; // Default for pillage
+
+        if (variable_struct_exists(effect, "ally_only") && effect.ally_only) rawOwner = "ally";
+        
+        // Traduction pour l'IA (qui est "enemy")
+        if (rawOwner == "ally") {
+            filterStruct.owner = "enemy"; // L'allié de l'IA est le camp "enemy" (isHeroOwner=false)
+        } else if (rawOwner == "enemy") {
+            filterStruct.owner = "hero";  // L'ennemi de l'IA est le camp "hero" (isHeroOwner=true)
+        } else {
+            filterStruct.owner = rawOwner;
+        }
+
+        // Si ce n'est pas un effet de zone, on vérifie les cibles (Ciblé ou Aléatoire)
+        if (!isMass) {
+            // On vérifie s'il y a un filtre explicite ou si le type d'effet nécessite des cibles
+            var hasFilter = (variable_struct_exists(filterStruct, "target_zone") || variable_struct_exists(filterStruct, "criteria") || variable_struct_exists(filterStruct, "monster_type"));
+            var checkTargets = hasFilter;
+            
+            // Types nécessitant impérativement une cible (même sans filtre explicite = field par défaut)
+            var mustCheck = (effectType == "destroy_target" || effectType == "banish_target" || effectType == "return_to_hand" || effectType == "equip_select_target" || (effectType == "buff" && scope == "single") || effectType == "damage_target" || effectType == "heal_target" || effectType == "entrave" || effectType == "pillage" || effectType == "camouflage" || effectType == "deck_reorder_top3" || (effectType == "summon" && variable_struct_exists(effect, "summon_mode") && effect.summon_mode == "copy_target"));
+            if (mustCheck) checkTargets = true;
+
+            if (checkTargets && !is_undefined(asset_get_index("getTargetsByFilter"))) {
                 var targetsFound = getTargetsByFilter(filterStruct);
                 if (array_length(targetsFound) > 0) {
-                    potentialTargets = targetsFound;
-                    needsTarget = true;
+                    if (isRandom) {
+                        // Pour un effet aléatoire, l'existence de cibles suffit à valider le coup.
+                        // On ne définit PAS needsTarget=true car on ne veut pas générer N coups.
+                    } else {
+                        potentialTargets = targetsFound;
+                        needsTarget = true;
+                    }
+                } else {
+                    // Si aucune cible n'est trouvée et que c'est aléatoire (mais avec filtre requis), on bloque.
+                    if (isRandom) {
+                        k++;
+                        continue;
+                    }
                 }
-            } else {
-                // Fallback manuel si le script n'existe pas (ne devrait pas arriver)
-                // ... (Ancienne logique simplifiée conservée au cas où, ou juste on skip)
             }
+        }
+        else if (isMass) {
+             // Pour les effets de masse (ex: Buff de zone), on vérifie qu'il y a au moins une cible valide
+             // pour éviter que l'IA ne boucle en essayant de jouer une carte inutile.
+             var checkMassTargets = (effectType == "buff"); 
+             
+             if (checkMassTargets && !is_undefined(asset_get_index("getTargetsByFilter"))) {
+                 var targetsFound = getTargetsByFilter(filterStruct);
+                 if (array_length(targetsFound) == 0) {
+                     k++;
+                     continue; // Pas de cibles pour le buff de zone -> on skip
+                 }
+             }
         }
         
         // Si on a besoin de cible mais qu'on en a pas trouvé (alors que isEffectActivatable a dit oui),
@@ -339,7 +377,7 @@ function AI_AddEffectMoves(card, moves, context) {
         // On vérifie si c'est un type d'effet qui DOIT cibler.
         if (needsTarget && array_length(potentialTargets) == 0) {
              var etype = effectType;
-             var mustTarget = (etype == "destroy_target" || etype == "banish_target" || etype == "return_to_hand" || etype == "equip_select_target" || (etype == "buff" && scope == "single") || etype == "damage_target" || etype == "heal_target" || etype == "entrave");
+             var mustTarget = (etype == "destroy_target" || etype == "banish_target" || etype == "return_to_hand" || etype == "equip_select_target" || (etype == "buff" && scope == "single") || etype == "damage_target" || etype == "heal_target" || etype == "entrave" || etype == "pillage" || etype == "camouflage" || etype == "deck_reorder_top3" || (etype == "summon" && variable_struct_exists(effect, "summon_mode") && effect.summon_mode == "copy_target"));
              
              if (mustTarget) {
                  k++;

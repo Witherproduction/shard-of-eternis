@@ -1055,7 +1055,13 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
             global.endTurnSequencerNext = function() {
                 if (!variable_global_exists("end_turn_queue") || !is_array(global.end_turn_queue)) { global.end_turn_processing = false; return; }
                 if (!variable_global_exists("end_turn_ptr")) { global.end_turn_ptr = 0; }
-                if (global.end_turn_ptr >= array_length(global.end_turn_queue)) { global.end_turn_processing = false; global.end_turn_waiting = false; return; }
+                if (global.end_turn_ptr >= array_length(global.end_turn_queue)) {
+                    global.end_turn_processing = false;
+                    global.end_turn_waiting = false;
+                    if (variable_global_exists("resetTemporaryEffects") && !is_undefined(global.resetTemporaryEffects)) { global.resetTemporaryEffects(); }
+                    else if (script_exists(asset_get_index("resetTemporaryEffects"))) { resetTemporaryEffects(); }
+                    return;
+                }
                 var it = global.end_turn_queue[global.end_turn_ptr];
                 var cd = variable_struct_exists(it, "card") ? it.card : noone;
                 var ef = variable_struct_exists(it, "effect") ? it.effect : noone;

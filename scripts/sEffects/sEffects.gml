@@ -653,8 +653,9 @@ function executeEffect(card, effect, context = {}) {
                 }
                 return true;
             } else {
-                if (laAtk != 0) modifyAttack(tgt2, laAtk, false);
-                if (laDef != 0) modifyDefense(tgt2, laDef, false);
+                var isTempP = variable_struct_exists(eff, "temporary") ? eff.temporary : false;
+                if (laAtk != 0) modifyAttack(tgt2, laAtk, isTempP);
+                if (laDef != 0) modifyDefense(tgt2, laDef, isTempP);
                 if (variable_struct_exists(eff, "grant_ambidextrous") && eff.grant_ambidextrous) {
                     tgt2.isAmbidextrous = true;
                 }
