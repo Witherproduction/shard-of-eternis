@@ -539,8 +539,16 @@ function AI_ExecuteMove(move) {
                  if (!is_undefined(markEffectAsUsed)) {
                      markEffectAsUsed(card, effect);
                  }
+                 return true;
              }
-            return true;
+             
+             // Si l'effet a échoué mais qu'on vient d'invoquer la carte (move from Hand),
+             // l'action est partiellement réussie (carte sur terrain).
+             if (!isOnField) return true;
+             
+             // Si la carte était déjà sur le terrain et que l'effet a échoué,
+             // c'est un échec total (ex: boucle d'activation invalide).
+             return false;
         }
         
         // Si on a posé la carte mais qu'il n'y avait pas d'effet à activer (cas étrange mais possible), c'est un succès partiel (pose réussie)

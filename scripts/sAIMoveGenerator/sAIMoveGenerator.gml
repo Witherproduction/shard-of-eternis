@@ -256,6 +256,21 @@ function AI_AddEffectMoves(card, moves, context) {
         // J'ai vérifié, la boucle interne utilise 'ki', donc pas de conflit.
         
         var effectType = variable_struct_exists(effect, "effect_type") ? effect.effect_type : "";
+        
+        // --- PATCH IA LOOP FIX ---
+        // Si l'effet est d'équiper et qu'on est déjà équipé, on ignore cet effet pour éviter une boucle infinie
+        var isEquipped = false;
+        if (is_struct(card)) {
+            if (variable_struct_exists(card, "equipped_target") && card.equipped_target != noone) isEquipped = true;
+        } else if (instance_exists(card)) {
+            if (variable_instance_exists(card, "equipped_target") && card.equipped_target != noone && instance_exists(card.equipped_target)) isEquipped = true;
+        }
+        
+        if (effectType == "equip_select_target" && isEquipped) {
+             k++;
+             continue;
+        }
+
         var trigger = variable_struct_exists(effect, "trigger") ? effect.trigger : "";
         
         // Filtres de contexte

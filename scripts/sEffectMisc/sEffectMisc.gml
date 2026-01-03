@@ -39,6 +39,7 @@ function getTargetsByFilter(effect) {
     var hasMonsterType = false;
     var monsterTypeLower = "";
     var criteria = noone;
+    var onlyCamouflaged = false;
     if (is_struct(effect)) {
         if (variable_struct_exists(effect, "target_zone")) {
             if (is_array(effect.target_zone)) {
@@ -55,6 +56,7 @@ function getTargetsByFilter(effect) {
         if (variable_struct_exists(effect, "include_graveyard")) includeGraveyard = effect.include_graveyard;
         if (variable_struct_exists(effect, "monster_type")) { hasMonsterType = true; monsterTypeLower = string_lower(effect.monster_type); }
         if (variable_struct_exists(effect, "criteria")) criteria = effect.criteria;
+        if (variable_struct_exists(effect, "only_camouflaged")) onlyCamouflaged = effect.only_camouflaged;
         if (criteria != noone) {
             if (variable_struct_exists(effect, "genre") && !variable_struct_exists(criteria, "genre")) criteria.genre = effect.genre;
             if (variable_struct_exists(effect, "type") && !variable_struct_exists(criteria, "type")) criteria.type = effect.type;
