@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sTutorialChapter0",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sTutorialChapter0",
+  "parent":{
+    "name":"tuto",
+    "path":"folders/Scripts/Deck/tuto.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

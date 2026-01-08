@@ -180,16 +180,40 @@ function destroyCard(card, source = noone) {
             // Check both Field and FieldSelected (in case the artifact is selected)
             var z = variable_instance_exists(self, "zone") ? zone : "";
             if (z == "Field" || z == "FieldSelected") {
-                var g = variable_instance_exists(self, "genre") ? string_lower(self.genre) : "";
-                var isArtifact = (string_pos("artéfact", g) > 0 || string_pos("artefact", g) > 0);
-                
-                if (isArtifact) {
-                    var eqt = (variable_instance_exists(self, "equipped_target")) ? equipped_target : noone;
-                    if (eqt != noone && eqt == dCard) {
-                        show_debug_message("### destroyCard: Linked artifact found (" + string(variable_instance_exists(self, "name") ? name : "???") + "). Destroying.");
-                        destroyCard(id);
-                    }
+                // Correction: On ne vérifie plus le genre "Artéfact" strictement.
+                // Si une carte magique a une "equipped_target" qui correspond à la carte détruite,
+                // elle doit être détruite aussi (règle générale d'équipement).
+                var eqt = (variable_instance_exists(self, "equipped_target")) ? equipped_target : noone;
+                if (eqt != noone && eqt == dCard) {
+                    show_debug_message("### destroyCard: Linked equipment found (" + string(variable_instance_exists(self, "name") ? name : "???") + "). Destroying.");
+                    destroyCard(id);
                 }
+            }
+        }
+        
+        // --- FALLBACK SECURITY CHECK ---
+        // Verify explicitly in field managers to ensure no artifact is left behind (especially for AI)
+        var managersToCheck = [];
+        if (instance_exists(oFieldManagerHero)) array_push(managersToCheck, oFieldManagerHero);
+        if (instance_exists(oFieldManagerEnemy)) array_push(managersToCheck, oFieldManagerEnemy);
+        
+        for (var m = 0; m < array_length(managersToCheck); m++) {
+            var mgr = managersToCheck[m];
+            // Use safe getter that handles internal variable names (Hero/Enemy)
+            if (variable_instance_exists(mgr, "getField")) {
+                 var f = mgr.getField("MagicTrap");
+                 if (f != noone && instance_exists(f)) {
+                     for (var i = 0; i < array_length(f.cards); i++) {
+                         var c = f.cards[i];
+                         if (c != 0 && instance_exists(c) && c != dCard) { // Avoid self-check
+                             var eqt = (variable_instance_exists(c, "equipped_target")) ? c.equipped_target : noone;
+                             if (eqt == dCard) {
+                                 show_debug_message("### destroyCard: Linked equipment found via Fallback (" + string(variable_instance_exists(c, "name") ? c.name : "???") + "). Destroying.");
+                                 destroyCard(c);
+                             }
+                         }
+                     }
+                 }
             }
         }
         var skip_fx = (variable_instance_exists(card, "_skip_destruction_fx") && card._skip_destruction_fx);

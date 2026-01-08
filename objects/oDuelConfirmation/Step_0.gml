@@ -3,7 +3,42 @@ if (mouse_check_button_pressed(mb_left)) {
     var my = mouse_y;
     
     if (mx >= btn_x && mx <= btn_x + btn_width && my >= btn_y && my <= btn_y + btn_height) {
-        // Find scenario runner to get correct bot ID
+        
+        // --- 1. Determine Context (Story Mode / Chapter) ---
+        var is_story_mode = false;
+        var current_chapter = -1;
+        
+        show_debug_message("### oDuelConfirmation - Checking Story Mode status...");
+        
+        if (instance_exists(oScenarioRunner)) {
+             var runner = instance_find(oScenarioRunner, 0);
+             show_debug_message("### oDuelConfirmation - Found oScenarioRunner");
+             
+             if (variable_instance_exists(runner, "chapter_id")) {
+                 current_chapter = real(runner.chapter_id);
+                 show_debug_message("### oDuelConfirmation - Runner chapter_id: " + string(current_chapter));
+                 // If we are in Scenario Runner with valid chapter, we assume we are playing story
+                 if (current_chapter >= 0) is_story_mode = true;
+             } else {
+                 show_debug_message("### oDuelConfirmation - Runner has no chapter_id, defaulting to 1");
+                 current_chapter = 1;
+                 is_story_mode = true; // Default to story mode if runner exists
+             }
+        } else if (variable_global_exists("current_chapter")) {
+             // Fallback if global variable is used
+             show_debug_message("### oDuelConfirmation - Checking global.current_chapter: " + string(global.current_chapter));
+             if (global.current_chapter >= 0) {
+                 current_chapter = global.current_chapter;
+                 is_story_mode = true; // Assuming we are entering story duel
+             }
+        } else {
+             show_debug_message("### oDuelConfirmation - No runner and no global chapter, defaulting to saved decks logic");
+        }
+        
+        show_debug_message("### oDuelConfirmation - is_story_mode: " + string(is_story_mode));
+
+        // --- 2. Determine Bot Deck ID ---
+        // Find scenario runner to get correct bot ID from current scene
         var sc = noone;
         if (instance_exists(oScenarioRunner)) {
             var runner = instance_find(oScenarioRunner, 0);
@@ -19,6 +54,11 @@ if (mouse_check_button_pressed(mb_left)) {
         // Use ID from scenario or default
         if (sc != noone && variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id > 0) {
             selected_bot_deck_id = sc.duel_bot_id;
+        } 
+        // Fallback for Chapter 0 (Tutorial) if no specific bot is set
+        else if (is_story_mode && current_chapter == 0) {
+            selected_bot_deck_id = "tuto_deck_bot";
+            show_debug_message("### oDuelConfirmation - Auto-selected Tutorial Bot Deck: " + string(selected_bot_deck_id));
         }
 
         // Set duel progression variables from scenario runner
@@ -42,6 +82,7 @@ if (mouse_check_button_pressed(mb_left)) {
         global.previous_room_before_duel = rScenario;
         global.selected_bot_deck_id = selected_bot_deck_id;
         
+        // --- 3. Determine Player Deck ---
         // Ensure player deck is set
         var deck_invalid = (!variable_global_exists("selected_player_deck") || global.selected_player_deck == noone);
         
@@ -53,61 +94,48 @@ if (mouse_check_button_pressed(mb_left)) {
              }
         }
 
-        // Check for Story Mode (Chapter 1) - FORCE deck selection
-        var is_story_chap1 = false;
-        var current_chapter = 1;
-        
-        show_debug_message("### oDuelConfirmation - Checking Story Mode status...");
-        
-        if (instance_exists(oScenarioRunner)) {
-             var runner = instance_find(oScenarioRunner, 0);
-             show_debug_message("### oDuelConfirmation - Found oScenarioRunner");
-             
-             if (variable_instance_exists(runner, "chapter_id")) {
-                 current_chapter = real(runner.chapter_id);
-                 show_debug_message("### oDuelConfirmation - Runner chapter_id: " + string(current_chapter));
-                 // If we are in Scenario Runner, we assume we are playing story
-                 if (current_chapter == 1) is_story_chap1 = true;
-             } else {
-                 show_debug_message("### oDuelConfirmation - Runner has no chapter_id, defaulting to 1");
-                 is_story_chap1 = true; // Default to story mode if runner exists
-             }
-        } else if (variable_global_exists("current_chapter")) {
-             // Fallback if global variable is used
-             show_debug_message("### oDuelConfirmation - Checking global.current_chapter: " + string(global.current_chapter));
-             if (global.current_chapter == 1) {
-                 current_chapter = 1;
-                 is_story_chap1 = true; // Assuming we are entering story duel
-             }
-        } else {
-             show_debug_message("### oDuelConfirmation - No runner and no global chapter, assuming Chapter 1 default");
-        }
-        
-        show_debug_message("### oDuelConfirmation - is_story_chap1: " + string(is_story_chap1));
         show_debug_message("### oDuelConfirmation - deck_invalid: " + string(deck_invalid));
 
-        if (deck_invalid || is_story_chap1) {
+        if (deck_invalid || is_story_mode) {
              var story_deck_found = false;
              
-             // Check for Story Deck (Chapter 1)
-             if (current_chapter == 1) {
-                 show_debug_message("### oDuelConfirmation - Searching for Chapter 1 decks...");
-                 var chap1_decks = get_hero_decks_chap1();
-                 for (var i = 0; i < array_length(chap1_decks); i++) {
-                     if (variable_struct_exists(chap1_decks[i], "id") && chap1_decks[i].id == "rebellion_horde") {
-                         global.selected_player_deck = chap1_decks[i];
-                         show_debug_message("### Auto-selected Story Deck: " + string(global.selected_player_deck.name));
-                         story_deck_found = true;
-                         break;
-                     }
-                 }
-                 // If not found, try the first one
-                 if (!story_deck_found && array_length(chap1_decks) > 0) {
-                     global.selected_player_deck = chap1_decks[0];
-                     show_debug_message("### Auto-selected Story Deck (First): " + string(global.selected_player_deck.name));
-                     story_deck_found = true;
-                 }
-             }
+             // Check for Story Decks
+            if (is_story_mode) {
+                show_debug_message("### oDuelConfirmation - Searching for Story decks for chapter " + string(current_chapter));
+                var story_decks = get_story_hero_decks(current_chapter);
+                
+                // Specific logic for preferred deck per chapter
+                var preferred_deck_id = "";
+                if (current_chapter == 0) preferred_deck_id = "tuto_deck_hero";
+                else if (current_chapter == 1) preferred_deck_id = "rebellion_horde";
+                
+                for (var i = 0; i < array_length(story_decks); i++) {
+                    if (variable_struct_exists(story_decks[i], "id") && story_decks[i].id == preferred_deck_id) {
+                        global.selected_player_deck = story_decks[i];
+                        show_debug_message("### Auto-selected Story Deck: " + string(global.selected_player_deck.name));
+                        story_deck_found = true;
+                        break;
+                    }
+                }
+                // If not found, try the first one
+                if (!story_deck_found && array_length(story_decks) > 0) {
+                    global.selected_player_deck = story_decks[0];
+                    show_debug_message("### Auto-selected Story Deck (First): " + string(global.selected_player_deck.name));
+                    story_deck_found = true;
+                }
+
+                // --- BOT DECK SELECTION ---
+                // Priority to Tutorial Deck for Chapter 0
+                if (current_chapter == 0) {
+                    selected_bot_deck_id = "tuto_deck_bot";
+                    show_debug_message("### oDuelConfirmation - Forced Tutorial Bot Deck: " + string(selected_bot_deck_id));
+                }
+                // Then Scenario specific deck
+                else if (sc != noone && variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id > 0) {
+                    selected_bot_deck_id = sc.duel_bot_id;
+                    show_debug_message("### oDuelConfirmation - Scenario Bot Deck: " + string(selected_bot_deck_id));
+                }
+            }
              
              if (!story_deck_found) {
                  // Try to load saved decks if not loaded

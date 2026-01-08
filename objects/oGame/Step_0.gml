@@ -46,16 +46,59 @@ if (instance_exists(LP_Hero) && instance_exists(LP_Enemy)) {
             // Déterminer si c'est une victoire ou une défaite
             gameOverScreen.isVictory = isVictory;
             
-            // Arrêter le jeu
-            return;
+            // Arrêter le jeu (sauf si Tuto Chap 0)
+            if (!variable_global_exists("current_chapter") || global.current_chapter != 0) return;
         }
         
-        // Arrêter le traitement du jeu si la partie est terminée
-        return;
+        // Arrêter le traitement du jeu si la partie est terminée (sauf si Tuto Chap 0)
+        if (!variable_global_exists("current_chapter") || global.current_chapter != 0) return;
     }
 }
 
 
+
+
+// --- GESTION DU TUTORIEL (CHAPITRE 0) ---
+if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
+    if (Tutorial_Chapter0_Update()) return;
+    if (Tutorial_Turn3_Update()) return;
+    if (Tutorial_Turn5_Update()) return;
+    if (Tutorial_Turn7_Update()) return;
+    if (Tutorial_Turn9_Update()) return;
+
+    // 2. Déclenchement Tour 1 (Début Main Phase 1)
+    if (nbTurn == 1 && phase[phase_current] == "Summon") {
+        Tutorial_Chapter0_Init();
+        if (instance_exists(oTutorielManager)) return;
+    }
+
+    // 3. Déclenchement Tour 3 (Début Pick Phase - Tour du Joueur)
+    if (nbTurn == 3 && phase[phase_current] == "Pick") {
+        Tutorial_Turn3_Init();
+        if (instance_exists(oTutorielManager)) return;
+    }
+
+    // 4. Déclenchement Tour 5 (Début Pick Phase - Tour du Joueur)
+    if (nbTurn == 5 && phase[phase_current] == "Pick") {
+        Tutorial_Turn5_Init();
+        if (instance_exists(oTutorielManager)) return;
+    }
+
+    // 5. Déclenchement Tour 7 (Début Pick Phase - Tour du Joueur)
+    if (nbTurn == 7 && phase[phase_current] == "Pick") {
+        Tutorial_Turn7_Init();
+        if (instance_exists(oTutorielManager)) return;
+    }
+
+    // 6. Déclenchement Tour 9 (Début Pick Phase - Tour du Joueur)
+    if (nbTurn == 9 && phase[phase_current] == "Pick") {
+        Tutorial_Turn9_Init();
+        if (instance_exists(oTutorielManager)) return;
+    }
+}
+
+// Arrêter si la partie est terminée (après avoir laissé le Tuto se mettre à jour)
+if (variable_instance_exists(id, "gameEnded") && gameEnded) return;
 
 if(timerPick > 0 && timerEnabledPick) {
 	timerPick -= 1/room_speed;

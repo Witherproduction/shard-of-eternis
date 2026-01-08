@@ -90,7 +90,17 @@ canSelectAsSacrifice = function(monster) {
         }
     }
     
-    // Accepte n'importe quel monstre sur le terrain
+    var tut = instance_find(oTutorielManager, 0);
+    if (tut != noone && variable_instance_exists(tut, "tutorial_id") && tut.tutorial_id == 9) {
+        if (variable_instance_exists(tut, "current_step") && (tut.current_step == 5 || tut.current_step == 6)) {
+            var isMaitrePasse = (instance_exists(monster) && monster.object_index == oMaitrePasse);
+            var validZone = (instance_exists(monster) && (monster.zone == "Field" || monster.zone == "FieldSelected"));
+            var isHero = (instance_exists(monster) && monster.isHeroOwner);
+            return (isMaitrePasse && validZone && isHero);
+        }
+    }
+    
+    // Par défaut: accepte n'importe quel monstre sur le terrain
     return true;
 };
 

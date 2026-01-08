@@ -4,29 +4,37 @@ function get_hero_decks_chap1() {
     return [
         {
             id: "rebellion_horde",
-            name: "La Meute de la Lisière",
+            name: "La Diversité de la Forêt",
             description: "Un deck optimisé pour la force brute et la défense solide. Les bêtes écrasent les orcs !",
             cards: [
-                // Monstres (25)
-                "oTortueVagabonde", "oTortueVagabonde", "oTortueVagabonde",
-                "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche",
-                "oLoupGuerreGeuleRoche", "oLoupGuerreGeuleRoche", "oLoupGuerreGeuleRoche",
-                "oJeuneOursForet", "oJeuneOursForet", "oJeuneOursForet",
-                "oAraigneeForestiere", "oAraigneeForestiere", "oAraigneeForestiere",
-                "oPeauRocRobuste", "oPeauRocRobuste", "oPeauRocRobuste",
-                "oVieilOurs", "oVieilOurs", "oVieilOurs",
+                // La Grande Meute (Bêtes Diverses - 21 cartes)
+                "oTarrinox", "oTarrinox",
+                "oAraigneeForestiere", "oAraigneeForestiere",
                 "oTarentuleForet", "oTarentuleForet",
+                "oJeuneOursForet", "oJeuneOursForet",
+                "oVieilOurs", "oVieilOurs",
+                "oTortueVagabonde", "oTortueVagabonde",
+                "oLoupGrisForet", "oLoupGrisForet",
+                "oLoupGaleux", "oLoupGaleux",
                 "oRodeurForet", "oRodeurForet",
+                "oJeuneLoup", "oJeuneLoup",
+                "oPatteBriseLarmoyant",
                 
-                // Magies (11)
-                "oGriffePredateur", "oGriffePredateur", "oGriffePredateur",
-                "oSautPredateur", "oSautPredateur", "oSautPredateur",
+                // L'Appui Gueule-roche (Orcs & Montures - 6 cartes)
+                "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche",
+                "oLoupGuerreGeuleRoche", "oLoupGuerreGeuleRoche",
+                "oPeauRocRobuste", "oPeauRocRobuste",
+                
+                // Magies et Soutien (10 cartes)
+                "oGriffePredateur", "oGriffePredateur",
+                "oSautPredateur", "oSautPredateur",
+                "oRugissementForet", "oRugissementForet",
                 "oRacineEnvahissante", "oRacineEnvahissante",
-                "oRugissementForet", "oRugissementForet", "oRugissementForet",
+                "oCriMeute", "oCriMeute",
                 
-                // Pièges / Secrets (4)
-                "oPiegeRonce", "oPiegeRonce",
-                "oFeuillageProtecteur", "oFeuillageProtecteur"
+                // Secrets et Tactique (4 cartes)
+                "oFeuillageProtecteur", "oFeuillageProtecteur",
+                "oPiegeRonce", "oPiegeRonce"
             ]
         },
         {

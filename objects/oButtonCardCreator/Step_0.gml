@@ -9,6 +9,9 @@ if (room != rAcceuil) {
     exit; // Sortir si on n'est pas dans la bonne room
 }
 
+// Admin mode check
+if (!variable_global_exists("admin_mode") || !global.admin_mode) exit;
+
 // Vérifier si le bouton gauche de la souris vient d'être pressé
 if (mouse_check_button_pressed(mb_left)) {
     // Obtenir la position de la souris

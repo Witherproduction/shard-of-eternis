@@ -64,6 +64,12 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
         }
         // Centraliser l'affichage du bouton effet selon les règles courantes
         UIManager.displayEffectButton(card);
+
+        // Repositionner le bouton effet si le bouton Set est présent (pour éviter l'overlap suite au changement d'origine)
+        if (instanceSet != "" && instance_exists(instanceSet) && instanceEffectButton != "" && instance_exists(instanceEffectButton)) {
+             instanceEffectButton.x = card.x + 80;
+             instanceEffectButton.y = card.y - 280;
+        }
     }
 
     // Bouton effet pour cartes non-Magie en main si disponible
@@ -73,8 +79,8 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
             instanceEffectButton = instance_create_layer(card.x + 80, card.y - 280, layer_get_id("Instances"), oEffectButton);
             instanceEffectButton.parentCard = card;
             instanceEffectButton.depth = -2000;
-            instanceEffectButton.image_xscale = 0.6;
-            instanceEffectButton.image_yscale = 0.6;
+            instanceEffectButton.image_xscale = 0.4;
+            instanceEffectButton.image_yscale = 0.4;
         }
     }
     
@@ -269,11 +275,11 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
             // Affichage uniquement pendant le tour du héros et en phase "Summon"
             if (allowFD && isHeroTurn && currentPhase == "Summon") {
                 var sprite_h_fd = sprite_get_height(card.sprite_index) * card.image_yscale;
-                instanceEffectButton = instance_create_layer(card.x + 40, card.y - sprite_h_fd/2 - 40, layer_get_id("Instances"), oEffectButton);
+                instanceEffectButton = instance_create_layer(card.x + 85, card.y - sprite_h_fd/2 + 5, layer_get_id("Instances"), oEffectButton);
                 instanceEffectButton.parentCard = card;
                 instanceEffectButton.depth = -2000;
-                instanceEffectButton.image_xscale = 0.6;
-                instanceEffectButton.image_yscale = 0.6;
+                instanceEffectButton.image_xscale = 0.4;
+                instanceEffectButton.image_yscale = 0.4;
                 global.isActionMenuOpen = true;
             } else {
                 show_debug_message("### oUIManager.displayEffectButton: aucune cible valide pour carte face cachée (et pas d'effet continu)");
@@ -298,11 +304,11 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
                 return;
             }
             var sprite_h_c = sprite_get_height(card.sprite_index) * card.image_yscale;
-            instanceEffectButton = instance_create_layer(card.x + 40, card.y - sprite_h_c/2 - 40, layer_get_id("Instances"), oEffectButton);
+            instanceEffectButton = instance_create_layer(card.x + 85, card.y - sprite_h_c/2 + 5, layer_get_id("Instances"), oEffectButton);
             instanceEffectButton.parentCard = card;
             instanceEffectButton.depth = -2000;
-            instanceEffectButton.image_xscale = 0.6;
-            instanceEffectButton.image_yscale = 0.6;
+            instanceEffectButton.image_xscale = 0.5;
+            instanceEffectButton.image_yscale = 0.5;
             global.isActionMenuOpen = true;
             return;
         }
@@ -318,11 +324,11 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
                 return;
             }
             var sprite_h = sprite_get_height(card.sprite_index) * card.image_yscale;
-            instanceEffectButton = instance_create_layer(card.x + 40, card.y - sprite_h/2 - 40, layer_get_id("Instances"), oEffectButton);
+            instanceEffectButton = instance_create_layer(card.x + 85, card.y - sprite_h/2 + 5, layer_get_id("Instances"), oEffectButton);
             instanceEffectButton.parentCard = card;
             instanceEffectButton.depth = -2000;
-            instanceEffectButton.image_xscale = 0.6;
-            instanceEffectButton.image_yscale = 0.6;
+            instanceEffectButton.image_xscale = 0.5;
+            instanceEffectButton.image_yscale = 0.5;
 
             global.isActionMenuOpen = true;
         } else {
@@ -409,4 +415,3 @@ stopIndicator = function() {show_debug_message("### oUIManager.stopIndicator")
 	    instance_destroy(instance_find(oIndicatorParent, 0));
 }
 #endregion
-

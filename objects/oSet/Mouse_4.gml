@@ -4,6 +4,9 @@ if (global.isGraveyardViewerOpen) exit;
 // Bloque l'interaction si le sélecteur de sacrifice est ouvert
 if (variable_global_exists("isSacrificeSelectorOpen") && global.isSacrificeSelectorOpen) exit;
 
+// Bloque si le tutoriel restreint les clics
+if (instance_exists(oTutorielManager) && !oTutorielManager.isClickAllowed(mouse_x, mouse_y)) exit;
+
 UIManager.selectedSummonOrSet = "Set";
 
 // Récupère la carte sélectionnée

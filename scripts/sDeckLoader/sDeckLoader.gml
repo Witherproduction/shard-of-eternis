@@ -83,8 +83,29 @@ function load_player_deck_from_data(deck_data, deck_list) {
         }
     }
     
-    // Melanger le deck
-    ds_list_shuffle(deck_list);
+    // Melanger le deck seulement si ce n'est pas le tutoriel (Chapitre 0)
+    var is_tutorial = (variable_global_exists("current_chapter") && global.current_chapter == 0);
+    
+    if (!is_tutorial) {
+        ds_list_shuffle(deck_list);
+        show_debug_message("### Deck shuffled (Normal Mode)");
+    } else {
+        // En mode tutoriel, on inverse la liste pour que les premières cartes définies (Hand) 
+        // soient en haut du deck (fin de la liste) et donc piochées en premier
+        var size = ds_list_size(deck_list);
+        if (size > 1) {
+            var temp_list = ds_list_create();
+            ds_list_copy(temp_list, deck_list);
+            ds_list_clear(deck_list);
+            
+            for (var i = size - 1; i >= 0; i--) {
+                ds_list_add(deck_list, temp_list[| i]);
+            }
+            
+            ds_list_destroy(temp_list);
+        }
+        show_debug_message("### Deck shuffle SKIPPED and REVERSED (Tutorial Mode)");
+    }
     
     show_debug_message("### Deck loaded with " + string(ds_list_size(deck_list)) + " cards");
     // Retourner false si aucune carte n'a été chargée pour permettre un fallback propre
@@ -121,8 +142,29 @@ function load_bot_deck_from_id(bot_deck_id, deck_list) {
         }
     }
     
-    // Melanger le deck
-    ds_list_shuffle(deck_list);
+    // Melanger le deck seulement si ce n'est pas le tutoriel (Chapitre 0)
+    var is_tutorial = (variable_global_exists("current_chapter") && global.current_chapter == 0);
+    
+    if (!is_tutorial) {
+        ds_list_shuffle(deck_list);
+        show_debug_message("### Bot deck shuffled (Normal Mode)");
+    } else {
+        // En mode tutoriel, on inverse la liste pour que les premières cartes définies 
+        // soient en haut du deck (fin de la liste) et donc piochées en premier
+        var size = ds_list_size(deck_list);
+        if (size > 1) {
+            var temp_list = ds_list_create();
+            ds_list_copy(temp_list, deck_list);
+            ds_list_clear(deck_list);
+            
+            for (var i = size - 1; i >= 0; i--) {
+                ds_list_add(deck_list, temp_list[| i]);
+            }
+            
+            ds_list_destroy(temp_list);
+        }
+        show_debug_message("### Bot deck shuffle SKIPPED and REVERSED (Tutorial Mode)");
+    }
     
     show_debug_message("### Bot deck loaded with " + string(ds_list_size(deck_list)) + " cards");
     return true;

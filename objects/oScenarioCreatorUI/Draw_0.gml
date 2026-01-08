@@ -27,6 +27,16 @@ function draw_field(x1, y1, x2, y2, label, value, focused, pad) {
     var cx = x1 + pad;
     var cy = (y1 + y2) * 0.5;
     draw_text(cx, cy, label + ": " + value);
+    
+    if (focused) {
+        var prefix = label + ": ";
+        var prefix_w = string_width(prefix);
+        var sub_val = string_copy(value, 1, cursor_pos);
+        var sub_w = string_width(sub_val);
+        var cur_x = cx + prefix_w + sub_w;
+        var cur_h = string_height("M");
+        draw_line(cur_x, cy - cur_h * 0.4, cur_x, cy + cur_h * 0.4);
+    }
 }
 
 // Background
@@ -121,7 +131,18 @@ var tyb = textbox.y + textbox.h * 0.5 - textbox.margin;
 var tx = (txl + txr) * 0.5;
 var ty = (tyt + tyb) * 0.5;
 var display_text = string(current.text);
-if (textbox_enabled) draw_text(tx, ty, display_text);
+if (textbox_enabled) {
+    draw_text(tx, ty, display_text);
+    if (field_focused == "text") {
+        var total_w = string_width(display_text);
+        var start_x = tx - total_w * 0.5;
+        var sub_str = string_copy(display_text, 1, cursor_pos);
+        var sub_w = string_width(sub_str);
+        var cur_x = start_x + sub_w;
+        var cur_h = string_height("M");
+        draw_line(cur_x, ty - cur_h * 0.5, cur_x, ty + cur_h * 0.5);
+    }
+}
 
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);

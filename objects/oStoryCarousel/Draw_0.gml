@@ -5,9 +5,9 @@ var cx = room_width * 0.5;
 var off = (sw * scale_center) * 0.5 + gap + (sw * scale_side) * 0.5;
 var lx = cx - off;
 var rx = cx + off;
-var chap_center = index + 1;
-var chap_left = ((index - 1 + count) mod count) + 1;
-var chap_right = ((index + 1) mod count) + 1;
+var chap_center = index;
+var chap_left = (index - 1 + count) mod count;
+var chap_right = (index + 1) mod count;
 var bg_center = asset_get_index("BG_Chapitre" + string(chap_center));
 if (bg_center == -1) bg_center = asset_get_index("sHistoireBG_" + string(chap_center));
 var bg_left = asset_get_index("BG_Chapitre" + string(chap_left));
@@ -77,66 +77,75 @@ draw_text(center_x, top_y - title_offset, "Chapitre " + string(chap_center));
 draw_set_font(fontCardDisplay);
 
 if (unlocked) {
-    draw_text(center_x, top_y + 48 * k, current_data.title);
-    
-    // Récupérer le nom du héros (legacy pour l'instant)
-    var legacy_prog = story_progress_read_chapter(chap_center);
-    var act1_done = is_act_complete(chap_center, 1);
-    var act2_done = is_act_complete(chap_center, 2);
-    var act3_done = is_act_complete(chap_center, 3);
-    
-    var hero_display = act1_done ? (legacy_prog.hero_name != "" ? legacy_prog.hero_name : "Kaelen") : "??????";
-    
-    draw_text(center_x, top_y + 92 * k, "Heros : " + string(hero_display));
-    draw_text(center_x, top_y + 136 * k, "Acte :");
-    
-    var y0 = top_y + 180 * k;
-    
-    // Affichage des actes selon la progression
-    var act_names = current_data.acts;
-    var n_acts = array_length(act_names);
-    
-    // Acte 1 (Toujours visible si chapitre débloqué)
-    var act_click_w = inner_w * 0.9;
-    var act_click_h = line_gap;
-    
-    for (var i = 0; i < 4; i++) {
-        var act_num = i + 1;
-        var ay = y0 + i * line_gap;
+        draw_text(center_x, top_y + 48 * k, current_data.title);
         
-        var is_unlocked = false;
-        var txt = "???";
-        
-        if (act_num == 1) {
-            is_unlocked = true;
-            txt = (n_acts > 0) ? act_names[0] : "???";
-        } else if (act_num == 2) {
-            is_unlocked = act1_done;
-            txt = act1_done ? ((n_acts > 1) ? act_names[1] : "???") : "????????";
-        } else if (act_num == 3) {
-            is_unlocked = act2_done;
-            txt = act2_done ? ((n_acts > 2) ? act_names[2] : "???") : "?????????";
-        } else if (act_num == 4) {
-            is_unlocked = act3_done;
-            txt = act3_done ? ((n_acts > 3) ? act_names[3] : "???") : "??????????";
+        // --- Affichage du Héros (sauf pour le Tuto) ---
+        if (chap_center != 0) {
+            // Récupérer le nom du héros (legacy pour l'instant)
+            var legacy_prog = story_progress_read_chapter(chap_center);
+            var act1_done = is_act_complete(chap_center, 1);
+            var hero_display = act1_done ? (legacy_prog.hero_name != "" ? legacy_prog.hero_name : "Kaelen") : "??????";
+            
+            draw_text(center_x, top_y + 92 * k, "Heros : " + string(hero_display));
         }
         
-        var col = c_white;
-        var is_selected = (variable_global_exists("current_act") && global.current_act == act_num);
+        draw_text(center_x, top_y + 136 * k, "Acte :");
         
-        if (is_unlocked) {
-            if (is_selected) {
-                col = c_lime; // Highlight selected act
-            } else if (point_in_rectangle(mouse_x, mouse_y, center_x - act_click_w * 0.5, ay - act_click_h * 0.5, center_x + act_click_w * 0.5, ay + act_click_h * 0.5)) {
-                col = c_yellow; // Hover
+        var y0 = top_y + 180 * k;
+        
+        // Affichage des actes selon la progression
+        var act_names = current_data.acts;
+        var n_acts = array_length(act_names);
+        
+        // Acte 1 (Toujours visible si chapitre débloqué)
+        var act_click_w = inner_w * 0.9;
+        var act_click_h = line_gap;
+        
+        // Récupérer l'état de complétion des actes pour ce chapitre
+        var act1_done = is_act_complete(chap_center, 1);
+        var act2_done = is_act_complete(chap_center, 2);
+        var act3_done = is_act_complete(chap_center, 3);
+        
+        for (var i = 0; i < 4; i++) {
+            var act_num = i + 1;
+            var ay = y0 + i * line_gap;
+            
+            // Si l'acte n'existe pas dans les données (cas du tuto qui n'a qu'un acte), on saute
+            if (act_num > n_acts) continue;
+
+            var is_unlocked = false;
+            var txt = "???";
+            
+            if (act_num == 1) {
+                is_unlocked = true;
+                txt = (n_acts > 0) ? act_names[0] : "???";
+            } else if (act_num == 2) {
+                is_unlocked = act1_done;
+                txt = act1_done ? ((n_acts > 1) ? act_names[1] : "???") : "????????";
+            } else if (act_num == 3) {
+                is_unlocked = act2_done;
+                txt = act2_done ? ((n_acts > 2) ? act_names[2] : "???") : "?????????";
+            } else if (act_num == 4) {
+                is_unlocked = act3_done;
+                txt = act3_done ? ((n_acts > 3) ? act_names[3] : "???") : "??????????";
             }
-        } else {
-            col = c_dkgray;
+            
+            var col = c_white;
+            var is_selected = (variable_global_exists("current_act") && global.current_act == act_num);
+            
+            if (is_unlocked) {
+                if (is_selected) {
+                    col = c_lime; // Highlight selected act
+                } else if (point_in_rectangle(mouse_x, mouse_y, center_x - act_click_w * 0.5, ay - act_click_h * 0.5, center_x + act_click_w * 0.5, ay + act_click_h * 0.5)) {
+                    col = c_yellow; // Hover
+                }
+            } else {
+                col = c_dkgray;
+            }
+            
+            draw_set_color(col);
+            draw_text(center_x, ay, txt);
         }
-        
-        draw_set_color(col);
-        draw_text(center_x, ay, txt);
-    }
     
     draw_set_color(c_white);
     

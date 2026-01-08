@@ -325,6 +325,8 @@ function AI_SelectBestMove(moves) {
                     } else if (myAtk == enemyAtk) {
                         enemyDies = true;
                         iSurvive = false; // Suicide mutuel
+                        // Pénalité pour éviter le suicide systématique en cas d'égalité
+                        moveScoreVal -= 300; 
                     } else {
                         enemyDies = false;
                         iSurvive = false; // Suicide inutile
@@ -390,7 +392,12 @@ function AI_SelectBestMove(moves) {
 /// @function AI_ExecuteMove(move)
 /// @description Exécute le coup choisi
 function AI_ExecuteMove(move) {
-    if (move == noone) return false;
+    if (move == noone) {
+        show_debug_message("### AI_ExecuteMove: No move provided");
+        return false;
+    }
+    
+    show_debug_message("### AI_ExecuteMove: Executing move type " + move.type);
     
     if (move.type == "summon") {
         var card = move.card;
@@ -436,32 +443,41 @@ function AI_ExecuteMove(move) {
 
                 var orientation = "Attack";
                 
-                // 1. Logique de base : Stats
-                if (def > atk) orientation = "Defense";
-                
-                // 2. Opportunisme : Si on dépasse la menace adverse, on attaque (même si DEF > ATK)
-                // Cela signifie qu'on "contrôle" le terrain ou qu'on peut le reprendre.
-                if (atk > strongestEnemyAtk) {
-                    orientation = "Attack";
-                }
-                
-                // 3. Champ libre : Si aucun ennemi, on attaque pour la pression (sauf si ATK très faible)
-                if (enemyCount == 0 && atk > 500) {
-                    orientation = "Attack";
-                }
-                
-                // 4. Prudence : Si on ne passe pas l'ennemi, mais qu'on peut tanker, on défend
-                if (atk <= strongestEnemyAtk && def > strongestEnemyAtk) {
-                    orientation = "Defense";
-                }
-                
-                // 5. Priorité Absolue : Effet Flip (Force la défense face cachée)
-                if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
-                    for(var i=0; i<array_length(card.effects); i++) {
-                        var ef = card.effects[i];
-                        if (variable_struct_exists(ef, "trigger") && ef.trigger == "flip") {
-                            orientation = "Defense";
-                            break;
+                if (variable_struct_exists(move, "force_orientation")) {
+                    orientation = move.force_orientation;
+                } else {
+                    // 1. Logique de base : Stats
+                    if (def > atk) orientation = "Defense";
+                    
+                    // 2. Opportunisme : Si on dépasse la menace adverse, on attaque (même si DEF > ATK)
+                    // Cela signifie qu'on "contrôle" le terrain ou qu'on peut le reprendre.
+                    if (atk > strongestEnemyAtk) {
+                        orientation = "Attack";
+                    }
+                    
+                    // 3. Champ libre : Si aucun ennemi, on attaque pour la pression (sauf si ATK très faible)
+                    if (enemyCount == 0 && atk > 500) {
+                        orientation = "Attack";
+                    }
+                    
+                    // 4. Prudence : Si on est dominé par l'ennemi (ATK < MaxEnnemi)
+                    if (atk < strongestEnemyAtk) {
+                        // On se met en défense pour protéger les LP (même si ATK > DEF)
+                        orientation = "Defense";
+                    }
+                    // Cas d'égalité : Si on peut tanker, on le fait. Sinon on reste en Attaque pour dissuader.
+                    else if (atk == strongestEnemyAtk && def > strongestEnemyAtk) {
+                        orientation = "Defense";
+                    }
+                    
+                    // 5. Priorité Absolue : Effet Flip (Force la défense face cachée)
+                    if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
+                        for(var i=0; i<array_length(card.effects); i++) {
+                            var ef = card.effects[i];
+                            if (variable_struct_exists(ef, "trigger") && ef.trigger == "flip") {
+                                orientation = "Defense";
+                                break;
+                            }
                         }
                     }
                 }

@@ -25,6 +25,10 @@ btn_start_hover = false;
 // Définition des données de chapitres (Titres et Actes)
 chapters_data = [
     {
+        title: "Initiation",
+        acts: ["Les bases du duel"]
+    },
+    {
         title: "La foret des voleurs",
         acts: ["L'arrivée du héros", "En route vers l'aventure", "Le récolteur", "La fin de la Terreur"]
     },
@@ -51,13 +55,19 @@ btn_rect_y1 = 0;
 btn_rect_x2 = 0;
 btn_rect_y2 = 0;
 
-// Initialiser la sélection sur le chapitre actuel (ou 1 par défaut)
-if (!variable_global_exists("current_chapter")) global.current_chapter = 1;
-index = global.current_chapter - 1; // Sync index with global chapter
+// Compter le nombre de chapitres dynamiquement
+count = array_length(chapters_data);
+
+// Initialiser la sélection sur le chapitre actuel (ou 0 par défaut pour le tuto)
+if (!variable_global_exists("current_chapter")) global.current_chapter = 0;
+
+// Mapping : Index du tableau = ID du chapitre (0 = Tuto, 1 = Chap1, etc.)
+index = global.current_chapter; 
+
 // S'assurer que index est valide
 if (index < 0) index = 0;
 if (index >= count) index = 0;
-global.current_chapter = index + 1;
+global.current_chapter = index;
 
 // Initialiser l'acte sélectionné (le plus avancé par défaut)
 if (!variable_global_exists("current_act")) global.current_act = 1;

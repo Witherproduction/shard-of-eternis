@@ -67,6 +67,7 @@ if (variable_instance_exists(id, "show_act_settings_window") && show_act_setting
         if (point_in_rectangle(mx, my, val_field_x1, val_field_y1, val_field_x2, val_field_y2)) {
             field_focused = "act_reward_value";
             str_input = act_reward_value;
+            cursor_pos = string_length(str_input);
         } else if (!point_in_rectangle(mx, my, win_x, win_y, win_x + win_w, win_y + win_h)) {
              // Click outside closes window? Maybe not, just unfocus
              field_focused = "";
@@ -227,24 +228,24 @@ if (mouse_check_button_pressed(mb_left)) {
         if (variable_instance_exists(id, "refresh_deck_options")) refresh_deck_options();
         show_duel_window = true;
     }
-    else if (sp1_enabled && point_in_rectangle(mxf, myf, sp1_field_x1, sp1_field_y1, sp1_field_x2, sp1_field_y2)) { field_focused = "portrait1"; str_input = current.portrait1_name; current.speaker = 1; }
+    else if (sp1_enabled && point_in_rectangle(mxf, myf, sp1_field_x1, sp1_field_y1, sp1_field_x2, sp1_field_y2)) { field_focused = "portrait1"; str_input = current.portrait1_name; current.speaker = 1; cursor_pos = string_length(str_input); }
     else if (sp1_enabled && point_in_rectangle(mxf, myf, sp1_flip_btn_x1, sp1_flip_btn_y1, sp1_flip_btn_x2, sp1_flip_btn_y2)) { current.speaker1_flip = !current.speaker1_flip; }
-    else if (sp2_enabled && point_in_rectangle(mxf, myf, sp2_field_x1, sp2_field_y1, sp2_field_x2, sp2_field_y2)) { field_focused = "portrait2"; str_input = current.portrait2_name; current.speaker = 2; }
-    else if (sp3_enabled && point_in_rectangle(mxf, myf, sp3_field_x1, sp3_field_y1, sp3_field_x2, sp3_field_y2)) { field_focused = "portrait3"; str_input = current.portrait3_name; current.speaker = 3; }
+    else if (sp2_enabled && point_in_rectangle(mxf, myf, sp2_field_x1, sp2_field_y1, sp2_field_x2, sp2_field_y2)) { field_focused = "portrait2"; str_input = current.portrait2_name; current.speaker = 2; cursor_pos = string_length(str_input); }
+    else if (sp3_enabled && point_in_rectangle(mxf, myf, sp3_field_x1, sp3_field_y1, sp3_field_x2, sp3_field_y2)) { field_focused = "portrait3"; str_input = current.portrait3_name; current.speaker = 3; cursor_pos = string_length(str_input); }
     else if (sp2_enabled && point_in_rectangle(mxf, myf, sp2_flip_btn_x1, sp2_flip_btn_y1, sp2_flip_btn_x2, sp2_flip_btn_y2)) { current.speaker2_flip = !current.speaker2_flip; }
     else if (sp3_enabled && point_in_rectangle(mxf, myf, sp3_flip_btn_x1, sp3_flip_btn_y1, sp3_flip_btn_x2, sp3_flip_btn_y2)) { current.speaker3_flip = !current.speaker3_flip; }
-    else if (obj1_enabled && point_in_rectangle(mxf, myf, obj1_field_x1, obj1_field_y1, obj1_field_x2, obj1_field_y2)) { field_focused = "obj1"; str_input = current.obj1_name; }
+    else if (obj1_enabled && point_in_rectangle(mxf, myf, obj1_field_x1, obj1_field_y1, obj1_field_x2, obj1_field_y2)) { field_focused = "obj1"; str_input = current.obj1_name; cursor_pos = string_length(str_input); }
     else if (obj1_enabled && point_in_rectangle(mxf, myf, obj1_flip_btn_x1, obj1_flip_btn_y1, obj1_flip_btn_x2, obj1_flip_btn_y2)) { current.obj1_flip = !current.obj1_flip; }
-    else if (obj2_enabled && point_in_rectangle(mxf, myf, obj2_field_x1, obj2_field_y1, obj2_field_x2, obj2_field_y2)) { field_focused = "obj2"; str_input = current.obj2_name; }
+    else if (obj2_enabled && point_in_rectangle(mxf, myf, obj2_field_x1, obj2_field_y1, obj2_field_x2, obj2_field_y2)) { field_focused = "obj2"; str_input = current.obj2_name; cursor_pos = string_length(str_input); }
     else if (obj2_enabled && point_in_rectangle(mxf, myf, obj2_flip_btn_x1, obj2_flip_btn_y1, obj2_flip_btn_x2, obj2_flip_btn_y2)) { current.obj2_flip = !current.obj2_flip; }
-    else if (point_in_rectangle(mxf, myf, bg_field_x1, bg_field_y1, bg_field_x2, bg_field_y2)) { field_focused = "bg"; str_input = current.bg_name; }
-    else if (sounds_count >= 1 && point_in_rectangle(mxf, myf, bg_sound_field_x1, bg_sound_field_y1, bg_sound_field_x2, bg_sound_field_y2)) { field_focused = "bg_sound"; str_input = current.bg_sound; }
-    else if (sounds_count >= 2 && point_in_rectangle(mxf, myf, bg_sound2_field_x1, bg_sound2_field_y1, bg_sound2_field_x2, bg_sound2_field_y2)) { field_focused = "bg_sound2"; str_input = current.bg_sound2; }
-    else if (point_in_rectangle(mxf, myf, text_field_x1, text_field_y1, text_field_x2, text_field_y2)) { field_focused = "text"; str_input = current.text; }
-    else if (point_in_rectangle(mxf, myf, timer_field_x1, timer_field_y1, timer_field_x2, timer_field_y2)) { field_focused = "wait_after_ms"; str_input = string(current.wait_after_ms); }
-    else if (point_in_rectangle(mxf, myf, chap_field_x1, chap_field_y1, chap_field_x2, chap_field_y2)) { field_focused = "chapter"; str_input = string(global.current_chapter); }
-    else if (point_in_rectangle(mxf, myf, act_field_x1, act_field_y1, act_field_x2, act_field_y2)) { field_focused = "act"; str_input = string(global.current_act); }
-    else if (point_in_rectangle(mxf, myf, duel_field_x1, duel_field_y1, duel_field_x2, duel_field_y2)) { field_focused = "duel"; str_input = string(current.duel_bot_id); }
+    else if (point_in_rectangle(mxf, myf, bg_field_x1, bg_field_y1, bg_field_x2, bg_field_y2)) { field_focused = "bg"; str_input = current.bg_name; cursor_pos = string_length(str_input); }
+    else if (sounds_count >= 1 && point_in_rectangle(mxf, myf, bg_sound_field_x1, bg_sound_field_y1, bg_sound_field_x2, bg_sound_field_y2)) { field_focused = "bg_sound"; str_input = current.bg_sound; cursor_pos = string_length(str_input); }
+    else if (sounds_count >= 2 && point_in_rectangle(mxf, myf, bg_sound2_field_x1, bg_sound2_field_y1, bg_sound2_field_x2, bg_sound2_field_y2)) { field_focused = "bg_sound2"; str_input = current.bg_sound2; cursor_pos = string_length(str_input); }
+    else if (point_in_rectangle(mxf, myf, text_field_x1, text_field_y1, text_field_x2, text_field_y2)) { field_focused = "text"; str_input = current.text; cursor_pos = string_length(str_input); }
+    else if (point_in_rectangle(mxf, myf, timer_field_x1, timer_field_y1, timer_field_x2, timer_field_y2)) { field_focused = "wait_after_ms"; str_input = string(current.wait_after_ms); cursor_pos = string_length(str_input); }
+    else if (point_in_rectangle(mxf, myf, chap_field_x1, chap_field_y1, chap_field_x2, chap_field_y2)) { field_focused = "chapter"; str_input = string(global.current_chapter); cursor_pos = string_length(str_input); }
+    else if (point_in_rectangle(mxf, myf, act_field_x1, act_field_y1, act_field_x2, act_field_y2)) { field_focused = "act"; str_input = string(global.current_act); cursor_pos = string_length(str_input); }
+    else if (point_in_rectangle(mxf, myf, duel_field_x1, duel_field_y1, duel_field_x2, duel_field_y2)) { field_focused = "duel"; str_input = string(current.duel_bot_id); cursor_pos = string_length(str_input); }
     else if (point_in_rectangle(mxf, myf, btn_speakers_minus_x1, btn_speakers_minus_y1, btn_speakers_minus_x2, btn_speakers_minus_y2)) {
         speakers_count = max(0, speakers_count - 1);
         if (speakers_count == 0) { sp1_enabled = false; sp2_enabled = false; sp3_enabled = false; }
@@ -285,69 +286,78 @@ if (mouse_check_button_pressed(mb_left)) {
 }
 
 var ks = keyboard_string;
-if (field_focused != "" && ks != "") {
-    str_input += ks;
-    keyboard_string = "";
-    if (field_focused == "portrait1") current.portrait1_name = str_input;
-    else if (field_focused == "portrait2") current.portrait2_name = str_input;
-    else if (field_focused == "portrait3") current.portrait3_name = str_input;
-    else if (field_focused == "obj1") current.obj1_name = str_input;
-    else if (field_focused == "obj2") current.obj2_name = str_input;
-    else if (field_focused == "bg") current.bg_name = str_input;
-    else if (field_focused == "bg_sound") current.bg_sound = str_input;
-    else if (field_focused == "bg_sound2") current.bg_sound2 = str_input;
-    else if (field_focused == "text") current.text = str_input;
-    else if (field_focused == "wait_after_ms") {
-        var v_in = (str_input == "") ? 0 : real(str_input);
-        current.wait_after_ms = max(0, floor(v_in));
-    }
-    else if (field_focused == "chapter") global.current_chapter = max(1, floor(real(str_input)));
-    else if (field_focused == "act") global.current_act = max(1, floor(real(str_input)));
-    else if (field_focused == "duel") current.duel_bot_id = max(0, floor(real(str_input)));
-    if (array_length(timeline) > 0 && line_idx >= 0) {
-        var ln_update = timeline[line_idx];
-        if (field_focused == "text") ln_update.text = string(current.text);
-        else if (field_focused == "portrait1") ln_update.portrait1_name = current.portrait1_name;
-        else if (field_focused == "portrait2") ln_update.portrait2_name = current.portrait2_name;
-        else if (field_focused == "portrait3") ln_update.portrait3_name = current.portrait3_name;
-        else if (field_focused == "obj1") ln_update.obj1_name = current.obj1_name;
-        else if (field_focused == "obj2") ln_update.obj2_name = current.obj2_name;
-        else if (field_focused == "wait_after_ms") ln_update.wait_after_ms = current.wait_after_ms;
-        timeline[line_idx] = ln_update;
-    }
-}
-if (field_focused != "" && keyboard_check_pressed(vk_backspace)) {
+if (field_focused != "") {
+    // Ensure cursor is within bounds
     var len = string_length(str_input);
-    if (len > 0) str_input = string_delete(str_input, len, 1);
-    if (field_focused == "portrait1") current.portrait1_name = str_input;
-    else if (field_focused == "portrait2") current.portrait2_name = str_input;
-    else if (field_focused == "portrait3") current.portrait3_name = str_input;
-    else if (field_focused == "obj1") current.obj1_name = str_input;
-    else if (field_focused == "obj2") current.obj2_name = str_input;
-    else if (field_focused == "bg") current.bg_name = str_input;
-    else if (field_focused == "bg_sound") current.bg_sound = str_input;
-    else if (field_focused == "bg_sound2") current.bg_sound2 = str_input;
-    else if (field_focused == "text") current.text = str_input;
-    else if (field_focused == "wait_after_ms") {
-        var v_back = (str_input == "") ? 0 : real(str_input);
-        current.wait_after_ms = max(0, floor(v_back));
+    if (cursor_pos > len) cursor_pos = len;
+    
+    // Navigation
+    if (keyboard_check_pressed(vk_left)) {
+        cursor_pos = max(0, cursor_pos - 1);
     }
-    else if (field_focused == "chapter") global.current_chapter = max(1, floor(real(str_input)));
-    else if (field_focused == "act") global.current_act = max(1, floor(real(str_input)));
-    else if (field_focused == "duel") current.duel_bot_id = max(0, floor(real(str_input)));
-    if (array_length(timeline) > 0 && line_idx >= 0) {
-        var ln_back = timeline[line_idx];
-        if (field_focused == "text") ln_back.text = string(current.text);
-        else if (field_focused == "portrait1") ln_back.portrait1_name = current.portrait1_name;
-        else if (field_focused == "portrait2") ln_back.portrait2_name = current.portrait2_name;
-        else if (field_focused == "portrait3") ln_back.portrait3_name = current.portrait3_name;
-        else if (field_focused == "obj1") ln_back.obj1_name = current.obj1_name;
-        else if (field_focused == "obj2") ln_back.obj2_name = current.obj2_name;
-        else if (field_focused == "wait_after_ms") ln_back.wait_after_ms = current.wait_after_ms;
-        timeline[line_idx] = ln_back;
+    if (keyboard_check_pressed(vk_right)) {
+        cursor_pos = min(len, cursor_pos + 1);
     }
 
+    var text_changed = false;
+
+    // Typing
+    if (ks != "") {
+        str_input = string_insert(ks, str_input, cursor_pos + 1);
+        cursor_pos += string_length(ks);
+        keyboard_string = "";
+        text_changed = true;
+    }
+
+    // Backspace
+    if (keyboard_check_pressed(vk_backspace)) {
+        if (cursor_pos > 0) {
+            str_input = string_delete(str_input, cursor_pos, 1);
+            cursor_pos--;
+            text_changed = true;
+        }
+    }
+    
+    // Delete
+    if (keyboard_check_pressed(vk_delete)) {
+        if (cursor_pos < string_length(str_input)) {
+            str_input = string_delete(str_input, cursor_pos + 1, 1);
+            text_changed = true;
+        }
+    }
+
+    if (text_changed) {
+        if (field_focused == "portrait1") current.portrait1_name = str_input;
+        else if (field_focused == "portrait2") current.portrait2_name = str_input;
+        else if (field_focused == "portrait3") current.portrait3_name = str_input;
+        else if (field_focused == "obj1") current.obj1_name = str_input;
+        else if (field_focused == "obj2") current.obj2_name = str_input;
+        else if (field_focused == "bg") current.bg_name = str_input;
+        else if (field_focused == "bg_sound") current.bg_sound = str_input;
+        else if (field_focused == "bg_sound2") current.bg_sound2 = str_input;
+        else if (field_focused == "text") current.text = str_input;
+        else if (field_focused == "wait_after_ms") {
+            var v_in = (str_input == "") ? 0 : real(str_input);
+            current.wait_after_ms = max(0, floor(v_in));
+        }
+        else if (field_focused == "chapter") global.current_chapter = max(1, floor(real(str_input)));
+        else if (field_focused == "act") global.current_act = max(1, floor(real(str_input)));
+        else if (field_focused == "duel") current.duel_bot_id = max(0, floor(real(str_input)));
+        
+        if (array_length(timeline) > 0 && line_idx >= 0) {
+            var ln_update = timeline[line_idx];
+            if (field_focused == "text") ln_update.text = string(current.text);
+            else if (field_focused == "portrait1") ln_update.portrait1_name = current.portrait1_name;
+            else if (field_focused == "portrait2") ln_update.portrait2_name = current.portrait2_name;
+            else if (field_focused == "portrait3") ln_update.portrait3_name = current.portrait3_name;
+            else if (field_focused == "obj1") ln_update.obj1_name = current.obj1_name;
+            else if (field_focused == "obj2") ln_update.obj2_name = current.obj2_name;
+            else if (field_focused == "wait_after_ms") ln_update.wait_after_ms = current.wait_after_ms;
+            timeline[line_idx] = ln_update;
+        }
+    }
 }
+
 if (field_focused != "" && keyboard_check_pressed(vk_enter)) { field_focused = ""; str_input = ""; }
 
 if (false) {
@@ -642,15 +652,16 @@ if (mouse_check_button_pressed(mb_left)) {
         }
     } else if (point_in_rectangle(mx, my, btn_scene_plus_x1, btn_scene_plus_y1, btn_scene_plus_x2, btn_scene_plus_y2)) {
         var n = array_length(editor_scenes);
-        if (n > 0) {
-            if (scene_idx >= n - 1) {
+        if (scene_idx >= n - 1) {
             var scene_new = { id: "scene_" + string(n + 1), bg: "", bg_sound: "", bg_sound2: "", lines: [], duel_bot_id: 0, duel_player_deck: noone };
-                array_push(editor_scenes, scene_new);
-                scene_idx = n;
-                timeline = [];
-            } else {
-                scene_idx = scene_idx + 1;
-            }
+            array_push(editor_scenes, scene_new);
+            scene_idx = n;
+            timeline = [];
+        } else {
+            scene_idx = scene_idx + 1;
+        }
+
+        if (true) {
             line_idx = 0;
             var scn = editor_scenes[scene_idx];
             current.bg_name = scn.bg;
@@ -734,13 +745,17 @@ if (mouse_check_button_pressed(mb_left)) {
     } else if (point_in_rectangle(mx, my, btn_chap_minus_x1, btn_chap_minus_y1, btn_chap_minus_x2, btn_chap_minus_y2)) {
         global.current_chapter = max(1, global.current_chapter - 1);
         refresh_deck_options();
+        load_current_act_data();
     } else if (point_in_rectangle(mx, my, btn_chap_plus_x1, btn_chap_plus_y1, btn_chap_plus_x2, btn_chap_plus_y2)) {
         global.current_chapter = global.current_chapter + 1;
         refresh_deck_options();
+        load_current_act_data();
     } else if (point_in_rectangle(mx, my, btn_act_minus_x1, btn_act_minus_y1, btn_act_minus_x2, btn_act_minus_y2)) {
         global.current_act = max(1, global.current_act - 1);
+        load_current_act_data();
     } else if (point_in_rectangle(mx, my, btn_act_plus_x1, btn_act_plus_y1, btn_act_plus_x2, btn_act_plus_y2)) {
         global.current_act = global.current_act + 1;
+        load_current_act_data();
     } else if (point_in_rectangle(mx, my, btn_line_minus_x1, btn_line_minus_y1, btn_line_minus_x2, btn_line_minus_y2)) {
         if (array_length(timeline) == 0 && scene_idx >= 0 && is_array(editor_scenes[scene_idx].lines)) {
             timeline = editor_scenes[scene_idx].lines;

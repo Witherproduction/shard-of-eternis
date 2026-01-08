@@ -3,6 +3,9 @@ show_debug_message("### oCardParent.Click - room: " + string(room))
 // Bloque immédiatement tout clic si le panneau d'options est présent
 if (instance_exists(oPanelOptions)) return;
 
+// Bloque si le tutoriel restreint les clics
+if (instance_exists(oTutorielManager) && !oTutorielManager.isClickAllowed(mouse_x, mouse_y)) return;
+
 ///////////////////////////////////////////////////////////////////////
 // Controls
 ///////////////////////////////////////////////////////////////////////

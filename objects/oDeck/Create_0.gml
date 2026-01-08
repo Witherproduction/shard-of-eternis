@@ -99,9 +99,14 @@ for(var i=0; i<ds_list_size(deck); i++) {
 }
 
 // Mélanger l'ordre des cartes dans le deck pour rendre la pioche non déterministe
-if (ds_list_size(cards) > 1) {
+// SAUF si c'est le Chapitre 0 (Tutoriel), où l'ordre est scripté
+var is_tutorial = (variable_global_exists("current_chapter") && global.current_chapter == 0);
+
+if (ds_list_size(cards) > 1 && !is_tutorial) {
     ds_list_shuffle(cards);
     show_debug_message("### oDeck.Create_0 - Deck mélangé: " + string(ds_list_size(cards)) + " cartes");
+} else if (is_tutorial) {
+    show_debug_message("### oDeck.Create_0 - Deck NON mélangé (Tutoriel actif)");
 }
 
 
@@ -180,8 +185,8 @@ pick = function() { show_debug_message("### oDeck.pick");
         var fx = instance_create_depth(cardToPick.x, cardToPick.y, -100000, oFX_Draw);
         if (fx != noone) {
             fx.spriteGhost       = cardToPick.sprite_index;
-            // Afficher la face de la carte pendant l'animation
-            fx.imageGhost        = 0;
+            // Afficher la face pour le joueur, le dos pour l'IA
+            fx.imageGhost        = (isHeroOwner ? 0 : 1);
             fx.image_xscale      = cardToPick.image_xscale;
             fx.image_yscale      = cardToPick.image_yscale;
             fx.image_angle       = (isHeroOwner ? 0 : 180);

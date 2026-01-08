@@ -1,5 +1,13 @@
 show_debug_message("### oNextStep.clic")
 
+// Bloque si le tutoriel restreint les clics
+if (instance_exists(oTutorielManager)) {
+    var tuto = instance_find(oTutorielManager, 0);
+    if (variable_instance_exists(tuto, "isClickAllowed") && !tuto.isClickAllowed(device_mouse_x_to_gui(0), device_mouse_y_to_gui(0))) {
+        return;
+    }
+}
+
 // Permet au parent (oButtonBlock) de bloquer si nécessaire
 event_inherited();
 

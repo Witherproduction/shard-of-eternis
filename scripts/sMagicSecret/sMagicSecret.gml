@@ -268,12 +268,38 @@ function activateSecretsOnDestroyAttempt(target, source) {
             if (srcZone == "Field" || srcZone == "FieldSelected") { isCombat = true; }
         }
     }
-    var sourceOwnerIsHero = (source != noone && instance_exists(source) && variable_instance_exists(source, "isHeroOwner")) ? source.isHeroOwner : ownerIsHero;
+    // Amélioration de la détection du propriétaire de la source
+    var sourceOwnerIsHero = ownerIsHero;
+    if (source != noone && instance_exists(source)) {
+        if (variable_instance_exists(source, "isHeroOwner")) {
+            sourceOwnerIsHero = source.isHeroOwner;
+        } else if (variable_instance_exists(source, "is_player_card")) {
+            sourceOwnerIsHero = source.is_player_card;
+        } else {
+            // Fallback : si la source existe mais n'a pas d'allégeance, déduire via tour courant
+            if (instance_exists(game) && variable_instance_exists(game, "player") && variable_instance_exists(game, "player_current")) {
+                var currentIsHero = (game.player[game.player_current] == "Hero");
+                if (currentIsHero != ownerIsHero) {
+                    sourceOwnerIsHero = !ownerIsHero;
+                }
+            }
+        }
+    } else {
+        // Fallback : si la source n'existe plus (ex. détruite avant), déduire via tour courant
+        if (instance_exists(game) && variable_instance_exists(game, "player") && variable_instance_exists(game, "player_current")) {
+            var currentIsHero = (game.player[game.player_current] == "Hero");
+            if (currentIsHero != ownerIsHero) {
+                sourceOwnerIsHero = !ownerIsHero;
+            }
+        }
+    }
+
+    show_debug_message("### SecretDestroyAttempt: ownerIsHero=" + string(ownerIsHero) + " sourceOwnerIsHero=" + string(sourceOwnerIsHero) + " isCombat=" + string(isCombat));
 
     with (all) {
         if (!instance_exists(id)) continue;
         if (!variable_instance_exists(self, "type") || type != "Magic") continue;
-        if (!variable_instance_exists(self, "zone") || zone != "Field") continue;
+        if (!variable_instance_exists(self, "zone") || (zone != "Field" && zone != "FieldSelected")) continue;
         if (!variable_instance_exists(self, "genre") || string_lower(genre) != string_lower("Secret")) continue;
         if (!variable_instance_exists(self, "isFaceDown") || !isFaceDown) continue;
         if (!variable_instance_exists(self, "isHeroOwner") || isHeroOwner != ownerIsHero) continue;
@@ -288,8 +314,14 @@ function activateSecretsOnDestroyAttempt(target, source) {
                 var onlyOpponent = (variable_struct_exists(e.secret_activation, "only_if_opponent") && e.secret_activation.only_if_opponent);
                 if (isCombat && !allowCombat) continue;
                 if (onlyOpponent) {
-                    if (source == noone || !instance_exists(source)) continue;
                     if (sourceOwnerIsHero == ownerIsHero) continue;
+                    if (instance_exists(game) && variable_instance_exists(game, "player") && variable_instance_exists(game, "player_current")) {
+                        var currentIsHero = (game.player[game.player_current] == "Hero");
+                        if (ownerIsHero == currentIsHero) {
+                            show_debug_message("### SecretSkip: same turn as owner; ownerIsHero=" + string(ownerIsHero));
+                            continue;
+                        }
+                    }
                 }
                 chosenEffect = e; break;
             }
@@ -302,6 +334,7 @@ function activateSecretsOnDestroyAttempt(target, source) {
         if (variable_struct_exists(chosenEffect, "effect_type")) {
             executeEffect(self, chosenEffect, ctx);
         }
+        show_debug_message("### SecretActivated: consuming secret id=" + string(id));
         destroyCard(id);
         return true;
     }

@@ -22,4 +22,6 @@ if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_press
 if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_pressed(ord("R"))) {
     progression_reset();
     show_debug_message("### PROGRESSION RESET DEMANDÉ PAR L'UTILISATEUR");
+    show_message("Progression réinitialisée avec succès !");
+    room_restart();
 }

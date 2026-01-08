@@ -28,6 +28,12 @@ function progression_reset() {
         rewards: {}
     };
     progression_save();
+    
+    // Réinitialiser également la progression héritée (INI)
+    if (file_exists("progress.ini")) {
+        file_delete("progress.ini");
+    }
+    
     show_debug_message("### PROGRESSION RÉINITIALISÉE (Reset)");
 }
 
@@ -178,7 +184,8 @@ function unlock_chapter_access(chapter_id) {
 function is_chapter_unlocked(chapter_id) {
     if (!variable_global_exists("progression_data")) progression_init();
     if (variable_global_exists("admin_mode") && global.admin_mode) return true;
-    if (chapter_id == 1) return true; // Chapitre 1 toujours ouvert
+    if (chapter_id == 0) return true; // Chapitre 0 (Tuto) toujours ouvert
+    if (chapter_id == 1) return true; // Chapitre 1 toujours ouvert (pour l'instant)
     
     var ch_key = string(chapter_id);
     if (!variable_struct_exists(global.progression_data.chapters, ch_key)) return false;

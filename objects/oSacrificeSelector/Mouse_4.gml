@@ -91,7 +91,7 @@ for(var i = 0; i < nbCards; i++) {
     var card = instance_find(oCardParent, i);
     
     // Vérifie si c'est un monstre sur le terrain du joueur
-    if(card.type == "Monster" && card.zone == "Field" && card.isHeroOwner) {
+    if(card.type == "Monster" && (card.zone == "Field" || card.zone == "FieldSelected") && card.isHeroOwner) {
         
         // Calcul des limites de la carte en tenant compte de l’origine, de l’échelle et de l’angle
         var spr = card.sprite_index;
@@ -130,6 +130,17 @@ for(var i = 0; i < nbCards; i++) {
            mouse_y >= card_top && mouse_y <= card_bottom) {
             
             show_debug_message("### SacrificeSelector - Clic sur monstre: " + card.name);
+
+            // TUTO SPECIAL: Si on est à l'étape 5 ou 6 du tour 9 (tuto 9), BLOQUER tout ce qui n'est pas Maitre des Passes
+            if (instance_exists(oTutorielManager)) {
+                var tuto = instance_find(oTutorielManager, 0);
+                if (variable_instance_exists(tuto, "tutorial_id") && tuto.tutorial_id == 9 && (tuto.current_step == 5 || tuto.current_step == 6)) {
+                    if (card.object_index != oMaitrePasse) {
+                        show_debug_message("### TUTO BLOCK: Seul le Maître des Passes peut être sacrifié à cette étape !");
+                        return; // Bloque le clic
+                    }
+                }
+            }
             
             // Vérifie si la carte est déjà sélectionnée
             var isSelected = false;

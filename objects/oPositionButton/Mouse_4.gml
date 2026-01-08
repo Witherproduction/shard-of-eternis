@@ -1,5 +1,9 @@
 show_debug_message("### oPositionButton.Click");
 if (global.isGraveyardViewerOpen) exit;
+
+// Bloque si le tutoriel restreint les clics
+if (instance_exists(oTutorielManager) && !oTutorielManager.isClickAllowed(mouse_x, mouse_y)) exit;
+
 show_debug_message("parentCard: " + string(parentCard));
 
 // Vérifier que la carte parente existe

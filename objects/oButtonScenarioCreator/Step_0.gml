@@ -3,6 +3,9 @@ event_inherited();
 if (instance_exists(oPanelOptions)) { exit; }
 if (room != rAcceuil) exit;
 
+// Admin mode check
+if (!variable_global_exists("admin_mode") || !global.admin_mode) exit;
+
 if (mouse_check_button_pressed(mb_left)) {
     var mx = mouse_x;
     var my = mouse_y;

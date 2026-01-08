@@ -90,7 +90,7 @@ for(var i = 0; i < nbCards; i++) {
     var card = instance_find(oCardParent, i);
     
     // Vérifie si c'est un monstre sur le terrain du joueur
-    if(card.type == "Monster" && card.zone == "Field" && card.isHeroOwner) {
+    if(card.type == "Monster" && (card.zone == "Field" || card.zone == "FieldSelected") && card.isHeroOwner) {
         // Calcul des limites de la carte en tenant compte de l’origine, de l’échelle et de l’angle
         var spr = card.sprite_index;
         var w = sprite_get_width(spr) * card.image_xscale;
@@ -121,6 +121,15 @@ for(var i = 0; i < nbCards; i++) {
                 if(selectedSacrifices[j] == card) {
                     isSelected = true;
                     break;
+                }
+            }
+            
+            if (instance_exists(oTutorielManager)) {
+                var tuto = instance_find(oTutorielManager, 0);
+                if (variable_instance_exists(tuto, "tutorial_id") && tuto.tutorial_id == 9 && (tuto.current_step == 5 || tuto.current_step == 6)) {
+                    if (card.object_index != oMaitrePasse) {
+                        return;
+                    }
                 }
             }
             

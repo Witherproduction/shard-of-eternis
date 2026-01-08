@@ -119,15 +119,20 @@ function equipCleanup(card, effect, context) {
     
     // Keep reference to target for destruction check
     var oldTarget = t2;
-    card.equipped_target = noone;
+    // card.equipped_target = noone; // MOVED: Clear only if not destroyed
 
     if (variable_instance_exists(card, "equip_pending")) card.equip_pending = false;
     show_debug_message("### Equip: nettoyage sur destruction pour " + string(card.name));
     
     // If the target left the field (and it wasn't the artifact itself leaving), destroy the artifact
+    var destroyed = false;
     if (src != noone && oldTarget != noone && src == oldTarget) {
          show_debug_message("### Equip: Linked target " + string(src.name) + " destroyed/left. Destroying artifact " + string(card.name));
-         if (!is_undefined(destroyCard)) { destroyCard(card); }
+         if (!is_undefined(destroyCard)) { destroyCard(card); destroyed = true; }
+    }
+
+    if (!destroyed) {
+        card.equipped_target = noone;
     }
 
     return true;

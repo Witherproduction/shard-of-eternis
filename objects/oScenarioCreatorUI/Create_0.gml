@@ -33,6 +33,7 @@ function rect_contains(r, px, py) {
   current = { speaker: 1, text: "", bg_name: "", portrait1_name: "", portrait2_name: "", portrait3_name: "", obj1_name: "", obj2_name: "", duel_deck_hero: "", duel_deck_bot: "", bg_sound: "", bg_sound2: "", speaker1_flip: false, speaker2_flip: false, speaker3_flip: false, obj1_flip: false, obj2_flip: false, wait_after_ms: 600, duel_reward_type: "None", duel_reward_value: "" };
 input_mode = "";
 str_input = "";
+cursor_pos = 0;
 
 btn_w = 280 * k;
 btn_h = 64 * k;
@@ -219,3 +220,153 @@ duel_list_scroll_bot = 0;
 // Notification system
 save_notification_timer = 0;
 save_notification_text = "";
+
+load_scene_data = function(sc) {
+    current.bg_name = sc.bg;
+    if (variable_struct_exists(sc, "bg_sound")) current.bg_sound = sc.bg_sound; else current.bg_sound = "";
+    if (variable_struct_exists(sc, "bg_sound2")) current.bg_sound2 = sc.bg_sound2; else current.bg_sound2 = "";
+    if (variable_struct_exists(sc, "portrait1_name")) current.portrait1_name = sc.portrait1_name; else current.portrait1_name = "";
+    if (variable_struct_exists(sc, "speaker1_flip")) current.speaker1_flip = sc.speaker1_flip; else current.speaker1_flip = false;
+    if (variable_struct_exists(sc, "portrait2_name")) current.portrait2_name = sc.portrait2_name; else current.portrait2_name = "";
+    if (variable_struct_exists(sc, "speaker2_flip")) current.speaker2_flip = sc.speaker2_flip; else current.speaker2_flip = false;
+    if (variable_struct_exists(sc, "portrait3_name")) current.portrait3_name = sc.portrait3_name; else current.portrait3_name = "";
+    if (variable_struct_exists(sc, "speaker3_flip")) current.speaker3_flip = sc.speaker3_flip; else current.speaker3_flip = false;
+    if (variable_struct_exists(sc, "obj1_name")) current.obj1_name = sc.obj1_name; else current.obj1_name = "";
+    if (variable_struct_exists(sc, "obj1_flip")) current.obj1_flip = sc.obj1_flip; else current.obj1_flip = false;
+    if (variable_struct_exists(sc, "obj2_name")) current.obj2_name = sc.obj2_name; else current.obj2_name = "";
+    if (variable_struct_exists(sc, "obj2_flip")) current.obj2_flip = sc.obj2_flip; else current.obj2_flip = false;
+    
+    if (variable_struct_exists(sc, "speaker1_x")) speaker1.x = sc.speaker1_x;
+    if (variable_struct_exists(sc, "speaker1_y")) speaker1.y = sc.speaker1_y;
+    if (variable_struct_exists(sc, "speaker1_w")) speaker1.w = sc.speaker1_w;
+    if (variable_struct_exists(sc, "speaker1_h")) speaker1.h = sc.speaker1_h;
+    if (variable_struct_exists(sc, "speaker2_x")) speaker2.x = sc.speaker2_x;
+    if (variable_struct_exists(sc, "speaker2_y")) speaker2.y = sc.speaker2_y;
+    if (variable_struct_exists(sc, "speaker2_w")) speaker2.w = sc.speaker2_w;
+    if (variable_struct_exists(sc, "speaker2_h")) speaker2.h = sc.speaker2_h;
+    if (variable_struct_exists(sc, "speaker3_x")) speaker3.x = sc.speaker3_x;
+    if (variable_struct_exists(sc, "speaker3_y")) speaker3.y = sc.speaker3_y;
+    if (variable_struct_exists(sc, "speaker3_w")) speaker3.w = sc.speaker3_w;
+    if (variable_struct_exists(sc, "speaker3_h")) speaker3.h = sc.speaker3_h;
+    
+    if (variable_struct_exists(sc, "obj1_x")) object1.x = sc.obj1_x;
+    if (variable_struct_exists(sc, "obj1_y")) object1.y = sc.obj1_y;
+    if (variable_struct_exists(sc, "obj1_w")) object1.w = sc.obj1_w;
+    if (variable_struct_exists(sc, "obj1_h")) object1.h = sc.obj1_h;
+    if (variable_struct_exists(sc, "obj2_x")) object2.x = sc.obj2_x;
+    if (variable_struct_exists(sc, "obj2_y")) object2.y = sc.obj2_y;
+    if (variable_struct_exists(sc, "obj2_w")) object2.w = sc.obj2_w;
+    if (variable_struct_exists(sc, "obj2_h")) object2.h = sc.obj2_h;
+    
+    if (variable_struct_exists(sc, "textbox_x")) textbox.x = sc.textbox_x;
+    if (variable_struct_exists(sc, "textbox_y")) textbox.y = sc.textbox_y;
+    
+    if (variable_struct_exists(sc, "duel_bot_id")) current.duel_bot_id = sc.duel_bot_id; else current.duel_bot_id = 0;
+    if (variable_struct_exists(sc, "duel_player_deck")) current.duel_player_deck = sc.duel_player_deck; else current.duel_player_deck = noone;
+    
+    if (variable_struct_exists(sc, "portrait1_effect")) selected_effect_portrait1 = sc.portrait1_effect; else selected_effect_portrait1 = "Aucune";
+    if (variable_struct_exists(sc, "portrait2_effect")) selected_effect_portrait2 = sc.portrait2_effect; else selected_effect_portrait2 = "Aucune";
+    if (variable_struct_exists(sc, "portrait3_effect")) selected_effect_portrait3 = sc.portrait3_effect; else selected_effect_portrait3 = "Aucune";
+    if (variable_struct_exists(sc, "obj1_effect")) selected_effect_obj1 = sc.obj1_effect; else selected_effect_obj1 = "Aucune";
+    if (variable_struct_exists(sc, "obj2_effect")) selected_effect_obj2 = sc.obj2_effect; else selected_effect_obj2 = "Aucune";
+    if (variable_struct_exists(sc, "text_effect")) selected_effect_text = sc.text_effect; else selected_effect_text = "Aucune";
+    
+    if (variable_struct_exists(sc, "sp1_enabled")) sp1_enabled = sc.sp1_enabled; else sp1_enabled = true;
+    if (variable_struct_exists(sc, "sp2_enabled")) sp2_enabled = sc.sp2_enabled; else sp2_enabled = true;
+    if (variable_struct_exists(sc, "obj1_enabled")) obj1_enabled = sc.obj1_enabled; else obj1_enabled = true;
+    if (variable_struct_exists(sc, "obj2_enabled")) obj2_enabled = sc.obj2_enabled; else obj2_enabled = true;
+    if (variable_struct_exists(sc, "textbox_enabled")) textbox_enabled = sc.textbox_enabled; else textbox_enabled = true;
+    
+    if (variable_struct_exists(sc, "is_act_end")) current.is_act_end = sc.is_act_end; else current.is_act_end = false;
+    if (variable_struct_exists(sc, "act_reward_type")) act_reward_type = sc.act_reward_type; else act_reward_type = "None";
+    if (variable_struct_exists(sc, "act_reward_value")) act_reward_value = sc.act_reward_value; else act_reward_value = "";
+    
+    timeline = is_array(sc.lines) ? sc.lines : [];
+    if (array_length(timeline) > 0) {
+        line_idx = 0;
+        var line_data = timeline[line_idx];
+        current.speaker = line_data.speaker;
+        current.text = line_data.text;
+        
+        if (variable_struct_exists(line_data, "portrait1_name")) current.portrait1_name = line_data.portrait1_name;
+        if (variable_struct_exists(line_data, "portrait2_name")) current.portrait2_name = line_data.portrait2_name;
+        if (variable_struct_exists(line_data, "portrait3_name")) current.portrait3_name = line_data.portrait3_name;
+        if (variable_struct_exists(line_data, "obj1_name")) current.obj1_name = line_data.obj1_name;
+        if (variable_struct_exists(line_data, "obj2_name")) current.obj2_name = line_data.obj2_name;
+        
+        if (variable_struct_exists(line_data, "wait_after_ms")) current.wait_after_ms = line_data.wait_after_ms; else if (variable_struct_exists(line_data, "wait_after")) current.wait_after_ms = line_data.wait_after; else current.wait_after_ms = 600;
+        
+        if (variable_struct_exists(line_data, "speaker1_flip")) current.speaker1_flip = line_data.speaker1_flip;
+        if (variable_struct_exists(line_data, "speaker2_flip")) current.speaker2_flip = line_data.speaker2_flip;
+        if (variable_struct_exists(line_data, "speaker3_flip")) current.speaker3_flip = line_data.speaker3_flip;
+        if (variable_struct_exists(line_data, "obj1_flip")) current.obj1_flip = line_data.obj1_flip;
+        if (variable_struct_exists(line_data, "obj2_flip")) current.obj2_flip = line_data.obj2_flip;
+        
+        if (variable_struct_exists(line_data, "portrait1_effect")) selected_effect_portrait1 = line_data.portrait1_effect;
+        if (variable_struct_exists(line_data, "portrait2_effect")) selected_effect_portrait2 = line_data.portrait2_effect;
+        if (variable_struct_exists(line_data, "portrait3_effect")) selected_effect_portrait3 = line_data.portrait3_effect;
+        if (variable_struct_exists(line_data, "obj1_effect")) selected_effect_obj1 = line_data.obj1_effect;
+        if (variable_struct_exists(line_data, "obj2_effect")) selected_effect_obj2 = line_data.obj2_effect;
+        if (variable_struct_exists(line_data, "text_effect")) selected_effect_text = line_data.text_effect;
+        
+        if (variable_struct_exists(line_data, "speaker1_x")) speaker1.x = line_data.speaker1_x;
+        if (variable_struct_exists(line_data, "speaker1_y")) speaker1.y = line_data.speaker1_y;
+        if (variable_struct_exists(line_data, "speaker1_w")) speaker1.w = line_data.speaker1_w;
+        if (variable_struct_exists(line_data, "speaker1_h")) speaker1.h = line_data.speaker1_h;
+        if (variable_struct_exists(line_data, "speaker2_x")) speaker2.x = line_data.speaker2_x;
+        if (variable_struct_exists(line_data, "speaker2_y")) speaker2.y = line_data.speaker2_y;
+        if (variable_struct_exists(line_data, "speaker2_w")) speaker2.w = line_data.speaker2_w;
+        if (variable_struct_exists(line_data, "speaker2_h")) speaker2.h = line_data.speaker2_h;
+        if (variable_struct_exists(line_data, "speaker3_x")) speaker3.x = line_data.speaker3_x;
+        if (variable_struct_exists(line_data, "speaker3_y")) speaker3.y = line_data.speaker3_y;
+        if (variable_struct_exists(line_data, "speaker3_w")) speaker3.w = line_data.speaker3_w;
+        if (variable_struct_exists(line_data, "speaker3_h")) speaker3.h = line_data.speaker3_h;
+        
+        if (variable_struct_exists(line_data, "obj1_x")) object1.x = line_data.obj1_x;
+        if (variable_struct_exists(line_data, "obj1_y")) object1.y = line_data.obj1_y;
+        if (variable_struct_exists(line_data, "obj1_w")) object1.w = line_data.obj1_w;
+        if (variable_struct_exists(line_data, "obj1_h")) object1.h = line_data.obj1_h;
+        if (variable_struct_exists(line_data, "obj2_x")) object2.x = line_data.obj2_x;
+        if (variable_struct_exists(line_data, "obj2_y")) object2.y = line_data.obj2_y;
+        if (variable_struct_exists(line_data, "obj2_w")) object2.w = line_data.obj2_w;
+        if (variable_struct_exists(line_data, "obj2_h")) object2.h = line_data.obj2_h;
+        
+        if (variable_struct_exists(line_data, "textbox_x")) textbox.x = line_data.textbox_x;
+        if (variable_struct_exists(line_data, "textbox_y")) textbox.y = line_data.textbox_y;
+    } else {
+        line_idx = -1;
+        current.text = "";
+    }
+};
+
+load_current_act_data = function() {
+    var chap = global.current_chapter;
+    var actn = global.current_act;
+    var path = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
+    
+    if (file_exists(path)) {
+        var fr = file_text_open_read(path);
+        var s = "";
+        while (!file_text_eof(fr)) { s += file_text_read_string(fr); }
+        file_text_close(fr);
+        var data = json_parse(s);
+        editor_scenes = data.scenes;
+        scene_idx = 0;
+        line_idx = 0;
+        if (array_length(editor_scenes) > 0) {
+            load_scene_data(editor_scenes[0]);
+        } else {
+            scene_idx = -1;
+            line_idx = -1;
+            current.text = "";
+            timeline = [];
+        }
+    } else {
+        editor_scenes = [];
+        scene_idx = -1;
+        line_idx = -1;
+        current.text = "";
+        timeline = [];
+    }
+};
+

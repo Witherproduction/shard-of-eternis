@@ -5,12 +5,12 @@ var right_trigger = keyboard_check_pressed(vk_right) || mouse_wheel_down();
 
 if (left_trigger) {
     index = (index - 1 + count) mod count;
-    global.current_chapter = index + 1;
+    global.current_chapter = index;
     global.current_act = story_progress_get_resume_act(global.current_chapter);
 }
 if (right_trigger) {
     index = (index + 1) mod count;
-    global.current_chapter = index + 1;
+    global.current_chapter = index;
     global.current_act = story_progress_get_resume_act(global.current_chapter);
 }
 
@@ -38,11 +38,11 @@ if (mouse_check_button_pressed(mb_left)) {
     var rbottom = panel_y + rh * 0.5;
     if (point_in_rectangle(mouse_x, mouse_y, lleft, ltop, lright, lbottom)) {
         index = (index - 1 + count) mod count;
-        global.current_chapter = index + 1;
+        global.current_chapter = index;
         global.current_act = story_progress_get_resume_act(global.current_chapter);
     } else if (point_in_rectangle(mouse_x, mouse_y, rleft, rtop, rright, rbottom)) {
         index = (index + 1) mod count;
-        global.current_chapter = index + 1;
+        global.current_chapter = index;
         global.current_act = story_progress_get_resume_act(global.current_chapter);
     }
 }
@@ -64,11 +64,11 @@ if (mouse_check_button_pressed(mb_left)) {
     var rrect_bottom = ay + arr_h * 0.5;
     if (point_in_rectangle(mouse_x, mouse_y, lrect_left, lrect_top, lrect_right, lrect_bottom)) {
         index = (index - 1 + count) mod count;
-        global.current_chapter = index + 1;
+        global.current_chapter = index;
         global.current_act = story_progress_get_resume_act(global.current_chapter);
     } else if (point_in_rectangle(mouse_x, mouse_y, rrect_left, rrect_top, rrect_right, rrect_bottom)) {
         index = (index + 1) mod count;
-        global.current_chapter = index + 1;
+        global.current_chapter = index;
         global.current_act = story_progress_get_resume_act(global.current_chapter);
     }
 }
@@ -91,13 +91,32 @@ if (mouse_check_button_pressed(mb_left)) {
     var btn_y1 = btn_y2 - btn_h;
     
     // Mise à jour des coordonnées du bouton (juste pour être sûr)
-    btn_rect_x1 = btn_x1; btn_rect_y1 = btn_y1; btn_rect_x2 = btn_x2; btn_rect_y2 = btn_y2;
+    // ON NE LE FAIT PAS ICI : On laisse le Draw event gérer btn_rect pour être sûr que ça correspond à l'affichage
+    // btn_rect_x1 = btn_x1; btn_rect_y1 = btn_y1; btn_rect_x2 = btn_x2; btn_rect_y2 = btn_y2;
 
-    var click_start = point_in_rectangle(mouse_x, mouse_y, btn_x1, btn_y1, btn_x2, btn_y2);
+    // Utilisation des coordonnées du rectangle de dessin (btn_rect_*) pour la détection du clic
+    // Cela garantit que la zone cliquable correspond exactement à ce que le joueur voit
+    var click_start = point_in_rectangle(mouse_x, mouse_y, btn_rect_x1, btn_rect_y1, btn_rect_x2, btn_rect_y2);
+    
+    if (mouse_check_button_pressed(mb_left)) {
+         // Debug clic global
+         /*
+         show_debug_message("### oStoryCarousel Click: " + string(mouse_x) + "," + string(mouse_y));
+         show_debug_message("### Button Rect: " + string(btn_rect_x1) + "," + string(btn_rect_y1) + " - " + string(btn_rect_x2) + "," + string(btn_rect_y2));
+         show_debug_message("### Click Start Detected: " + string(click_start));
+         show_debug_message("### Current Index/ChapID: " + string(index));
+         */
+         
+         // Force check
+         if (mouse_x >= btn_rect_x1 && mouse_x <= btn_rect_x2 && mouse_y >= btn_rect_y1 && mouse_y <= btn_rect_y2) {
+             // show_debug_message("### MANUAL CHECK: Inside Rect!");
+             click_start = true;
+         }
+    }
     
     // Logique de clic sur les Actes individuels
-    var chap_id = index + 1;
-    if (is_chapter_unlocked(chap_id)) {
+     var chap_id = floor(index);
+     if (is_chapter_unlocked(chap_id)) {
         var top_y = iyt;
         var y0 = top_y + 180 * k;
         var act_click_w = inner_w * 0.9;
@@ -139,6 +158,43 @@ if (mouse_check_button_pressed(mb_left)) {
         }
 
         show_debug_message("### oStoryCarousel: clic sur Commencer");
+        show_debug_message("### Processing Chapter: " + string(chap_id));
+        
+        // --- MODIFICATION POUR CHAPITRE 0 (TUTO) ---
+        if (chap_id == 0) {
+             // show_debug_message("### Starting Tutorial Duel Logic");
+             
+             if (!room_exists(rDuel)) {
+                 show_debug_message("### ERROR: rDuel does not exist!");
+                 exit;
+             }
+             
+             // Configuration directe du duel de tutoriel
+             global.current_chapter = 0;
+             global.current_act = 1;
+             
+             // Deck Bot
+             global.selected_bot_deck_id = "tuto_deck_bot";
+             
+             // Deck Joueur
+             var decks = get_hero_decks_tuto();
+             if (array_length(decks) > 0) {
+                 global.selected_player_deck = decks[0];
+             } else {
+                 // Fallback
+                 global.selected_player_deck = { name: "Deck Tuto", cards: [] };
+             }
+             
+             // Pas de retour scénario spécifique pour le moment, ou retour au menu
+             global.previous_room_before_duel = room; // Retour au carousel
+             global.duel_resume_scene = -1; 
+             
+             audio_stop_all();
+             room_goto(rDuel);
+             show_debug_message("### room_goto(rDuel) called");
+             exit;
+        }
+        // -------------------------------------------
         
         // Lancer l'acte sélectionné
         var selected_act = global.current_act;

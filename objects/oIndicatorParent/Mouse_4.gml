@@ -7,6 +7,9 @@ if (room != rDuel) {
 
 if (global.isGraveyardViewerOpen) exit;
 
+// Bloque si le tutoriel restreint les clics
+if (instance_exists(oTutorielManager) && !oTutorielManager.isClickAllowed(mouse_x, mouse_y)) exit;
+
 ///////////////////////////////////////////////////////////////////////
 // Attributs
 ///////////////////////////////////////////////////////////////////////

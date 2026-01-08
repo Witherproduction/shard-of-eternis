@@ -1,5 +1,12 @@
 show_debug_message("### oGlobalManager.create - INITIALISATION GLOBALE");
 
+// Singleton Check
+if (instance_number(object_index) > 1) {
+    show_debug_message("### oGlobalManager: Doublon détruit");
+    instance_destroy();
+    exit;
+}
+
 // Assurer la persistance de l'objet
 persistent = true;
 
@@ -60,4 +67,9 @@ if (!variable_global_exists("options_loaded") || !global.options_loaded) {
 // Autres variables globales
 if (!variable_global_exists("previous_room_before_duel")) {
     global.previous_room_before_duel = rMode;
+}
+
+// Mode Admin
+if (!variable_global_exists("admin_mode")) {
+    global.admin_mode = false;
 }

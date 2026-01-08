@@ -1,4 +1,7 @@
 // === oButtonScenarioCreator - Draw Event ===
+// Admin mode check
+if (!variable_global_exists("admin_mode") || !global.admin_mode) exit;
+
 var draw_x = x - button_width / 2;
 var draw_y = y - button_height / 2;
 

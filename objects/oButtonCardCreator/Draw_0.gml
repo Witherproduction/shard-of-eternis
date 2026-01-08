@@ -1,6 +1,9 @@
 // === oButtonCardCreator - Draw Event ===
 // Affichage du bouton de création de cartes
 
+// Admin mode check
+if (!variable_global_exists("admin_mode") || !global.admin_mode) exit;
+
 // Calculer les limites du bouton
 var button_left = x - button_width / 2;
 var button_top = y - button_height / 2;

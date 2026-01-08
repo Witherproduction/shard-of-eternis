@@ -42,7 +42,7 @@ if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_i
 // Méthodes
 ///////////////////////////////////////////////////////////////////////
 
-if (!variable_global_exists("IA_ACTION_DELAY_FRAMES")) global.IA_ACTION_DELAY_FRAMES = 1 * room_speed;
+if (!variable_global_exists("IA_ACTION_DELAY_FRAMES")) global.IA_ACTION_DELAY_FRAMES = 1.5 * room_speed;
 if (!variable_instance_exists(id, "iaDelayFrames")) iaDelayFrames = 0;
 if (!variable_instance_exists(id, "iaNextPhasePending")) iaNextPhasePending = false;
 // File des actions manuelles (effets, sorts) et état de traitement
@@ -173,6 +173,27 @@ summon = function() {
     // Initialisation flag boucle
     if (!variable_instance_exists(id, "aiMainPhaseActive")) aiMainPhaseActive = false;
 
+    // --- TUTORIAL OVERRIDE ---
+    if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
+        var tutoMove = AI_GetTutorialMove(game.nbTurn, "Summon");
+        if (tutoMove != noone) {
+             var success = AI_ExecuteMove(tutoMove);
+             if (success) {
+                 iaDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : room_speed);
+                 aiMainPhaseActive = true; 
+             } else {
+                 aiMainPhaseActive = false;
+                 scheduleNextPhase();
+             }
+             return;
+        } else {
+             aiMainPhaseActive = false;
+             scheduleNextPhase();
+             return;
+        }
+    }
+    // -------------------------
+
     var moves = AI_GetLegalMoves_Summon();
     var bestMove = AI_SelectBestMove(moves);
     
@@ -228,6 +249,23 @@ attack = function() {
 
     // Règle: pas d'attaque au tour 1
     if (game.nbTurn == 1) { if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.attack: Attaque interdite au tour 1 du duel"); game.nextPhase(); return; }
+
+    // --- TUTORIAL OVERRIDE ---
+    if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
+        var tutoMove = AI_GetTutorialMove(game.nbTurn, "Attack");
+        if (tutoMove != noone) {
+             var success = AI_ExecuteMove(tutoMove);
+             if (success) {
+                 attackDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : room_speed);
+                 attackProcessing = true; // Continuer la boucle au prochain Step
+                 return;
+             }
+        } 
+        // Si pas de move ou move fait, on passe le tour d'attaque (IA passive sauf script)
+        game.nextPhase();
+        return;
+    }
+    // -------------------------
 
     iaAttackResetEngagement();
     if (variable_instance_exists(id, "attackProcessing") == false) attackProcessing = false;

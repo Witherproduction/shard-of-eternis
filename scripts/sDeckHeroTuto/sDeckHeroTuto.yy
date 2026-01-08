@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sDeckHeroTuto",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sDeckHeroTuto",
+  "parent":{
+    "name":"tuto",
+    "path":"folders/Scripts/Deck/tuto.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
