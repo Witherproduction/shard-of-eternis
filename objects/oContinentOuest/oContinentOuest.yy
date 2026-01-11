@@ -10,10 +10,13 @@
   "name":"oContinentOuest",
   "overriddenProperties":[],
   "parent":{
-    "name":"map",
-    "path":"folders/Objets/map.yy",
+    "name":"continent",
+    "path":"folders/Objets/map/continent.yy",
   },
-  "parentObjectId":null,
+  "parentObjectId":{
+    "name":"oContinentManager",
+    "path":"objects/oContinentManager/oContinentManager.yy",
+  },
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,

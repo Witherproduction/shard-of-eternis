@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"sStoryProgress",
+  "%Name":"sRegion_ForetDesVoleur",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"sStoryProgress",
+  "name":"sRegion_ForetDesVoleur",
   "parent":{
     "name":"progress",
     "path":"folders/Scripts/progress.yy",

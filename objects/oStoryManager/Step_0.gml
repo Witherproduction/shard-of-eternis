@@ -1,43 +1,6 @@
 // === oStoryManager - Step Event ===
 // Gestion des interactions souris
 
-// Gestion de la transition Map
-if (instance_exists(oContinentOuest)) {
-    var cont = instance_find(oContinentOuest, 0);
-    
-    if (map_zoom_state == "ZOOMING_IN") {
-        // Zoom in
-        cont.image_xscale = lerp(cont.image_xscale, 5, transition_speed);
-        cont.image_yscale = lerp(cont.image_yscale, 5, transition_speed);
-        cont.image_alpha = lerp(cont.image_alpha, 0, transition_speed);
-        
-        // Location fade in
-        location_alpha = lerp(location_alpha, 1, transition_speed);
-        
-        if (location_alpha > 0.95) {
-            location_alpha = 1;
-            cont.image_alpha = 0;
-            map_zoom_state = "ZOOMED";
-        }
-    } else if (map_zoom_state == "ZOOMING_OUT") {
-        // Zoom out (Reset)
-        cont.image_xscale = lerp(cont.image_xscale, 1, transition_speed);
-        cont.image_yscale = lerp(cont.image_yscale, 1, transition_speed);
-        cont.image_alpha = lerp(cont.image_alpha, 1, transition_speed);
-        
-        // Location fade out
-        location_alpha = lerp(location_alpha, 0, transition_speed);
-        
-        if (location_alpha < 0.05) {
-            location_alpha = 0;
-            cont.image_alpha = 1;
-            cont.image_xscale = 1;
-            cont.image_yscale = 1;
-            map_zoom_state = "IDLE";
-        }
-    }
-}
-
 var mx = mouse_x;
 var my = mouse_y;
 var click = mouse_check_button_pressed(mb_left);
@@ -59,8 +22,10 @@ for (var i = 0; i < array_length(heroes); i++) {
             // Ne pas sélectionner de chapitre par défaut, l'utilisateur doit choisir
             selected_chapter_id = -1;
             
-            // Reset Zoom si on change de héros
-            map_zoom_state = "ZOOMING_OUT";
+            // Reset Zoom si on change de héros via oMapManager
+            if (instance_exists(oMapManager)) {
+                oMapManager.map_zoom_state = "ZOOMING_OUT";
+            }
         }
     }
 }
@@ -105,15 +70,22 @@ if (selected_hero_index != -1) {
                 global.current_chapter = selected_chapter_id;
                 update_resume_act();
                 
-                // Déclencher le zoom et afficher le lieu
-                map_zoom_state = "ZOOMING_IN";
-                
-                // Choix du sprite selon le chapitre
-                location_sprite = -1;
-                
-                // Chapitre 1 de Kaelen
-                if (selected_chapter_id == 1) {
-                    location_sprite = sForetDesVoleur;
+                // Déclencher le zoom et afficher le lieu via oMapManager
+                if (instance_exists(oMapManager)) {
+                    oMapManager.map_zoom_state = "ZOOMING_IN";
+                    
+                    // Choix du sprite et du masque selon le chapitre
+                    oMapManager.location_sprite = -1;
+                    oMapManager.location_mask = -1;
+                    
+                    // Chapitre 1 de Kaelen
+                    if (selected_chapter_id == 1) {
+                        oMapManager.location_sprite = sForetDesVoleur;
+                        oMapManager.location_mask = sMasqueForetDesVoleur;
+                        
+                        // Définir les zones de révélation (Pochoirs) via le script dédié
+                        oMapManager.location_reveal_zones = region_get_zones_ForetDesVoleur();
+                    }
                 }
             }
         }

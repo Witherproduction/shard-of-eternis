@@ -1,21 +1,7 @@
 // === oStoryManager - Draw Event ===
 
 // Dessiner la vue du lieu (Transition Map -> Lieu)
-if (location_alpha > 0 && location_sprite != -1) {
-    var spr_w = sprite_get_width(location_sprite);
-    var spr_h = sprite_get_height(location_sprite);
-    var rw = room_width;
-    var rh = room_height;
-    
-    // Échelle pour adapter à l'écran (contain) au lieu de couvrir (cover)
-    // "Trop grand" => on évite le zoom excessif du mode cover
-    var scale = min(rw / spr_w, rh / spr_h) * 0.6;
-    
-    // Optionnel : Limiter l'agrandissement à 1.5x si nécessaire pour éviter la pixelisation
-    // scale = min(scale, 1.5);
-    
-    draw_sprite_ext(location_sprite, 0, rw/2, rh/2, scale, scale, 0, c_white, location_alpha);
-}
+// NOTE: Logique déplacée vers oMapManager
 
 draw_set_font(fontCardDisplay);
 draw_set_valign(fa_middle);
@@ -100,18 +86,6 @@ if (selected_hero_index != -1) {
     
     var cx = panel_chap_x;
     var cy = panel_chap_y;
-    
-    // En-tête Héros (Supprimé)
-    /*
-    draw_set_halign(fa_center);
-    draw_set_color(col_text_main);
-    draw_text(cx + panel_chap_w/2, cy + 30, hero.name);
-    
-    draw_set_font(fontLP);
-    draw_set_color(col_text_dim);
-    draw_text(cx + panel_chap_w/2, cy + 60, hero.description);
-    draw_set_font(fontCardDisplay);
-    */
     
     cy += 20;
     

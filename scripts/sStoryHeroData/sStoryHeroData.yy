@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"sStoryHeroData",
   "parent":{
-    "name":"Scripts",
-    "path":"folders/Scripts.yy",
+    "name":"progress",
+    "path":"folders/Scripts/progress.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
