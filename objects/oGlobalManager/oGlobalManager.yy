@@ -10,8 +10,8 @@
   "name":"oGlobalManager",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objets",
-    "path":"folders/Objets.yy",
+    "name":"Option",
+    "path":"folders/Objets/Option.yy",
   },
   "parentObjectId":null,
   "persistent":true,

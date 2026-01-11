@@ -12,21 +12,21 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"e93a2df6-16b6-49c7-ae6c-7cd9521a0a49","name":"e93a2df6-16b6-49c7-ae6c-7cd9521a0a49","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"37901e83-5c67-4aca-8561-35a8027e89c2","name":"37901e83-5c67-4aca-8561-35a8027e89c2","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":130,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"66d970a1-7880-4359-bc46-5129f28d6953","blendMode":0,"displayName":"default","isLocked":false,"name":"66d970a1-7880-4359-bc46-5129f28d6953","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"88fc3bff-0c23-4873-834d-23f02be9c1e2","blendMode":0,"displayName":"default","isLocked":false,"name":"88fc3bff-0c23-4873-834d-23f02be9c1e2","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"sPortraitOrcGeuleRoche",
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"portrait",
-    "path":"folders/Sprites/portrait.yy",
+    "name":"bot",
+    "path":"folders/Sprites/portrait/bot.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
@@ -69,8 +69,8 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"e93a2df6-16b6-49c7-ae6c-7cd9521a0a49","path":"sprites/sPortraitOrcGeuleRoche/sPortraitOrcGeuleRoche.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"b593fe47-7174-470e-b719-a6e0c755ce0f","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"37901e83-5c67-4aca-8561-35a8027e89c2","path":"sprites/sPortraitOrcGeuleRoche/sPortraitOrcGeuleRoche.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"39df89c1-e5a5-4e99-9936-b6d95fd048bf","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

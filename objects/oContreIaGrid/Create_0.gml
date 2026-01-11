@@ -36,7 +36,8 @@ for (var i = 0; i < array_length(all_available_decks); i++) {
     var deck = all_available_decks[i];
     var bot_id = deck.id; // L'ID du deck détermine la position dans la grille
     
-    if (bot_id < total_cells) {
+    // Vérification du type de bot_id pour éviter le crash (ex: "tuto_deck_bot" est une string)
+    if (is_real(bot_id) && bot_id < total_cells) {
         bot_data[bot_id] = {
             name: deck.name,
             description: variable_struct_exists(deck, "description") ? deck.description : "Pas de description disponible.",

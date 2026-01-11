@@ -11,8 +11,8 @@
   "name":"oCardCreatorUI",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objets",
-    "path":"folders/Objets.yy",
+    "name":"createur",
+    "path":"folders/Objets/createur.yy",
   },
   "parentObjectId":null,
   "persistent":false,

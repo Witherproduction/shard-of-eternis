@@ -1,0 +1,56 @@
+# PLAN DE REFONTE : SYSTEME DE CARTE DU MONDE (WORLD MAP)
+
+Ce document résume la nouvelle architecture de navigation remplaçant le carrousel linéaire par une carte interactive immersive.
+
+## 1. CONCEPT GLOBAL
+Remplacer la sélection de chapitre linéaire par une carte à explorer.
+- **Effet recherché :** "Découverte de carte" (Map Reveal).
+- **Style Visuel :** Carte dessinée sur parchemin. Le parchemin vierge disparait pour révéler la carte dessinée ("effet d'encrage").
+- **Progression :** Chapitres (Continents) -> Actes (Sous-zones).
+- **Navigation :** Zoom fluide depuis la vue Monde vers la vue Région détaillée.
+
+## 2. TECHNIQUE DE RÉVÉLATION : "GOMMAGE PAR SPRITE" (POCHOIRS)
+Au lieu de découper la carte en morceaux, on utilise des masques pour rendre la couche "Parchemin" transparente.
+
+### A. Les Couches (Layers)
+1.  **Fond (Background) :** L'assemblage des sprites de continents/régions (la carte dessinée en couleur).
+2.  **Couverture (Overlay) :** Une surface remplie avec la texture "Parchemin" qui cache tout.
+3.  **Masques (Pochoirs) :** Des sprites en niveaux de gris (blanc sur fond transparent) représentant la forme des zones à révéler.
+
+### B. Le Mécanisme
+- Le code dessine la couche Parchemin par-dessus la carte.
+- Il utilise le "Blend Mode" (`gpu_set_blendmode(bm_subtract)`) pour dessiner les Masques aux coordonnées des zones débloquées.
+- Cela "gomme" le parchemin, donnant l'illusion que la carte est dessinée sur le papier à cet endroit.
+- **Style :** Les masques peuvent avoir des bords irréguliers (effet tache d'encre / coup de pinceau) pour un rendu artistique.
+
+## 3. ARCHITECTURE A DEUX NIVEAUX
+
+### Niveau 1 : Vue Monde (World View)
+- **Visuel :** Carte globale composée de plusieurs sprites (Continents).
+- **Déblocage :** Par **Chapitre**.
+- **Action :** Clic sur un continent débloqué -> Zoom caméra + Fondu -> Chargement du Niveau 2.
+
+### Niveau 2 : Vue Région (Region View)
+- **Visuel :** Zoom haute définition sur la région sélectionnée (Sprite HD ou Zoom fort).
+- **Déblocage :** Par **Acte**.
+- **Action :** Clic sur la prochaine sous-zone -> Lance le Scénario/Duel.
+
+## 4. LISTE DES ASSETS GRAPHIQUES A PRODUIRE (CHECKLIST)
+
+### A. Niveau 1 : Monde
+- [ ] **Sprites Continents** : Images des continents (ex: `sMap_Foret`, `sMap_Volcan`...).
+- [ ] **Pochoirs Continents** : Formes blanches pour révéler chaque continent sur la carte globale.
+
+### B. Niveau 2 : Région (Détail)
+- [ ] **Sprites Régions HD** : Images détaillées des zones (si différentes des continents).
+- [ ] **Pochoirs Sous-Zones (Actes)** : Formes blanches (ou taches d'encre) pour révéler les lieux précis (village, grotte...) à l'intérieur de la région.
+
+### C. Commun
+- [ ] **Sprite Parchemin** : Texture de papier vieilli/beige (ex: 1024x1024 tileable) qui servira de cache global.
+
+## 5. NOMMAGE ET CODE (RAPPEL)
+- **Objet principal :** `oWorldMap` (Gère l'affichage, les surfaces, les clics et le zoom).
+- **Logique :** L'objet assemblera les sprites de continents pour former le fond, puis appliquera la couche parchemin et les masques par-dessus.
+
+---
+*Document généré par l'Assistant pour référence future.*

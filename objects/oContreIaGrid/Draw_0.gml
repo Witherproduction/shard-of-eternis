@@ -117,26 +117,30 @@ for (var row = 0; row < grid_rows; row++) {
                  }
                  
                  if (spr_idx != -1) {
-                     // Dessiner le sprite adapté à la cellule (avec une petite marge)
-                     var draw_w = cell_width - 10;
-                     var draw_h = cell_height - 10;
+                     // Dessiner le sprite adapté à la cellule (remplissage complet)
+                     var draw_w = cell_width;
+                     var draw_h = cell_height;
                      var spr_w = sprite_get_width(spr_idx);
                      var spr_h = sprite_get_height(spr_idx);
                      var scale_x = draw_w / spr_w;
                      var scale_y = draw_h / spr_h;
-                     var scale = min(scale_x, scale_y); // Garder les proportions
+                     // Utiliser max() pour s'assurer que l'image couvre tout (crop si nécessaire)
+                     // Ou min() pour s'assurer que tout rentre sans déformation
+                     var scale = max(scale_x, scale_y); 
                      
                      var ox = sprite_get_xoffset(spr_idx);
                      var oy = sprite_get_yoffset(spr_idx);
                      
                      // Centrer
-                     var draw_px = cell_x + 5 + (draw_w - spr_w * scale) / 2;
-                     var draw_py = cell_y + 5 + (draw_h - spr_h * scale) / 2;
+                     var draw_px = cell_x + (draw_w - spr_w * scale) / 2;
+                     var draw_py = cell_y + (draw_h - spr_h * scale) / 2;
                      
                      // Ajuster pour l'origine du sprite
                      draw_px += ox * scale;
                      draw_py += oy * scale;
                      
+                     // Utiliser un masque (via gpu_set_scissor ou simplement dessiner)
+                     // Ici on dessine simplement, si ça dépasse on s'en fiche un peu ou on peut clipper
                      draw_sprite_ext(spr_idx, 0, draw_px, draw_py, scale, scale, 0, c_white, 1);
                      has_portrait = true;
                  }

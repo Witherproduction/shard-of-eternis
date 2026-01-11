@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"interface",
-    "path":"folders/Sprites/interface.yy",
+    "name":"cadre",
+    "path":"folders/Sprites/interface/cadre.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

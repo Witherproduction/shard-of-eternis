@@ -10,8 +10,8 @@
   "name":"oButtonCardCreator",
   "overriddenProperties":[],
   "parent":{
-    "name":"acceuil",
-    "path":"folders/Objets/acceuil.yy",
+    "name":"createur",
+    "path":"folders/Objets/createur.yy",
   },
   "parentObjectId":{
     "name":"oButtonBlock",

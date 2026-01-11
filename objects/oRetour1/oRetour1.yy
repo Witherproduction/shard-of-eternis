@@ -11,8 +11,8 @@
   "name":"oRetour1",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objets",
-    "path":"folders/Objets.yy",
+    "name":"acceuil",
+    "path":"folders/Objets/acceuil.yy",
   },
   "parentObjectId":null,
   "persistent":false,

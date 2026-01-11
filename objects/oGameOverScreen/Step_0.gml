@@ -28,7 +28,8 @@ if (alpha >= targetAlpha) {
             var target_room = global.previous_room_before_duel;
             
             // === RECOMPENSES GENERALES (Victoire) ===
-            if (isVictory) {
+            // Note: Pas de déblocage de cartes pour le Chapitre 0 (Tutoriel)
+            if (isVictory && (!variable_global_exists("current_chapter") || global.current_chapter != 0)) {
                 // 1. Débloquer les cartes du deck joueur utilisé
                 if (variable_global_exists("selected_player_deck") && is_struct(global.selected_player_deck)) {
                      if (variable_struct_exists(global.selected_player_deck, "cards")) {
@@ -107,6 +108,19 @@ if (alpha >= targetAlpha) {
                           global.current_scene_index = global.duel_resume_scene;
                           global.sc_load_line_index = global.duel_resume_line;
                      }
+                }
+            } 
+            // Gestion Spéciale : Chapitre 0 (Tutoriel)
+            // Si on n'est pas passé par le Scénario (target_room != rScenario) mais qu'on a fait le Tuto
+            else if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
+                if (isVictory) {
+                     show_debug_message("### Victoire Tuto : Chapitre 0 complété !");
+                     
+                     // Valider l'Acte 1 du Chapitre 0
+                     unlock_act_complete(0, 1);
+                     
+                     // Débloquer l'accès au Chapitre 1
+                     unlock_chapter_access(1);
                 }
             }
 
