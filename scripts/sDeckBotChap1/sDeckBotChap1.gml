@@ -37,6 +37,38 @@ function get_bot_decks_chap1() {
               
                 "oFeuillageProtecteur", "oFeuillageProtecteur"
             ]
+        },
+        {
+            id: 2,
+            name: "Essaim Abyssien",
+            profile: "swarm",
+            deck_name: "Essaim Abyssien",
+            difficulty: "Moyen",
+            portrait: "sPortraitAbyssien",
+            description: "Un deck basé sur les Abyssiens qui se multiplient et submergent l'adversaire, soutenus par quelques bêtes de la forêt.",
+            cards: [
+                "oTortueVagabonde", "oTortueVagabonde", "oTortueVagabonde",
+                // Abyssiens doublés (6 copies chacun)
+                "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien",
+                "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien",
+                "oRodeurAbyssien", "oRodeurAbyssien", "oRodeurAbyssien", "oRodeurAbyssien", "oRodeurAbyssien", "oRodeurAbyssien",
+
+                // Sorts Abyssiens
+                "oMareeDeferlante", "oMareeDeferlante", "oMareeDeferlante",
+                "oProtectionMaree", "oProtectionMaree", "oProtectionMaree",
+                "oHurlementTribu", "oHurlementTribu", "oHurlementTribu",
+                "oFerveurMarais", "oFerveurMarais", "oFerveurMarais",
+
+                // Loups retirés pour faire de la place
+                // "oJeuneLoup", "oJeuneLoup", "oJeuneLoup",
+                // "oLoupGaleux", "oLoupGaleux", "oLoupGaleux",
+                // "oLoupGrisForet", "oLoupGrisForet", "oLoupGrisForet",
+
+                "oJeuneLoup", "oJeuneLoup",
+                "oJeuneOursForet", "oJeuneOursForet",
+                "oVieilOurs",
+                "oPeauRocRobuste", "oPeauRocRobuste"
+            ]
         }
     ];
 }

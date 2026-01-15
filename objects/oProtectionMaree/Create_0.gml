@@ -8,7 +8,7 @@ rarity = "commun"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Lorsqu'un Abyssien est invoqué, piochez une carte."
+description = "Lorsqu'un Abyssien est invoqué normalement, piochez une carte."
 effects = [
     {
         id: 1,
@@ -17,7 +17,8 @@ effects = [
         value: 1,
         conditions: {
             source_owner: "ally",
-            source_name_contains: "Abyssien"
+            source_name_contains: "Abyssien",
+            summon_mode: "Summon"
         }
     }
 ]

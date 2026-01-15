@@ -18,7 +18,8 @@ effects = [
         object_name: "oCoureurAbyssien",
         conditions: {
             source_owner: "ally",
-            source_name_contains: "Abyssien"
+            source_name_contains: "Abyssien",
+            source_object_not: "oCoureurAbyssien"
         }
     }
 ]

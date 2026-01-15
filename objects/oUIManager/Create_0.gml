@@ -36,9 +36,30 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
     var canNormalSummon = false;
     if (card != noone && instance_exists(card)) {
         if (card.type == "Monster") {
+            // Vérifier s'il y a de la place sur le terrain (sauf si sacrifice nécessaire)
+            var hasFreeSlot = false;
+            var reqSacrifice = getSacrificeLevel(card.star);
+            
+            // Si monstre de niveau 1, il faut un slot libre
+            if (card.star == 1) {
+                var fm = instance_exists(fieldManagerHero) ? fieldManagerHero : instance_find(oFieldManagerHero, 0);
+                if (fm != noone && instance_exists(fm)) {
+                    var monsterField = fm.getField("Monster");
+                    if (monsterField != noone && variable_struct_exists(monsterField, "cards")) {
+                        for (var i = 0; i < array_length(monsterField.cards); i++) {
+                            if (monsterField.cards[i] == 0) { hasFreeSlot = true; break; }
+                        }
+                    }
+                }
+            } else {
+                // Pour les autres niveaux (2, 3, etc.), on affiche les boutons (soit sacrifice, soit autre logique)
+                hasFreeSlot = true;
+            }
+
             canNormalSummon = (game.phase[game.phase_current] == "Summon"
                                && game.player[game.player_current] == "Hero"
-                               && !game.hasSummonedThisTurn[0]);
+                               && !game.hasSummonedThisTurn[0]
+                               && hasFreeSlot);
         }
     }
 

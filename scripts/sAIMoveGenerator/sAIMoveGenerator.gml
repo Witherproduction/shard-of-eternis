@@ -180,19 +180,36 @@ function AI_GetLegalMoves_Summon() {
                  
                  // Si c'est une magie Continue (ou similaire) sans effet d'activation direct (effets passifs/déclenchés),
                  // on doit quand même pouvoir la jouer.
-                 if (array_length(moves) == movesCountBefore) {
-                     var genre = variable_instance_exists(card, "genre") ? card.genre : "";
-                     var isContinuous = (genre == "Continue" || genre == "Continu" || genre == "Terrain" || genre == "Field");
-                     
-                     if (isContinuous) {
-                         array_push(moves, {
-                             type: "activate", // "activate" ici signifie "jouer la carte"
-                             card: card,
-                             target: noone,
-                             effect_type: "continuous_placement"
-                         });
-                     }
-                 }
+                if (array_length(moves) == movesCountBefore) {
+                    var genre = variable_instance_exists(card, "genre") ? card.genre : "";
+                    var isContinuous = (genre == "Continue" || genre == "Continu" || genre == "Terrain" || genre == "Field");
+                    
+                    if (isContinuous) {
+                        var allowPlay = true;
+                        if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
+                            if (instance_exists(card)) {
+                                var cname = object_get_name(card.object_index);
+                                if (cname == "oProtectionMaree") {
+                                    if (AI_CountEnemyContinuousByObjectName("oProtectionMaree") >= 1) {
+                                        allowPlay = false;
+                                    }
+                                } else if (cname == "oFerveurMarais") {
+                                    if (AI_CountEnemyContinuousByObjectName("oFerveurMarais") >= 2) {
+                                        allowPlay = false;
+                                    }
+                                }
+                            }
+                        }
+                        if (allowPlay) {
+                            array_push(moves, {
+                                type: "activate",
+                                card: card,
+                                target: noone,
+                                effect_type: "continuous_placement"
+                            });
+                        }
+                    }
+                }
              }
         }
     }
@@ -545,4 +562,21 @@ function AI_GetLegalMoves_Attack() {
     }
 
     return moves;
+}
+
+function AI_CountEnemyContinuousByObjectName(objName) {
+    var count = 0;
+    if (instance_exists(oFieldMagicTrapEnemy)) {
+        var boardS = oFieldMagicTrapEnemy.cards;
+        for (var i = 0; i < array_length(boardS); i++) {
+            var card = boardS[i];
+            if (card != 0 && instance_exists(card)) {
+                var cname = object_get_name(card.object_index);
+                if (cname == objName) {
+                    count++;
+                }
+            }
+        }
+    }
+    return count;
 }

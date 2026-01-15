@@ -585,6 +585,11 @@ function executeEffect(card, effect, context = {}) {
                     var ta = variable_instance_exists(tgt2, "archetype") ? string_lower(string(tgt2.archetype)) : "";
                     if (wa != "" && ta != wa) okc = false;
                 }
+                if (variable_struct_exists(critB, "name_contains")) {
+                    var wn = string_lower(string(critB.name_contains));
+                    var tn = variable_instance_exists(tgt2, "name") ? string_lower(string(tgt2.name)) : "";
+                    if (wn != "" && string_pos(wn, tn) == 0) okc = false;
+                }
             }
             // Filtre supplémentaire: n'appliquer qu'aux cibles camouflées
             if (okc && variable_struct_exists(eff, "only_camouflaged") && eff.only_camouflaged) {

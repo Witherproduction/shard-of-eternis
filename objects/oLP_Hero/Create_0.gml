@@ -1,3 +1,3 @@
 show_debug_message("### oLP_Hero.create")
 
-nbLP = 100;
+nbLP = 50;

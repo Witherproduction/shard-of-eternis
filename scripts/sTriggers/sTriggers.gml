@@ -85,7 +85,6 @@
 #macro TRIGGER_ON_SPELL_CAST "on_spell_cast"            // Quand un sort est lancé
 
 #macro TRIGGER_ON_MONSTER_SUMMON "on_monster_summon"    // Quand un monstre est invoqué
-
 #macro TRIGGER_ON_MONSTER_SENT_TO_GRAVEYARD "on_monster_sent_to_graveyard" // Quand un monstre est envoyé au cimetière (global)
 
 
@@ -131,27 +130,18 @@ function checkTrigger(card, triggerType, context = {}) {
     
 
     // Parcourir tous les effets de la carte
-
     for (var i = 0; i < array_length(card.effects); i++) {
-
         var effect = card.effects[i];
 
-        
-
         // Vérifier si l'effet a le bon déclencheur
-
-        if (variable_struct_exists(effect, "trigger") && effect.trigger == triggerType) {
-
-            // Vérifier les conditions supplémentaires
-
-            if (checkTriggerConditions(card, effect, context)) {
-
-                return true;
-
+        if (variable_struct_exists(effect, "trigger")) {
+            if (effect.trigger == triggerType) {
+                // Vérifier les conditions supplémentaires
+                if (checkTriggerConditions(card, effect, context)) {
+                    return true;
+                }
             }
-
         }
-
     }
 
     
@@ -353,6 +343,27 @@ function checkTriggerConditions(card, effect, context) {
             var gSrc = variable_instance_exists(src2, "genre") ? string(src2.genre) : "";
             var wantG = string(conditions.source_genre);
             if (gSrc != wantG) { return false; }
+        }
+
+        if (variable_struct_exists(conditions, "source_object_not")) {
+            if (!variable_struct_exists(context, "source")) { return false; }
+            var src3 = context.source;
+            if (src3 == noone || !instance_exists(src3)) { return false; }
+            var objName = object_get_name(src3.object_index);
+            var wantNot = string(conditions.source_object_not);
+            if (string_lower(objName) == string_lower(wantNot)) { return false; }
+        }
+
+        if (variable_struct_exists(conditions, "source_is_not_self") && conditions.source_is_not_self) {
+            if (!variable_struct_exists(context, "source")) { return false; }
+            var src4 = context.source;
+            if (src4 == noone || !instance_exists(src4)) { return false; }
+            
+            // Check reference and ID equality
+            if (src4 == card || src4.id == card.id) { return false; }
+            
+            // Extra safety: check if it's the same object at the same position (handles potential copy/proxy cases)
+            if (src4.object_index == card.object_index && floor(src4.x) == floor(card.x) && floor(src4.y) == floor(card.y)) { return false; }
         }
 
         // Vérifier le propriétaire si précisé ("Hero" ou "Enemy")

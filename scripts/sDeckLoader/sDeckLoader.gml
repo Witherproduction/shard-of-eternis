@@ -119,6 +119,9 @@ function load_player_deck_from_data(deck_data, deck_list) {
 function load_bot_deck_from_id(bot_deck_id, deck_list) {
     show_debug_message("### load_bot_deck_from_id - Loading bot deck ID: " + string(bot_deck_id));
     
+    // Mémoriser l'ID du deck bot actuellement chargé (utilisé par l'IA pour adapter son style)
+    global.selected_bot_deck_id = bot_deck_id;
+    
     // Recuperer les cartes du deck de bot
     var bot_cards = get_bot_deck_cards(bot_deck_id);
     

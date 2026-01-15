@@ -163,7 +163,7 @@ if (variable_instance_exists(id, "show_duel_window") && show_duel_window) {
     exit;
 }
 
-if (mouse_check_button_pressed(mb_left)) {
+if (!anchor_locked && mouse_check_button_pressed(mb_left)) {
     var hs = resize_handle_size;
     var sp1_hr_x1 = speaker1.x + speaker1.w * 0.5 - hs;
     var sp1_hr_y1 = speaker1.y + speaker1.h * 0.5 - hs;
@@ -201,7 +201,7 @@ if (mouse_check_button_pressed(mb_left)) {
     }
 }
 
-if (mouse_check_button(mb_left)) {
+if (!anchor_locked && mouse_check_button(mb_left)) {
     if (resizing != "") {
         var dx = mouse_x - resize_start_mouse_x;
         var dy = mouse_y - resize_start_mouse_y;
@@ -227,6 +227,9 @@ if (mouse_check_button_pressed(mb_left)) {
     if (variable_instance_exists(id, "btn_create_duel_x1") && point_in_rectangle(mxf, myf, btn_create_duel_x1, btn_create_duel_y1, btn_create_duel_x2, btn_create_duel_y2)) {
         if (variable_instance_exists(id, "refresh_deck_options")) refresh_deck_options();
         show_duel_window = true;
+    }
+    else if (point_in_rectangle(mxf, myf, btn_anchor_x1, btn_anchor_y1, btn_anchor_x2, btn_anchor_y2)) {
+        anchor_locked = !anchor_locked;
     }
     else if (sp1_enabled && point_in_rectangle(mxf, myf, sp1_field_x1, sp1_field_y1, sp1_field_x2, sp1_field_y2)) { field_focused = "portrait1"; str_input = current.portrait1_name; current.speaker = 1; cursor_pos = string_length(str_input); }
     else if (sp1_enabled && point_in_rectangle(mxf, myf, sp1_flip_btn_x1, sp1_flip_btn_y1, sp1_flip_btn_x2, sp1_flip_btn_y2)) { current.speaker1_flip = !current.speaker1_flip; }
@@ -287,21 +290,11 @@ if (mouse_check_button_pressed(mb_left)) {
 
 var ks = keyboard_string;
 if (field_focused != "") {
-    // Ensure cursor is within bounds
     var len = string_length(str_input);
     if (cursor_pos > len) cursor_pos = len;
-    
-    // Navigation
-    if (keyboard_check_pressed(vk_left)) {
-        cursor_pos = max(0, cursor_pos - 1);
-    }
-    if (keyboard_check_pressed(vk_right)) {
-        cursor_pos = min(len, cursor_pos + 1);
-    }
 
     var text_changed = false;
 
-    // Typing
     if (ks != "") {
         str_input = string_insert(ks, str_input, cursor_pos + 1);
         cursor_pos += string_length(ks);
@@ -309,17 +302,70 @@ if (field_focused != "") {
         text_changed = true;
     }
 
-    // Backspace
-    if (keyboard_check_pressed(vk_backspace)) {
+    var nav_step = 0;
+    var do_backspace = false;
+    var do_delete = false;
+
+    if (keyboard_check_pressed(vk_left)) {
+        nav_step = -1;
+        key_repeat_key = vk_left;
+        key_repeat_timer = key_repeat_delay;
+    } else if (keyboard_check_pressed(vk_right)) {
+        nav_step = 1;
+        key_repeat_key = vk_right;
+        key_repeat_timer = key_repeat_delay;
+    } else if (keyboard_check_pressed(vk_backspace)) {
+        do_backspace = true;
+        key_repeat_key = vk_backspace;
+        key_repeat_timer = key_repeat_delay;
+    } else if (keyboard_check_pressed(vk_delete)) {
+        do_delete = true;
+        key_repeat_key = vk_delete;
+        key_repeat_timer = key_repeat_delay;
+    } else {
+        if (keyboard_check(vk_left) && key_repeat_key == vk_left) {
+            key_repeat_timer--;
+            if (key_repeat_timer <= 0) {
+                nav_step = -1;
+                key_repeat_timer = key_repeat_interval;
+            }
+        } else if (keyboard_check(vk_right) && key_repeat_key == vk_right) {
+            key_repeat_timer--;
+            if (key_repeat_timer <= 0) {
+                nav_step = 1;
+                key_repeat_timer = key_repeat_interval;
+            }
+        } else if (keyboard_check(vk_backspace) && key_repeat_key == vk_backspace) {
+            key_repeat_timer--;
+            if (key_repeat_timer <= 0) {
+                do_backspace = true;
+                key_repeat_timer = key_repeat_interval;
+            }
+        } else if (keyboard_check(vk_delete) && key_repeat_key == vk_delete) {
+            key_repeat_timer--;
+            if (key_repeat_timer <= 0) {
+                do_delete = true;
+                key_repeat_timer = key_repeat_interval;
+            }
+        } else {
+            key_repeat_key = -1;
+            key_repeat_timer = 0;
+        }
+    }
+
+    if (nav_step != 0) {
+        cursor_pos = clamp(cursor_pos + nav_step, 0, string_length(str_input));
+    }
+
+    if (do_backspace) {
         if (cursor_pos > 0) {
             str_input = string_delete(str_input, cursor_pos, 1);
             cursor_pos--;
             text_changed = true;
         }
     }
-    
-    // Delete
-    if (keyboard_check_pressed(vk_delete)) {
+
+    if (do_delete) {
         if (cursor_pos < string_length(str_input)) {
             str_input = string_delete(str_input, cursor_pos + 1, 1);
             text_changed = true;
@@ -434,7 +480,11 @@ if (mouse_check_button_pressed(mb_left)) {
         }
         var scen2 = { chapter_id: chap2, act: actn2, scenes: scenes_out };
         var json2 = json_stringify(scen2);
-        var f2 = file_text_open_write("scenario_chapter_" + string(chap2) + "_act_" + string(actn2) + ".json");
+        var base_name2 = "scenario_chapter_" + string(chap2) + "_act_" + string(actn2) + ".json";
+        var full_path2 = "scenarios/ch" + string(chap2) + "/" + base_name2;
+        directory_create("scenarios");
+        directory_create("scenarios/ch" + string(chap2));
+        var f2 = file_text_open_write(full_path2);
         file_text_write_string(f2, json2);
         file_text_close(f2);
     } else if (point_in_rectangle(mx, my, btn_delete_x1, btn_delete_y1, btn_delete_x2, btn_delete_y2)) {
@@ -459,7 +509,11 @@ if (mouse_check_button_pressed(mb_left)) {
     } else if (point_in_rectangle(mx, my, btn_load_x1, btn_load_y1, btn_load_x2, btn_load_y2)) {
         var chap3 = global.current_chapter; if (is_undefined(chap3)) chap3 = 1;
         var actn3 = global.current_act; if (is_undefined(actn3)) actn3 = 1;
-        var path = "scenario_chapter_" + string(chap3) + "_act_" + string(actn3) + ".json";
+        var base_name3 = "scenario_chapter_" + string(chap3) + "_act_" + string(actn3) + ".json";
+        var path = "scenarios/ch" + string(chap3) + "/" + base_name3;
+        if (!file_exists(path)) {
+            path = base_name3;
+        }
         if (file_exists(path)) {
             var fr = file_text_open_read(path);
             var s = "";

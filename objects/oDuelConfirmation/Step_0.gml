@@ -106,8 +106,15 @@ if (mouse_check_button_pressed(mb_left)) {
                 
                 // Specific logic for preferred deck per chapter
                 var preferred_deck_id = "";
-                if (current_chapter == 0) preferred_deck_id = "tuto_deck_hero";
-                else if (current_chapter == 1) preferred_deck_id = "rebellion_horde";
+                if (current_chapter == 0) {
+                    preferred_deck_id = "tuto_deck_hero";
+                } else if (current_chapter == 1) {
+                    if (variable_global_exists("current_act") && global.current_act == 2) {
+                        preferred_deck_id = "foret_abyssienne";
+                    } else {
+                        preferred_deck_id = "rebellion_horde";
+                    }
+                }
                 
                 for (var i = 0; i < array_length(story_decks); i++) {
                     if (variable_struct_exists(story_decks[i], "id") && story_decks[i].id == preferred_deck_id) {

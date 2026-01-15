@@ -21,7 +21,8 @@ effects = [
         atk: 1,
         conditions: {
             source_owner: "ally",
-            source_name_contains: "Abyssien"
+            source_name_contains: "Abyssien",
+            source_is_not_self: true
         }
     }
 ]

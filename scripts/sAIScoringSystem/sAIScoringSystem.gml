@@ -171,5 +171,22 @@ function AI_GetCardScore_Predicted(card) {
          else currentScoreVal += 200 * p_def;
     }
     
+    // Préférence spécifique : pour le bot utilisant le deck 2 (Essaim Abyssien),
+    // privilégier légèrement les monstres Abyssiens par rapport aux autres, sans eclips
+    // totalement les grosses créatures non-Abyssiennes.
+    if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
+        var nameStr = "";
+        if (is_struct(card) && variable_struct_exists(card, "name")) {
+            nameStr = card.name;
+        } else if (variable_instance_exists(card, "name")) {
+            nameStr = card.name;
+        }
+        
+        if (is_string(nameStr) && string_pos("Abyssien", nameStr) > 0) {
+            var bonus_val = SCORE_PER_ATK * p_atk + SCORE_PER_DEF * p_def;
+            currentScoreVal += bonus_val;
+        }
+    }
+    
     return currentScoreVal;
 }

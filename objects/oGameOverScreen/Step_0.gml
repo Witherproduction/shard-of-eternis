@@ -75,6 +75,14 @@ if (alpha >= targetAlpha) {
                          unlock_bot(global.selected_bot_deck_id);
                      }
 
+                     if (variable_global_exists("current_chapter") && variable_global_exists("current_act")) {
+                         if (global.current_chapter == 1 && global.current_act == 2) {
+                             if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
+                                 story_progress_unlock_reward("chap1_act2_duel1_win");
+                             }
+                         }
+                     }
+
                      if (variable_global_exists("duel_next_scene") && variable_global_exists("duel_is_last_scene")) {
                           if (global.duel_is_last_scene) {
                                // Fin du scénario (Dernière scène)

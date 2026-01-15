@@ -102,6 +102,9 @@ duel_field_x1 = 0; duel_field_y1 = 0; duel_field_x2 = 0; duel_field_y2 = 0;
 
 btn_quit_x1 = 0; btn_quit_y1 = 0; btn_quit_x2 = 0; btn_quit_y2 = 0; btn_quit_hover = false;
 
+btn_anchor_x1 = 0; btn_anchor_y1 = 0; btn_anchor_x2 = 0; btn_anchor_y2 = 0; btn_anchor_hover = false;
+anchor_locked = false;
+
  dropdown_open_for = "";
 dd_x1 = 0; dd_y1 = 0; dd_x2 = 0; dd_y2 = 0; dd_item_h = 0;
  sp1_eff_btn_x1 = 0; sp1_eff_btn_y1 = 0; sp1_eff_btn_x2 = 0; sp1_eff_btn_y2 = 0;
@@ -220,6 +223,12 @@ duel_list_scroll_bot = 0;
 // Notification system
 save_notification_timer = 0;
 save_notification_text = "";
+
+// Répétition des touches pour l'édition de texte
+key_repeat_key = -1;
+key_repeat_timer = 0;
+key_repeat_delay = 20;
+key_repeat_interval = 3;
 
 load_scene_data = function(sc) {
     current.bg_name = sc.bg;
@@ -342,7 +351,12 @@ load_scene_data = function(sc) {
 load_current_act_data = function() {
     var chap = global.current_chapter;
     var actn = global.current_act;
-    var path = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
+    var base_name = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
+    var path = "scenarios/ch" + string(chap) + "/" + base_name;
+    
+    if (!file_exists(path)) {
+        path = base_name;
+    }
     
     if (file_exists(path)) {
         var fr = file_text_open_read(path);

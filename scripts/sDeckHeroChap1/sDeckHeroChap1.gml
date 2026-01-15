@@ -38,6 +38,44 @@ function get_hero_decks_chap1() {
             ]
         },
         {
+            id: "foret_abyssienne",
+            name: "Forêt Abyssienne",
+            description: "Un deck hybride mêlant les bêtes de la forêt et un essaim d'Abyssiens.",
+            cards: [
+                // Bêtes / Forêt
+                "oTarrinox",
+                "oAraigneeForestiere", "oAraigneeForestiere",
+                "oTarentuleForet", "oTarentuleForet",
+                "oVieilOurs", "oVieilOurs",
+                "oTortueVagabonde", "oTortueVagabonde",
+                "oLoupGaleux", "oLoupGaleux",
+                "oRodeurForet", "oRodeurForet",
+                "oJeuneLoup", "oJeuneLoup",
+
+                // Monstres Abyssiens (sans les Coureur, réservés comme jetons)
+                "oRenardMystique",
+                "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien",
+                "oRuisselierAbyssien", "oRuisselierAbyssien",
+                "oRodeurAbyssien", "oRodeurAbyssien",
+
+                // Magies / Soutiens Forêt
+                "oGriffePredateur",
+                "oSautPredateur", "oSautPredateur",
+                "oRugissementForet",
+                "oRacineEnvahissante", "oRacineEnvahissante",
+                "oCriMeute",
+
+                // Sorts Abyssiens
+                "oMareeDeferlante", "oMareeDeferlante",
+                "oProtectionMaree", "oProtectionMaree",
+                "oFerveurMarais",
+
+                // Secrets
+                "oFeuillageProtecteur", "oFeuillageProtecteur",
+                "oPiegeRonce", "oPiegeRonce"
+            ]
+        },
+        {
             id: "intro_tuto",
             name: "Deck Intro (Tuto)",
             cards: [

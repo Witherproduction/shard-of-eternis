@@ -121,26 +121,87 @@ if (obj2_enabled && o2 != -1) {
     var osign2 = (variable_struct_exists(current, "obj2_flip") && current.obj2_flip) ? -1 : 1;
     draw_sprite_ext(o2, 0, ox2, oy2, oc2 * osign2, oc2, 0, c_white, 1);
 }
-draw_set_halign(fa_center);
-draw_set_valign(fa_middle);
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
 draw_set_color(c_white);
 var txl = textbox.x - textbox.w * 0.5 + textbox.margin;
 var txr = textbox.x + textbox.w * 0.5 - textbox.margin;
 var tyt = textbox.y - textbox.h * 0.5 + textbox.margin;
-var tyb = textbox.y + textbox.h * 0.5 - textbox.margin;
-var tx = (txl + txr) * 0.5;
-var ty = (tyt + tyb) * 0.5;
+var max_w = txr - txl;
 var display_text = string(current.text);
+var line_h = string_height("M");
+var sep = line_h;
+
 if (textbox_enabled) {
-    draw_text(tx, ty, display_text);
+    var len = string_length(display_text);
+    var line_start = 1;
+    var line_index = 0;
+    var caret_x = txl;
+    var caret_y = tyt + line_h * 0.5;
+    var remaining = cursor_pos;
+    if (remaining < 0) remaining = 0;
+    if (remaining > len) remaining = len;
+    var caret_set = false;
+
+    if (len > 0) {
+        while (line_start <= len) {
+            var line_end = line_start;
+            var last_space = -1;
+            var i = line_start;
+            while (i <= len) {
+                var ch = string_char_at(display_text, i);
+                if (ch == " ") last_space = i;
+                var seg = string_copy(display_text, line_start, i - line_start + 1);
+                if (string_width(seg) > max_w) {
+                    if (last_space >= line_start) {
+                        line_end = last_space;
+                    } else {
+                        line_end = i - 1;
+                        if (line_end < line_start) line_end = line_start;
+                    }
+                    break;
+                } else {
+                    line_end = i;
+                }
+                i++;
+            }
+
+            var line_text = string_copy(display_text, line_start, line_end - line_start + 1);
+            var line_y = tyt + line_index * sep;
+            draw_text(txl, line_y, line_text);
+
+            if (field_focused == "text" && !caret_set) {
+                var line_len = string_length(line_text);
+                if (remaining <= 0) {
+                    caret_x = txl;
+                    caret_y = line_y + line_h * 0.5;
+                    caret_set = true;
+                } else if (remaining < line_len) {
+                    var sub = string_copy(line_text, 1, remaining);
+                    caret_x = txl + string_width(sub);
+                    caret_y = line_y + line_h * 0.5;
+                    caret_set = true;
+                } else if (remaining == line_len) {
+                    caret_x = txl + string_width(line_text);
+                    caret_y = line_y + line_h * 0.5;
+                    caret_set = true;
+                    remaining = 0;
+                } else {
+                    remaining -= line_len;
+                }
+            }
+
+            line_start = line_end + 1;
+            line_index++;
+        }
+    }
+
     if (field_focused == "text") {
-        var total_w = string_width(display_text);
-        var start_x = tx - total_w * 0.5;
-        var sub_str = string_copy(display_text, 1, cursor_pos);
-        var sub_w = string_width(sub_str);
-        var cur_x = start_x + sub_w;
-        var cur_h = string_height("M");
-        draw_line(cur_x, ty - cur_h * 0.5, cur_x, ty + cur_h * 0.5);
+        if (!caret_set) {
+            caret_x = txl;
+            caret_y = tyt + line_h * 0.5;
+        }
+        draw_line(caret_x, caret_y - line_h * 0.5, caret_x, caret_y + line_h * 0.5);
     }
 }
 
@@ -441,11 +502,26 @@ obj2_flip_btn_x2 = obj2_field_x2; obj2_flip_btn_x1 = obj2_flip_btn_x2 - 100 * k;
 sp1_flip_hover = point_in_rectangle(mouse_x, mouse_y, sp1_flip_btn_x1, sp1_flip_btn_y1, sp1_flip_btn_x2, sp1_flip_btn_y2);
 sp2_flip_hover = point_in_rectangle(mouse_x, mouse_y, sp2_flip_btn_x1, sp2_flip_btn_y1, sp2_flip_btn_x2, sp2_flip_btn_y2);
 
-// --- BOUTON CREER DUEL (Bottom Left) ---
 var bl_x = btn_margin;
 var bl_y = room_height - btn_margin - btn_h;
 
-// Unique Duel Button
+btn_anchor_x1 = bl_x;
+btn_anchor_y1 = bl_y - btn_h - btn_margin;
+btn_anchor_x2 = btn_anchor_x1 + btn_w;
+btn_anchor_y2 = btn_anchor_y1 + btn_h;
+
+btn_anchor_hover = point_in_rectangle(mouse_x, mouse_y, btn_anchor_x1, btn_anchor_y1, btn_anchor_x2, btn_anchor_y2);
+
+draw_set_color(btn_anchor_hover ? make_color_rgb(60, 45, 25) : make_color_rgb(40, 40, 40));
+draw_roundrect(btn_anchor_x1, btn_anchor_y1, btn_anchor_x2, btn_anchor_y2, false);
+draw_set_color(make_color_rgb(220, 200, 120));
+draw_roundrect(btn_anchor_x1, btn_anchor_y1, btn_anchor_x2, btn_anchor_y2, true);
+draw_set_color(c_white);
+draw_set_halign(fa_center);
+draw_set_valign(fa_middle);
+var anchor_label = anchor_locked ? "Ancré" : "Ancrer";
+draw_text((btn_anchor_x1 + btn_anchor_x2) * 0.5, (btn_anchor_y1 + btn_anchor_y2) * 0.5, anchor_label);
+
 btn_create_duel_x1 = bl_x;
 btn_create_duel_y1 = bl_y;
 btn_create_duel_x2 = bl_x + btn_w;
@@ -453,7 +529,6 @@ btn_create_duel_y2 = bl_y + btn_h;
 
 btn_create_duel_hover = point_in_rectangle(mouse_x, mouse_y, btn_create_duel_x1, btn_create_duel_y1, btn_create_duel_x2, btn_create_duel_y2);
 
-// Draw Create Duel Button
 draw_set_color(btn_create_duel_hover ? make_color_rgb(60, 45, 25) : make_color_rgb(40, 40, 40));
 draw_roundrect(btn_create_duel_x1, btn_create_duel_y1, btn_create_duel_x2, btn_create_duel_y2, false);
 draw_set_color(make_color_rgb(220, 200, 120));

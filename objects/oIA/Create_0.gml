@@ -87,12 +87,14 @@ manageOrientation = function() {
             }
 
             // Analyser les menaces du héros
+            var maxHeroAtk = 0;
             for (var j = 0; j < array_length(fieldMonsterHero.cards); j++) {
                 var cardHero = fieldMonsterHero.cards[j];
                 if (cardHero != 0 && instance_exists(cardHero) && instance_exists(cardEnemy)) {
                     var eAtkH = (variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : (variable_instance_exists(cardHero, "attack") ? cardHero.attack : 0));
                     var eDefH = (variable_struct_exists(cardHero, "effective_defense") ? cardHero.effective_defense : (variable_instance_exists(cardHero, "defense") ? cardHero.defense : 0));
                     var heroInAttack = (variable_instance_exists(cardHero, "orientation") && cardHero.orientation == "Attack");
+                    if (eAtkH > maxHeroAtk) maxHeroAtk = eAtkH;
                     
                     // Si on risque de mourir en Attaque
                     if (heroInAttack && eAtkH > eAtkE) { 
@@ -105,6 +107,12 @@ manageOrientation = function() {
                     if (eAtkH < eDefE && eAtkH >= eAtkE) {
                         shouldDefend = true;
                     }
+                }
+            }
+
+            if (maxHeroAtk > 0) {
+                if (maxHeroAtk >= eAtkE + 2 && maxHeroAtk >= eDefE + 2) {
+                    shouldDefend = true;
                 }
             }
 

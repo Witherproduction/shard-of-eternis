@@ -98,7 +98,9 @@ function fill_to_size(deck_cards, target_size, max_copies) {
 /// @param {string} bot_name - Le nom du bot
 function create_bot_deck_from_script(deck_id, bot_name) {
     var deck_cards = get_bot_deck_cards(deck_id);
-    var max_copies = (deck_id == 5) ? 5 : 3;
+    var max_copies = 3;
+    if (deck_id == 5) max_copies = 5;
+    if (deck_id == 2) max_copies = 10; // Cheat pour le deck Abyssien
     deck_cards = cap_card_copies(deck_cards, max_copies);
     deck_cards = fill_to_size(deck_cards, 40, max_copies);
     

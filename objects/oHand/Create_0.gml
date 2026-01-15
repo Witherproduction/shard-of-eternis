@@ -52,7 +52,11 @@ updateDisplay = function() {
         card.image_angle = isHeroOwner ? 0 : 180;
         card.image_xscale = 0.275;
         card.image_yscale = 0.275;
-        card.depth = -i;
+        if (isHeroOwner) {
+            card.depth = -100 - i;
+        } else {
+            card.depth = -i;
+        }
         if(nbCards <= 5)
             card.x = x + offset + i * cardWidth + i * spaceBetweenCards;
         else {

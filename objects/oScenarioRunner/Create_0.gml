@@ -69,7 +69,11 @@ if (variable_global_exists("scenario_loaded_data") && is_struct(global.scenario_
         scene_index = clamp(scene_index, 0, max(0, array_length(scenes)-1));
     }
 } else {
-    var path = "scenario_chapter_" + string(chapter_id) + "_act_" + string(act_num) + ".json";
+    var base_name = "scenario_chapter_" + string(chapter_id) + "_act_" + string(act_num) + ".json";
+    var path = "scenarios/ch" + string(chapter_id) + "/" + base_name;
+    if (!file_exists(path)) {
+        path = base_name;
+    }
     if (file_exists(path)) {
         var fr = file_text_open_read(path);
         var s = "";

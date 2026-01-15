@@ -1,5 +1,7 @@
+var resume_from_story = false;
 if (variable_global_exists("story_resume_info")) {
     var info = global.story_resume_info;
+    resume_from_story = true;
     global.current_chapter = info.chapter_id;
     global.current_act = info.act;
     global.current_scene_index = info.scene_index;
@@ -17,13 +19,14 @@ if (variable_global_exists("story_resume_info")) {
 var chap = global.current_chapter;
 var actn = global.current_act;
 var sceneIndex = global.current_scene_index;
-var path = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
+
+var base_name = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
+var path = "scenarios/ch" + string(chap) + "/" + base_name;
+
 if (!file_exists(path)) {
-    for (var a = 1; a <= 3; a++) {
-        var p2 = "scenario_chapter_" + string(chap) + "_act_" + string(a) + ".json";
-        if (file_exists(p2)) { actn = a; path = p2; global.current_act = actn; break; }
-    }
+    path = base_name;
 }
+
 if (file_exists(path)) {
     var fr = file_text_open_read(path);
     var s = "";
@@ -39,7 +42,11 @@ if (file_exists(path)) {
             
             // Si on reprend après une défaite (ou chargement), on ne lance pas le duel tout de suite
             // On vérifie si sc_load_line_index est défini (il vaut 0 après une défaite avec notre modif)
-            var is_resuming = (variable_global_exists("sc_load_line_index") && global.sc_load_line_index >= 0);
+            // ou si on arrive ici via story_resume_info (reprise depuis le menu Histoire)
+            var is_resuming = resume_from_story;
+            if (variable_global_exists("sc_load_line_index") && global.sc_load_line_index >= 0) {
+                is_resuming = true;
+            }
             
             if (!is_resuming && variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id > 0) {
                 global.previous_room_before_duel = rScenario;

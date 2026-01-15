@@ -128,7 +128,38 @@ function AI_SelectBestMove(moves) {
                     break;
                 
                 case "continuous_placement":
-                    moveScoreVal = 25; // Base value for placing continuous magic
+                    moveScoreVal = 150; // Base value for placing continuous magic
+
+                    // --- SYNERGY CHECK: Abyssien Deck ---
+                    // If we are playing the Abyssien deck (Deck 2) OR if we detect Abyssiens in hand
+                    var isAbyssienDeck = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2);
+                    var hasAbyssienInHand = false;
+                    
+                    // Check Hand for Abyssiens to confirm synergy potential
+                    if (instance_exists(oHandEnemy)) {
+                        var hCards = oHandEnemy.cards;
+                        var hLen = 0;
+                        if (is_array(hCards)) hLen = array_length(hCards);
+                        else if (ds_exists(hCards, ds_type_list)) hLen = ds_list_size(hCards);
+
+                        for (var h = 0; h < hLen; h++) {
+                            var hCard = (is_array(hCards)) ? hCards[h] : ds_list_find_value(hCards, h);
+                            if (hCard != noone && instance_exists(hCard)) {
+                                var hName = (variable_instance_exists(hCard, "name") ? hCard.name : "");
+                                if (string_pos("Abyssien", hName) > 0) {
+                                    hasAbyssienInHand = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (isAbyssienDeck || hasAbyssienInHand) {
+                         // High priority to ensure it is played before summoning monsters
+                         // A typical monster summon score is ~1500-2500. We set this higher.
+                         moveScoreVal = 4000; 
+                    }
+
                     if (p_summon > 1.0) moveScoreVal += 10;
                     break;
                     
@@ -470,13 +501,23 @@ function AI_ExecuteMove(move) {
                         orientation = "Defense";
                     }
                     
-                    // 5. Priorité Absolue : Effet Flip (Force la défense face cachée)
                     if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
                         for(var i=0; i<array_length(card.effects); i++) {
                             var ef = card.effects[i];
                             if (variable_struct_exists(ef, "trigger") && ef.trigger == "flip") {
                                 orientation = "Defense";
                                 break;
+                            }
+                        }
+                    }
+                    if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
+                        var nStr = "";
+                        if (variable_instance_exists(card, "name")) {
+                            nStr = card.name;
+                        }
+                        if (is_string(nStr) && string_pos("Abyssien", nStr) > 0) {
+                            if (AI_HasAbyssienSynergyOnField()) {
+                                orientation = "Attack";
                             }
                         }
                     }
@@ -605,6 +646,49 @@ function AI_ExecuteMove(move) {
             // pour supporter les délais d'animation FX sans double compte.
             
             return true;
+        }
+    }
+    return false;
+}
+
+function AI_CardHasAbyssienSynergy(card) {
+    if (!variable_instance_exists(card, "effects") || !is_array(card.effects)) return false;
+    for (var i = 0; i < array_length(card.effects); i++) {
+        var eff = card.effects[i];
+        if (!is_struct(eff)) continue;
+        if (variable_struct_exists(eff, "conditions")) {
+            var conds = eff.conditions;
+            if (variable_struct_exists(conds, "source_name_contains")) {
+                if (string(conds.source_name_contains) == "Abyssien") return true;
+            }
+        }
+        if (variable_struct_exists(eff, "criteria")) {
+            var crit = eff.criteria;
+            if (variable_struct_exists(crit, "name_contains")) {
+                if (string(crit.name_contains) == "Abyssien") return true;
+            }
+        }
+    }
+    return false;
+}
+
+function AI_HasAbyssienSynergyOnField() {
+    if (instance_exists(oFieldMagicTrapEnemy)) {
+        var mt = oFieldMagicTrapEnemy.cards;
+        for (var i = 0; i < array_length(mt); i++) {
+            var c = mt[i];
+            if (c != 0 && instance_exists(c)) {
+                if (AI_CardHasAbyssienSynergy(c)) return true;
+            }
+        }
+    }
+    if (instance_exists(oFieldMonsterEnemy)) {
+        var mm = oFieldMonsterEnemy.cards;
+        for (var j = 0; j < array_length(mm); j++) {
+            var c2 = mm[j];
+            if (c2 != 0 && instance_exists(c2)) {
+                if (AI_CardHasAbyssienSynergy(c2)) return true;
+            }
         }
     }
     return false;

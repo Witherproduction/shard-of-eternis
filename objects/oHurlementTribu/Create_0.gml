@@ -17,7 +17,7 @@ effects = [
         scope: "all",
         aggregate: true,
         owner: "ally",
-        criteria: { type: "Monster", genre: "Abyssien" },
+        criteria: { type: "Monster", name_contains: "Abyssien" },
         atk: 1,
         def: 0
     }

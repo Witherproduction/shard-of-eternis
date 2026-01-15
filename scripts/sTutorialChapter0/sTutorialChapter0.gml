@@ -1140,11 +1140,11 @@ function Tutorial_Turn5_Update() {
              // Init tracking HP variable
              if (!variable_instance_exists(tuto, "hp_start_step_9")) {
                  var lp_obj = instance_find(oLP_Hero, 0);
-                 tuto.hp_start_step_9 = (lp_obj != noone) ? lp_obj.nbLP : 100;
-             }
-             
-             // Check HP drop
-             var current_hp = 100;
+                 tuto.hp_start_step_9 = (lp_obj != noone) ? lp_obj.nbLP : 50;
+            }
+            
+            // Check HP drop
+            var current_hp = 50;
              var lp_obj = instance_find(oLP_Hero, 0);
              if (lp_obj != noone) current_hp = lp_obj.nbLP;
              
