@@ -42,13 +42,16 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 echo.
-echo Publication d'un exécutable autonome...
-dotnet publish --configuration Release --runtime win-x64 --self-contained true --output ./publish
+echo Publication d'un exécutable autonome (Fichier unique)...
+dotnet publish --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output ./publish
 if %errorlevel% neq 0 (
     echo ERREUR: Échec de la publication
     pause
     exit /b 1
 )
+
+REM Nettoyage des fichiers inutiles
+if exist ".\publish\createdump.exe" del ".\publish\createdump.exe"
 
 echo.
 echo ========================================

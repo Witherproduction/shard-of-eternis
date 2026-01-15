@@ -13,6 +13,7 @@ targetingArrow = noone;         // instance de la flèche de ciblage
 // Nouvel état: effet différé après placement (magies Artéfact)
 pendingEffectCard = noone;      // carte dont l’effet a été demandé avant placement
 pendingEffect = noone;          // struct d’effet à exécuter après la pose
+pendingEffectIndex = -1;        // index de l'effet pour Command Pattern
 
 // Position du bouton "attaque directe" (à ajuster selon ta scène)
 attackDirectX = handEnemy.x;

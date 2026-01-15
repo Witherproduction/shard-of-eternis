@@ -17,39 +17,13 @@ if (selectManager.attackMode && selectManager.selected != noone) {
     if (selectedCard.isHeroOwner && selectedCard.type == "Monster" && selectedCard.zone == "FieldSelected" 
         && selectedCard.orientation == "Attack"
         && instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Attack") {
-        var atk_lim2 = (variable_instance_exists(selectedCard, "isAmbidextrous") && selectedCard.isAmbidextrous) ? 2 : 1;
-        var atk_used2 = (variable_instance_exists(selectedCard, "attacksUsedThisTurn") ? selectedCard.attacksUsedThisTurn : 0);
-        if (atk_used2 >= atk_lim2) { show_debug_message("### oLP_Enemy: limite d'attaques atteinte"); exit; }
         
-        // Vérifier qu'il n'y a pas de monstres ennemis
-        var enemyHasMonsters = false;
-        var enemyMonsters = fieldMonsterEnemy.cards;
+        // Utilisation du Command Pattern pour l'attaque directe
+        RequestGameAction(ACTION_ATTACK, {
+            attacker_uid: selectedCard.instance_uid,
+            target_type: "direct_lp"
+        });
         
-        for (var i = 0; i < array_length(enemyMonsters); i++) {
-            var em = enemyMonsters[i];
-            if (em != 0 && instance_exists(em)) {
-                enemyHasMonsters = true;
-                var emName = (instance_exists(em) && variable_instance_exists(em, "name")) ? em.name : "Unknown";
-                show_debug_message("### Monstre ennemi trouvé: " + emName + " - attaque directe impossible");
-                break;
-            }
-        }
-        
-        if(!enemyHasMonsters) {
-            // Interdiction d'attaquer au tour 1 du duel
-            if (game.nbTurn == 1) {
-                show_debug_message("### oLP_Enemy: Attaque directe interdite au tour 1 du duel");
-                exit;
-            }
-            show_debug_message("### Attaque directe sur l'ennemi - dégâts infligés: " + string(selectedCard.attack));
-            nbLP -= selectedCard.attack;
-            selectedCard.attacksUsedThisTurn = (variable_instance_exists(selectedCard, "attacksUsedThisTurn") ? selectedCard.attacksUsedThisTurn : 0) + 1;
-            selectedCard.lastTurnAttack = game.nbTurn;
-            selectManager.unSelect(selectedCard);
-            selectManager.attackMode = false; // Sortir du mode attaque
-        } else {
-            show_debug_message("### Attaque directe impossible : monstres ennemis présents");
-        }
     } else {
         show_debug_message("### Conditions non remplies pour l'attaque directe");
     }

@@ -170,7 +170,16 @@ if (instance_exists(oSelectManager) && selectManager.selected != noone) {
     if (!isHeroOwner && type == "Monster" && zone == "Field") {
         if (selectManager.attackMode) {
             show_debug_message("### Cible sélectionnée pour l'attaque: " + name);
-            damageManager.tryAttack(id);
+            var payload = {};
+            payload.attacker = selectManager.selected;
+            payload.target = id;
+            if (instance_exists(selectManager.selected) && variable_instance_exists(selectManager.selected, "instance_uid")) {
+                payload.attacker_uid = selectManager.selected.instance_uid;
+            }
+            if (variable_instance_exists(id, "instance_uid")) {
+                payload.target_uid = instance_uid;
+            }
+            RequestGameAction(ACTION_ATTACK, payload);
             return;
         } else {
             show_debug_message("### Monstre ennemi cliqué mais pas en mode attaque - utilisez le bouton Attack d'abord");

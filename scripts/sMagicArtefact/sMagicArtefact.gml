@@ -86,13 +86,19 @@ function equipSelectTarget(card, effect, context) {
     if (variable_instance_exists(card, "equip_pending")) card.equip_pending = false;
     show_debug_message("### Equip: " + string(card.name) + " -> cible=" + string(target.name));
 
-    // Appliquer immédiatement le buff d'équipement si un effet correspondant est présent,
-    // afin d'éviter d'attendre le cycle d'effets continus du Step.
     if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
         for (var bi = 0; bi < array_length(card.effects); bi++) {
             var beff = card.effects[bi];
             if (is_struct(beff) && variable_struct_exists(beff, "effect_type") && beff.effect_type == EFFECT_BUFF && variable_struct_exists(beff, "scope") && string_lower(beff.scope) == "equip") {
-                executeEffect(card, beff, {});
+                var effIndexEquip = bi;
+                if (variable_instance_exists(card, "instance_uid")) {
+                    RequestGameAction(ACTION_ACTIVATE_EFFECT, {
+                        source_uid: card.instance_uid,
+                        effect_index: effIndexEquip
+                    });
+                } else {
+                    executeEffect(card, beff, {});
+                }
                 break;
             }
         }

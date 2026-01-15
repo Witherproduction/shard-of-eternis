@@ -2,54 +2,192 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Shard of Eternis Launcher"
-        Height="520"
+        Height="450"
         Width="820"
         ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen"
-        Background="White">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="100"/>
-            <RowDefinition Height="40"/>
-        </Grid.RowDefinitions>
+        WindowStyle="None"
+        AllowsTransparency="True"
+        WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <!-- Style pour les boutons sociaux -->
+        <Style x:Key="SocialButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#33000000"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#55FFFFFF"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="15,5"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#66FFFFFF"/>
+                    <Setter Property="BorderBrush" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
-        <Border Grid.Row="0" Padding="20">
-            <Grid>
+        <!-- Style pour le bouton d'action principal -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="40,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Window.Background>
+        <ImageBrush ImageSource="/background.png" Stretch="UniformToFill"/>
+    </Window.Background>
+
+    <!-- Bordure extérieure fine pour délimiter le launcher -->
+    <Border BorderThickness="1" BorderBrush="#33FFFFFF">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/> <!-- Barre de titre custom -->
+                <RowDefinition Height="*"/>  <!-- Contenu principal -->
+                <RowDefinition Height="60"/> <!-- Barre d'actions bas -->
+            </Grid.RowDefinitions>
+
+            <!-- Barre de titre personnalisée (Zone de drag) -->
+            <Grid Grid.Row="0" Background="#99000000" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+                <TextBlock Text="SHARD OF ETERNIS" Foreground="White" 
+                           VerticalAlignment="Center" HorizontalAlignment="Left" 
+                           Margin="10,0,0,0" FontFamily="Segoe UI Semibold" FontSize="12" Opacity="0.8"/>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <!-- Bouton Réduire -->
+                    <Button Content="_" Width="40" Click="MinimizeButton_Click"
+                            Background="Transparent" Foreground="White" BorderThickness="0"
+                            FontSize="14" FontWeight="Bold" Cursor="Hand"/>
+                    <!-- Bouton Fermer -->
+                    <Button Content="X" Width="40" Click="CloseButton_Click"
+                            Background="Transparent" Foreground="White" BorderThickness="0"
+                            FontSize="14" FontWeight="Bold" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Contenu Principal -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="300"/> <!-- Colonne de droite pour le patch note -->
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="20" Orientation="Vertical">
+                    <TextBlock Text="REJOIGNEZ LA COMMUNAUTÉ" Foreground="White" Opacity="0.6" FontSize="10" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="DISCORD" Click="DiscordButton_Click" Style="{StaticResource SocialButtonStyle}"/>
+                        <Button Content="GITHUB" Click="WebsiteButton_Click" Style="{StaticResource SocialButtonStyle}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Zone Patch Note (Nouveautés) -->
+                <Border Grid.Column="1" Margin="10,20,20,20" Background="#99000000" CornerRadius="5" BorderBrush="#55FFFFFF" BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- En-tête -->
+                        <TextBlock Text="DERNIÈRES NOUVEAUTÉS" Foreground="#FF00CCFF" FontWeight="Bold" 
+                                   VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                        
+                        <!-- Contenu défilant -->
+                        <ScrollViewer Grid.Row="1" Margin="10" VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="PatchNoteText" Text="Chargement des notes de mise à jour..." 
+                                       Foreground="White" TextWrapping="Wrap" FontSize="12" Opacity="0.9"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+                
+                <!-- Info Version en bas à droite du contenu -->
+                <TextBlock x:Name="VersionLabel" Grid.ColumnSpan="2" Text="Version: ..." Foreground="White" 
+                           HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                           Margin="0,0,10,10" Opacity="0.7"/>
+            </Grid>
+
+            <!-- Barre d'actions (Bas) -->
+            <Grid Grid.Row="2" Background="#CC000000">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Grid.Column="0">
-                    <StackPanel>
-                        <TextBlock Text="Shard of Eternis" FontSize="24" FontWeight="Bold"/>
-                        <TextBlock x:Name="VersionLabel" Text="Version: inconnue" FontSize="12"/>
+
+                <!-- Zone de gauche : Status et Settings -->
+                <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Margin="10,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="⚙" Width="30" Height="30" Click="SettingsButton_Click"
+                                ToolTip="Paramètres" Background="Transparent" Foreground="White" 
+                                BorderBrush="White" BorderThickness="1" Margin="0,0,10,0"/>
+                        
+                        <TextBlock x:Name="StatusLabel" Text="Prêt." Foreground="White" 
+                                   VerticalAlignment="Center" FontSize="14"/>
                     </StackPanel>
+                    
+                    <!-- Barre de progression (Cachée par défaut) -->
+                    <Grid x:Name="ProgressArea" Visibility="Collapsed" Margin="0,5,0,0" Width="400" HorizontalAlignment="Left">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <ProgressBar x:Name="DownloadProgressBar" Grid.Row="0" Height="10" Minimum="0" Maximum="100" Value="0" Background="#33FFFFFF" Foreground="#FF00CCFF" BorderThickness="0"/>
+                        <TextBlock x:Name="ProgressText" Grid.Row="0" Text="0%" Foreground="White" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0"/>
+                        
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+                            <TextBlock x:Name="SpeedText" Text="0 Mo/s" Foreground="#AAAAAA" FontSize="10" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="TimeLeftText" Text="--:--" Foreground="#AAAAAA" FontSize="10"/>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
-                <DockPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBox x:Name="InstallPathBox" MinWidth="300" Margin="0,0,10,0"/>
-                    <Button Content="Parcourir…" Width="100" Click="BrowseInstallPath_Click"/>
-                </DockPanel>
+
+                <!-- Zone de droite : Boutons d'action -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                    <TextBox x:Name="InstallPathBox" Width="0" Visibility="Collapsed"/> <!-- Caché mais gardé pour la logique existante -->
+                    
+                    <Button x:Name="ActionButton" Content="CHARGEMENT..." Click="ActionButton_Click" 
+                            Style="{StaticResource ActionButtonStyle}"
+                            Margin="0,0,10,0"
+                            Background="#FF555555" BorderThickness="0"
+                            IsEnabled="False"/>
+                </StackPanel>
             </Grid>
-        </Border>
-
-        <Border Grid.Row="1" Padding="30">
-            <StackPanel VerticalAlignment="Center">
-                <TextBlock x:Name="MainStatusLabel" Text="Prêt" FontSize="16" HorizontalAlignment="Center"/>
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Row="2" Padding="30">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Button x:Name="PlayButton" Content="JOUER" Width="150" Height="50" Click="PlayButton_Click"/>
-                <Button x:Name="UpdateButton" Content="METTRE À JOUR" Width="150" Height="50" Margin="20,0,0,0" Click="UpdateButton_Click"/>
-                <Button x:Name="SettingsButton" Content="PARAMÈTRES" Width="150" Height="50" Margin="20,0,0,0" Click="SettingsButton_Click" Visibility="Collapsed"/>
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Row="3" Padding="10">
-            <TextBlock x:Name="StatusLabel" Text="" HorizontalAlignment="Center"/>
-        </Border>
-    </Grid>
+        </Grid>
+    </Border>
 </Window>

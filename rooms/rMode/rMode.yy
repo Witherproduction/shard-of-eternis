@@ -7,7 +7,8 @@
   "inheritLayers":false,
   "instanceCreationOrder":[
     {"name":"inst_retour_mode","path":"rooms/rMode/rMode.yy",},
-    {"name":"inst_51A75340","path":"rooms/rMode/rMode.yy",},
+    {"name":"inst_ChoixContreIA","path":"rooms/rMode/rMode.yy",},
+    {"name":"inst_ChoixMultijoueur","path":"rooms/rMode/rMode.yy",},
     {"name":"inst_OptionButtonPersistent","path":"rooms/rMode/rMode.yy",},
     {"name":"inst_RoomContour","path":"rooms/rMode/rMode.yy",},
   ],
@@ -18,7 +19,8 @@
       ],"layers":[],"name":"UI","properties":[],"resourceType":"GMRInstanceLayer","resourceVersion":"2.0","userdefinedDepth":false,"visible":true,},
     {"$GMRInstanceLayer":"","%Name":"Instances","depth":100,"effectEnabled":true,"effectType":null,"gridX":32,"gridY":32,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"instances":[
         {"$GMRInstance":"v4","%Name":"inst_retour_mode","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_retour_mode","objectId":{"name":"oRetour1","path":"objects/oRetour1/oRetour1.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":960.0,"y":1000.0,},
-        {"$GMRInstance":"v4","%Name":"inst_51A75340","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_51A75340","objectId":{"name":"oChoixContreIA","path":"objects/oChoixContreIA/oChoixContreIA.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":896.0,"y":384.0,},
+        {"$GMRInstance":"v4","%Name":"inst_ChoixContreIA","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_ChoixContreIA","objectId":{"name":"oChoixContreIA","path":"objects/oChoixContreIA/oChoixContreIA.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":768.0,"y":384.0,},
+        {"$GMRInstance":"v4","%Name":"inst_ChoixMultijoueur","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_ChoixMultijoueur","objectId":{"name":"oChoixMultijoueur","path":"objects/oChoixMultijoueur/oChoixMultijoueur.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":1152.0,"y":384.0,},
       ],"layers":[],"name":"Instances","properties":[],"resourceType":"GMRInstanceLayer","resourceVersion":"2.0","userdefinedDepth":false,"visible":true,},
     {"$GMRInstanceLayer":"","%Name":"Contour","depth":200,"effectEnabled":true,"effectType":null,"gridX":32,"gridY":32,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"instances":[
         {"$GMRInstance":"v4","%Name":"inst_RoomContour","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_RoomContour","objectId":{"name":"oRoomContour","path":"objects/oRoomContour/oRoomContour.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},

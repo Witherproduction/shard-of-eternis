@@ -162,6 +162,19 @@ nbTurn = 1;
 timerIA = 0;
 timerEnabledIA = false;
 
+local_player_index = 0;
+remote_player_index = 1;
+if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+    if (variable_global_exists("NET_IS_HOST") && global.NET_IS_HOST) {
+        local_player_index = 0;
+        remote_player_index = 1;
+    } else {
+        local_player_index = 1;
+        remote_player_index = 0;
+    }
+}
+is_local_turn = (player_current == local_player_index);
+
 
 // Limites par joueur
 hasSummonedThisTurn = [false, false];
@@ -189,6 +202,7 @@ nextPhase = function() {
         if (instance_exists(handHero)) { handHero.reveal_override = false; if (variable_instance_exists(handHero, "updateDisplay")) { handHero.updateDisplay(); } }
         if (instance_exists(handEnemy)) { handEnemy.reveal_override = false; if (variable_instance_exists(handEnemy, "updateDisplay")) { handEnemy.updateDisplay(); } }
         player_current = (player_current + 1) % 2;
+        is_local_turn = (player_current == local_player_index);
         nextStep.image_index = 1;
         nbTurn++;
     }
@@ -216,9 +230,12 @@ nextPhase = function() {
     registerTriggerEvent(TRIGGER_START_TURN, noone, {});
 
 }
-    if (player[player_current] == "Enemy") {
+    var isOnline = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
+    if (!isOnline && player[player_current] == "Enemy") {
         timerIA = 1;
         timerEnabledIA = true;
+    } else if (isOnline) {
+        timerEnabledIA = false;
     }
 }
 #endregion

@@ -1,5 +1,5 @@
-// === oChoixContreIA - Draw Event ===
-// Dessine un cadre neutre avec le texte "Contre l'IA"
+// === oChoixMultijoueur - Draw Event ===
+// Dessine un cadre neutre avec le texte "Multijoueur"
 
 // Position centrée sur l'objet
 var draw_x = x - button_width / 2;
@@ -12,7 +12,7 @@ draw_sprite_stretched(sButton, 0, draw_x, draw_y, button_width, button_height);
 draw_set_color(make_color_rgb(230, 200, 120));
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
-draw_text(x, y, "Contre l'IA");
+draw_text(x, y, "Multijoueur");
 
 // Remettre les alignements par défaut
 draw_set_halign(fa_left);

@@ -11,10 +11,16 @@
     <FileVersion>1.0.0.0</FileVersion>
     <Company>Wither Production</Company>
     <Product>Shard of Eternis Launcher</Product>
+    <!-- Empêcher la création de dossiers de langues inutiles (de, es, ja, etc.) -->
+    <SatelliteResourceLanguages>fr</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="background.png" />
   </ItemGroup>
 
 </Project>

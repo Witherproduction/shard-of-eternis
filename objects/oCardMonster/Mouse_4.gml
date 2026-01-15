@@ -149,10 +149,17 @@ if (instance_exists(game) && game.player[game.player_current] == "Hero" && game.
             // Vérifier si on est en mode attaque
             if (selectManager.attackMode) {
                 show_debug_message("### Cible sélectionnée pour l'attaque: " + name);
-                // Faire disparaître la flèche de ciblage avant l'animation de combat
                 selectManager.destroyTargetingArrow();
-                damageManager.tryAttack(id);
-                // Sortir du mode attaque après l'attaque
+                var payload = {};
+                payload.attacker = selectedCard;
+                payload.target = id;
+                if (instance_exists(selectedCard) && variable_instance_exists(selectedCard, "instance_uid")) {
+                    payload.attacker_uid = selectedCard.instance_uid;
+                }
+                if (variable_instance_exists(id, "instance_uid")) {
+                    payload.target_uid = instance_uid;
+                }
+                RequestGameAction(ACTION_ATTACK, payload);
                 selectManager.attackMode = false;
                 return;
             } else {

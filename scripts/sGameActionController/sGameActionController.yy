@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sGameActionController",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sGameActionController",
+  "parent":{
+    "name":"Duel",
+    "path":"folders/Scripts/Duel.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

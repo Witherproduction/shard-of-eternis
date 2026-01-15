@@ -11,7 +11,7 @@ if (instance_exists(oPanelOptions)) {
 
 // Vérifier si on est dans une room qui a un bouton retour
 if (room != rCollection && room != rHistoire && room != rMode && room != rCardCreator && 
-    room != rContreIa && room != rDuel) {
+    room != rContreIa && room != rDuel && room != rLobby) {
     exit; // Sortir si on n'est pas dans une room appropriée
 }
 

@@ -21,7 +21,15 @@ if (global.isGraveyardViewerOpen) exit;
 // Si le bouton est activé
 if (image_index == 0) {
 	
+	// Check online turn
+	if (instance_exists(oGame) && variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+	    if (!oGame.is_local_turn) exit;
+	}
+	
 	// Repose toutes les cartes sélectionnées
-	selectManager.unSelectAll();
-	game.nextPhase();
+	// selectManager.unSelectAll(); // Géré par le contrôleur désormais
+	// game.nextPhase(); // Géré par le contrôleur désormais
+	
+	// Utilisation du nouveau système de Commandes (Phase 1.2 PvP)
+	RequestGameAction(ACTION_NEXT_PHASE, {});
 }

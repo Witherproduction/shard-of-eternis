@@ -248,14 +248,11 @@ else if (phase == "secret_reveal") {
             if (!is_undefined(requestFXAura)) {
                 // Préparer une action de fin pour poursuivre le flux
                 global.fx_aura_next_on_complete = function() { secret_effect_done = true; };
-                // Afficher la carte secrète au centre avec l’aura
-                var spr = (variable_instance_exists(secret_card, "sprite_index")) ? secret_card.sprite_index : noone;
-                var img = (variable_instance_exists(secret_card, "image_index")) ? secret_card.image_index : 0;
-                var xs  = (variable_instance_exists(secret_card, "image_xscale")) ? secret_card.image_xscale : 1;
-                var ys  = (variable_instance_exists(secret_card, "image_yscale")) ? secret_card.image_yscale : 1;
-                var ang = (variable_instance_exists(secret_card, "image_angle")) ? secret_card.image_angle : 0;
-                // Durée d’aura portée à 1500 ms pour espacer les séquences
-                requestFXAura(spr, img, xs, ys, ang, 1500, 18, 10, 1.25, 0.9, room_width * 0.5, room_height * 0.5);
+                requestFXAura(
+                    secret_card.sprite_index, secret_card.image_index,
+                    secret_card.image_xscale, secret_card.image_yscale, secret_card.image_angle,
+                    600, 18, 10, 1.50, 0.80, secret_card.x, secret_card.y
+                );
             } else {
                 secret_effect_done = true;
             }
@@ -273,10 +270,18 @@ else if (phase == "secret_effect") {
     // Attendre la fin de l'aura d'effet, puis exécuter l'activation des Secrets et gérer éventuelle redirection
     if (secret_effect_done) {
         var redirectedDefender = noone;
+        global.combat_redirect_defender = noone;
+
         if (!is_undefined(activateSecretsOnDirectAttack)) {
             // Passer la carte secrète révélée pour activation ciblée même si elle n'est plus face cachée
-            redirectedDefender = activateSecretsOnDirectAttack(attacker, secret_card);
+            var res = activateSecretsOnDirectAttack(attacker, secret_card);
+            if (res != noone && instance_exists(res)) redirectedDefender = res;
         }
+
+        if (global.combat_redirect_defender != noone && instance_exists(global.combat_redirect_defender)) {
+            redirectedDefender = global.combat_redirect_defender;
+        }
+
         if (redirectedDefender != noone && instance_exists(redirectedDefender)) {
             // Basculer en mode vsMonster et repartir sur une approche vers le défenseur invoqué
             defender = redirectedDefender;

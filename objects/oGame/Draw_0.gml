@@ -15,9 +15,33 @@ if (spr != -1) {
 }
 draw_set_font(fontStep);
 var base_x = 1650 + 80;
-draw_text_color(base_x, 414, player[player_current], c_black, c_black, c_black, c_black, 1);
-draw_set_color(c_white);
-draw_text(base_x, 410, player[player_current]);
+
+// Determine turn text and color
+var turn_text = player[player_current];
+var turn_color = c_white;
+
+if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+    if (is_local_turn) {
+        turn_text = "VOTRE TOUR";
+        turn_color = c_lime;
+    } else {
+        turn_text = "TOUR ADVERSE";
+        turn_color = c_red;
+    }
+} else {
+    // Single player translation
+    if (player[player_current] == "Hero") {
+         turn_text = "TOUR JOUEUR";
+         turn_color = c_white;
+    } else {
+         turn_text = "TOUR ENNEMI";
+         turn_color = c_white;
+    }
+}
+
+draw_text_color(base_x, 414, turn_text, c_black, c_black, c_black, c_black, 1);
+draw_set_color(turn_color);
+draw_text(base_x, 410, turn_text);
 draw_text_color(base_x, 514, phase[phase_current], c_black, c_black, c_black, c_black, 1);
 draw_set_color(c_white);
 draw_text(base_x, 510, phase[phase_current]);

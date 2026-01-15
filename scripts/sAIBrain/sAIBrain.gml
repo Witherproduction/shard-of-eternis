@@ -572,40 +572,46 @@ function AI_ExecuteMove(move) {
                  var trig = variable_struct_exists(eff, "trigger") ? eff.trigger : "";
                  if (trig == "activate" || trig == "") {
                      effect = eff;
+                     effectIndex = k;
                      break;
                  }
              }
         }
         
         if (effect != noone) {
-            var context = { 
-                target: target,
-                owner_is_hero: false 
-            };
-            
-            var resolved = executeEffect(card, effect, context);
-            
-            if (resolved) {
-                 // Consommer les sorts Direct
-                 var isDirect = (variable_instance_exists(card, "genre") && card.genre == "Direct");
-                 if (isDirect && !is_undefined(consumeSpellIfNeeded)) {
-                     consumeSpellIfNeeded(card, effect);
+            if (variable_instance_exists(card, "instance_uid") && effectIndex != -1) {
+                var payload = {
+                    source_uid: card.instance_uid,
+                    effect_index: effectIndex
+                };
+                if (target != noone && instance_exists(target) && variable_instance_exists(target, "instance_uid")) {
+                    payload.target_uid = target.instance_uid;
+                }
+                RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
+                return true;
+            } else {
+                var context = { 
+                    target: target,
+                    owner_is_hero: false 
+                };
+                
+                var resolved = executeEffect(card, effect, context);
+                
+                if (resolved) {
+                     var isDirect = (variable_instance_exists(card, "genre") && card.genre == "Direct");
+                     if (isDirect && !is_undefined(consumeSpellIfNeeded)) {
+                         consumeSpellIfNeeded(card, effect);
+                     }
+                     
+                     if (!is_undefined(markEffectAsUsed)) {
+                         markEffectAsUsed(card, effect);
+                     }
+                     return true;
                  }
                  
-                 // Marquer l'effet comme utilisé
-                 if (!is_undefined(markEffectAsUsed)) {
-                     markEffectAsUsed(card, effect);
-                 }
-                 return true;
-             }
-             
-             // Si l'effet a échoué mais qu'on vient d'invoquer la carte (move from Hand),
-             // l'action est partiellement réussie (carte sur terrain).
-             if (!isOnField) return true;
-             
-             // Si la carte était déjà sur le terrain et que l'effet a échoué,
-             // c'est un échec total (ex: boucle d'activation invalide).
-             return false;
+                 if (!isOnField) return true;
+                 return false;
+            }
         }
         
         // Si on a posé la carte mais qu'il n'y avait pas d'effet à activer (cas étrange mais possible), c'est un succès partiel (pose réussie)
@@ -631,21 +637,38 @@ function AI_ExecuteMove(move) {
         var target = move.target;
         var isDirect = move.isDirect;
         
-        if (instance_exists(oDamageManager)) {
+        // Phase 1.5: Migration Command Pattern pour l'attaque IA
+        if (variable_instance_exists(attacker, "instance_uid")) {
+            var payload = {
+                attacker_uid: attacker.instance_uid
+            };
+            
             if (isDirect) {
-                with (oDamageManager) {
-                    initiateAttackDirectEnemy(attacker);
-                }
-            } else {
-                with (oDamageManager) {
-                    initiateAttackMonsterEnemy(attacker, target);
-                }
+                payload.target_type = "direct_lp";
+            } else if (target != noone && instance_exists(target) && variable_instance_exists(target, "instance_uid")) {
+                payload.target_uid = target.instance_uid;
             }
             
-            // Note: Mise à jour des compteurs (attacksUsedThisTurn, camouflage) gérée dans initiate... 
-            // pour supporter les délais d'animation FX sans double compte.
-            
+            RequestGameAction(ACTION_ATTACK, payload);
             return true;
+        } else {
+            // Fallback Legacy
+            if (instance_exists(oDamageManager)) {
+                if (isDirect) {
+                    with (oDamageManager) {
+                        initiateAttackDirectEnemy(attacker);
+                    }
+                } else {
+                    with (oDamageManager) {
+                        initiateAttackMonsterEnemy(attacker, target);
+                    }
+                }
+                
+                // Note: Mise à jour des compteurs (attacksUsedThisTurn, camouflage) gérée dans initiate... 
+                // pour supporter les délais d'animation FX sans double compte.
+                
+                return true;
+            }
         }
     }
     return false;

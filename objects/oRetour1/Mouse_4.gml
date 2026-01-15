@@ -22,7 +22,7 @@ if (mouse_x_pos >= button_left && mouse_x_pos <= button_right &&
     
     // Vérifier qu'on est dans une room appropriée et déterminer la destination
     if (room == rCollection || room == rHistoire || room == rMode || room == rCardCreator || 
-        room == rContreIa || room == rDuel) {
+        room == rContreIa || room == rDuel || room == rLobby) {
         
         // Nettoyer les variables globales si on quitte rDuel
         if (room == rDuel) {
@@ -31,7 +31,7 @@ if (mouse_x_pos >= button_left && mouse_x_pos <= button_right &&
             room_goto(rMode);
         }
         // Déterminer la destination selon la room actuelle
-        else if (room == rContreIa) {
+        else if (room == rContreIa || room == rLobby) {
             show_debug_message("### Navigation vers rMode depuis " + string(room_get_name(room)));
             room_goto(rMode);
         } else {

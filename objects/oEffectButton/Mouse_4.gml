@@ -14,6 +14,11 @@ var card = parentCard;
 
 // Récupérer l'effet activable après un éventuel retournement
 var effect = getAvailableEffect(card);
+var effectIndex = -1;
+if (effect != noone && script_exists(asset_get_index("getEffectIndex"))) {
+    effectIndex = getEffectIndex(card, effect);
+}
+
 // Contexte de tour/phase
 var isHeroTurn = (instance_exists(game) && game.player[game.player_current] == "Hero");
 var currentPhase = (instance_exists(game) && variable_instance_exists(game, "phase")) ? game.phase[game.phase_current] : "";
@@ -100,6 +105,7 @@ if ((isArtifact || isDirect || hasContinuous) && isInHand) {
 if ((isArtifact || isDirect) && instance_exists(oSelectManager) && effect != noone) {
     selectManager.pendingEffectCard = card;
     selectManager.pendingEffect = effect;
+    selectManager.pendingEffectIndex = effectIndex;
     // Empêcher la destruction immédiate par l'effet continu avant la sélection de cible
     if (isArtifact) { card.equip_pending = true; }
 }
@@ -130,14 +136,28 @@ requestFXAura(
 // Pour les cartes déjà sur le terrain (y compris Artéfacts), exécuter l'effet manuel s'il existe
 var effectResolved = false;
 if (effect != noone) {
-    effectResolved = executeEffect(card, effect, {});
-    if (effectResolved) {
-        markEffectAsUsed(card, effect);
+    // Phase 1.5: Command Pattern
+    if (effectIndex != -1 && variable_instance_exists(card, "instance_uid")) {
+        RequestGameAction(ACTION_ACTIVATE_EFFECT, {
+            source_uid: card.instance_uid,
+            effect_index: effectIndex
+        });
+        // Note: effectResolved n'est plus pertinent ici car l'action est asynchrone/centralisée.
+        // On suppose que l'action s'exécutera.
+        effectResolved = true; // Pour déclencher le nettoyage UI ci-dessous si besoin
+    } else {
+        // Fallback
+        effectResolved = executeEffect(card, effect, {});
+        if (effectResolved) {
+            markEffectAsUsed(card, effect);
+        }
     }
 }
 
 // Consommer les sorts Direct (non-continus) après la résolution
-if (!is_undefined(consumeSpellIfNeeded) && effectResolved) {
+// Note: Avec le Command Pattern, la consommation est gérée dans le contrôleur.
+// On garde ceci pour le fallback ou si l'action est locale immédiate.
+if (!is_undefined(consumeSpellIfNeeded) && effectResolved && (effectIndex == -1)) {
     consumeSpellIfNeeded(card, effect);
 }
 

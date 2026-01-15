@@ -184,13 +184,18 @@ confirm = function() {
     }
 };
 
-// Finalise l'invocation après avoir choisi la position
 completeSummon = function(position) {
     show_debug_message("### oSacrificeSelector.completeSummon");
     
     if(monsterToSummon != noone && array_length(position) >= 3) {
-        // Invoque le monstre à la position choisie
-        handHero.summon(monsterToSummon, position);
+        var payloadSummon = {
+            card: monsterToSummon,
+            xy: position
+        };
+        if (instance_exists(monsterToSummon) && variable_instance_exists(monsterToSummon, "instance_uid")) {
+            payloadSummon.card_uid = monsterToSummon.instance_uid;
+        }
+        RequestGameAction(ACTION_SUMMON, payloadSummon);
         
         // Met à jour le statut d'invocation (ne pas compter les invocations spéciales)
         if (monsterToSummon.type == "Monster" && UIManager.selectedSummonOrSet != "SpecialSummon") {
@@ -199,7 +204,6 @@ completeSummon = function(position) {
         // Reset du mode après l'opération
         UIManager.selectedSummonOrSet = "";
         
-        // Réinitialise les variables
         if (variable_global_exists("sacrifice_for_card")) { global.sacrifice_for_card = noone; }
         monsterToSummon = noone;
         summonPosition = [];
@@ -210,10 +214,8 @@ completeSummon = function(position) {
         visible = false;
         global.isSacrificeSelectorOpen = false;
         
-        // Arrête les indicateurs
         UIManager.stopIndicator();
         
-        // Désélectionne la carte
         selectManager.unSelectAll();
     }
 };

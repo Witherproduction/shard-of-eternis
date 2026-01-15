@@ -16,9 +16,12 @@ function consumeSpellIfNeeded(card, effect) {
     var isArtifact = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "artéfact");
     if (isContinuous || isArtifact) return false;
 
-    // Consommer uniquement les sorts "Direct"
-    var isDirect = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "direct");
-    if (!isDirect) return false;
+    // Consommer uniquement les sorts "Direct" ou "Secret" (activé)
+    var genre = (variable_instance_exists(card, "genre") ? string_lower(card.genre) : "");
+    var isDirect = (genre == "direct");
+    var isSecret = (genre == "secret");
+    
+    if (!isDirect && !isSecret) return false;
 
     if (variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending) {
         card._consume_after_flow = true;

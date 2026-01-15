@@ -21,3 +21,8 @@ if (!variable_instance_exists(id, "limited")) limited = 3;
 isSelected = false;
 isHovered = false;
 isTargetableForFloraison = false;
+if (!variable_global_exists("nextCardInstanceUID")) global.nextCardInstanceUID = 1;
+if (!variable_instance_exists(id, "instance_uid")) {
+    instance_uid = global.nextCardInstanceUID;
+    global.nextCardInstanceUID += 1;
+}

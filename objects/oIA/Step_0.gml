@@ -3,6 +3,7 @@
 // et séquence les attaques pendant la phase "Attack".
 
 if (!instance_exists(game)) exit;
+if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") exit;
 
 // États et compteurs globaux de l'IA
 if (!variable_instance_exists(id, "iaDelayFrames")) iaDelayFrames = 0;

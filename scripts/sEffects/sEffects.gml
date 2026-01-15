@@ -83,6 +83,60 @@
 
 // === FONCTION PRINCIPALE D'EXÉCUTION DES EFFETS ===
 
+/// @function isTargetingRequired(effect)
+/// @description Vérifie si un effet nécessite un ciblage manuel
+/// @param {struct} effect
+/// @returns {bool}
+function isTargetingRequired(effect) {
+    if (!is_struct(effect)) return false;
+    if (!variable_struct_exists(effect, "effect_type")) return false;
+    
+    var etype = effect.effect_type;
+    
+    // Liste des effets nécessitant une cible manuelle
+    if (etype == EFFECT_DESTROY_TARGET ||
+        etype == EFFECT_EQUIP_SELECT_TARGET ||
+        etype == EFFECT_ENTRAVE ||
+        etype == EFFECT_RETURN_TO_HAND ||
+        etype == EFFECT_BANISH_TARGET ||
+        etype == EFFECT_DAMAGE_TARGET ||
+        etype == EFFECT_HEAL_TARGET) {
+        return true;
+    }
+    
+    // Pour les buffs, vérifier le scope
+    if (etype == EFFECT_BUFF) {
+        var scope = "single";
+        if (variable_struct_exists(effect, "scope")) scope = effect.scope;
+        if (scope == "single" || scope == "select") return true;
+    }
+    
+    // Pour le changement de contrôle, vérifier s'il existe (non standardisé encore)
+    if (variable_struct_exists(effect, "target_required") && effect.target_required) return true;
+    
+    return false;
+}
+
+function getEffectIndex(card, effect) {
+    if (card == noone || !instance_exists(card)) return -1;
+    if (!variable_instance_exists(card, "effects") || !is_array(card.effects)) return -1;
+    var len = array_length(card.effects);
+    for (var i = 0; i < len; i++) {
+        var e = card.effects[i];
+        if (e == effect) return i;
+    }
+    if (is_struct(effect) && variable_struct_exists(effect, "id")) {
+        var eid = effect.id;
+        for (var j = 0; j < len; j++) {
+            var e2 = card.effects[j];
+            if (is_struct(e2) && variable_struct_exists(e2, "id") && e2.id == eid) {
+                return j;
+            }
+        }
+    }
+    return -1;
+}
+
 /// @function executeEffect(card, effect, context)
 /// @description Exécute un effet spécifique
 /// @param {struct} card - La carte qui active l'effet
@@ -259,14 +313,27 @@ function executeEffect(card, effect, context = {}) {
                         }
                     }
                     if (!okSel) { return false; }
-                    var resolved = executeEffect(src, eff, { target: cardTarget });
-                    if (resolved) {
-                        // Nettoyer les marqueurs de ciblage
+                    
+                    // Phase 1.5: Migration Command Pattern
+                    // Au lieu d'exécuter directement, on demande une action au contrôleur
+                    var effIdx = getEffectIndex(src, eff);
+                    if (effIdx != -1 && variable_instance_exists(src, "instance_uid") && variable_instance_exists(cardTarget, "instance_uid")) {
+                        RequestGameAction(ACTION_ACTIVATE_EFFECT, {
+                            source_uid: src.instance_uid,
+                            effect_index: effIdx,
+                            target_uid: cardTarget.instance_uid
+                        });
+                        
+                        // Nettoyage UI local immédiat (anticipation)
                         clearTargetingMarkers();
-                        // Marquer l'effet comme utilisé au moment où il se résout réellement
-                        if (!is_undefined(markEffectAsUsed)) { markEffectAsUsed(src, eff); }
-                        // Consommer les sorts Direct uniquement après résolution réussie
-                        if (!is_undefined(consumeSpellIfNeeded)) { consumeSpellIfNeeded(src, eff); }
+                    } else {
+                        // Fallback pour compatibilité si UIDs manquants (ne devrait pas arriver en Phase 1.5)
+                        var resolved = executeEffect(src, eff, { target: cardTarget });
+                        if (resolved) {
+                            clearTargetingMarkers();
+                            if (!is_undefined(markEffectAsUsed)) { markEffectAsUsed(src, eff); }
+                            if (!is_undefined(consumeSpellIfNeeded)) { consumeSpellIfNeeded(src, eff); }
+                        }
                     }
                 } else {
                     var etype = (is_struct(eff) && variable_struct_exists(eff, "effect_type")) ? eff.effect_type : "unknown";

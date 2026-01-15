@@ -94,18 +94,50 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
             ctx.owner_is_hero = !defendingIsHero; // Cibler l'adversaire
         }
         
-        // Exécution générique de l'effet
-        executeEffect(self, chosenEffect, ctx);
-        
-        // Si l'effet demande une redirection vers l'instance invoquée, l'utiliser comme nouveau défenseur
-        if (variable_struct_exists(chosenEffect, "redirect_attack_to_summoned") && chosenEffect.redirect_attack_to_summoned) {
-            if (variable_struct_exists(ctx, "summoned") && ctx.summoned != noone && instance_exists(ctx.summoned)) {
-                redirectDefender = ctx.summoned;
+        // Phase 1.5: Migration Command Pattern
+        // Recherche de l'index de l'effet
+        var effIndex = -1;
+        if (variable_instance_exists(self, "effects") && is_array(effects)) {
+            for(var k=0; k<array_length(effects); k++) {
+                if (effects[k] == chosenEffect) { effIndex = k; break; }
             }
         }
         
-        // Consommer la carte Secret après activation
-        destroyCard(id);
+        if (effIndex != -1 && variable_instance_exists(self, "instance_uid")) {
+             var payload = {
+                 source_uid: self.instance_uid,
+                 effect_index: effIndex
+             };
+             // Ajouter cibles contextuelles si besoin (mais ctx est complexe ici)
+             // Note: RequestGameAction ne prend pas un 'ctx' arbitraire, mais le reconstruira.
+             // ATTENTION: Le 'ctx' calculé ici (useAtkVal, target_source) doit être reproduit par executeEffect.
+             // executeEffect le fait déjà (il recalcule value si non fournie, target si target_source).
+             // Mais si on a passé une 'value' explicite (dmg), on doit la passer dans payload?
+             // Le contrôleur ne supporte pas encore 'custom_context_value' dans payload.
+             // Pour l'instant, on passe 'target_uid' si 'ctx.target' est défini.
+             if (variable_struct_exists(ctx, "target") && ctx.target != noone && instance_exists(ctx.target) && variable_instance_exists(ctx.target, "instance_uid")) {
+                 payload.target_uid = ctx.target.instance_uid;
+             }
+             
+             RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
+             
+             // NOTE: La redirection (redirectDefender) est maintenant gérée par global.combat_redirect_defender
+             // rempli par le contrôleur.
+             
+        } else {
+            // Fallback Legacy
+            executeEffect(self, chosenEffect, ctx);
+            
+            // Si l'effet demande une redirection vers l'instance invoquée, l'utiliser comme nouveau défenseur
+            if (variable_struct_exists(chosenEffect, "redirect_attack_to_summoned") && chosenEffect.redirect_attack_to_summoned) {
+                if (variable_struct_exists(ctx, "summoned") && ctx.summoned != noone && instance_exists(ctx.summoned)) {
+                    redirectDefender = ctx.summoned;
+                }
+            }
+            
+            // Consommer la carte Secret après activation (uniquement en fallback, sinon géré par sSpellUtils/Controller)
+            destroyCard(id);
+        }
     }
     
     return redirectDefender;
@@ -182,9 +214,28 @@ function activateSecretsOnAttack(attacker, defender) {
             ctx.owner_is_hero = !defendingIsHero; // Cibler l'adversaire
         }
         
-        executeEffect(self, chosenEffect, ctx);
-        // Consommer la carte Secret après activation
-        destroyCard(id);
+        // Phase 1.5: Migration Command Pattern
+        var effIndex = -1;
+        if (variable_instance_exists(self, "effects") && is_array(effects)) {
+            for(var k=0; k<array_length(effects); k++) {
+                if (effects[k] == chosenEffect) { effIndex = k; break; }
+            }
+        }
+        
+        if (effIndex != -1 && variable_instance_exists(self, "instance_uid")) {
+             var payload = {
+                 source_uid: self.instance_uid,
+                 effect_index: effIndex
+             };
+             if (variable_struct_exists(ctx, "target") && ctx.target != noone && instance_exists(ctx.target) && variable_instance_exists(ctx.target, "instance_uid")) {
+                 payload.target_uid = ctx.target.instance_uid;
+             }
+             RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
+        } else {
+            executeEffect(self, chosenEffect, ctx);
+            // Consommer la carte Secret après activation
+            destroyCard(id);
+        }
     }
 }
 
@@ -248,10 +299,30 @@ function activateSecretsOnMonsterSummon(summoned) {
             var ts = chosenEffect.target_source;
             if (ts == "summoned") ctx.target = summoned;
         }
-        var ok = executeEffect(self, chosenEffect, ctx);
-        show_debug_message("### Secrets: effet exécuté=" + string(ok) + "; destruction");
-        // Consommer la carte Secret après activation
-        destroyCard(id);
+        
+        // Phase 1.5: Migration Command Pattern
+        var effIndex = -1;
+        if (variable_instance_exists(self, "effects") && is_array(effects)) {
+            for(var k=0; k<array_length(effects); k++) {
+                if (effects[k] == chosenEffect) { effIndex = k; break; }
+            }
+        }
+        
+        if (effIndex != -1 && variable_instance_exists(self, "instance_uid")) {
+             var payload = {
+                 source_uid: self.instance_uid,
+                 effect_index: effIndex
+             };
+             if (variable_struct_exists(ctx, "target") && ctx.target != noone && instance_exists(ctx.target) && variable_instance_exists(ctx.target, "instance_uid")) {
+                 payload.target_uid = ctx.target.instance_uid;
+             }
+             RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
+        } else {
+            var ok = executeEffect(self, chosenEffect, ctx);
+            show_debug_message("### Secrets: effet exécuté=" + string(ok) + "; destruction");
+            // Consommer la carte Secret après activation
+            destroyCard(id);
+        }
     }
 }
 

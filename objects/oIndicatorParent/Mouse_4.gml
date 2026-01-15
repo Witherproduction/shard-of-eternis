@@ -46,8 +46,15 @@ if (selector != noone && selector.monsterToSummon != noone) {
     return;
 }
 
-// Pour les monstres sans sacrifice ou les cartes magiques, invoque directement
-handHero.summon(selectedMonster, [posXY[0], posXY[1], fieldPosition]);
+// Pour les monstres sans sacrifice ou les cartes magiques, invoque via le contrôleur d'actions
+var payloadSummon = {
+    card: selectedMonster,
+    xy: [posXY[0], posXY[1], fieldPosition]
+};
+if (instance_exists(selectedMonster) && variable_instance_exists(selectedMonster, "instance_uid")) {
+    payloadSummon.card_uid = selectedMonster.instance_uid;
+}
+RequestGameAction(ACTION_SUMMON, payloadSummon);
 selectedMonster.fieldPosition = fieldPosition;
 // Mémoriser si l'invocation est spéciale AVANT de réinitialiser l'UI
 var wasSpecialSummon = (UIManager.selectedSummonOrSet == "SpecialSummon");
@@ -90,12 +97,25 @@ else {
                 placed.x,
                 placed.y
             );
-            // Marquer l'effet comme utilisé et exécuter (déclenchera le ciblage si nécessaire)
-            markEffectAsUsed(placed, eff);
-            executeEffect(placed, eff, {});
+            
+            // Phase 1.5: Command Pattern
+            var idx = selectManager.pendingEffectIndex;
+            if (idx != -1 && variable_instance_exists(placed, "instance_uid")) {
+                RequestGameAction(ACTION_ACTIVATE_EFFECT, {
+                    source_uid: placed.instance_uid,
+                    effect_index: idx
+                });
+                // On suppose que l'action va réussir et consommer/marquer l'effet
+            } else {
+                // Fallback
+                markEffectAsUsed(placed, eff);
+                executeEffect(placed, eff, {});
+            }
+            
             // Nettoyage de l'état différé
             selectManager.pendingEffect = noone;
             selectManager.pendingEffectCard = noone;
+            selectManager.pendingEffectIndex = -1;
         }
         // Si l'effet est différé et la carte est posée face cachée, afficher le bouton Effet tout de suite
         if (hasPending && isArtifact && isFaceDown) {
@@ -122,25 +142,48 @@ else {
                 placed.x,
                 placed.y
             );
-            // Lancer l'effet (déclenchera le ciblage si nécessaire)
-            var resolved = executeEffect(placed, effd, {});
-            if (resolved) {
-                // Marquer l'effet comme utilisé et consommer le sort Direct immédiatement
-                if (!is_undefined(markEffectAsUsed)) { markEffectAsUsed(placed, effd); }
-                if (!is_undefined(consumeSpellIfNeeded)) { consumeSpellIfNeeded(placed, effd); }
+            
+            // Phase 1.5: Command Pattern
+            var idxD = selectManager.pendingEffectIndex;
+            if (idxD != -1 && variable_instance_exists(placed, "instance_uid")) {
+                RequestGameAction(ACTION_ACTIVATE_EFFECT, {
+                    source_uid: placed.instance_uid,
+                    effect_index: idxD
+                });
+                // On laisse le contrôleur gérer la consommation/marquage
+            } else {
+                // Fallback
+                var resolved = executeEffect(placed, effd, {});
+                if (resolved) {
+                    // Marquer l'effet comme utilisé et consommer le sort Direct immédiatement
+                    if (!is_undefined(markEffectAsUsed)) { markEffectAsUsed(placed, effd); }
+                    if (!is_undefined(consumeSpellIfNeeded)) { consumeSpellIfNeeded(placed, effd); }
+                }
             }
+            
             // Nettoyage de l'état différé
             selectManager.pendingEffect = noone;
             selectManager.pendingEffectCard = noone;
+            selectManager.pendingEffectIndex = -1;
         }
         // Si un effet d'Artéfact a été différé et que la carte vient d'être posée face visible
         if (selectManager.pendingEffect != noone && placed != noone && isArtifact && !isFaceDown) {
             var __placed_card = placed;
             var __effect = selectManager.pendingEffect;
             // Exécuter l'effet (déjà marqué comme utilisé au clic du bouton)
-            executeEffect(__placed_card, __effect, {});
+            // Phase 1.5: Command Pattern
+            var idxP = selectManager.pendingEffectIndex;
+            if (idxP != -1 && variable_instance_exists(__placed_card, "instance_uid")) {
+                RequestGameAction(ACTION_ACTIVATE_EFFECT, {
+                    source_uid: __placed_card.instance_uid,
+                    effect_index: idxP
+                });
+            } else {
+                executeEffect(__placed_card, __effect, {});
+            }
             selectManager.pendingEffect = noone;
             selectManager.pendingEffectCard = noone;
+            selectManager.pendingEffectIndex = -1;
         }
     }
 }

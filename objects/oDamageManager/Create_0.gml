@@ -319,10 +319,24 @@ resolveAttackDirect = function(cardHero) {
     // Debug attaque directe supprimé
     // Triggers & Secrets (attaque directe contre l’ennemi)
     registerTriggerEvent(TRIGGER_ON_ATTACK, cardHero, { attacker: cardHero, defender: noone, direct_attack: true });
+    
+    // Initialisation de la redirection (via globale pour support Command Pattern)
+    global.combat_redirect_defender = noone;
     var redirectedDefender = noone;
+    
     if (!is_undefined(activateSecretsOnDirectAttack)) {
-        redirectedDefender = activateSecretsOnDirectAttack(cardHero);
+        // La fonction ne retourne plus directement la redirection si elle passe par Command Pattern,
+        // mais elle déclenche l'effet qui remplit global.combat_redirect_defender via le Controller.
+        // Pour rétro-compatibilité immédiate, on garde le return si la fonction le fait encore,
+        // mais on vérifie aussi la globale.
+        var res = activateSecretsOnDirectAttack(cardHero);
+        if (res != noone && instance_exists(res)) redirectedDefender = res;
     }
+    
+    if (global.combat_redirect_defender != noone && instance_exists(global.combat_redirect_defender)) {
+        redirectedDefender = global.combat_redirect_defender;
+    }
+
     // Si un Secret adverse a redirigé l’attaque vers une invocation, résoudre comme une attaque vs monstre
     if (redirectedDefender != noone && instance_exists(redirectedDefender)) {
         resolveAttackMonster(cardHero, redirectedDefender);

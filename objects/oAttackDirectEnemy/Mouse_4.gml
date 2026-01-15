@@ -62,33 +62,21 @@ if (selectManager.attackMode && selectManager.selected != noone) {
                 }
                 exit;
             }
-            // Si FX de combat activé: déclencher l'animation et laisser oDamageManager résoudre
-            if (variable_global_exists("USE_COMBAT_FX") && global.USE_COMBAT_FX) {
-                // Faire disparaître la flèche de ciblage avant l'animation de combat
+            // MIGRATION PHASE 1.4: Utilisation du Command Pattern
+            // La logique d'exécution (FX, résolution) est gérée par le contrôleur et oDamageManager
+            RequestGameAction(ACTION_ATTACK, {
+                attacker_uid: card.instance_uid,
+                target_type: "direct_lp"
+            });
+            
+            // UI Feedback immédiat
+            if (variable_instance_exists(selectManager, "destroyTargetingArrow")) {
                 selectManager.destroyTargetingArrow();
-                var fx = instance_create_layer(card.x, card.y, "Instances", FX_Combat);
-                if (fx != noone) {
-                    fx.attacker = card;
-                    fx.defender = noone;
-                    fx.mode = "direct";
-                }
-                // Nettoyer l'UI et sortir du mode attaque; la résolution (LP/lastTurnAttack/unselect) sera faite par FX_Combat -> oDamageManager
-                image_alpha = 0; // cache le bouton après clic
-                selectManager.attackMode = false; // sortir du mode attaque immédiatement comme pour les attaques vs monstre
-                if (instance_exists(oAttack)) {
-                    instance_destroy(oAttack);
-                }
-            } else {
-                // Résolution directe sans FX
-                var dm = instance_find(oDamageManager, 0);
-                if (dm != noone) {
-                    with (dm) resolveAttackDirect(card);
-                }
-                image_alpha = 0;
-                selectManager.attackMode = false;
-                if (instance_exists(oAttack)) {
-                    instance_destroy(oAttack);
-                }
+            }
+            image_alpha = 0;
+            selectManager.attackMode = false;
+            if (instance_exists(oAttack)) {
+                instance_destroy(oAttack);
             }
         } else {
             show_debug_message("### oAttackDirectEnemy: Attaque directe impossible - monstres ennemis présents");

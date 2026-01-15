@@ -119,33 +119,16 @@ manageOrientation = function() {
             // Changer l'orientation si nécessaire
             if (instance_exists(cardEnemy)) {
                 if (shouldDefend && cardEnemy.orientation == "Attack") {
-                    cardEnemy.orientation = "DefenseVisible";
-                    cardEnemy.position_anim_active = true;
-                    cardEnemy.anim_rotate_speed = (variable_global_exists("ANIM_ROTATE_SPEED") ? global.ANIM_ROTATE_SPEED : 6);
-                    cardEnemy.anim_flip_speed = (variable_global_exists("ANIM_FLIP_SPEED") ? global.ANIM_FLIP_SPEED : 0.03);
-                    cardEnemy.anim_flip_orig_scale = cardEnemy.image_xscale;
-                    cardEnemy.anim_pre_delay_frames = (variable_global_exists("ANIM_ROTATE_PRE_DELAY_FRAMES") ? global.ANIM_ROTATE_PRE_DELAY_FRAMES : 6);
-                    cardEnemy.anim_phase = "rotate";
-                    cardEnemy.target_angle = 270;
-                    cardEnemy.target_orientation = "DefenseVisible";
-                    cardEnemy.image_index = 0;
-                    if (variable_instance_exists(cardEnemy.id, "isFaceDown")) cardEnemy.isFaceDown = false;
-                    cardEnemy.orientationChangedThisTurn = true;
-                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("IA change monstre en défense visible (anim)");
+                    if (script_exists(asset_get_index("RequestGameAction"))) {
+                        RequestGameAction(ACTION_SWITCH_POSITION, { card_uid: cardEnemy.instance_uid, immediate: true });
+                    }
+                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("IA change monstre en défense visible (Command)");
                     continue;
                 } else if (!shouldDefend && (cardEnemy.orientation == "Defense" || cardEnemy.orientation == "DefenseVisible")) {
-                    cardEnemy.orientation = "Attack";
-                    cardEnemy.position_anim_active = true;
-                    cardEnemy.anim_rotate_speed = (variable_global_exists("ANIM_ROTATE_SPEED") ? global.ANIM_ROTATE_SPEED : 6);
-                    cardEnemy.anim_flip_speed = (variable_global_exists("ANIM_FLIP_SPEED") ? global.ANIM_FLIP_SPEED : 0.03);
-                    cardEnemy.anim_flip_orig_scale = cardEnemy.image_xscale;
-                    cardEnemy.anim_pre_delay_frames = (variable_global_exists("ANIM_ROTATE_PRE_DELAY_FRAMES") ? global.ANIM_ROTATE_PRE_DELAY_FRAMES : 6);
-                    cardEnemy.anim_phase = "rotate";
-                    cardEnemy.target_angle = 180;
-                    cardEnemy.target_orientation = "Attack";
-                    cardEnemy.image_index = 0;
-                    cardEnemy.orientationChangedThisTurn = true;
-                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("IA change monstre en attaque (anim)");
+                    if (script_exists(asset_get_index("RequestGameAction"))) {
+                        RequestGameAction(ACTION_SWITCH_POSITION, { card_uid: cardEnemy.instance_uid, immediate: true });
+                    }
+                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("IA change monstre en attaque (Command)");
                     continue;
                 }
             }

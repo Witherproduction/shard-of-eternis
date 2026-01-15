@@ -16,6 +16,11 @@ if (!instance_exists(oDataBase)) {
     show_debug_message("### oGlobalManager - oDataBase créée");
 }
 
+if (!instance_exists(oNetworkManager)) {
+    instance_create_depth(0, 0, 0, oNetworkManager);
+    show_debug_message("### oGlobalManager - oNetworkManager créée");
+}
+
 // Initialiser le générateur pseudo-aléatoire une seule fois par session
 if (!variable_global_exists("rng_initialized") || !global.rng_initialized) {
     randomize();
