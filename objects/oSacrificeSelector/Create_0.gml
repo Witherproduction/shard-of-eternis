@@ -184,13 +184,25 @@ confirm = function() {
     }
 };
 
-completeSummon = function(position) {
+completeSummon = function(position, mode_override) {
     show_debug_message("### oSacrificeSelector.completeSummon");
+    
+    // Fallback si la position n'est pas passée en argument
+    if (is_undefined(position) || !is_array(position)) {
+        position = summonPosition;
+    }
+
+    // Utiliser le mode passé en argument si disponible, sinon utiliser le mode stocké
+    var final_mode = summonMode;
+    if (!is_undefined(mode_override) && mode_override != "") {
+        final_mode = mode_override;
+    }
     
     if(monsterToSummon != noone && array_length(position) >= 3) {
         var payloadSummon = {
             card: monsterToSummon,
-            xy: position
+            xy: position,
+            summon_mode: final_mode
         };
         if (instance_exists(monsterToSummon) && variable_instance_exists(monsterToSummon, "instance_uid")) {
             payloadSummon.card_uid = monsterToSummon.instance_uid;

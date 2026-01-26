@@ -9,6 +9,10 @@ if (!variable_global_exists("options_loaded") || !global.options_loaded) {
     // Note: L'initialisation se fait désormais dans oGlobalManager (rAcceuil)
     // Ce bloc est gardé en secours si on lance le jeu directement depuis rDuel
     progression_init();
+    
+    // Charger les decks de bots personnalisés
+    load_bot_decks_from_file();
+load_hero_decks_from_file();
 
     // Volume
     ini_open("options.ini");
@@ -48,14 +52,20 @@ if (!variable_global_exists("options_loaded") || !global.options_loaded) {
 }
 
 // Initialiser le générateur pseudo-aléatoire une seule fois par session
-if (!variable_global_exists("rng_initialized") || !global.rng_initialized) {
-    randomize();
-    global.rng_initialized = true;
-    show_debug_message("### RNG initialisé avec randomize() pour cette session");
+// En ligne, la graine est définie via NET_SHARED_SEED avant l'entrée dans rDuel.
+var _isOnlineGame = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
+if (!_isOnlineGame) {
+    if (!variable_global_exists("rng_initialized") || !global.rng_initialized) {
+        randomize();
+        global.rng_initialized = true;
+        show_debug_message("### RNG initialisé avec randomize() pour cette session (offline)");
+    }
 }
 
 timerPick = 0.5;
 timerEnabledPick = true;
+timerAutoDraw = 0;
+timerAutoDrawEnabled = false;
 global.isGraveyardViewerOpen = false;
 
 // === Animation globals ===
@@ -114,7 +124,7 @@ setDuelBackground = function() {
         var bg_groups = [
             {
                 sprite: "sTerrain2",
-                bots: [1] // Bot 1 utilise sTerrain2
+                bots: [1, 2, 3, "Invasion_Geule_Roche", "Essaim_Abyssien", "Bandit_Grand_Chemin"] // Bot 1, 2 et 3 (Chapitre 1) utilisent sTerrain2
             }
             // Ajoutez d'autres groupes ici pour d'autres exceptions
         ];
@@ -164,13 +174,40 @@ timerEnabledIA = false;
 
 local_player_index = 0;
 remote_player_index = 1;
-if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+
+// Vérification du mode Bot/Histoire pour forcer le mode hors-ligne
+var isBotDuel = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone);
+
+if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline" && !isBotDuel) {
     if (variable_global_exists("NET_IS_HOST") && global.NET_IS_HOST) {
         local_player_index = 0;
         remote_player_index = 1;
     } else {
         local_player_index = 1;
         remote_player_index = 0;
+    }
+    
+    // 50/50 pour décider qui commence
+    // On utilise le seed partagé pour que les deux joueurs aient le même résultat
+    if (variable_global_exists("NET_SHARED_SEED")) {
+        player_current = (global.NET_SHARED_SEED % 2);
+        random_set_seed(global.NET_SHARED_SEED);
+        
+        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
+            show_debug_message("### Multiplayer 50/50: Seed=" + string(global.NET_SHARED_SEED) + " Starting Player=" + string(player_current));
+        }
+        
+        coin_toss_active = true;
+        coin_toss_angle = 0;
+        coin_toss_speed = 40;
+        coin_toss_timer = 0;
+        coin_toss_phase = 0;
+        coin_toss_scale_x = 1;
+        
+        is_local_turn = (player_current == local_player_index);
+        coin_toss_is_heads = is_local_turn;
+    } else {
+        coin_toss_active = false;
     }
 }
 is_local_turn = (player_current == local_player_index);
@@ -219,8 +256,10 @@ nextPhase = function() {
 
     // Réinitialise orientation pour tous les monstres du joueur actif
  with (oCardMonster) {
-    if ((isHeroOwner && oGame.player[oGame.player_current] == "Hero") ||
-        (!isHeroOwner && oGame.player[oGame.player_current] == "Enemy")) {
+    var localIdx = (variable_instance_exists(oGame, "local_player_index")) ? oGame.local_player_index : 0;
+    var ownerIdx = (isHeroOwner) ? localIdx : (1 - localIdx);
+    
+    if (ownerIdx == oGame.player_current) {
         orientationChangedThisTurn = false;
         if (variable_instance_exists(id, "attacksUsedThisTurn")) attacksUsedThisTurn = 0;
     }
@@ -228,6 +267,14 @@ nextPhase = function() {
 
     // Début du tour: déclenche les effets de début
     registerTriggerEvent(TRIGGER_START_TURN, noone, {});
+
+    // Activer la pioche automatique pour le joueur local
+    // On vérifie !timerEnabledPick pour ne pas interférer avec la distribution initiale (tour 1)
+    if (is_local_turn && !timerEnabledPick) {
+        timerAutoDraw = 0.5;
+        timerAutoDrawEnabled = true;
+        show_debug_message("### Auto-Draw enabled for Turn " + string(nbTurn));
+    }
 
 }
     var isOnline = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");

@@ -42,14 +42,15 @@ var selectedMonster = selectManager.selected;
 var selector = instance_find(oSacrificeSelector, 0);
 if (selector != noone && selector.monsterToSummon != noone) {
     // Finalise l'invocation avec la position choisie
-    selector.completeSummon([posXY[0], posXY[1], fieldPosition]);
+    selector.completeSummon([posXY[0], posXY[1], fieldPosition], UIManager.selectedSummonOrSet);
     return;
 }
 
 // Pour les monstres sans sacrifice ou les cartes magiques, invoque via le contrôleur d'actions
 var payloadSummon = {
     card: selectedMonster,
-    xy: [posXY[0], posXY[1], fieldPosition]
+    xy: [posXY[0], posXY[1], fieldPosition],
+    summon_mode: UIManager.selectedSummonOrSet
 };
 if (instance_exists(selectedMonster) && variable_instance_exists(selectedMonster, "instance_uid")) {
     payloadSummon.card_uid = selectedMonster.instance_uid;

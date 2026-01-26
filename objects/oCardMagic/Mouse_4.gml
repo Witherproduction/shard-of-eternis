@@ -132,7 +132,16 @@ if (room == rCollection) {
 
 // Phase Attack : gérer sélection et attaque ciblée
 // Vérifier que l'objet game existe avant de l'utiliser
-if (instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Attack") {
+var isMyTurn = false;
+if (instance_exists(game)) {
+    if (variable_instance_exists(game, "local_player_index")) {
+        isMyTurn = (game.player_current == game.local_player_index);
+    } else {
+        isMyTurn = (game.player_current == 0);
+    }
+}
+
+if (isMyTurn && game.phase[game.phase_current] == "Attack") {
 
     // Si aucune carte sélectionnée, on sélectionne celle-ci (si c'est un monstre du héros)
     if (selectManager.selected == noone && isHeroOwner && zone == "Field" && type == "Monster") {

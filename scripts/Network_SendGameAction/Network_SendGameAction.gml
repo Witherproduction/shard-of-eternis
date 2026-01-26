@@ -10,7 +10,7 @@ function Network_SendGameAction(msg) {
     }
     
     with (oNetworkManager) {
-        if (function_exists(sendGameAction)) {
+        if (variable_instance_exists(id, "sendGameAction")) {
             sendGameAction(msg);
         } else {
             show_debug_message("ERREUR: oNetworkManager.sendGameAction manquant");

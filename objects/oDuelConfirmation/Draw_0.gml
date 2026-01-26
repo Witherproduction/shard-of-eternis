@@ -16,6 +16,24 @@ draw_set_valign(fa_middle);
 draw_set_color(c_white);
 draw_text(x + width/2, y + 60, text);
 
+// --- VS Display ---
+var hero_name = "Deck Héros";
+if (variable_global_exists("selected_player_deck") && is_struct(global.selected_player_deck)) {
+    if (variable_struct_exists(global.selected_player_deck, "name")) {
+        hero_name = global.selected_player_deck.name;
+    }
+}
+
+var bot_name = "Adversaire";
+if (variable_global_exists("selected_bot_deck_id")) {
+    bot_name = get_bot_deck_name(global.selected_bot_deck_id);
+}
+
+draw_set_color(c_yellow);
+draw_text(x + width/2, y + 90, hero_name + " VS " + bot_name);
+draw_set_color(c_white);
+// ------------------
+
 // Draw Button
 var mx = mouse_x;
 var my = mouse_y;

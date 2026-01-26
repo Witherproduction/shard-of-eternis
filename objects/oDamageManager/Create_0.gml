@@ -68,8 +68,9 @@ tryAttack = function(target) {
                 } else {
                     return;
                 }
+            } else {
+                defender = target;
             }
-            defender = target;
         }
     }
 

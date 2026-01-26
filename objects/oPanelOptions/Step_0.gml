@@ -352,10 +352,10 @@ if (spr != -1) {
                 var clickYes = point_in_rectangle(mouse_x, mouse_y, confirm_yes_x1, confirm_yes_y1, confirm_yes_x2, confirm_yes_y2);
                 var clickNo  = point_in_rectangle(mouse_x, mouse_y, confirm_no_x1, confirm_no_y1, confirm_no_x2, confirm_no_y2);
                 if (clickYes) {
-                    // Mettre les LP du héros à 0 pour provoquer la défaite, puis fermer le panneau
-                    var lpInst = instance_find(oLP_Hero, 0);
-                    if (lpInst != noone) {
-                        loseLP(lpInst.nbLP);
+                    // Envoyer l'action d'abandon (Surrender)
+                    if (instance_exists(oGame)) {
+                        var payload = { quitter_index: oGame.local_player_index };
+                        RequestGameAction(ACTION_SURRENDER, payload);
                     }
                     instance_destroy();
                 } else if (clickNo) {

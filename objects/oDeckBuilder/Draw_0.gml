@@ -27,6 +27,41 @@ draw_rectangle(x + 50, y + 30, x + 50 + frame_width - 60, y + 30 + 25, false);
 draw_set_color(c_black);
 draw_text(x + 55, y + 35, name_display);
 
+// === Affichage des champs ID et Chapitre (Mode Avancé) ===
+var extra_y_offset = 0;
+if (is_bot_deck || is_hero_deck) {
+    extra_y_offset = 60;
+    
+    // --- Champ ID ---
+    draw_set_color(c_black);
+    draw_text(x + 10, y + 60, "ID :");
+    
+    // Champ de saisie ID
+    var id_display = (custom_id == "") ? ((original_deck_id != "") ? original_deck_id : "Auto-généré") : custom_id;
+    if (custom_id_editing && (current_time / 500) % 2 < 1) id_display += "|";
+    
+    draw_set_color(c_white);
+    draw_rectangle(x + 50, y + 60, x + frame_width - 10, y + 85, false);
+    draw_set_color(c_black); // Texte
+    draw_text(x + 55, y + 65, id_display);
+    
+    // --- Champ Chapitre ---
+    draw_set_color(c_black);
+    draw_text(x + 10, y + 90, "Chap :");
+    
+    // Champ de saisie Chapitre
+    var chap_display = string(custom_chapter);
+    if (custom_chapter_editing && (current_time / 500) % 2 < 1) chap_display += "|";
+    
+    draw_set_color(c_white);
+    draw_rectangle(x + 50, y + 90, x + frame_width - 10, y + 115, false);
+    draw_set_color(c_black); // Texte
+    draw_text(x + 55, y + 95, chap_display);
+}
+
+// Mise à jour de la position de la zone des cartes
+cards_area_y = y + 70 + extra_y_offset;
+
 // Dessiner la zone des cartes (sans bordure)
 draw_set_color(c_white);
 draw_rectangle(cards_area_x, cards_area_y, cards_area_x + cards_area_width, cards_area_y + cards_area_height, false);

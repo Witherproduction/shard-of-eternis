@@ -426,7 +426,9 @@ function checkTriggerConditions(card, effect, context) {
 
             var currentPlayer = game.player[game.player_current];
 
-            var cardOwner = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? "Hero" : "Enemy";
+            var localIndex = (variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
+            var cardOwnerIndex = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? localIndex : (1 - localIndex);
+            var cardOwner = game.player[cardOwnerIndex];
 
             if (currentPlayer == cardOwner) {
 
@@ -445,7 +447,11 @@ function checkTriggerConditions(card, effect, context) {
                 return false;
             }
             var currentPlayer2 = game.player[game.player_current];
-            var cardOwner2 = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? "Hero" : "Enemy";
+            
+            var localIndex2 = (variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
+            var cardOwnerIndex2 = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? localIndex2 : (1 - localIndex2);
+            var cardOwner2 = game.player[cardOwnerIndex2];
+            
             if (currentPlayer2 != cardOwner2) {
                 return false;
             }
@@ -461,7 +467,11 @@ function checkTriggerConditions(card, effect, context) {
                 if (!hasSpecifiedOwner) {
                     if (!instance_exists(game)) { return false; }
                     var currentPlayer3 = game.player[game.player_current];
-                    var cardOwner3 = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? "Hero" : "Enemy";
+                    
+                    var localIndex3 = (variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
+                    var cardOwnerIndex3 = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? localIndex3 : (1 - localIndex3);
+                    var cardOwner3 = game.player[cardOwnerIndex3];
+                    
                     if (currentPlayer3 != cardOwner3) { return false; }
                 }
                 if (trig == TRIGGER_MAIN_PHASE) {
@@ -1017,7 +1027,12 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
     }
 
     if (triggerType == TRIGGER_END_TURN) {
-        var activeIsHero3 = instance_exists(game) ? (game.player[game.player_current] == "Hero") : true;
+        var activeIsHero3 = true;
+        if (instance_exists(game)) {
+             var localIdx = (variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
+             activeIsHero3 = (game.player_current == localIdx);
+        }
+        
         if (!variable_global_exists("end_turn_queue") || !is_array(global.end_turn_queue)) { global.end_turn_queue = []; }
         global.end_turn_queue = [];
         global.end_turn_ptr = 0;
@@ -1097,7 +1112,8 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
         if (zone == "Field") {
             // Gating: Only owner’s cards receive START/END turn triggers
             if (triggerType == TRIGGER_START_TURN || triggerType == TRIGGER_END_TURN) {
-                var activeIsHero = instance_exists(game) ? (game.player[game.player_current] == "Hero") : true;
+                var localIdx = (instance_exists(game) && variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
+                var activeIsHero = instance_exists(game) ? (game.player_current == localIdx) : true;
                 if (variable_instance_exists(self, "isHeroOwner") && self.isHeroOwner != activeIsHero) {
                     continue;
                 }
@@ -1132,7 +1148,8 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
         if (zone == "Field" && (isContinuousByType || isContinuousByGenre || isArtifact2)) {
             // Gating: seulement cartes du joueur actif et face visible
             if (triggerType == TRIGGER_START_TURN || triggerType == TRIGGER_END_TURN) {
-                var activeIsHero2 = instance_exists(game) ? (game.player[game.player_current] == "Hero") : true;
+                var localIdx2 = (instance_exists(game) && variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
+                var activeIsHero2 = instance_exists(game) ? (game.player_current == localIdx2) : true;
                 if (variable_instance_exists(self, "isHeroOwner") && self.isHeroOwner != activeIsHero2) {
                     continue;
                 }

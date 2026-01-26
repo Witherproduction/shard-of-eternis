@@ -103,9 +103,31 @@ else if (point_in_rectangle(mouse_x, mouse_y, cancel_button_x, buttons_y, cancel
 else if (point_in_rectangle(mouse_x, mouse_y, field_x, field_y, field_x + field_width, field_y + field_height)) {
     // Activer l'édition du nom
     deck_name_editing = true;
+    custom_id_editing = false;
+    custom_chapter_editing = false;
+    keyboard_string = deck_name;
     show_debug_message("Édition du nom activée via événement global");
-} else {
+} 
+// Vérifier si le clic est dans le champ ID (Mode avancé)
+else if ((is_bot_deck || is_hero_deck) && point_in_rectangle(mouse_x, mouse_y, x + 50, y + 60, x + frame_width - 10, y + 85)) {
+    custom_id_editing = true;
+    deck_name_editing = false;
+    custom_chapter_editing = false;
+    keyboard_string = custom_id;
+    show_debug_message("Édition de l'ID activée");
+}
+// Vérifier si le clic est dans le champ Chapitre (Mode avancé)
+else if ((is_bot_deck || is_hero_deck) && point_in_rectangle(mouse_x, mouse_y, x + 50, y + 90, x + frame_width - 10, y + 115)) {
+    custom_chapter_editing = true;
+    deck_name_editing = false;
+    custom_id_editing = false;
+    keyboard_string = string(custom_chapter);
+    show_debug_message("Édition du Chapitre activée");
+}
+else {
     // Désactiver l'édition si on clique ailleurs
     deck_name_editing = false;
-    show_debug_message("Édition du nom désactivée via événement global");
+    custom_id_editing = false;
+    custom_chapter_editing = false;
+    show_debug_message("Édition désactivée via événement global");
 }

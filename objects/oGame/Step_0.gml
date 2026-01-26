@@ -16,6 +16,70 @@ if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_press
 }
 */
 
+// --- GESTION DU PILE OU FACE (Début de partie PvP) ---
+if (variable_instance_exists(id, "coin_toss_active") && coin_toss_active) {
+    coin_toss_timer++;
+    
+    // Phase 0: Rotation rapide
+    if (coin_toss_phase == 0) {
+        coin_toss_angle += coin_toss_speed;
+        if (coin_toss_timer > 60) { // Après 1 seconde
+            coin_toss_phase = 1;
+        }
+    }
+    // Phase 1: Ralentissement contrôlé
+    else if (coin_toss_phase == 1) {
+        coin_toss_speed = lerp(coin_toss_speed, 5, 0.05);
+        coin_toss_angle += coin_toss_speed;
+        
+        // Si on est assez lent, on cherche à s'arrêter sur la bonne face
+        if (coin_toss_speed <= 6 && coin_toss_timer > 120) {
+            var current_face_up = (dcos(coin_toss_angle) > 0); // true si Pile (Or) visible
+            var target_face_up = coin_toss_is_heads;
+            
+            // Si on est sur la bonne face et presque à plat (cos proche de 1 ou -1)
+            // On force l'arrêt
+            var cos_val = dcos(coin_toss_angle);
+            
+            // Si target est Heads, on veut cos > 0. Si target est Tails, on veut cos < 0.
+            var is_aligned = (target_face_up && cos_val > 0.95) || (!target_face_up && cos_val < -0.95);
+            
+            if (is_aligned) {
+                coin_toss_speed = 0;
+                coin_toss_angle = target_face_up ? 0 : 180; // Force l'angle exact
+                coin_toss_phase = 2;
+                coin_toss_timer = 0; // Reset timer pour l'affichage du résultat
+            }
+        }
+    }
+    // Phase 2: Affichage du résultat puis fin
+    else if (coin_toss_phase == 2) {
+        if (coin_toss_timer > 120) { // 2 secondes d'affichage
+            coin_toss_active = false;
+        }
+    }
+    
+    // Bloquer tout le reste du jeu pendant l'animation
+    return;
+}
+
+// Sync HP (Host Only) - Synchronisation d'autorité des PV
+if (variable_global_exists("NET_IS_HOST") && global.NET_IS_HOST && instance_exists(LP_Hero) && instance_exists(LP_Enemy)) {
+    if (!variable_instance_exists(id, "last_sync_hp_hero")) last_sync_hp_hero = -999;
+    if (!variable_instance_exists(id, "last_sync_hp_enemy")) last_sync_hp_enemy = -999;
+    
+    var cur_h = LP_Hero.nbLP;
+    var cur_e = LP_Enemy.nbLP;
+    
+    // Si changement détecté, on envoie la nouvelle valeur
+    if (cur_h != last_sync_hp_hero || cur_e != last_sync_hp_enemy) {
+        last_sync_hp_hero = cur_h;
+        last_sync_hp_enemy = cur_e;
+        // Host (P0) = LP_Hero, Client (P1) = LP_Enemy
+        RequestGameAction(ACTION_SYNC_LP, { p0_lp: cur_h, p1_lp: cur_e });
+    }
+}
+
 // Vérifier les points de vie pour déclencher la fin de partie
 if (instance_exists(LP_Hero) && instance_exists(LP_Enemy)) {
     var heroLP = LP_Hero.nbLP;
@@ -57,6 +121,26 @@ if (instance_exists(LP_Hero) && instance_exists(LP_Enemy)) {
 
 
 
+
+// Gestion de la pioche automatique (Joueur)
+if (timerAutoDraw > 0 && timerAutoDrawEnabled) {
+    timerAutoDraw -= 1/room_speed;
+} else if (timerAutoDrawEnabled) {
+    timerAutoDrawEnabled = false;
+    
+    // Vérifier qu'on est toujours en phase de pioche et au tour du joueur
+    if (phase[phase_current] == "Pick" && is_local_turn) {
+        show_debug_message("### Executing Auto-Draw");
+        // Logique de pioche (similaire à oCardParent Mouse_4)
+        if (variable_instance_exists(id, "local_player_index")) {
+            var payload = {
+                player_index: local_player_index,
+                trigger_next_phase: true
+            };
+            RequestGameAction(ACTION_DRAW, payload);
+        }
+    }
+}
 
 // --- GESTION DU TUTORIEL (CHAPITRE 0) ---
 if (variable_global_exists("current_chapter") && global.current_chapter == 0) {

@@ -1,50 +1,21 @@
 // === Script de stockage des decks des bots ===
-// Ce script contient tous les decks préconfigurés pour les bots
+// Ce script contient les fonctions utilitaires pour la création des decks bots.
+// Les données sont maintenant centralisées dans sStoryDeckManager.gml et les fichiers JSON.
 
 /// @function get_bot_deck_cards(deck_id)
-/// @description Retourne le tableau de cartes pour un deck spécifique
-/// @param {real} deck_id - L'ID du deck à récupérer
+/// @description Retourne le tableau de cartes pour un deck spécifique (via le gestionnaire central)
+/// @param {real|string} deck_id - L'ID du deck à récupérer
 function get_bot_deck_cards(deck_id) {
-    
-    // Tenter de récupérer via le nouveau gestionnaire par chapitre
+    // Récupération via le gestionnaire central (JSON/Défauts)
     var new_deck_cards = get_bot_deck_cards_new(deck_id);
+    
     if (!is_undefined(new_deck_cards)) {
         return new_deck_cards;
     }
-
-    switch(deck_id) {
-        // Decks génériques pour les bots 6-29
-        case "Guerrier": // Deck agressif
-            return [
-                "oCorbeauDeLaRoseNoire", "oSorciereDeLaRoseNoire", "oDragonDivinRagnarok", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oSorciereDeLaRoseNoire", "oDragonDivinRagnarok", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire",
-                "oCorbeauDeLaRoseNoire", "oSorciereDeLaRoseNoire", "oDragonDivinRagnarok", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oSorciereDeLaRoseNoire", "oDragonDivinRagnarok", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire"
-            ];
-            
-        case "Magique": // Deck magique
-            return [
-                "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire",
-                "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oSorciereDeLaRoseNoire", "oSorciereDeLaRoseNoire", "oDragonDivinRagnarok"
-            ];
-            
-        case "Support": // Deck support
-            return [
-                "oDragonDivinRagnarok", "oSorciereDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oDragonDivinRagnarok", "oSorciereDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire",
-                "oDragonDivinRagnarok", "oSorciereDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oDragonDivinRagnarok", "oSorciereDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire"
-            ];
-            
-        case "Hybride": // Deck mixte
-            return [
-                "oSorciereDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oSorciereDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire",
-                "oSorciereDeLaRoseNoire", "oChevalDeLaRoseNoire", "oChevalDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oDragonDivinRagnarok", "oDragonDivinRagnarok", "oDragonDivinRagnarok", "oDragonDivinRagnarok", "oDragonDivinRagnarok"
-            ];
-            
-        default:
-            // Deck par défaut
-            return [
-                "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire",
-                "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire", "oCorbeauDeLaRoseNoire"
-            ];
-    }
+    
+    // Fallback vide si introuvable
+    show_debug_message("Warning: Bot deck not found for ID " + string(deck_id));
+    return [];
 }
 
 // Fonction utilitaire: limite à 3 copies de chaque carte lors de la création du deck
@@ -71,81 +42,96 @@ function count_card_copies(deck_cards, card_id) {
     return count;
 }
 
-// Remplit le deck avec des monstres d'autres thématiques jusqu'à la taille cible
-function fill_to_size(deck_cards, target_size, max_copies) {
-    var pool = [
-        "oChevalForet", "oSorciereForet", "oEruditForet", "oNueeCorbeaux", "oLoupAlphaForet",
-        "oOmbreClairLune", "oPetaleRose", "oSqueletteReanime", "oChevalierSqueletteReanime",
-        "oChevalDeLaRoseNoire", "oAraigneeSombreForet", "oDragonnetForet"
-    ];
-    var i = 0;
-    var pool_len = array_length(pool);
-    var safety = 0;
-    while (array_length(deck_cards) < target_size && safety < 2000) {
-        var cand = pool[i % pool_len];
-        if (count_card_copies(deck_cards, cand) < max_copies) {
-            array_push(deck_cards, cand);
-        }
-        i++;
-        safety++;
-    }
-    return deck_cards;
-}
 
 /// @function create_bot_deck_from_script(deck_id, bot_name)
-/// @description Crée un objet deck à partir du script
-/// @param {real} deck_id - L'ID du deck
-/// @param {string} bot_name - Le nom du bot
+/// @description Crée un objet deck complet à partir de l'ID (compatible avec l'ancien système)
+/// @param {real|string} deck_id - L'ID du deck
+/// @param {string} bot_name - Le nom du bot (utilisé si le deck n'a pas de nom spécifique)
 function create_bot_deck_from_script(deck_id, bot_name) {
-    var deck_cards = get_bot_deck_cards(deck_id);
+    var deck_data = get_bot_deck_by_id_new(deck_id);
+    var deck_cards = [];
+    var final_name = "Deck de " + bot_name;
+    var profile_data = undefined;
+    
+    if (!is_undefined(deck_data)) {
+        // Utiliser les données du JSON
+        deck_cards = variable_struct_exists(deck_data, "cards") ? deck_data.cards : [];
+        if (variable_struct_exists(deck_data, "deck_name")) final_name = deck_data.deck_name;
+        if (variable_struct_exists(deck_data, "profile")) profile_data = deck_data.profile;
+        
+        // Si le nom du bot est fourni dans le deck, on pourrait l'utiliser, 
+        // mais ici on garde le paramètre bot_name pour la compatibilité d'affichage si nécessaire
+    } else {
+        // Fallback (ne devrait pas arriver si les défauts sont chargés)
+        deck_cards = get_bot_deck_cards(deck_id);
+    }
+    
+    // Logique de remplissage / capping
+    // Note: Pour les decks préconstruits (Story), on évite généralement de modifier les cartes
+    // sauf pour les génériques qui doivent être remplis.
+    
+    var is_story_deck = (is_real(deck_id) && deck_id < 100) || (is_string(deck_id) && (deck_id == "Invasion_Geule_Roche" || deck_id == "Essaim_Abyssien" || deck_id == "Bandit_Grand_Chemin")); 
+    var should_fill = true;
+    
+    // Si le deck a déjà >= 30 cartes, on suppose qu'il est complet (ex: James, Abyssien)
+    if (array_length(deck_cards) >= 30) should_fill = false;
+    
     var max_copies = 3;
     if (deck_id == 5) max_copies = 5;
-    if (deck_id == 2) max_copies = 10; // Cheat pour le deck Abyssien
-    deck_cards = cap_card_copies(deck_cards, max_copies);
-    deck_cards = fill_to_size(deck_cards, 40, max_copies);
+    // if (deck_id == 2) max_copies = 10; // Exception maintenue pour l'Abyssien (maintenant gérée par string)
+    
+    // On ne cap pas les copies si c'est un deck story pré-construit qui outrepasse les règles (ex: Abyssien)
+    // Sauf si on veut forcer la règle. Ici on laisse tel quel pour les decks story précis.
+    if (is_string(deck_id)) { 
+        // Si c'est un deck nommé string (ex: "Invasion_Geule_Roche"), on vérifie si c'est un des decks spéciaux
+        if (deck_id == "Essaim_Abyssien") {
+            max_copies = 10; // Exception pour l'Abyssien
+        }
+        
+        // Pour les decks génériques (si d'autres strings existent), on applique les règles standard ?
+        // Mais ici les decks story sont précis, donc on ne devrait pas capper/remplir si c'est déjà défini.
+        // On laisse tel quel sauf si besoin.
+    } else if (should_fill && array_length(deck_cards) < 40) {
+        // Remplissage optionnel pour les petits decks story numériques (legacy)
+        // deck_cards = fill_to_size(deck_cards, 40, max_copies);
+    }
     
     var bot_deck = {
-        name: "Deck de " + bot_name,
+        name: final_name,
         cards: deck_cards,
         deck_id: deck_id,
         bot_name: bot_name,
-        card_count: array_length(deck_cards)
+        card_count: array_length(deck_cards),
+        profile: profile_data
     };
     
     return bot_deck;
 }
 
-// === Fonctions utilitaires ===
 
-/// @function get_random_deck_type()
-/// @description Retourne un type de deck aléatoire pour les bots génériques
-function get_random_deck_type() {
-    var deck_types = ["Guerrier", "Magique", "Support", "Hybride"];
-    return deck_types[irandom(array_length(deck_types) - 1)];
-}
 
 /// @function get_bot_deck_name(deck_id)
 /// @description Retourne le nom du deck pour l'affichage
 /// @param {real} deck_id - L'ID du deck
 function get_bot_deck_name(deck_id) {
     var deck = get_bot_deck_by_id_new(deck_id);
-    if (!is_undefined(deck) && variable_struct_exists(deck, "name")) return deck.name;
-
-    switch(deck_id) {
-        // Decks génériques pour les bots 6-29
-        default: return "Bot " + string(deck_id);
+    if (!is_undefined(deck)) {
+        if (variable_struct_exists(deck, "name")) return deck.name; // Nom du bot/deck
+        if (variable_struct_exists(deck, "deck_name")) return deck.deck_name;
     }
+    return "Bot " + string(deck_id);
 }
 
 /// @function get_bot_deck_profile(deck_id)
 /// @description Retourne le libellé de profil d'archétype pour affichage
-/// @param {real} deck_id - L'ID du deck
+/// @param {real|string} deck_id - L'ID du deck
 function get_bot_deck_profile(deck_id) {
     var deck = get_bot_deck_by_id_new(deck_id);
-    if (!is_undefined(deck) && variable_struct_exists(deck, "profile")) return deck.profile;
-
-    switch(deck_id) {
-        // Profils génériques
-        default: return "";
+    if (!is_undefined(deck) && variable_struct_exists(deck, "profile")) {
+        var prof = deck.profile;
+        if (is_string(prof)) return prof;
+        // Si c'est un struct (ex: James), on retourne un libellé générique ou on cherche un champ "name"
+        return "Personnalisé"; 
     }
+    return "";
 }

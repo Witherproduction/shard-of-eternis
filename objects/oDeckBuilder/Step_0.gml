@@ -57,13 +57,40 @@ if (deck_name_editing) {
     }
 }
 
+// Gestion de l'édition de l'ID (Mode avancé)
+if (custom_id_editing) {
+    if (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(vk_enter)) {
+        custom_id_editing = false;
+    }
+    custom_id = keyboard_string;
+    if (string_length(custom_id) > 30) custom_id = string_copy(custom_id, 1, 30);
+}
+
+// Gestion de l'édition du Chapitre (Mode avancé)
+if (custom_chapter_editing) {
+    if (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(vk_enter)) {
+        custom_chapter_editing = false;
+    }
+    // Filtrer pour ne garder que les chiffres
+    var digits = string_digits(keyboard_string);
+    if (digits != "") {
+        custom_chapter = real(digits);
+    } else {
+        custom_chapter = 0;
+    }
+}
+
 // Gestion du scroll avec la molette de la souris
 var mx = mouse_x;
 var my = mouse_y;
 
 // Vérifier si la souris est dans la zone des cartes
+var extra_y_offset = 0;
+if (is_bot_deck || is_hero_deck) {
+    extra_y_offset = 60;
+}
 var cards_area_x = x + 10;
-var cards_area_y = y + 70;
+var cards_area_y = y + 70 + extra_y_offset;
 var cards_area_width = frame_width - 20;
 var cards_area_height = calculate_cards_area_height();
 

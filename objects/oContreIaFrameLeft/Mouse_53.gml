@@ -33,13 +33,13 @@ var bot_info = grid_instance.bot_data[bot_id];
 var theme_name = get_bot_deck_name(bot_info.deck_id);
 var bot_description = "";
 switch (bot_info.deck_id) {
-    case 1:
+    case "Invasion_Geule_Roche":
         bot_description = "Un deck Rose noire utilisant uniquement des cartes d'archétype Rose noire";
         break;
-    case 2:
+    case "Essaim_Abyssien":
         bot_description = "Un deck Dragon axé sur les cartes de genre Dragon";
         break;
-    case 3:
+    case "Bandit_Grand_Chemin":
         bot_description = "Un deck Bête utilisant principalement des cartes de genre Bête";
         break;
     case 4:

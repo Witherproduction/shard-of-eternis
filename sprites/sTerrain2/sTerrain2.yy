@@ -2,7 +2,7 @@
   "$GMSprite":"v2",
   "%Name":"sTerrain2",
   "bboxMode":0,
-  "bbox_bottom":1279,
+  "bbox_bottom":1079,
   "bbox_left":0,
   "bbox_right":1919,
   "bbox_top":0,
@@ -12,21 +12,21 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"8bb0e133-2e8e-4e75-adcb-26a9338b007c","name":"8bb0e133-2e8e-4e75-adcb-26a9338b007c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"b9c52921-8276-4209-8aa3-a2e48e6971b0","name":"b9c52921-8276-4209-8aa3-a2e48e6971b0","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
-  "height":1280,
+  "height":1080,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"a4f75f2a-eff5-4b02-88d3-58705e7cfa50","blendMode":0,"displayName":"default","isLocked":false,"name":"a4f75f2a-eff5-4b02-88d3-58705e7cfa50","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"8e1ef223-ed3b-4688-a8a2-3e4ee2b77dd9","blendMode":0,"displayName":"default","isLocked":false,"name":"8e1ef223-ed3b-4688-a8a2-3e4ee2b77dd9","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"sTerrain2",
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"background",
-    "path":"folders/Sprites/background.yy",
+    "name":"fond duel",
+    "path":"folders/Sprites/background/fond duel.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
@@ -71,8 +71,8 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8bb0e133-2e8e-4e75-adcb-26a9338b007c","path":"sprites/sTerrain2/sTerrain2.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"4db3b429-b03e-4dbc-889f-190fc5faf47b","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"b9c52921-8276-4209-8aa3-a2e48e6971b0","path":"sprites/sTerrain2/sTerrain2.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"59b30e36-8ac8-4aaf-8584-baacf156a9ab","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

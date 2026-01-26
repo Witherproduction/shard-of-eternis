@@ -635,17 +635,41 @@ function executeEffect(card, effect, context = {}) {
                 if (variable_instance_exists(tgt2, "isFaceDown") && tgt2.isFaceDown) return false;
             }
             var okc = true;
+            
+            // DEBUG: Trace filtering for specific card
+            var debug_trace = false;
+            if (variable_struct_exists(eff, "criteria") && variable_struct_exists(eff.criteria, "genre") && eff.criteria.genre == "Bête") {
+                if (variable_instance_exists(tgt2, "name") && tgt2.name == "Araignée forestière") {
+                    debug_trace = true;
+                    show_debug_message("--- DEBUG EFFECT FILTER: " + string(tgt2.name) + " ---");
+                }
+            }
+
             if (variable_struct_exists(eff, "criteria")) {
                 var critB = eff.criteria;
                 if (variable_struct_exists(critB, "type")) {
                     var wt = string_lower(critB.type);
                     var isMon = object_is_ancestor(tgt2.object_index, oCardMonster) || (variable_instance_exists(tgt2, "type") && string_lower(tgt2.type) == "monster");
+                    if (debug_trace) show_debug_message("Type Check: Wanted=" + wt + " IsMon=" + string(isMon));
                     if (wt == "monster" && !isMon) okc = false;
                 }
                 if (variable_struct_exists(critB, "genre")) {
                     var wg = string_lower(string(critB.genre));
                     var tg = variable_instance_exists(tgt2, "genre") ? string_lower(string(tgt2.genre)) : "";
-                    if (wg != "" && tg != wg) okc = false;
+                    
+                    // Relaxed check: Handle Bête/Bete and strict equality
+                    var match = (wg == "" || tg == wg);
+                    if (!match) {
+                        // Fallback for accents (basic)
+                        var wg_clean = string_replace_all(wg, "ê", "e");
+                        var tg_clean = string_replace_all(tg, "ê", "e");
+                        if (wg_clean == tg_clean) match = true;
+                        if (debug_trace) show_debug_message("Genre Accent Check: WG=" + wg_clean + " TG=" + tg_clean + " Match=" + string(match));
+                    } else {
+                        if (debug_trace) show_debug_message("Genre Direct Match: WG=" + wg + " TG=" + tg);
+                    }
+                    
+                    if (!match) okc = false;
                 }
                 if (variable_struct_exists(critB, "archetype")) {
                     var wa = string_lower(string(critB.archetype));

@@ -63,7 +63,7 @@ if (alpha >= targetAlpha) {
     if (target_room == rScenario) {
         if (isVictory) {
              // Débloquer le bot vaincu pour le mode Contre IA
-             if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id > 0) {
+             if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
                  unlock_bot(global.selected_bot_deck_id);
              }
 

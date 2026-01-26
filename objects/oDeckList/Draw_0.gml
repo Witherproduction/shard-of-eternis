@@ -24,6 +24,33 @@ var baseH_btn = sprite_get_height(sButton);
 var button_width = round(baseW_btn * 0.8);
 var button_height = round(baseH_btn * 0.8);
 
+// --- Bouton Toggle Mode ---
+if (variable_global_exists("admin_mode") && global.admin_mode) {
+    // Mode admin désactivé temporairement pour simplifier l'interface
+    // Pour réactiver, décommenter le bloc ci-dessous
+    /*
+    var mode_btn_y = button_y - 60;
+    draw_sprite_stretched(sButton, 0, button_x, mode_btn_y, button_width, button_height);
+    var mode_label = "Mode: Joueur";
+    if (list_mode == "bot") mode_label = "Mode: Bots";
+    else if (list_mode == "hero") mode_label = "Mode: Héros";
+    
+    draw_set_color(c_black);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_text(button_x + button_width/2 + 2, mode_btn_y + button_height/2 + 2, mode_label);
+    draw_set_color(make_color_rgb(100, 200, 255)); // Bleu clair pour distinguer
+    draw_text(button_x + button_width/2, mode_btn_y + button_height/2, mode_label);
+    */
+    
+    // Forcer le mode joueur même en admin pour l'instant
+    if (list_mode != "player") list_mode = "player";
+} else {
+    // Si pas admin, forcer le mode joueur
+    if (list_mode != "player") list_mode = "player";
+}
+// --------------------------
+
 // Dessiner le bouton avec le sprite sButton (comme les autres boutons)
 draw_sprite_stretched(sButton, 0, button_x, button_y, button_width, button_height);
 
@@ -37,8 +64,19 @@ draw_text(button_x + button_width/2, button_y + button_height/2, "nouveau deck")
 draw_text(button_x + button_width/2, button_y + button_height/2, "nouveau deck");
 
 // === Affichage des decks sauvegardés ===
+var current_list = [];
+if (list_mode == "player") {
+    if (variable_global_exists("saved_decks")) current_list = global.saved_decks;
+} else if (list_mode == "bot") {
+    // Utiliser get_all_bot_decks() pour avoir TOUS les decks (custom + histoire)
+    current_list = get_all_bot_decks();
+} else if (list_mode == "hero") {
+    // Utiliser get_all_hero_decks() pour avoir TOUS les decks héros (custom + histoire)
+    current_list = get_all_hero_decks();
+}
+
 // Vérifier si des decks sont sauvegardés ET si le deck builder n'est pas affiché
-if (!show_deck_builder && variable_global_exists("saved_decks") && array_length(global.saved_decks) > 0) {
+if (!show_deck_builder && array_length(current_list) > 0) {
     var deck_list_y = button_y + button_height + 20; // Commencer sous le bouton "nouveau deck"
     var deck_item_height = 35;
     var deck_item_width = button_width;
@@ -47,11 +85,14 @@ if (!show_deck_builder && variable_global_exists("saved_decks") && array_length(
     draw_set_color(c_black);
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    draw_text(button_x + button_width/2, deck_list_y - 10, "Decks sauvegardés:");
+    var title_text = "Decks Joueur:";
+    if (list_mode == "bot") title_text = "Decks Bots:";
+    else if (list_mode == "hero") title_text = "Decks Héros:";
+    draw_text(button_x + button_width/2, deck_list_y - 10, title_text);
     
     // Afficher chaque deck sauvegardé
-    for (var i = 0; i < array_length(global.saved_decks); i++) {
-        var deck = global.saved_decks[i];
+    for (var i = 0; i < array_length(current_list); i++) {
+        var deck = current_list[i];
         var item_y = deck_list_y + (i * (deck_item_height + 5));
         
         // Vérifier si on dépasse l'écran
@@ -69,11 +110,13 @@ if (!show_deck_builder && variable_global_exists("saved_decks") && array_length(
         draw_set_color(c_black);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
-        draw_text(button_x + 5, item_y + 3, deck.name);
+        var dName = variable_struct_exists(deck, "name") ? deck.name : "Sans nom";
+        draw_text(button_x + 5, item_y + 3, dName);
         
         // Dessiner le nombre de cartes
         draw_set_color(c_gray);
-        draw_text(button_x + 5, item_y + 18, string(deck.card_count) + " cartes");
+        var cCount = variable_struct_exists(deck, "card_count") ? deck.card_count : (variable_struct_exists(deck, "cards") ? array_length(deck.cards) : 0);
+        draw_text(button_x + 5, item_y + 18, string(cCount) + " cartes");
     }
 }
 

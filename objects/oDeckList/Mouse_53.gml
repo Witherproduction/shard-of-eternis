@@ -15,16 +15,42 @@ var button_y = room_height / 3 - 270;
 var button_width = 320;
 var button_height = 80;
 
+// --- Gestion du bouton Toggle Mode ---
+if (variable_global_exists("admin_mode") && global.admin_mode) {
+    var mode_btn_y = button_y - 60;
+    if (!show_deck_builder && point_in_rectangle(mouse_x, mouse_y, button_x, mode_btn_y, button_x + button_width, mode_btn_y + button_height)) {
+        if (list_mode == "player") list_mode = "bot";
+        else if (list_mode == "bot") list_mode = "hero";
+        else list_mode = "player";
+        return; // Stop processing to avoid double clicks
+    }
+} else {
+    // Si pas admin, s'assurer qu'on est en mode joueur
+    if (list_mode != "player") list_mode = "player";
+}
+// -------------------------------------
+
 // Vérifier d'abord si le clic est sur un deck sauvegardé (seulement si le deck builder n'est pas affiché)
 var clicked_on_deck = false;
-if (!show_deck_builder && variable_global_exists("saved_decks") && array_length(global.saved_decks) > 0) {
+var current_list = [];
+if (list_mode == "player") {
+    if (variable_global_exists("saved_decks")) current_list = global.saved_decks;
+} else if (list_mode == "bot") {
+    // Utiliser get_all_bot_decks() pour avoir TOUS les decks (custom + histoire)
+    current_list = get_all_bot_decks();
+} else if (list_mode == "hero") {
+    // Utiliser get_all_hero_decks() pour avoir TOUS les decks héros (custom + histoire)
+    current_list = get_all_hero_decks();
+}
+
+if (!show_deck_builder && array_length(current_list) > 0) {
     var deck_list_y = button_y + button_height + 20;
     var deck_item_height = 35;
     var deck_item_width = button_width;
     
     // Vérifier chaque deck sauvegardé
-    for (var i = 0; i < array_length(global.saved_decks); i++) {
-        var deck = global.saved_decks[i];
+    for (var i = 0; i < array_length(current_list); i++) {
+        var deck = current_list[i];
         var item_y = deck_list_y + (i * (deck_item_height + 5));
         
         // Vérifier si on dépasse l'écran
@@ -45,8 +71,10 @@ if (!show_deck_builder && variable_global_exists("saved_decks") && array_length(
                 var builder_y = button_y + button_height + 20;
                 deck_builder_instance = instance_create_layer(builder_x, builder_y, "Instances", oDeckBuilder);
                 
-                // Charger le deck dans l'éditeur
+                // Configurer et charger le deck dans l'éditeur
                 if (instance_exists(deck_builder_instance)) {
+                    deck_builder_instance.is_bot_deck = (other.list_mode == "bot");
+                    deck_builder_instance.is_hero_deck = (other.list_mode == "hero");
                     with (deck_builder_instance) {
                         load_deck_for_editing(deck);
                     }
@@ -70,6 +98,10 @@ if (!clicked_on_deck && point_in_rectangle(mouse_x, mouse_y, button_x, button_y,
             var builder_x = x;
             var builder_y = button_y + button_height + 20;
             deck_builder_instance = instance_create_layer(builder_x, builder_y, "Instances", oDeckBuilder);
+            if (instance_exists(deck_builder_instance)) {
+                deck_builder_instance.is_bot_deck = (list_mode == "bot");
+                deck_builder_instance.is_hero_deck = (list_mode == "hero");
+            }
         }
     } else {
         // Détruire l'instance oDeckBuilder si elle existe

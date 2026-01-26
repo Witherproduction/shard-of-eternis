@@ -132,10 +132,31 @@ if (room == rCollection) {
 
 // Phase Attack : gérer sélection et attaque ciblée
 // Vérifier que l'objet game existe avant de l'utiliser
-if (instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Attack") {
+var isMyTurn = false;
+// Note: isHeroOwner semble être relatif (True = "C'est ma carte" / Owned by Local Player)
+// et non absolu (True = "C'est la carte du Host").
+// _execute_Summon définit isHeroOwner = isLocalTurn.
+// Donc isMine = isHeroOwner.
 
-    // Si aucune carte sélectionnée, on sélectionne celle-ci (si c'est un monstre du héros)
-    if (selectManager.selected == noone && isHeroOwner && zone == "Field" && type == "Monster") {
+if (instance_exists(game)) {
+    if (variable_instance_exists(game, "local_player_index")) {
+        isMyTurn = (game.player_current == game.local_player_index);
+    } else {
+        isMyTurn = (game.player_current == 0);
+    }
+}
+
+// Déterminer l'appartenance relative de la carte
+var isMine = false;
+if (variable_instance_exists(self, "isHeroOwner")) {
+    isMine = isHeroOwner;
+}
+var isEnemy = !isMine;
+
+if (isMyTurn && game.phase[game.phase_current] == "Attack") {
+
+    // Si aucune carte sélectionnée, on sélectionne celle-ci (si c'est un monstre à nous)
+    if (selectManager.selected == noone && isMine && zone == "Field" && type == "Monster") {
         selectManager.trySelect(id);
         return;
     }
@@ -145,7 +166,7 @@ if (instance_exists(game) && game.player[game.player_current] == "Hero" && game.
         var selectedCard = selectManager.selected;
         
         // Si on clique sur un monstre ennemi sur le terrain
-        if (!isHeroOwner && type == "Monster" && zone == "Field") {
+        if (isEnemy && type == "Monster" && zone == "Field") {
             // Vérifier si on est en mode attaque
             if (selectManager.attackMode) {
                 show_debug_message("### Cible sélectionnée pour l'attaque: " + name);
@@ -164,12 +185,13 @@ if (instance_exists(game) && game.player[game.player_current] == "Hero" && game.
                 return;
             } else {
                 show_debug_message("### Monstre ennemi cliqué mais pas en mode attaque - utilisez le bouton Attack d'abord");
+                // IMPORTANT: On return ici pour ne PAS sélectionner le monstre ennemi par défaut
                 return;
             }
         }
         
         // Si on clique sur son propre monstre => changer sélection (désélectionner la précédente, sélectionner la nouvelle)
-        if (isHeroOwner && type == "Monster" && zone == "Field") {
+        if (isMine && type == "Monster" && zone == "Field") {
             selectManager.trySelect(id);
             return;
         }

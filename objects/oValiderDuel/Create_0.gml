@@ -19,4 +19,4 @@ show_debug_message("### Zone de collision: (" + string(collision_left) + ", " + 
 
 // Variables pour le deck sélectionné
 selected_player_deck = noone;
-selected_bot_deck_id = 1; // Deck par défaut du bot
+selected_bot_deck_id = "Invasion_Geule_Roche"; // Deck par défaut du bot

@@ -8,22 +8,19 @@ function modifyAttack(card, amount, temporary = false) {
         }
         card.temp_attack += amount;
         // Mettre à jour les stats effectives pour inclure le temporaire
-        if (variable_instance_exists(card, "effective_attack") || variable_instance_exists(card, "buff_contribs")) {
-            if (!is_undefined(buffRecompute)) buffRecompute(card);
+        if (script_exists(asset_get_index("buffRecompute"))) {
+            buffRecompute(card);
+        } else if (variable_instance_exists(card, "effective_attack")) {
+             card.effective_attack = card.attack + card.temp_attack;
         }
     } else {
         card.attack += amount;
         card.attack = max(0, card.attack);
         // Si le système de buffs/effectifs est utilisé, recalculer l'ATK effective
-        if (variable_instance_exists(card, "effective_attack") || variable_instance_exists(card, "buff_contribs")) {
-            if (is_undefined(buffRecompute)) {
-                // Pas de recalcul disponible, mettre à jour directement si possible
-                if (variable_instance_exists(card, "effective_attack")) {
-                    card.effective_attack = card.attack;
-                }
-            } else {
-                buffRecompute(card);
-            }
+        if (script_exists(asset_get_index("buffRecompute"))) {
+            buffRecompute(card);
+        } else if (variable_instance_exists(card, "effective_attack")) {
+            card.effective_attack = card.attack;
         }
     }
     return true;

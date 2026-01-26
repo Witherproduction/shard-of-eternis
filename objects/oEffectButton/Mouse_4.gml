@@ -20,7 +20,14 @@ if (effect != noone && script_exists(asset_get_index("getEffectIndex"))) {
 }
 
 // Contexte de tour/phase
-var isHeroTurn = (instance_exists(game) && game.player[game.player_current] == "Hero");
+var isHeroTurn = false;
+if (instance_exists(game)) {
+    if (variable_instance_exists(game, "local_player_index")) {
+        isHeroTurn = (game.player_current == game.local_player_index);
+    } else {
+        isHeroTurn = (game.player_current == 0);
+    }
+}
 var currentPhase = (instance_exists(game) && variable_instance_exists(game, "phase")) ? game.phase[game.phase_current] : "";
 var isQuick = (effect != noone && variable_struct_exists(effect, "trigger") && effect.trigger == TRIGGER_QUICK_EFFECT);
 // Détection d'un effet continu (permet d'afficher un bouton même sans effet manuel)

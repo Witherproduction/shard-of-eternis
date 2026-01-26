@@ -92,9 +92,19 @@ JoinGame = function(ip, port) {
         return false;
     }
 
-    var result = network_connect(client_socket, ip, port);
+    // Utiliser network_connect_raw_async pour éviter de bloquer le jeu
+    // Note: Dans GameMaker Studio 2 récent, network_connect_async est recommandé pour TCP
+    // Mais network_connect standard est bloquant. On passe en async.
+    var result = network_connect_async(client_socket, ip, port);
     if (result < 0) {
-        show_debug_message("ERREUR: oNetworkManager.JoinGame - connexion echouee a " + ip + ":" + string(port));
+        show_debug_message("ERREUR: oNetworkManager.JoinGame - connexion immediate echouee a " + ip + ":" + string(port));
+        // Note: En async, un retour < 0 signifie souvent une erreur de config locale, pas un timeout
+        // Mais on laisse le socket ouvert pour voir si l'event Async Networking répond plus tard
+        // sauf si c'est vraiment bloquant.
+        // Pour l'instant, on retourne true pour dire "tentative lancée"
+        // et on gérera l'échec dans l'event Async.
+        
+        // Update: Si network_connect_async renvoie < 0, c'est que ça n'a même pas pu essayer (format IP invalide etc.)
         network_destroy(client_socket);
         client_socket = -1;
         return false;

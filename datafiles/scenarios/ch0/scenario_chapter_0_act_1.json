@@ -5,7 +5,7 @@
     {
       "id": "tuto_intro",
       "bg": "sEgliseDevant",
-      "duel_bot_id": 1,
+      "duel_bot_id": "tuto_deck_bot",
       "lines": [
         {
           "speaker": 1,

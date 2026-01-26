@@ -136,11 +136,30 @@ if (room == rDuel && instance_exists(game) && game.timerEnabledPick && game.phas
 //----------------------------------
 
 // Vérifier que l'objet game existe avant de l'utiliser
-if(isHeroOwner && instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Pick" && zone == "Deck") {
+var isMyTurn = false;
+if (instance_exists(game)) {
+    if (variable_instance_exists(game, "local_player_index")) {
+        isMyTurn = (game.player_current == game.local_player_index);
+    } else {
+        // Mode solo : le joueur est toujours l'index 0 ("Hero")
+        isMyTurn = (game.player_current == 0);
+    }
+}
+
+if(isHeroOwner && instance_exists(game) && isMyTurn && game.phase[game.phase_current] == "Pick" && zone == "Deck") {
 	
-	deckHero.pick();
-	game.nextPhase();
-	nextStep.image_index = 0;
+    // Utilisation du système d'action réseau pour la pioche
+    var pIndex = 0;
+    if (variable_instance_exists(game, "local_player_index")) {
+        pIndex = game.local_player_index;
+    }
+    
+    var payload = {
+        player_index: pIndex,
+        trigger_next_phase: true
+    };
+    RequestGameAction(ACTION_DRAW, payload);
+
 	return; // Evite de tester les autres actions ci-dessous
 }
 
@@ -169,6 +188,12 @@ if (instance_exists(oSelectManager) && selectManager.selected != noone) {
     // Si on clique sur une carte ennemie, déclencher l'attaque SEULEMENT si le mode attaque est activé
     if (!isHeroOwner && type == "Monster" && zone == "Field") {
         if (selectManager.attackMode) {
+            // Vérification Camouflage : Impossible d'attaquer directement un monstre camouflé
+            if (variable_instance_exists(id, "isCamouflage") && isCamouflage) {
+                show_debug_message("### Cible invalide: Monstre camouflé");
+                return;
+            }
+            
             show_debug_message("### Cible sélectionnée pour l'attaque: " + name);
             var payload = {};
             payload.attacker = selectManager.selected;

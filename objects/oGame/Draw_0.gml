@@ -48,3 +48,9 @@ draw_text(base_x, 510, phase[phase_current]);
 draw_text_color(base_x, 614, "Tour " + string(nbTurn), c_black, c_black, c_black, c_black, 1);
 draw_set_color(c_white);
 draw_text(base_x, 610, "Tour " + string(nbTurn));
+
+// --- DESSIN DU PILE OU FACE (Déplacé dans Draw GUI) ---
+if (variable_instance_exists(id, "coin_toss_active") && coin_toss_active) {
+    // Le rendu est maintenant géré dans l'événement Draw GUI (Draw_64)
+    // pour garantir un centrage parfait et une couverture plein écran.
+}

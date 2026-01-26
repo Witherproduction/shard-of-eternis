@@ -10,11 +10,18 @@ function AI_SelectBestMove(moves) {
     var bestScore = -999999;
     
     // Récupération du profil IA
-    var profile = AI_Config_GetBotProfile(1);
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var profile = AI_Config_GetBotProfile(botID);
+    
     var p_summon = (profile != undefined) ? (profile.summon_weight / 50.0) : 1.0;
     var p_direct = (profile != undefined) ? (profile.direct_damage_bias / 50.0) : 1.0;
     var p_removal = (profile != undefined) ? (profile.removal_weight / 50.0) : 1.0;
     var p_sac = (profile != undefined) ? (profile.sacrifice_tolerance / 50.0) : 1.0;
+    var p_manual = (profile != undefined) ? (profile.manual_effect_weight / 50.0) : 1.0;
+    var p_continuous = (profile != undefined) ? (profile.continuous_weight / 50.0) : 1.0;
+    var p_draw = (profile != undefined) ? (profile.draw_weight / 50.0) : 1.0;
+    var p_tutor = (profile != undefined) ? (profile.tutor_weight / 50.0) : 1.0;
+    var p_risk = (profile != undefined && variable_struct_exists(profile, "risk_tolerance")) ? (profile.risk_tolerance / 50.0) : 1.0;
 
     for (var i = 0; i < array_length(moves); i++) {
         var move = moves[i];
@@ -37,6 +44,53 @@ function AI_SelectBestMove(moves) {
             
             moveScoreVal = cardVal - sacrificeCost;
             
+            // --- CHECK PRIORITY MONSTERS (From Profile Custom Rules) ---
+            var customRules = variable_struct_exists(profile, "custom_rules") ? profile.custom_rules : undefined;
+            if (customRules != undefined) {
+                // 1. Prioritize specific card names (e.g. Ruisselier, James, Morgane)
+                if (variable_struct_exists(customRules, "prioritize_card_name")) {
+                    var pNames = customRules.prioritize_card_name;
+                    var cName = variable_instance_exists(move.card, "name") ? move.card.name : "";
+                    
+                    if (is_array(pNames)) {
+                        for (var k = 0; k < array_length(pNames); k++) {
+                            if (string_pos(pNames[k], cName) > 0) {
+                                moveScoreVal += 2000; // HUGE PRIORITY
+                                break;
+                            }
+                        }
+                    } else if (is_string(pNames)) {
+                         if (string_pos(pNames, cName) > 0) {
+                            moveScoreVal += 2000; // HUGE PRIORITY
+                        }
+                    }
+                }
+                
+                // 2. Swarm Trigger Logic (If trigger card exists on field, boost all summons)
+                if (variable_struct_exists(customRules, "swarm_trigger_card")) {
+                    var tName = customRules.swarm_trigger_card;
+                    var triggerExists = false;
+                    
+                    // Check if trigger card is on AI board
+                    if (instance_exists(oFieldManagerEnemy)) {
+                        with (oCardParent) {
+                             if (variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && location == "Board") {
+                                 var myName = variable_instance_exists(id, "name") ? name : "";
+                                 if (string_pos(tName, myName) > 0) {
+                                     triggerExists = true;
+                                     break;
+                                 }
+                             }
+                        }
+                    }
+                    
+                    // If trigger card is present, boost ALL summons to flood the board
+                    if (triggerExists) {
+                        moveScoreVal += 500;
+                    }
+                }
+            }
+            
             // --- BONUS EFFET A L'INVOCATION ---
             if (variable_struct_exists(move, "has_on_summon_effect") && move.has_on_summon_effect) {
                 var eType = variable_struct_exists(move, "effect_type") ? move.effect_type : "";
@@ -45,7 +99,7 @@ function AI_SelectBestMove(moves) {
                 
                 switch (eType) {
                     case "draw_cards":
-                        effectScore = 100 * p_summon;
+                        effectScore = 100 * p_draw;
                         break;
                         
                     case "destroy_target":
@@ -124,40 +178,58 @@ function AI_SelectBestMove(moves) {
             switch (effectType) {
                 case "draw_cards":
                     // Piocher est toujours bon, surtout si main vide
-                    moveScoreVal = 100 * p_summon; // On utilise summon_weight comme proxy pour "vouloir jouer"
+                    moveScoreVal = 100 * p_draw; 
                     break;
                 
                 case "continuous_placement":
-                    moveScoreVal = 150; // Base value for placing continuous magic
+                    moveScoreVal = 150 * p_continuous; 
 
-                    // --- SYNERGY CHECK: Abyssien Deck ---
-                    // If we are playing the Abyssien deck (Deck 2) OR if we detect Abyssiens in hand
-                    var isAbyssienDeck = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2);
-                    var hasAbyssienInHand = false;
+                    // --- CUSTOM PROFILE RULES ---
                     
-                    // Check Hand for Abyssiens to confirm synergy potential
-                    if (instance_exists(oHandEnemy)) {
-                        var hCards = oHandEnemy.cards;
-                        var hLen = 0;
-                        if (is_array(hCards)) hLen = array_length(hCards);
-                        else if (ds_exists(hCards, ds_type_list)) hLen = ds_list_size(hCards);
-
-                        for (var h = 0; h < hLen; h++) {
-                            var hCard = (is_array(hCards)) ? hCards[h] : ds_list_find_value(hCards, h);
-                            if (hCard != noone && instance_exists(hCard)) {
-                                var hName = (variable_instance_exists(hCard, "name") ? hCard.name : "");
-                                if (string_pos("Abyssien", hName) > 0) {
-                                    hasAbyssienInHand = true;
-                                    break;
-                                }
+                    // 1. Max Copies Limit (e.g. for Abyssien Deck)
+                    var customRules = variable_struct_exists(profile, "custom_rules") ? profile.custom_rules : undefined;
+                    
+                    if (customRules != undefined && variable_struct_exists(customRules, "max_same_continuous")) {
+                        var maxC = customRules.max_same_continuous;
+                        var myObj = move.card.object_index;
+                        var currentCount = 0;
+                        
+                        // Count existing copies on AI board
+                        with (oCardParent) {
+                            if (object_index == myObj && variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && location == "Board") {
+                                currentCount++;
                             }
+                        }
+                        
+                        if (currentCount >= maxC) {
+                            moveScoreVal = -1000; // Block placement if limit reached
                         }
                     }
                     
-                    if (isAbyssienDeck || hasAbyssienInHand) {
-                         // High priority to ensure it is played before summoning monsters
-                         // A typical monster summon score is ~1500-2500. We set this higher.
-                         moveScoreVal = 4000; 
+                    // 2. Synergy Boost (Generic) - replaces hardcoded Abyssien check
+                    if (moveScoreVal > 0 && variable_struct_exists(profile, "synergy_tag")) {
+                        var tag = profile.synergy_tag;
+                        var hasSynergyInHand = false;
+                        
+                        // Check if we have cards in hand that benefit from this setup
+                        if (instance_exists(oHandEnemy)) {
+                             var hCards = oHandEnemy.cards;
+                             var hLen = (is_array(hCards)) ? array_length(hCards) : ds_list_size(hCards);
+                             for (var h = 0; h < hLen; h++) {
+                                 var hCard = (is_array(hCards)) ? hCards[h] : ds_list_find_value(hCards, h);
+                                 if (hCard != noone && instance_exists(hCard)) {
+                                     var hName = (variable_instance_exists(hCard, "name") ? hCard.name : "");
+                                     if (string_pos(tag, hName) > 0) {
+                                         hasSynergyInHand = true;
+                                         break;
+                                     }
+                                 }
+                             }
+                        }
+                        
+                        if (hasSynergyInHand) {
+                            moveScoreVal += 2000; // High priority for synergy setup
+                        }
                     }
 
                     if (p_summon > 1.0) moveScoreVal += 10;
@@ -249,6 +321,11 @@ function AI_SelectBestMove(moves) {
                     moveScoreVal = 20; // Valeur par défaut faible pour tester
             }
             
+            // --- BONUS MANUAL EFFECT ---
+            // Si c'est un effet activé manuellement, on applique le bonus manual_effect_weight
+            // Cela permet aux bots comme James (Pillage) de prioriser ces actions
+            moveScoreVal = moveScoreVal * p_manual;
+            
             // 2. Coût d'opportunité (Optionnel : vérifier Mana si système de mana existe)
             
         } else if (move.type == "attack") {
@@ -257,6 +334,71 @@ function AI_SelectBestMove(moves) {
             var isDirect = move.isDirect;
             
             var attackerVal = AI_GetCardScore(attacker);
+            
+            // --- CUSTOM RULES FOR ATTACK ---
+            var customRules = variable_struct_exists(profile, "custom_rules") ? profile.custom_rules : undefined;
+            if (customRules != undefined) {
+                var aName = variable_instance_exists(attacker, "name") ? attacker.name : "";
+                
+                // 1. Protected Card (Never Attack)
+                if (variable_struct_exists(customRules, "protect_card")) {
+                    var protName = customRules.protect_card;
+                    if (string_pos(protName, aName) > 0) {
+                        moveScoreVal = -999999; // Forbidden
+                        continue; // Skip logic
+                    }
+                }
+                
+                // 2. Stealth Lethal Only (OTK Style)
+                if (variable_struct_exists(customRules, "stealth_lethal_only") && customRules.stealth_lethal_only) {
+                    // Check if attacker is stealthy (has Camouflage)
+                    var isStealth = (variable_instance_exists(attacker, "isCamouflage") && attacker.isCamouflage) || (variable_instance_exists(attacker, "effects_text") && string_pos("Camouflage", attacker.effects_text) > 0);
+                    
+                    if (isStealth) {
+                        // Only attack if:
+                        // A. Lethal to Hero (Direct Attack)
+                        // B. Free Kill on Monster (Very favorable trade)
+                        
+                        var isLethal = false;
+                        var isFreeKill = false;
+                        
+                        var dmg = variable_instance_exists(attacker, "effective_attack") ? attacker.effective_attack : attacker.attack;
+                        
+                        if (isDirect) {
+                            var enemyLP = 0;
+                            var lpInst = instance_find(oLP_Hero, 0);
+                            if (lpInst != noone) enemyLP = lpInst.nbLP;
+                            if (dmg >= enemyLP) isLethal = true;
+                        } else {
+                            // Monster Trade Analysis
+                            var targetPos = (variable_instance_exists(target, "orientation") && target.orientation == "Attack") ? "Attack" : "Defense";
+                            var enemyStats = (targetPos == "Attack") ? (variable_instance_exists(target, "effective_attack") ? target.effective_attack : target.attack) : (variable_instance_exists(target, "effective_defense") ? target.effective_defense : target.defense);
+                            
+                            // Free kill if we kill them AND take 0 damage (or survive with margin)
+                            // Here user said "seulement si il detruise l'adversaire". We interpret as "Kill without dying" or "Worth it".
+                            // But user also said "Wait for opportun moment".
+                            // Let's go with: Only attack monster if we kill it and survive.
+                            
+                            var myKill = (dmg > enemyStats) || (dmg == enemyStats && targetPos == "Attack");
+                            var iDie = false;
+                            
+                            if (targetPos == "Attack") {
+                                var enemyAtk = variable_instance_exists(target, "effective_attack") ? target.effective_attack : target.attack;
+                                if (enemyAtk >= dmg) iDie = true; // Simplified
+                            }
+                            
+                            if (myKill && !iDie) isFreeKill = true;
+                        }
+                        
+                        if (!isLethal && !isFreeKill && !isDirect) {
+                            moveScoreVal = -500; // Prefer waiting
+                            continue;
+                        } else {
+                            moveScoreVal += 500; // Go for it!
+                        }
+                    }
+                }
+            }
             
             if (isDirect) {
                 // Attaque directe = Pression sur les PV
@@ -297,15 +439,15 @@ function AI_SelectBestMove(moves) {
                     // Stratégie incertaine (Risque vs Récompense)
                     // On suppose que c'est de la Défense
                     
-                    moveScoreVal = 30; // Envie de base de révéler/détruire
+                    moveScoreVal = 30 * p_risk; // Envie de base de révéler/détruire modifiée par le risque
                     
                     // On préfère attaquer avec une ATK élevée pour minimiser le risque de prendre des dégâts sur une grosse DEF
                     if (myAtk >= 1800) {
                         moveScoreVal += 80; // Très sûr
                     } else if (myAtk >= 1400) {
-                        moveScoreVal += 40; // Raisonnable
+                        moveScoreVal += 40 * p_risk; // Raisonnable (plus envie si risque élevé)
                     } else if (myAtk < 1000) {
-                        moveScoreVal -= 60; // Trop risqué, on risque de prendre des dégâts pour rien
+                        moveScoreVal -= 60 / p_risk; // Trop risqué (pénalité réduite si tolérance au risque élevée)
                     }
                     
                     // Bonus si on a Poison (potentiel kill gratuit)
@@ -357,7 +499,10 @@ function AI_SelectBestMove(moves) {
                         enemyDies = true;
                         iSurvive = false; // Suicide mutuel
                         // Pénalité pour éviter le suicide systématique en cas d'égalité
-                        moveScoreVal -= 300; 
+                        // Modulée par la tolérance au risque (p_risk autour de 1.0)
+                        // Si p_risk est bas (prudent), on pénalise plus. Si haut (tête brulée), on pénalise moins.
+                        var tradePenalty = 300 * (2.0 - p_risk);
+                        moveScoreVal -= max(50, tradePenalty); 
                     } else {
                         enemyDies = false;
                         iSurvive = false; // Suicide inutile
@@ -477,6 +622,9 @@ function AI_ExecuteMove(move) {
                 if (variable_struct_exists(move, "force_orientation")) {
                     orientation = move.force_orientation;
                 } else {
+                    var profile = AI_Config_GetActiveProfile();
+                    var riskTolerance = (variable_struct_exists(profile, "risk_tolerance")) ? profile.risk_tolerance : 50;
+
                     // 1. Logique de base : Stats
                     if (def > atk) orientation = "Defense";
                     
@@ -493,13 +641,34 @@ function AI_ExecuteMove(move) {
                     
                     // 4. Prudence : Si on est dominé par l'ennemi (ATK < MaxEnnemi)
                     if (atk < strongestEnemyAtk) {
-                        // On se met en défense pour protéger les LP (même si ATK > DEF)
                         orientation = "Defense";
+                        
+                        // EXCEPTIONS AGRESSIVES
+                        
+                        // 1. Camouflage : Si on est intouchable, on reste en attaque pour menacer
+                        if (variable_instance_exists(card, "isCamouflage") && card.isCamouflage) {
+                            orientation = "Attack";
+                        }
+                        // 2. Agressivité : Si le bot prend des risques (Risk > 65), il ignore la prudence
+                        // MAIS seulement si l'écart n'est pas suicidaire (ATK doit être au moins 80% de la menace ou écart < 2)
+                        else if (riskTolerance >= 65) {
+                             if (atk >= strongestEnemyAtk * 0.80 || (strongestEnemyAtk - atk) <= 1) {
+                                orientation = "Attack";
+                             }
+                        }
                     }
                     // Cas d'égalité : Si on peut tanker, on le fait. Sinon on reste en Attaque pour dissuader.
                     else if (atk == strongestEnemyAtk && def > strongestEnemyAtk) {
                         orientation = "Defense";
+                        
+                        if (variable_instance_exists(card, "isCamouflage") && card.isCamouflage) {
+                            orientation = "Attack";
+                        }
                     }
+                    
+                    // DEBUG: Trace summon decision
+                    var cName = variable_instance_exists(card, "name") ? card.name : "Unknown";
+                    show_debug_message("AI SUMMON DECISION: Card=" + cName + " Atk=" + string(atk) + " Def=" + string(def) + " StrongestEnemy=" + string(strongestEnemyAtk) + " Risk=" + string(riskTolerance) + " -> " + orientation);
                     
                     if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
                         for(var i=0; i<array_length(card.effects); i++) {

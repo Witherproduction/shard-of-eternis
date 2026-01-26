@@ -2,8 +2,9 @@
 /// @description Charge un deck de joueur depuis les donnees sauvegardees
 /// @param {struct} deck_data - Les donnees du deck sauvegarde
 /// @param {ds_list} deck_list - La liste ds_list a remplir avec les cartes
-function load_player_deck_from_data(deck_data, deck_list) {
-    show_debug_message("### load_player_deck_from_data - Loading deck: " + deck_data.name);
+function load_player_deck_from_data(deck_data, deck_list, do_shuffle) {
+    if (is_undefined(do_shuffle)) do_shuffle = true;
+    show_debug_message("### load_player_deck_from_data - Loading deck: " + deck_data.name + " (shuffle=" + string(do_shuffle) + ")");
     
     // Verifier que les donnees du deck sont valides
     if (!is_struct(deck_data) || !variable_struct_exists(deck_data, "cards")) {
@@ -86,10 +87,10 @@ function load_player_deck_from_data(deck_data, deck_list) {
     // Melanger le deck seulement si ce n'est pas le tutoriel (Chapitre 0)
     var is_tutorial = (variable_global_exists("current_chapter") && global.current_chapter == 0);
     
-    if (!is_tutorial) {
+    if (!is_tutorial && do_shuffle) {
         ds_list_shuffle(deck_list);
         show_debug_message("### Deck shuffled (Normal Mode)");
-    } else {
+    } else if (is_tutorial) {
         // En mode tutoriel, on inverse la liste pour que les premières cartes définies (Hand) 
         // soient en haut du deck (fin de la liste) et donc piochées en premier
         var size = ds_list_size(deck_list);
@@ -112,12 +113,14 @@ function load_player_deck_from_data(deck_data, deck_list) {
     return (loaded_count > 0);
 }
 
-/// @function load_bot_deck_from_id(bot_deck_id, deck_list)
+/// @function load_bot_deck_from_id(bot_deck_id, deck_list, do_shuffle)
 /// @description Charge un deck de bot depuis son ID
 /// @param {real} bot_deck_id - L'ID du deck de bot
 /// @param {ds_list} deck_list - La liste ds_list a remplir avec les cartes
-function load_bot_deck_from_id(bot_deck_id, deck_list) {
-    show_debug_message("### load_bot_deck_from_id - Loading bot deck ID: " + string(bot_deck_id));
+/// @param {bool} do_shuffle - Indique si le deck doit être mélangé ici
+function load_bot_deck_from_id(bot_deck_id, deck_list, do_shuffle) {
+    if (is_undefined(do_shuffle)) do_shuffle = true;
+    show_debug_message("### load_bot_deck_from_id - Loading bot deck ID: " + string(bot_deck_id) + " (shuffle=" + string(do_shuffle) + ")");
     
     // Mémoriser l'ID du deck bot actuellement chargé (utilisé par l'IA pour adapter son style)
     global.selected_bot_deck_id = bot_deck_id;
@@ -148,10 +151,10 @@ function load_bot_deck_from_id(bot_deck_id, deck_list) {
     // Melanger le deck seulement si ce n'est pas le tutoriel (Chapitre 0)
     var is_tutorial = (variable_global_exists("current_chapter") && global.current_chapter == 0);
     
-    if (!is_tutorial) {
+    if (!is_tutorial && do_shuffle) {
         ds_list_shuffle(deck_list);
         show_debug_message("### Bot deck shuffled (Normal Mode)");
-    } else {
+    } else if (is_tutorial) {
         // En mode tutoriel, on inverse la liste pour que les premières cartes définies 
         // soient en haut du deck (fin de la liste) et donc piochées en premier
         var size = ds_list_size(deck_list);
@@ -189,10 +192,13 @@ function clear_selected_decks() {
     show_debug_message("### Global variables cleaned");
 }
 
-/// @function heroDeck(deck_list)
+/// @function heroDeck(deck_list, do_shuffle)
 /// @description Fallback function to load a default hero deck if custom deck loading fails
-function heroDeck(deck_list) {
-    show_debug_message("### heroDeck - Loading default fallback deck");
+/// @param {ds_list} deck_list - La liste ds_list à remplir
+/// @param {bool} do_shuffle - Indique si le deck doit être mélangé ici
+function heroDeck(deck_list, do_shuffle) {
+    if (is_undefined(do_shuffle)) do_shuffle = true;
+    show_debug_message("### heroDeck - Loading default fallback deck (shuffle=" + string(do_shuffle) + ")");
     
     var cards = [
         "oJeuneLoup", "oJeuneLoup", "oJeuneLoup", 
@@ -217,6 +223,8 @@ function heroDeck(deck_list) {
         }
     }
     
-    ds_list_shuffle(deck_list);
+    if (do_shuffle) {
+        ds_list_shuffle(deck_list);
+    }
     show_debug_message("### heroDeck - Loaded " + string(added_count) + " cards");
 }

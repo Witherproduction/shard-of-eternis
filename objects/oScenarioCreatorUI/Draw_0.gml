@@ -940,6 +940,9 @@ if (variable_instance_exists(id, "show_duel_window") && show_duel_window) {
          for (var i = 0; i < array_length(player_deck_options); i++) {
              var item_y = list_y_start + i * item_h;
              var is_selected = (current.duel_player_deck == player_deck_options[i]);
+             if (!is_selected && is_string(current.duel_player_deck) && variable_struct_exists(player_deck_options[i], "id")) {
+                 is_selected = (current.duel_player_deck == player_deck_options[i].id);
+             }
              draw_set_color(is_selected ? c_green : c_dkgray);
              draw_rectangle(duel_window_x + 20 * k, item_y, duel_window_x + duel_window_w/2 - 20 * k, item_y + item_h - 5, false);
              draw_set_color(c_white);

@@ -5,6 +5,15 @@ draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 draw_text(960, 100, "Lobby Multijoueur");
 
+// Affichage des IP uniquement en mode admin
+if (variable_global_exists("admin_mode") && global.admin_mode) {
+    draw_set_font(-1);
+    draw_set_halign(fa_left);
+    draw_text(50, 50, "ADMIN - IP Publique : " + public_ip);
+    draw_text(50, 70, "ADMIN - IP Locale  : " + local_ip_display);
+    draw_set_halign(fa_center);
+}
+
 // Bouton Retour (UI dédié) avec sprite sButton
 var back_btn_w = 220;
 var back_btn_h = 60;
@@ -109,10 +118,20 @@ var ip_bottom = input_ip_y + input_height / 2;
 
 draw_set_halign(fa_right);
 draw_text(ip_left - 10, input_ip_y, "Adresse IP :");
-draw_sprite_stretched(sButton, 0, ip_left, ip_top, input_width, input_height);
+
+// Surbrillance si sélectionné
+if (is_typing_ip) {
+    draw_sprite_stretched_ext(sButton, 0, ip_left, ip_top, input_width, input_height, c_ltgray, 1);
+    draw_set_color(c_yellow);
+    draw_rectangle(ip_left, ip_top, ip_right, ip_bottom, true);
+} else {
+    draw_sprite_stretched(sButton, 0, ip_left, ip_top, input_width, input_height);
+}
+
 draw_set_halign(fa_center);
-draw_set_color(c_white);
-draw_text(input_ip_x, input_ip_y, ip_input);
+draw_set_color(is_typing_ip ? c_yellow : c_white);
+var display_ip = ip_input + (is_typing_ip && (current_time % 1000 < 500) ? "|" : "");
+draw_text(input_ip_x, input_ip_y, display_ip);
 
 // Draw Port Input (cadre avec sprite sButton)
 var port_left = input_port_x - input_width / 2;
@@ -122,10 +141,20 @@ var port_bottom = input_port_y + input_height / 2;
 
 draw_set_halign(fa_right);
 draw_text(port_left - 10, input_port_y, "Port :");
-draw_sprite_stretched(sButton, 0, port_left, port_top, input_width, input_height);
+
+// Surbrillance si sélectionné
+if (is_typing_port) {
+    draw_sprite_stretched_ext(sButton, 0, port_left, port_top, input_width, input_height, c_ltgray, 1);
+    draw_set_color(c_yellow);
+    draw_rectangle(port_left, port_top, port_right, port_bottom, true);
+} else {
+    draw_sprite_stretched(sButton, 0, port_left, port_top, input_width, input_height);
+}
+
 draw_set_halign(fa_center);
-draw_set_color(c_white);
-draw_text(input_port_x, input_port_y, port_input);
+draw_set_color(is_typing_port ? c_yellow : c_white);
+var display_port = port_input + (is_typing_port && (current_time % 1000 < 500) ? "|" : "");
+draw_text(input_port_x, input_port_y, display_port);
 
 draw_set_halign(fa_center);
 
@@ -140,11 +169,11 @@ var join_right = button_join_x + button_width / 2;
 var join_bottom = button_join_y + button_height / 2;
 
 draw_sprite_stretched(sButton, 0, host_left, host_top, button_width, button_height);
-draw_set_color(c_white);
+draw_set_color(make_color_rgb(230, 200, 120));
 draw_text(button_host_x, button_host_y, "Héberger");
 
 draw_sprite_stretched(sButton, 0, join_left, join_top, button_width, button_height);
-draw_set_color(c_white);
+draw_set_color(make_color_rgb(230, 200, 120));
 draw_text(button_join_x, button_join_y, "Rejoindre");
 
 if (variable_global_exists("NET_IS_HOST") && global.NET_IS_HOST && variable_global_exists("NET_HANDSHAKE_DONE") && global.NET_HANDSHAKE_DONE) {
@@ -156,8 +185,21 @@ if (variable_global_exists("NET_IS_HOST") && global.NET_IS_HOST && variable_glob
     var start_right = button_start_x + button_width / 2;
     var start_bottom = button_start_y + button_height / 2;
     
+    // Aura bleuté si prêt
+    if (can_start) {
+        gpu_set_blendmode(bm_add);
+        var glow_alpha = 0.5 + 0.3 * sin(current_time / 200); // Pulsation
+        draw_sprite_stretched_ext(sButton, 0, start_left - 5, start_top - 5, button_width + 10, button_height + 10, c_aqua, glow_alpha);
+        gpu_set_blendmode(bm_normal);
+    }
+
     draw_sprite_stretched(sButton, 0, start_left, start_top, button_width, button_height);
-    draw_set_color(can_start ? c_white : c_gray);
+    
+    if (can_start) {
+        draw_set_color(make_color_rgb(230, 200, 120));
+    } else {
+        draw_set_color(c_gray);
+    }
     draw_text(button_start_x, button_start_y, "JOUER");
 }
 

@@ -57,8 +57,8 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
             }
 
             canNormalSummon = (game.phase[game.phase_current] == "Summon"
-                               && game.player[game.player_current] == "Hero"
-                               && !game.hasSummonedThisTurn[0]
+                               && game.is_local_turn
+                               && !game.hasSummonedThisTurn[game.local_player_index]
                                && hasFreeSlot);
         }
     }
@@ -76,7 +76,7 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
 
     // Actions pour les cartes Magie en main (Set + Effet)
     if (card != noone && instance_exists(card) && card.type == "Magic") {
-        var canSetSpell = (game.phase[game.phase_current] == "Summon" && game.player[game.player_current] == "Hero");
+        var canSetSpell = (game.phase[game.phase_current] == "Summon" && game.is_local_turn);
         if (canSetSpell) {
             instanceSet = instance_create_layer(card.x - 10, card.y - 280, layer_get_id("Instances"), oSet);
             instanceSet.depth = -2000;
@@ -171,7 +171,7 @@ hidePositionButton = function() {show_debug_message("### oUIManager.hidePosition
 #region Function displayAttackButton
 displayAttackButton = function(card) {show_debug_message("### oUIManager.displayAttackButton")
     // Garde phase/joueur/type/zone/orientation pour éviter l'affichage sur des cartes non éligibles
-    if (!(instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Attack")) {
+    if (!(instance_exists(game) && game.is_local_turn && game.phase[game.phase_current] == "Attack")) {
         show_debug_message("### UIManager.displayAttackButton: hors phase Attack ou pas tour du héros");
         return;
     }
@@ -262,7 +262,14 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
         var isInHand = (variable_instance_exists(card, "zone") && (card.zone == "Hand" || card.zone == "HandSelected"));
         var isOwnerHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
         var isArtifact = (variable_instance_exists(card, "genre") && card.genre == "Artéfact");
-        var isHeroTurn = (instance_exists(game) && game.player[game.player_current] == "Hero");
+        var isHeroTurn = false;
+        if (instance_exists(game)) {
+            if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+                isHeroTurn = game.is_local_turn;
+            } else {
+                isHeroTurn = (game.player_current == 0);
+            }
+        }
         var currentPhase = (instance_exists(game) && variable_instance_exists(game, "phase")) ? game.phase[game.phase_current] : "";
         // Détection d'au moins un effet continu
         var hasContinuous = false;
@@ -416,10 +423,17 @@ displayIndicator = function(cardToDisplay = noone) {show_debug_message("### oUIM
 canSpecialSummonRoseCheval = function(card) {
     if (card == noone || !instance_exists(card)) return false;
     if (card.zone != "Hand" || !card.isHeroOwner) return false;
-    if (game.phase[game.phase_current] != "Summon" || game.player[game.player_current] != "Hero") return false;
-    // S'assure qu'on cible bien le Cheval de la Rose Noire
+    if (game.phase[game.phase_current] != "Summon") return false;
+    var isLocalTurn = false;
+    if (instance_exists(game)) {
+        if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+            isLocalTurn = game.is_local_turn;
+        } else {
+            isLocalTurn = (game.player[game.player_current] == "Hero");
+        }
+    }
+    if (!isLocalTurn) return false;
     if (object_get_name(card.object_index) != "oChevalDeLaRoseNoire") return false;
-    // Condition: contrôler un monstre "Rose noire" sur notre terrain
     return has_archetype_monster_on_field(true, "Rose noire");
 }
 

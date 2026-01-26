@@ -349,7 +349,7 @@ function activateSecretsOnDestroyAttempt(target, source) {
         } else {
             // Fallback : si la source existe mais n'a pas d'allégeance, déduire via tour courant
             if (instance_exists(game) && variable_instance_exists(game, "player") && variable_instance_exists(game, "player_current")) {
-                var currentIsHero = (game.player[game.player_current] == "Hero");
+                var currentIsHero = (game.player_current == 0);
                 if (currentIsHero != ownerIsHero) {
                     sourceOwnerIsHero = !ownerIsHero;
                 }
@@ -387,7 +387,7 @@ function activateSecretsOnDestroyAttempt(target, source) {
                 if (onlyOpponent) {
                     if (sourceOwnerIsHero == ownerIsHero) continue;
                     if (instance_exists(game) && variable_instance_exists(game, "player") && variable_instance_exists(game, "player_current")) {
-                        var currentIsHero = (game.player[game.player_current] == "Hero");
+                        var currentIsHero = (game.player_current == 0);
                         if (ownerIsHero == currentIsHero) {
                             show_debug_message("### SecretSkip: same turn as owner; ownerIsHero=" + string(ownerIsHero));
                             continue;

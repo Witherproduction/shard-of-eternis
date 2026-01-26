@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"background",
-    "path":"folders/Sprites/background.yy",
+    "name":"fond duel",
+    "path":"folders/Sprites/background/fond duel.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

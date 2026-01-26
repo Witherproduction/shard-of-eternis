@@ -111,11 +111,20 @@ function AI_GetLegalMoves_Summon() {
                     var targets = [];
                     var targetScope = "none";
                     
-                    // Définition de la portée de la cible
-                    if (eType == "destroy_target" || eType == "banish_target" || eType == "return_to_hand" || eType == "damage_target" || eType == "entrave") {
+                    // Priority to explicit owner defined in effect
+                    var explicitOwner = variable_struct_exists(effect, "owner") ? effect.owner : "";
+                    
+                    if (explicitOwner == "enemy" || explicitOwner == "opponent") {
                         targetScope = "enemy";
-                    } else if (eType == "buff" || eType == "heal_target" || eType == "equip_select_target") {
+                    } else if (explicitOwner == "ally" || explicitOwner == "self") {
                         targetScope = "ally";
+                    } else {
+                        // Définition de la portée de la cible (Inférence par type)
+                        if (eType == "destroy_target" || eType == "banish_target" || eType == "return_to_hand" || eType == "damage_target" || eType == "entrave") {
+                            targetScope = "enemy";
+                        } else if (eType == "buff" || eType == "heal_target" || eType == "equip_select_target") {
+                            targetScope = "ally";
+                        }
                     }
 
                     // Recherche des cibles
@@ -186,7 +195,7 @@ function AI_GetLegalMoves_Summon() {
                     
                     if (isContinuous) {
                         var allowPlay = true;
-                        if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
+                        if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == "Essaim_Abyssien") {
                             if (instance_exists(card)) {
                                 var cname = object_get_name(card.object_index);
                                 if (cname == "oProtectionMaree") {
@@ -332,7 +341,7 @@ function AI_AddEffectMoves(card, moves, context) {
         var filterStruct = {};
         
         // Copie des champs pertinents pour le filtre
-        var keysToCopy = ["target_zone", "include_hand", "include_graveyard", "monster_type", "criteria", "genre", "type", "scope", "random_select"];
+        var keysToCopy = ["target_zone", "include_hand", "include_graveyard", "monster_type", "criteria", "genre", "type", "scope", "random_select", "only_camouflaged"];
         for(var ki=0; ki<array_length(keysToCopy); ki++) {
             var k_prop = keysToCopy[ki];
             if (variable_struct_exists(effect, k_prop)) variable_struct_set(filterStruct, k_prop, variable_struct_get(effect, k_prop));
@@ -400,6 +409,14 @@ function AI_AddEffectMoves(card, moves, context) {
                  if (array_length(targetsFound) == 0) {
                      k++;
                      continue; // Pas de cibles pour le buff de zone -> on skip
+                 }
+
+                 // Règle spécifique : Si le buff ne concerne que les camouflés ("Attaque furtive"), on exige au moins 2 cibles pour rentabiliser
+                 if (variable_struct_exists(filterStruct, "only_camouflaged") && filterStruct.only_camouflaged) {
+                     if (array_length(targetsFound) < 2) {
+                         k++;
+                         continue;
+                     }
                  }
              }
         }
@@ -478,31 +495,15 @@ function AI_GetLegalMoves_Attack() {
     for (var j = 0; j < array_length(enemyMonsters); j++) {
         var target = enemyMonsters[j];
         if (target != 0 && instance_exists(target)) {
-            // Vérif Camouflage
-            if (variable_instance_exists(target, "isCamouflage") && target.isCamouflage) {
-                // Ne peut pas être ciblé si d'autres non-camo existent (Règle standard?)
-                // oDamageManager dit: si cible camo et qu'il y a non-camo, interdit.
-            } else {
+            // Vérif Camouflage : Les monstres camouflés ne sont JAMAIS des cibles valides pour une attaque standard
+            var isCamo = (variable_instance_exists(target, "isCamouflage") && target.isCamouflage);
+            if (!isCamo) {
+                array_push(validTargets, target);
                 enemyHasNonCamo = true;
             }
-            array_push(validTargets, target);
         }
     }
 
-    // Si on a des cibles camo mais qu'il existe des non-camo, on retire les camo de la liste ?
-    // Simplification : On liste tout, le scoring pénalisera ou oDamageManager bloquera.
-    // Mieux : Répliquer la logique oDamageManager.
-    // Si enemyHasNonCamo est true, on ne peut attaquer QUE les non-camo.
-    if (enemyHasNonCamo) {
-        var filteredTargets = [];
-        for (var t = 0; t < array_length(validTargets); t++) {
-            var _t = validTargets[t];
-            if (!variable_instance_exists(_t, "isCamouflage") || !_t.isCamouflage) {
-                array_push(filteredTargets, _t);
-            }
-        }
-        validTargets = filteredTargets;
-    }
 
 
     // Pour chaque attaquant potentiel
@@ -530,12 +531,37 @@ function AI_GetLegalMoves_Attack() {
             if (used < limit) {
                 // 1. Attaque sur Monstres
                 for (var k = 0; k < array_length(validTargets); k++) {
-                    array_push(moves, {
-                        type: "attack",
-                        attacker: attacker,
-                        target: validTargets[k],
-                        isDirect: false
-                    });
+                    var target = validTargets[k];
+                    var canAttack = true;
+
+                    // Logique spéciale Camouflage : On n'attaque que si on est sûr de tuer (ou trade favorable)
+                    if (variable_instance_exists(attacker, "isCamouflage") && attacker.isCamouflage) {
+                        var attAtk = variable_instance_exists(attacker, "effective_attack") ? attacker.effective_attack : (variable_instance_exists(attacker, "attack") ? attacker.attack : 0);
+                        
+                        var defPos = "Attack";
+                        if (variable_instance_exists(target, "orientation")) defPos = target.orientation;
+                        // Si face cachée, on assume Defense (stats inconnues pour l'IA stricte, mais ici on triche un peu ou on utilise les stats de base si connues ?)
+                        // Pour l'instant, on lit les stats réelles (IA omnisciente sur les stats)
+                        
+                        if (defPos == "Defense" || defPos == "DefenseVisible") {
+                            var targetDef = variable_instance_exists(target, "effective_defense") ? target.effective_defense : (variable_instance_exists(target, "defense") ? target.defense : 0);
+                            if (attAtk <= targetDef) canAttack = false; // Rebond ou égalité : pas de destruction, on perd le camo pour rien -> NON.
+                        } else {
+                            // En position d'attaque : ATK vs ATK
+                            var targetAtk = variable_instance_exists(target, "effective_attack") ? target.effective_attack : (variable_instance_exists(target, "attack") ? target.attack : 0);
+                            if (attAtk < targetAtk) canAttack = false; // Suicide sans tuer la cible -> NON.
+                            // Si attAtk >= targetAtk, la cible meurt (Trade ou Win). -> OUI.
+                        }
+                    }
+
+                    if (canAttack) {
+                        array_push(moves, {
+                            type: "attack",
+                            attacker: attacker,
+                            target: target,
+                            isDirect: false
+                        });
+                    }
                 }
 
                 // 2. Attaque Directe (Si pas de monstres non-camo ?)

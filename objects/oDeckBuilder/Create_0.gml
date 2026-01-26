@@ -24,6 +24,15 @@ deck_name_editing = false;
 // Variables pour le mode édition
 editing_mode = false;
 original_deck_name = ""; // Pour retrouver le deck original lors de la sauvegarde
+is_bot_deck = false; // Définit si on édite un deck de bot
+original_deck_id = ""; // ID du deck bot en cours d'édition
+
+// Variables pour le mode édition avancé (Bots/Héros)
+custom_id = "";
+custom_chapter = 0;
+custom_id_editing = false;
+custom_chapter_editing = false;
+is_hero_deck = false; // Définit si on édite un deck de héros (histoire)
 
 // Variables pour la liste des cartes
 cards_list = [];
@@ -134,24 +143,121 @@ function save_deck() {
     show_debug_message("### Sauvegarde du deck: " + deck_name);
     show_debug_message("### Nombre de cartes: " + string(array_length(cards_list)));
     show_debug_message("### Mode édition: " + string(editing_mode));
+    show_debug_message("### Is Bot Deck: " + string(is_bot_deck));
     
     // Normaliser les cartes à sauvegarder: toujours { name, objectId }
     var cards_for_save = [];
+    var cards_simple = []; // Pour les bots (liste de chaînes)
+    
     for (var i = 0; i < array_length(cards_list); i++) {
         var entry = cards_list[i];
         var name = is_struct(entry) && variable_struct_exists(entry, "name") ? entry.name : string(entry);
         var oid = is_struct(entry) && variable_struct_exists(entry, "objectId") ? entry.objectId : "";
+        
+        // Tenter de retrouver l'objectId si manquant
         if (oid == "" && name != "") {
+            // Essayer de trouver la carte dans la DB
             var matches = dbGetCardsByName(name);
-            for (var k = 0; k < array_length(matches); k++) {
-                if (variable_struct_exists(matches[k], "name") && matches[k].name == name && variable_struct_exists(matches[k], "objectId")) {
-                    oid = matches[k].objectId;
-                    break;
+            // Si pas de match exact, chercher si le nom est déjà un objectId (commence par 'o')
+            if (array_length(matches) == 0 && string_pos("o", name) == 1) {
+                 oid = name;
+            } else {
+                for (var k = 0; k < array_length(matches); k++) {
+                    if (variable_struct_exists(matches[k], "name") && matches[k].name == name && variable_struct_exists(matches[k], "objectId")) {
+                        oid = matches[k].objectId;
+                        break;
+                    }
                 }
             }
         }
+        
+        // Si oid est toujours vide mais qu'on a un nom qui ressemble à un objet
+        if (oid == "" && string_pos("o", name) == 1) {
+            oid = name;
+        }
+
         array_push(cards_for_save, { name: name, objectId: oid });
+        
+        // Pour les bots, on sauvegarde l'objectId (ou le nom si pas d'ID)
+        if (oid != "") array_push(cards_simple, oid);
+        else array_push(cards_simple, name);
     }
+    
+    // Logique de sauvegarde spécifique aux bots
+    if (is_bot_deck) {
+        var deck_id = custom_id; // Utiliser l'ID personnalisé s'il a été modifié
+        if (deck_id == "") deck_id = original_deck_id;
+        
+        if (deck_id == "") {
+            // Générer un ID unique pour le nouveau deck
+            deck_id = md5_string_utf8(string(date_current_datetime()) + string(random(1000000)) + deck_name);
+        }
+        
+        // S'assurer que le chapitre est un nombre
+        var deck_chapter = 0;
+        try {
+            deck_chapter = real(custom_chapter);
+        } catch(e) {
+            deck_chapter = 0;
+        }
+        
+        var bot_deck_data = {
+            id: deck_id,
+            name: deck_name,
+            deck_name: deck_name, // Redondance utile
+            chapter: deck_chapter,
+            cards: cards_simple,
+            created_date: date_current_datetime(),
+            card_count: array_length(cards_simple),
+            is_custom: true
+        };
+        
+        add_or_update_bot_deck(bot_deck_data);
+        show_debug_message("### Deck de bot sauvegardé avec succès !");
+        
+        // Fermer le constructeur de deck
+        close_deck_builder();
+        return;
+    }
+
+    // Logique de sauvegarde spécifique aux héros (Histoire)
+    if (is_hero_deck) {
+        var deck_id = custom_id; // Utiliser l'ID personnalisé s'il a été modifié
+        if (deck_id == "") deck_id = original_deck_id;
+
+        if (deck_id == "") {
+            // Générer un ID unique pour le nouveau deck
+            deck_id = md5_string_utf8(string(date_current_datetime()) + string(random(1000000)) + deck_name);
+        }
+        
+        // S'assurer que le chapitre est un nombre
+        var deck_chapter = 0;
+        try {
+            deck_chapter = real(custom_chapter);
+        } catch(e) {
+            deck_chapter = 0;
+        }
+        
+        var hero_deck_data = {
+            id: deck_id,
+            name: deck_name,
+            deck_name: deck_name, // Redondance utile
+            chapter: deck_chapter,
+            cards: cards_simple,
+            created_date: date_current_datetime(),
+            card_count: array_length(cards_simple),
+            is_custom: true
+        };
+        
+        add_or_update_hero_deck(hero_deck_data);
+        show_debug_message("### Deck de héros sauvegardé avec succès !");
+        
+        // Fermer le constructeur de deck
+        close_deck_builder();
+        return;
+    }
+
+    // --- Sauvegarde Deck Joueur (Code Existant) ---
     
     // Créer la structure du deck à sauvegarder
     var deck_data = {
@@ -198,6 +304,7 @@ function save_deck() {
         // Mode création : ajouter un nouveau deck
         array_push(global.saved_decks, deck_data);
         save_success = save_decks_to_file();
+
         
         if (save_success) {
             // Deck créé avec succès
@@ -249,6 +356,35 @@ function cancel_deck_creation() {
 function confirm_deck_deletion() {
     show_debug_message("### Confirmation de suppression du deck: " + original_deck_name);
     
+    // --- SUPPRESSION DECK BOT ---
+    if (is_bot_deck) {
+        var deck_id = (custom_id != "") ? custom_id : original_deck_id;
+        
+        // Tenter de supprimer via le manager
+        if (delete_bot_deck(deck_id)) {
+            show_debug_message("### Deck Bot supprimé avec succès !");
+        } else {
+            show_debug_message("### Impossible de supprimer le deck Bot (peut-être un deck par défaut ?)");
+        }
+        close_deck_builder();
+        return;
+    }
+    
+    // --- SUPPRESSION DECK HÉROS ---
+    if (is_hero_deck) {
+        var deck_id = (custom_id != "") ? custom_id : original_deck_id;
+        
+        // Tenter de supprimer via le manager
+        if (delete_hero_deck(deck_id)) {
+            show_debug_message("### Deck Héros supprimé avec succès !");
+        } else {
+            show_debug_message("### Impossible de supprimer le deck Héros (peut-être un deck par défaut ?)");
+        }
+        close_deck_builder();
+        return;
+    }
+    
+    // --- SUPPRESSION DECK JOUEUR (Standard) ---
     // Chercher et supprimer le deck de la liste globale
     if (variable_global_exists("saved_decks")) {
         var deck_found = false;
@@ -309,6 +445,22 @@ function load_deck_for_editing(deck_data) {
     // Activer le mode édition
     editing_mode = true;
     original_deck_name = deck_data.name;
+    
+    // Capturer l'ID si disponible (pour les bots)
+    if (variable_struct_exists(deck_data, "id")) {
+        original_deck_id = deck_data.id;
+        custom_id = deck_data.id;
+    } else {
+        original_deck_id = "";
+        custom_id = "";
+    }
+    
+    // Capturer le chapitre si disponible
+    if (variable_struct_exists(deck_data, "chapter")) {
+        custom_chapter = deck_data.chapter;
+    } else {
+        custom_chapter = 0;
+    }
     
     // Charger les données du deck
     deck_name = deck_data.name;

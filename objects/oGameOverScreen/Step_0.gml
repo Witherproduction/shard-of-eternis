@@ -71,13 +71,13 @@ if (alpha >= targetAlpha) {
             if (target_room == rScenario) {
                 if (isVictory) {
                      // Débloquer le bot vaincu pour le mode Contre IA
-                     if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id > 0) {
+                     if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
                          unlock_bot(global.selected_bot_deck_id);
                      }
 
                      if (variable_global_exists("current_chapter") && variable_global_exists("current_act")) {
                          if (global.current_chapter == 1 && global.current_act == 2) {
-                             if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
+                             if (variable_global_exists("selected_bot_deck_id") && (global.selected_bot_deck_id == 2 || global.selected_bot_deck_id == "Essaim_Abyssien")) {
                                  story_progress_unlock_reward("chap1_act2_duel1_win");
                              }
                          }

@@ -7,10 +7,14 @@ show_debug_message(isHeroOwner)
 ///////////////////////////////////////////////////////////////////////
 
 // Assurer une graine aléatoire initialisée avant tout mélange
-if (!variable_global_exists("rng_initialized") || !global.rng_initialized) {
-    randomize();
-    global.rng_initialized = true;
-    show_debug_message("### oDeck.Create_0 - RNG initialisé (fallback)");
+// En mode en ligne, la graine est déjà synchronisée via NET_SHARED_SEED.
+var _isOnlineDeck = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
+if (!_isOnlineDeck) {
+    if (!variable_global_exists("rng_initialized") || !global.rng_initialized) {
+        randomize();
+        global.rng_initialized = true;
+        show_debug_message("### oDeck.Create_0 - RNG initialisé (offline fallback)");
+    }
 }
 
 deck = ds_list_create(); // Liste des cartes devant etre creees
@@ -43,14 +47,14 @@ if (isHeroOwner) {
         // Verifier que les donnees du deck sont valides
         if (is_struct(global.selected_player_deck) && variable_struct_exists(global.selected_player_deck, "name")) {
             show_debug_message("### oDeck.Create_0 - Loading custom player deck: " + global.selected_player_deck.name);
-            use_custom_decks = load_player_deck_from_data(global.selected_player_deck, deck);
+            use_custom_decks = load_player_deck_from_data(global.selected_player_deck, deck, false);
             if (use_custom_decks) {
                 show_debug_message("### oDeck.Create_0 - Custom deck loaded successfully with " + string(ds_list_size(deck)) + " cards");
             } else {
                 show_debug_message("### oDeck.Create_0 - Failed to load custom deck, using default");
                 // Charger le deck par défaut en cas d'échec
                 try {
-                    heroDeck(deck);
+                    heroDeck(deck, false);
                     show_debug_message("### oDeck.Create_0 - Default heroDeck function executed as fallback, deck size: " + string(ds_list_size(deck)));
                 } catch (e) {
                     show_debug_message("### oDeck.Create_0 - Error calling heroDeck function as fallback: " + string(e));
@@ -67,14 +71,40 @@ if (isHeroOwner) {
     }
 } else {
     // Deck de l'ennemi
-    if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
-        show_debug_message("### oDeck.Create_0 - Chargement du deck bot personnalise ID: " + string(global.selected_bot_deck_id));
-        use_custom_decks = load_bot_deck_from_id(global.selected_bot_deck_id, deck);
+    if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+        // --- MODE PVP ---
+        show_debug_message("### oDeck.Create_0 - PVP ENEMY DECK LOADING");
+        
+        // 1. Essayer de charger le deck reçu par réseau (données complètes)
+        if (variable_global_exists("remote_lobby_deck_data") && is_struct(global.remote_lobby_deck_data)) {
+             show_debug_message("### oDeck - Loading REMOTE DECK DATA (received from network)");
+             use_custom_decks = load_player_deck_from_data(global.remote_lobby_deck_data, deck, false);
+        }
+        // 2. Fallback: Essayer de charger par nom (si le deck existe localement)
+        else if (variable_global_exists("remote_lobby_deck_name") && global.remote_lobby_deck_name != "") {
+             show_debug_message("### oDeck - Loading REMOTE DECK by NAME: " + global.remote_lobby_deck_name);
+             if (variable_global_exists("saved_decks") && is_array(global.saved_decks)) {
+                 for (var i = 0; i < array_length(global.saved_decks); i++) {
+                     if (global.saved_decks[i].name == global.remote_lobby_deck_name) {
+                         use_custom_decks = load_player_deck_from_data(global.saved_decks[i], deck, false);
+                         break;
+                     }
+                 }
+             }
+        }
+    }
+    else {
+        // --- MODE SOLO / CONTRE IA ---
+        if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
+            show_debug_message("### oDeck.Create_0 - Chargement du deck bot personnalise ID: " + string(global.selected_bot_deck_id));
+            use_custom_decks = load_bot_deck_from_id(global.selected_bot_deck_id, deck, false);
+        }
     }
     
+    // Si aucun deck n'a pu être chargé (PVP échec ou IA par défaut)
     if (!use_custom_decks) {
-        show_debug_message("### oDeck.Create_0 - Loading default enemy deck");
-        script_execute(enemyDeck_enemy1, deck);
+        show_debug_message("### oDeck.Create_0 - Loading default enemy deck (Fallback)");
+        heroDeck(deck, false);
     }
 }
 	
@@ -82,6 +112,20 @@ if (isHeroOwner) {
 //----------------------------------
 // Place les cartes sur la map
 //----------------------------------
+
+// GESTION DES UIDS EN MULTIJOUEUR
+// On force une plage d'UIDs spécifique pour chaque joueur afin d'éviter les collisions
+// et de permettre la synchronisation parfaite des cartes (Host=100k+, Client=200k+)
+if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+    var local_idx = (variable_global_exists("NET_IS_HOST") && !global.NET_IS_HOST) ? 1 : 0;
+    var owner_idx = isHeroOwner ? local_idx : (1 - local_idx);
+    
+    // Définir le début de la plage pour ce deck (ex: 100001 ou 200001)
+    // On laisse une marge de 1 au cas où
+    global.nextCardInstanceUID = (owner_idx * 100000) + 1;
+    
+    show_debug_message("### oDeck - Setting UID Range for " + (isHeroOwner ? "HERO" : "ENEMY") + " Deck. Owner=" + string(owner_idx) + " StartUID=" + string(global.nextCardInstanceUID));
+}
 	
 for(var i=0; i<ds_list_size(deck); i++) {
     var item = ds_list_find_value(deck, i);
@@ -98,11 +142,46 @@ for(var i=0; i<ds_list_size(deck); i++) {
     ds_list_add(cards, instance);
 }
 
+// RESTAURATION DE LA PLAGE LOCALE
+// Après avoir créé les cartes du deck (qui peuvent être celles de l'adversaire),
+// on remet le compteur global sur la plage du joueur LOCAL + marge de sécurité (5000)
+// pour que les créations futures (Tokens, etc.) appartiennent bien au joueur local.
+if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+    var local_idx = (variable_global_exists("NET_IS_HOST") && !global.NET_IS_HOST) ? 1 : 0;
+    global.nextCardInstanceUID = (local_idx * 100000) + 5000;
+    show_debug_message("### oDeck - Resetting Global UID to Local Range: " + string(global.nextCardInstanceUID));
+}
+
 // Mélanger l'ordre des cartes dans le deck pour rendre la pioche non déterministe
 // SAUF si c'est le Chapitre 0 (Tutoriel), où l'ordre est scripté
 var is_tutorial = (variable_global_exists("current_chapter") && global.current_chapter == 0);
 
 if (ds_list_size(cards) > 1 && !is_tutorial) {
+    // En PVP, on force une graine spécifique par deck pour éviter les désynchronisations
+    // liées à l'ordre de création ou à la consommation d'aléatoire par d'autres objets
+    if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+        if (variable_global_exists("NET_SHARED_SEED")) {
+            // Déterminer l'index logique du propriétaire de ce deck (0 = Hôte, 1 = Client)
+            // local_player_index : 0 si Host, 1 si Client
+            // isHeroOwner : true si c'est le deck du joueur local, false sinon
+            
+            var owner_index = 0;
+            var local_index = 0;
+            var remote_index = 1;
+            if (variable_global_exists("NET_IS_HOST") && !global.NET_IS_HOST) {
+                local_index = 1;
+                remote_index = 0;
+            }
+            owner_index = (isHeroOwner ? local_index : remote_index);
+            
+            // Calculer une graine unique mais déterministe pour ce deck
+            // On ajoute un grand nombre pour séparer nettement les séquences
+            var deck_seed = global.NET_SHARED_SEED + 10000 + (owner_index * 55555);
+            random_set_seed(deck_seed);
+            show_debug_message("### oDeck PVP Shuffle - Owner Index: " + string(owner_index) + " | Seed: " + string(deck_seed));
+        }
+    }
+
     ds_list_shuffle(cards);
     show_debug_message("### oDeck.Create_0 - Deck mélangé: " + string(ds_list_size(cards)) + " cartes");
 } else if (is_tutorial) {

@@ -10,7 +10,16 @@ if (global.isGraveyardViewerOpen) exit;
 if (selectManager.attackMode && selectManager.selected != noone) {
     var card = selectManager.selected;
     
-    if (card != noone && instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Attack" 
+    var isMyTurn = false;
+    if (instance_exists(game)) {
+        if (variable_instance_exists(game, "local_player_index")) {
+            isMyTurn = (game.player_current == game.local_player_index);
+        } else {
+            isMyTurn = (game.player_current == 0);
+        }
+    }
+
+    if (card != noone && instance_exists(game) && isMyTurn && game.phase[game.phase_current] == "Attack" 
         && card.zone == "FieldSelected") {
         var atk_lim = (variable_instance_exists(card, "isAmbidextrous") && card.isAmbidextrous) ? 2 : 1;
         var atk_used = (variable_instance_exists(card, "attacksUsedThisTurn") ? card.attacksUsedThisTurn : 0);

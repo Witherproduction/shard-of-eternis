@@ -506,7 +506,7 @@ if (auto_mode && !await_scene_click) {
                 if (current.text_effect != "Aucune" && current.text_effect != "") { var dtl = dur_base_l; if (current.text_effect == "SlideGaucheInverse" || current.text_effect == "Slide gauche inversé" || current.text_effect == "SlideDroiteInverse" || current.text_effect == "Slide droite inversé" || current.text_effect == "SlideHautInverse" || current.text_effect == "Slide haut inversé" || current.text_effect == "SlideBasInverse" || current.text_effect == "Slide bas inversé") dtl *= fx_inverse_multiplier; anim_ms_l = max(anim_ms_l, dtl); }
                 if (lenl == 0) line_auto_target_ms = current_time + anim_ms_l + wait_msl; else line_auto_target_ms = current_time + reveal_msl + wait_msl;
             } else {
-                if (variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id > 0) {
+                if (variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id != 0 && sc.duel_bot_id != noone) {
                     if (!instance_exists(oDuelConfirmation)) {
                         instance_create_depth(0, 0, -9999, oDuelConfirmation);
                     }

@@ -5,9 +5,12 @@
 // === CONSTANTES D'ACTIONS ===
 #macro ACTION_NEXT_PHASE "NEXT_PHASE"
 #macro ACTION_SUMMON "SUMMON"
+#macro ACTION_DRAW "DRAW"
+#macro ACTION_SYNC_LP "SYNC_LP"
 #macro ACTION_ATTACK "ATTACK"
 #macro ACTION_ACTIVATE_EFFECT "ACTIVATE_EFFECT"
 #macro ACTION_SWITCH_POSITION "SWITCH_POSITION"
+#macro ACTION_SURRENDER "SURRENDER"
 #macro MSG_HELLO "HELLO"
 #macro MSG_GAME_START "GAME_START"
 #macro MSG_GAME_ACTION "GAME_ACTION"
@@ -36,7 +39,9 @@ function RequestGameAction(actionType, payload) {
             if (variable_instance_exists(gameInst, "local_player_index") && variable_instance_exists(gameInst, "player_current")) {
                 var localIndex = gameInst.local_player_index;
                 var currentIndex = gameInst.player_current;
-                if (currentIndex != localIndex) {
+                
+                // Exception pour le Surrender: on peut le faire hors de son tour
+                if (actionType != ACTION_SURRENDER && currentIndex != localIndex) {
                     show_debug_message("Action rejetée: tour du joueur distant pour " + string(actionType));
                     return false;
                 }
@@ -125,6 +130,14 @@ function ExecuteGameAction(actionType, payload) {
         case ACTION_NEXT_PHASE:
             _execute_NextPhase(payload);
             break;
+
+        case ACTION_DRAW:
+            _execute_Draw(payload);
+            break;
+            
+        case ACTION_SYNC_LP:
+            _execute_SyncLP(payload);
+            break;
         
         case ACTION_SUMMON:
             _execute_Summon(payload);
@@ -142,6 +155,10 @@ function ExecuteGameAction(actionType, payload) {
             _execute_SwitchPosition(payload);
             break;
 
+        case ACTION_SURRENDER:
+            _execute_Surrender(payload);
+            break;
+
         default:
             show_debug_message("Action inconnue : " + string(actionType));
             break;
@@ -150,11 +167,123 @@ function ExecuteGameAction(actionType, payload) {
 
 // === SOUS-FONCTIONS D'EXECUTION (LOGIQUE PURE) ===
 
+function _execute_SyncLP(payload) {
+    // Si on est l'hôte, on ignore notre propre message de sync (redondant)
+    if (variable_global_exists("NET_IS_HOST") && global.NET_IS_HOST) return;
+    
+    if (!is_struct(payload)) return;
+    
+    // Le client est le Joueur 1 (Enemy du point de vue de l'hôte)
+    // p0_lp = LP du Joueur 0 (Hôte). Pour le client, c'est l'Ennemi (oLP_Enemy).
+    // p1_lp = LP du Joueur 1 (Client). Pour le client, c'est le Héros (oLP_Hero).
+    
+    if (variable_struct_exists(payload, "p0_lp")) {
+        var hostLP = payload.p0_lp;
+        if (instance_exists(oLP_Enemy)) {
+            if (oLP_Enemy.nbLP != hostLP) {
+                oLP_Enemy.nbLP = hostLP;
+            }
+        }
+    }
+    
+    if (variable_struct_exists(payload, "p1_lp")) {
+        var clientLP = payload.p1_lp;
+        if (instance_exists(oLP_Hero)) {
+            if (oLP_Hero.nbLP != clientLP) {
+                oLP_Hero.nbLP = clientLP;
+            }
+        }
+    }
+}
+
+function _execute_Draw(payload) {
+    if (!is_struct(payload)) return;
+    
+    var pIndex = -1;
+    if (variable_struct_exists(payload, "player_index")) {
+        pIndex = payload.player_index;
+    }
+    
+    // Si pas de player_index, on suppose le joueur courant
+    if (pIndex == -1 && instance_exists(oGame)) {
+        pIndex = oGame.player_current;
+    }
+
+    var isLocalPlayer = false;
+    if (instance_exists(oGame) && variable_instance_exists(oGame, "local_player_index")) {
+        isLocalPlayer = (pIndex == oGame.local_player_index);
+    } else {
+        // Fallback offline (joueur 0 est toujours local/hero)
+        isLocalPlayer = (pIndex == 0);
+    }
+    
+    show_debug_message("EXECUTE DRAW for Player " + string(pIndex) + " (IsLocal=" + string(isLocalPlayer) + ")");
+
+    if (isLocalPlayer) {
+        // C'est MOI (ou le Héros offline) qui pioche
+        if (instance_exists(deckHero)) {
+            deckHero.pick();
+            
+            if (variable_struct_exists(payload, "trigger_next_phase") && payload.trigger_next_phase) {
+                if (instance_exists(oGame)) oGame.nextPhase();
+                if (instance_exists(oNextStep)) oNextStep.image_index = 0;
+            }
+        }
+    } else {
+        // C'est l'ADVERSAIRE qui pioche
+        if (instance_exists(deckEnemy)) {
+             // deckEnemy.pick() ajoute à handEnemy
+             deckEnemy.pick();
+             
+             if (variable_struct_exists(payload, "trigger_next_phase") && payload.trigger_next_phase) {
+                if (instance_exists(oGame)) oGame.nextPhase();
+                if (instance_exists(oNextStep)) oNextStep.image_index = 0;
+            }
+        }
+    }
+}
+
 function _execute_NextPhase(payload) {
     with (oGame) {
         // Appelle la méthode existante qui gère déjà toute la complexité
-        // (changement de phase, de tour, triggers, reset orientation, etc.)
         nextPhase();
+        
+        // Correction de sync forcée (si payload fourni)
+        if (is_struct(payload)) {
+            show_debug_message("SYNC CHECK: Current Phase=" + string(phase_current) + " Player=" + string(player_current));
+            
+            var need_refresh = false;
+
+            if (variable_struct_exists(payload, "target_phase_index")) {
+                if (phase_current != payload.target_phase_index) {
+                    show_debug_message("SYNC CORRECTION: Phase " + string(phase_current) + " -> " + string(payload.target_phase_index));
+                    phase_current = payload.target_phase_index;
+                    global.current_phase = phase[phase_current];
+                    need_refresh = true;
+                }
+            }
+            if (variable_struct_exists(payload, "target_player_index")) {
+                 if (player_current != payload.target_player_index) {
+                    show_debug_message("SYNC CORRECTION: Player " + string(player_current) + " -> " + string(payload.target_player_index));
+                    player_current = payload.target_player_index;
+                    is_local_turn = (player_current == local_player_index);
+                    need_refresh = true;
+                 }
+            }
+            if (variable_struct_exists(payload, "target_turn")) {
+                if (nbTurn != payload.target_turn) {
+                    show_debug_message("SYNC CORRECTION: Turn " + string(nbTurn) + " -> " + string(payload.target_turn));
+                    nbTurn = payload.target_turn;
+                    need_refresh = true;
+                }
+            }
+            
+            // Force update visuals if corrected
+            if (need_refresh) {
+                global.current_phase = phase[phase_current];
+                is_local_turn = (player_current == local_player_index);
+            }
+        }
         
         // On désélectionne tout visuellement (UI pure)
         if (instance_exists(selectManager)) {
@@ -167,6 +296,13 @@ function _execute_Summon(payload) {
     if (!is_struct(payload)) {
         show_debug_message("ERREUR: payload SUMMON invalide (struct attendu)");
         return;
+    }
+    
+    // Debug log pour vérifier le mode reçu
+    if (variable_struct_exists(payload, "summon_mode")) {
+        show_debug_message("SUMMON ACTION RECEIVED: Mode=" + string(payload.summon_mode));
+    } else {
+        show_debug_message("SUMMON ACTION RECEIVED: No Mode (Default Attack)");
     }
     
     var card = noone;
@@ -198,52 +334,38 @@ function _execute_Summon(payload) {
         return;
     }
     
-    var xy = undefined;
-    if (variable_struct_exists(payload, "xy")) {
-        xy = payload.xy;
-    }
-    if (is_undefined(xy)) {
-        show_debug_message("ERREUR: payload SUMMON sans coordonnées XY");
-        return;
+    // Mise à jour de la position (Terrain, Zone...)
+    // ... La logique de placement est gérée par les scripts oGame / FieldManager
+    // Mais on peut avoir besoin de l'info dans le payload
+    
+    var fieldPos = -1;
+    if (variable_struct_exists(payload, "xy") && is_array(payload.xy) && array_length(payload.xy) > 2) {
+        fieldPos = payload.xy[2];
     }
     
+    // Appel à la main appropriée pour invoquer (Correction du crash oGame.summonCard)
+    var ownerIsHero = variable_instance_exists(card, "isHeroOwner") ? card.isHeroOwner : true;
+    
+    // Récupération des instances de gestion
+    var hand = ownerIsHero ? handHero : handEnemy;
+    var fm = ownerIsHero ? fieldManagerHero : fieldManagerEnemy;
+    
+    // Détermination de l'orientation souhaitée à partir du payload
     var desiredOrientation = "";
-    if (variable_struct_exists(payload, "desired_orientation")) {
-        desiredOrientation = payload.desired_orientation;
+    if (variable_struct_exists(payload, "summon_mode") && payload.summon_mode == "Set") {
+        desiredOrientation = "Defense";
     }
     
-    var effectTarget = noone;
-    if (variable_struct_exists(payload, "effect_target")) {
-        effectTarget = payload.effect_target;
+    if (fieldPos != -1 && instance_exists(hand) && instance_exists(fm)) {
+        // Recalcul des coordonnées locales précises
+        var posXY = fm.getPosLocation(card.type, fieldPos);
+        
+        // Exécution de l'invocation via le gestionnaire de main
+        // Note: summon attend [x, y, slotIndex, desiredOrientation]
+        hand.summon(card, [posXY[0], posXY[1], fieldPos], desiredOrientation);
+    } else {
+        show_debug_message("ERREUR: Impossible d'invoquer (Hand/FieldManager introuvable ou Position invalide)");
     }
-    
-    var ownerIsHero = true;
-    if (variable_instance_exists(card, "isHeroOwner")) {
-        ownerIsHero = card.isHeroOwner;
-    }
-    
-    var handInst = ownerIsHero ? handHero : handEnemy;
-    if (!instance_exists(handInst)) {
-        show_debug_message("ERREUR: instance de main introuvable pour SUMMON");
-        return;
-    }
-    
-    handInst.summon(card, xy, desiredOrientation, effectTarget);
-}
-
-function _findCardByInstanceUID(uid) {
-    var result = noone;
-    var count = instance_number(oCardParent);
-    for (var i = 0; i < count; i++) {
-        var c = instance_find(oCardParent, i);
-        if (instance_exists(c) && variable_instance_exists(c, "instance_uid")) {
-            if (c.instance_uid == uid) {
-                result = c;
-                break;
-            }
-        }
-    }
-    return result;
 }
 
 function _execute_Attack(payload) {
@@ -478,6 +600,29 @@ function _execute_ActivateEffect(payload) {
     }
 }
 
+function _execute_Surrender(payload) {
+    if (instance_exists(oGame)) {
+        var winner_is_me = false;
+        
+        // Déterminer qui a gagné en fonction de qui a abandonné/quitté
+        if (variable_struct_exists(payload, "winner_index")) {
+            winner_is_me = (payload.winner_index == oGame.local_player_index);
+        } else if (variable_struct_exists(payload, "quitter_index")) {
+            // Si le quitter n'est PAS moi, alors JE gagne
+            winner_is_me = (payload.quitter_index != oGame.local_player_index);
+        }
+        
+        // Forcer la fin de partie si ce n'est pas déjà fait
+        if (!variable_instance_exists(oGame, "gameEnded") || !oGame.gameEnded) {
+            oGame.gameEnded = true;
+            var gameOverScreen = instance_create_layer(0, 0, "UI", oGameOverScreen);
+            gameOverScreen.isVictory = winner_is_me;
+            
+            show_debug_message("### ACTION_SURRENDER exécutée. Victoire locale = " + string(winner_is_me));
+        }
+    }
+}
+
 function BuildGameActionMessage(actionType, payload) {
     var msg = {
         msg_type: MSG_GAME_ACTION,
@@ -503,4 +648,16 @@ function ProcessRemoteGameAction(msg) {
         payload = msg.payload;
     }
     ExecuteGameAction(actionType, payload);
+}
+
+// Helper pour trouver une carte par UID (utilisé par plusieurs fonctions)
+function _findCardByInstanceUID(uid) {
+    if (uid == noone) return noone;
+    
+    with (oCardParent) {
+        if (variable_instance_exists(id, "instance_uid") && instance_uid == uid) {
+            return id;
+        }
+    }
+    return noone;
 }

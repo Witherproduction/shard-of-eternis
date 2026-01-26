@@ -14,9 +14,18 @@ if (selectManager.attackMode && selectManager.selected != noone) {
     var selectedCard = selectManager.selected;
     
     // Vérifier les conditions pour l'attaque directe
+    var isMyTurn = false;
+    if (instance_exists(game)) {
+        if (variable_instance_exists(game, "local_player_index")) {
+            isMyTurn = (game.player_current == game.local_player_index);
+        } else {
+            isMyTurn = (game.player_current == 0);
+        }
+    }
+
     if (selectedCard.isHeroOwner && selectedCard.type == "Monster" && selectedCard.zone == "FieldSelected" 
         && selectedCard.orientation == "Attack"
-        && instance_exists(game) && game.player[game.player_current] == "Hero" && game.phase[game.phase_current] == "Attack") {
+        && instance_exists(game) && isMyTurn && game.phase[game.phase_current] == "Attack") {
         
         // Utilisation du Command Pattern pour l'attaque directe
         RequestGameAction(ACTION_ATTACK, {

@@ -54,3 +54,8 @@ input_height = 40;
 
 is_typing_ip = false;
 is_typing_port = false;
+
+// IP affichées uniquement en mode admin (valeurs fixes)
+public_ip = "85.69.106.102";
+local_ip_display = "192.168.1.184";
+get_ip_request = -1;

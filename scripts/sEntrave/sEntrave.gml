@@ -8,7 +8,7 @@ function sEntrave(card, effect, context) {
     var blockPos = true;
     // Durée par défaut: jusqu'au début du prochain tour du propriétaire de la cible
     // Implémentation approximée via décrément à END_TURN: 1 si appliqué pendant le tour adverse, 2 si pendant le tour du propriétaire
-    var activeIsHero = instance_exists(game) ? (game.player[game.player_current] == "Hero") : true;
+    var activeIsHero = instance_exists(game) ? (game.player_current == 0) : true;
     var baseDur = 1;
     var isHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
     

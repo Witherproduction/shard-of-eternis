@@ -19,23 +19,31 @@ if (!variable_instance_exists(id, "oHandEnemy")) {
 }
 
 // Initialisation du profil de comportement IA selon le deck choisi
+var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+
 if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
-    // Récupère le nom de profil associé au deck (ex: "aggro", "control", etc.)
-    var profileName = get_bot_deck_profile(global.selected_bot_deck_id);
-    if (profileName != "") {
-        AI_Config_SetBotProfile(1, profileName);
+    // Récupère le nom de profil associé au deck (ex: "aggro", "control", etc.) ou une struct de directives
+    var profileData = get_bot_deck_profile(global.selected_bot_deck_id);
+    
+    var isValidProfile = false;
+    if (is_string(profileData) && profileData != "") isValidProfile = true;
+    if (is_struct(profileData)) isValidProfile = true;
+
+    if (isValidProfile) {
+        AI_Config_SetBotProfile(botID, profileData);
         if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
-            show_debug_message("### oIA - Profil IA activé: " + profileName);
+            var pName = is_string(profileData) ? profileData : "Custom Directives";
+            show_debug_message("### oIA - Profil IA activé pour Bot " + string(botID) + ": " + pName);
         }
     } else {
-        AI_Config_SetBotProfile(1, "balanced");
+        AI_Config_SetBotProfile(botID, "balanced");
         if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
-            show_debug_message("### oIA - Pas de profil spécifique, utilisation de 'balanced'");
+            show_debug_message("### oIA - Pas de profil spécifique, utilisation de 'balanced' pour Bot " + string(botID));
         }
     }
 } else {
     // Sécurité si aucun ID de deck n'est défini
-    AI_Config_SetBotProfile(1, "balanced");
+    AI_Config_SetBotProfile(botID, "balanced");
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -54,9 +62,10 @@ manageOrientation = function() {
     if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.manageOrientation")
     
     var dif = (variable_global_exists("IA_DIFFICULTY") ? global.IA_DIFFICULTY : 0);
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : 1;
     
     // Récupération du profil IA
-    var profile = AI_Config_GetBotProfile(1);
+    var profile = AI_Config_GetBotProfile(botID);
     var p_def_bias = (profile != undefined) ? profile.defense_bias : 50;
     var p_risk = (profile != undefined) ? profile.risk_tolerance : 50;
 
@@ -114,6 +123,17 @@ manageOrientation = function() {
                 if (maxHeroAtk >= eAtkE + 2 && maxHeroAtk >= eDefE + 2) {
                     shouldDefend = true;
                 }
+            }
+
+            // --- EXCEPTIONS ET SURCHARGES (James la Calamité / Profils Agressifs) ---
+            // 1. Camouflage : Si le monstre est camouflé, il est intouchable aux attaques, donc on reste en attaque pour menacer
+            if (variable_instance_exists(cardEnemy, "isCamouflage") && cardEnemy.isCamouflage) {
+                shouldDefend = false;
+            }
+            // 2. Agressivité Extrême : Si le bot a un profil très agressif (risk >= 65), il privilégie l'attaque
+            // Cela évite que James mette tout en défense dès qu'il y a un monstre fort en face
+            else if (p_risk >= 65 && eAtkE > 0) {
+                 shouldDefend = false;
             }
 
             // Changer l'orientation si nécessaire

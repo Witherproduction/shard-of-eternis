@@ -6,6 +6,9 @@ show_debug_message("=== oDeckList Create Event démarré ===");
 // Variable pour contrôler l'affichage du cadre oDeckBuilder
 show_deck_builder = false;
 
+// Mode d'affichage: "player" ou "bot"
+list_mode = "player";
+
 // Instance de l'objet oDeckBuilder (sera créée quand nécessaire)
 deck_builder_instance = noone;
 

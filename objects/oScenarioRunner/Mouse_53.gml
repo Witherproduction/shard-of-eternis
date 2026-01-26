@@ -113,7 +113,7 @@ if (point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, 
 
         // Patch: Empêcher un deuxième duel accidentel à la toute dernière scène du Chapitre 1 Acte 1
         // Le joueur a déjà combattu avant cette scène finale
-        if (is_last_scene && bot_id > 0) {
+        if (is_last_scene && bot_id != 0 && bot_id != noone) {
             // Check broadly for Chapter 1 Act 1
             if (real(chapter_id) == 1 && real(act_num) == 1) {
                  show_debug_message("### PATCH: Blocage du duel accidentel en fin de Ch1 Act1 (Scene " + string(scene_index) + ")");
@@ -121,7 +121,7 @@ if (point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, 
             }
         }
 
-        if (bot_id > 0) {
+        if (bot_id != 0 && bot_id != noone) {
              if (!instance_exists(oDuelConfirmation)) {
                 var inst = instance_create_depth(0, 0, -9999, oDuelConfirmation);
                 inst.selected_bot_deck_id = bot_id;

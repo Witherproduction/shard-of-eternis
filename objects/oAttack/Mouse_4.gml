@@ -14,6 +14,7 @@ if (parentCard != "" && selectManager.attackMode == false) {
     }
     // Garde: activer le mode attaque uniquement pour un monstre du héros en phase Attack et orienté en Attaque
     if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
+        show_debug_message("### oAttack.Click: Pas en phase d'attaque");
         exit;
     }
     // Règle: pas d'attaque au tour 1 du duel
@@ -25,9 +26,11 @@ if (parentCard != "" && selectManager.attackMode == false) {
         exit;
     }
     if (!(variable_instance_exists(parentCard, "isHeroOwner") && parentCard.isHeroOwner)) {
+        show_debug_message("### oAttack.Click: Pas le propriétaire (isHeroOwner=false)");
         exit;
     }
     if (!(variable_instance_exists(parentCard, "orientation") && parentCard.orientation == "Attack")) {
+        show_debug_message("### oAttack.Click: Pas en orientation Attaque");
         exit;
     }
     if (variable_instance_exists(parentCard, "entrave_turns_remaining") && parentCard.entrave_turns_remaining > 0 && variable_instance_exists(parentCard, "entrave_block_attack") && parentCard.entrave_block_attack) {

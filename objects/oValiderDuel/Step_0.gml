@@ -32,7 +32,7 @@ if (mouse_check_button_pressed(mb_left)) {
         
         // Récupérer le deck sélectionné du joueur depuis oContreIaFrame
         var player_deck = noone;
-        var bot_deck_id = 1; // Deck par défaut
+        var bot_deck_id = "Invasion_Geule_Roche"; // Deck par défaut
         
         // Chercher l'instance oContreIaFrame pour récupérer le deck sélectionné
         var frame_instance = instance_find(oContreIaFrame, 0);

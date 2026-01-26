@@ -193,6 +193,17 @@ trySelect = function(card) {
         if(targetingEffectId != noone) {
             // Vérifie que la carte est bien sur le terrain (Field ou FieldSelected)
             if(card.zone == "Field" || card.zone == "FieldSelected") {
+                
+                // Vérification Camouflage: Impossible de cibler un monstre ennemi camouflé
+                if (!card.isHeroOwner && variable_instance_exists(card, "isCamouflage") && card.isCamouflage) {
+                    // Exception si l'effet ignore explicitement le camouflage
+                    var ignoreCamo = (variable_instance_exists(targetingEffectId, "ignore_camouflage") && targetingEffectId.ignore_camouflage);
+                    if (!ignoreCamo) {
+                        show_debug_message("### Cible invalide: Monstre ennemi camouflé (Effet)");
+                        return false;
+                    }
+                }
+
                 // Applique l'effet sur la carte ciblée (quel que soit le propriétaire)
                 targetingEffectId.onTargetSelected(card);
 
@@ -214,19 +225,29 @@ trySelect = function(card) {
     // === Sélection normale ===
     show_debug_message("### Vérification conditions de sélection: isHeroOwner=" + string(card.isHeroOwner) + ", joueur actuel=" + game.player[game.player_current] + ", phase=" + game.phase[game.phase_current]);
     
+    var isOnline = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
+    var isLocalTurn = false;
+    if (isOnline) {
+        if (instance_exists(oGame)) {
+            isLocalTurn = oGame.is_local_turn;
+        }
+    } else {
+        isLocalTurn = (game.player_current == 0);
+    }
+    
     // Autoriser la sélection des cartes du héros pour l'affichage du viewer,
     // même si ce n'est pas son tour (les UI ne s'affichent que quand c'est pertinent).
     if(card.isHeroOwner) {
         
         if(game.phase[game.phase_current] == "Attack") {
             show_debug_message("### Phase d'attaque, zone=" + card.zone + ", orientation=" + card.orientation);
-            if(card.zone == "Field") {
+        if(card.zone == "Field") {
                 // Toujours autoriser la sélection pour afficher le viewer
                 unSelectAll();
                 select(card);
 
-                // UI d'attaque uniquement si c'est le tour du héros et que la carte est un monstre en Attaque
-                if (game.player[game.player_current] == "Hero" && card.type == "Monster" && card.orientation == "Attack") {
+                // UI d'attaque uniquement si c'est le tour du joueur local et que la carte est un monstre en Attaque
+                if (isLocalTurn && card.type == "Monster" && card.orientation == "Attack") {
                     // Affiche le bouton d'attaque via UIManager (sécurisé côté UIManager)
                     UIManager.displayAttackButton(card);
 
@@ -276,8 +297,8 @@ trySelect = function(card) {
                 unSelectAll();
                 select(card);
                 
-                // UI d'invocation uniquement si c'est le tour du héros
-                if (game.player[game.player_current] == "Hero") {
+                // UI d'invocation uniquement si c'est le tour du joueur local
+                if (isLocalTurn) {
                     UIManager.displaySummonSetAction(card);
                 } else {
                     UIManager.hideSummonAndSet();
@@ -365,7 +386,18 @@ select = function(card) {
         card.image_xscale = 0.3;
         card.image_yscale = 0.3;
         card.y -= 10;
-        if(card.type == "Monster" && card.isHeroOwner && game.phase[game.phase_current] == "Summon" && game.player[game.player_current] == "Hero" && !card.orientationChangedThisTurn) {
+        
+        var isOnline_sel = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
+        var isLocalTurn_sel = false;
+        if (isOnline_sel) {
+            if (instance_exists(oGame)) {
+                isLocalTurn_sel = oGame.is_local_turn;
+            }
+        } else {
+            isLocalTurn_sel = (game.player[game.player_current] == "Hero");
+        }
+        
+        if(card.type == "Monster" && card.isHeroOwner && game.phase[game.phase_current] == "Summon" && isLocalTurn_sel && !card.orientationChangedThisTurn) {
             UIManager.displayPositionButton(card);
             UIManager.displayEffectButton(card);
         }
@@ -374,7 +406,7 @@ select = function(card) {
             UIManager.displayEffectButton(card);
         }
         // NEW: Afficher le bouton effet pour les cartes visibles du héros sur le terrain
-        if(card.isHeroOwner && !card.isFaceDown && game.player[game.player_current] == "Hero") {
+        if(card.isHeroOwner && !card.isFaceDown && isLocalTurn_sel) {
             UIManager.displayEffectButton(card);
         }
         // Indicateur visuel: si carte Artéfact équipée, afficher la flèche vers sa cible
@@ -421,7 +453,7 @@ unSelect = function(card) {
     show_debug_message("### selectManager.unSelect");
     remove();
     if (!instance_exists(card)) return;
-    if(card.zone == "FieldSelected") {
+        if(card.zone == "FieldSelected") {
         card.zone = "Field";
         card.image_xscale = 0.2475;
         card.image_yscale = 0.2475;

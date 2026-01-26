@@ -117,7 +117,8 @@ if (mouse_check_button_pressed(mb_left)) {
                     var payload = {
                         msg_type: MSG_LOBBY_STATE,
                         ready: true,
-                        deck_name: global.selected_player_deck.name
+                        deck_name: global.selected_player_deck.name,
+                        deck_data: global.selected_player_deck
                     };
                     Network_SendGameAction(payload);
                 }
@@ -130,10 +131,16 @@ if (mx >= host_left && mx <= host_right && my >= host_top && my <= host_bottom) 
         mode_text = "Host";
         status_text = "Création du serveur...";
         if (instance_exists(oNetworkManager)) {
+            var success = false;
             with (oNetworkManager) {
-                HostGame(real(other.port_input));
+                success = HostGame(real(other.port_input));
             }
-            status_text = "Serveur en attente de joueur...";
+            if (success) {
+                status_text = "Serveur en attente de joueur...";
+            } else {
+                status_text = "Erreur création (Port occupé ?)";
+                mode_text = "Aucun";
+            }
         } else {
             status_text = "Erreur: oNetworkManager introuvable";
         }
@@ -147,10 +154,16 @@ if (mx >= host_left && mx <= host_right && my >= host_top && my <= host_bottom) 
         ini_close();
 
         if (instance_exists(oNetworkManager)) {
+            var success = false;
             with (oNetworkManager) {
-                JoinGame(other.ip_input, real(other.port_input));
+                success = JoinGame(other.ip_input, real(other.port_input));
             }
-            status_text = "Connexion demandée, surveille la console";
+            if (success) {
+                status_text = "Connexion demandée... (Vérifiez le Pare-feu)";
+            } else {
+                status_text = "Échec immédiat (IP invalide / Réseau coupé)";
+                mode_text = "Aucun";
+            }
         } else {
             status_text = "Erreur: oNetworkManager introuvable";
         }

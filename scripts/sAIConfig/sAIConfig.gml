@@ -184,27 +184,39 @@ function AI_Config_GetProfile(style) {
 // Initialise le conteneur de profils si nécessaire
 function AI_Config_EnsureInit() {
     if (!variable_global_exists("BOT_PROFILES")) {
-        global.BOT_PROFILES = array_create(4, undefined);
+        global.BOT_PROFILES = {};
     }
 };
 
 // Affecte un profil à un bot (par id)
 function AI_Config_SetBotProfile(bot_id, style) {
     AI_Config_EnsureInit();
-    global.BOT_PROFILES[bot_id] = AI_Config_GetProfile(style);
+    
+    if (is_struct(style)) {
+        // Si style est déjà une structure (directives personnalisées), on l'utilise directement
+        variable_struct_set(global.BOT_PROFILES, string(bot_id), style);
+    } else {
+        // Sinon on charge un profil prédéfini par son nom
+        variable_struct_set(global.BOT_PROFILES, string(bot_id), AI_Config_GetProfile(style));
+    }
 };
 
 // Récupère le profil d’un bot, sinon renvoie un profil équilibré
 function AI_Config_GetBotProfile(bot_id) {
     AI_Config_EnsureInit();
-    var p = global.BOT_PROFILES[bot_id];
+    var p = undefined;
+    if (variable_struct_exists(global.BOT_PROFILES, string(bot_id))) {
+        p = variable_struct_get(global.BOT_PROFILES, string(bot_id));
+    }
+    
     if (p == undefined) return AI_Config_GetProfile("balanced");
     return p;
 };
 
-// Helper: retourne le profil actif de l’ennemi (bot_id = 1 par convention existante)
+// Helper: retourne le profil actif de l’ennemi
 function AI_Config_GetActiveProfile() {
-    return AI_Config_GetBotProfile(1);
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    return AI_Config_GetBotProfile(botID);
 };
 
 // Exemple d’usage (à appeler au début du duel):

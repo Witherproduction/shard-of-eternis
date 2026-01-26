@@ -2,9 +2,9 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Morgane la venimeuse"
-attack = 5;
-defense = 5;
-star = 2;
+attack = 3;
+defense = 3;
+star = 1;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"

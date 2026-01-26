@@ -13,5 +13,5 @@ btn_y = y + height - btn_height - 30;
 text = "Un duel est sur le point de commencer !";
 
 // Default setup (can be overridden but usually pulled from scenario runner)
-selected_bot_deck_id = 1;
+selected_bot_deck_id = "Invasion_Geule_Roche";
 selected_player_deck = noone;

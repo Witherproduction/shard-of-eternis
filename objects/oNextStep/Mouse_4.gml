@@ -31,5 +31,19 @@ if (image_index == 0) {
 	// game.nextPhase(); // Géré par le contrôleur désormais
 	
 	// Utilisation du nouveau système de Commandes (Phase 1.2 PvP)
-	RequestGameAction(ACTION_NEXT_PHASE, {});
+	// Calcul des valeurs cibles pour forcer la synchro
+	var target_phase = (oGame.phase_current + 1) % 3;
+	var target_player = oGame.player_current;
+	var target_turn = oGame.nbTurn;
+	
+	if (oGame.phase[oGame.phase_current] == "Attack") {
+	    target_player = (target_player + 1) % 2;
+	    target_turn++;
+	}
+	
+	RequestGameAction(ACTION_NEXT_PHASE, {
+	    target_phase_index: target_phase,
+	    target_player_index: target_player,
+	    target_turn: target_turn
+	});
 }

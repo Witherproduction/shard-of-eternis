@@ -355,10 +355,9 @@ function Tutorial_Turn3_Init() {
     // Configuration des étapes du Tour 3
     var steps = [
         {
-            text: "C'est à votre tour ! Au début de chaque tour, vous devez piocher une carte.\nCliquez sur votre Deck pour piocher.",
-            highlight: noone, // Sera mis à jour dynamiquement (Deck)
-            arrow: noone,
-            hide_next_button: true
+            text: "C'est à votre tour ! Au début de chaque tour, vous piochez automatiquement une carte.",
+            highlight: noone, 
+            arrow: noone
         },
         {
             text: "Vous avez pioché une nouvelle carte !\nParlons des cartes Magie. Il en existe 4 types :",
@@ -461,30 +460,12 @@ function Tutorial_Turn3_Update() {
         var cam_x = camera_get_view_x(view_camera[0]);
         var cam_y = camera_get_view_y(view_camera[0]);
         
-        // Etape 0: Piocher (Click Deck)
+        // Etape 0: Attendre fin de pioche
         if (step_idx == 0) {
-            var deck = noone;
-            with (oDeck) {
-                if (isHeroOwner) { deck = id; break; }
-            }
-            
-            if (deck != noone) {
-                 var w = sprite_get_width(deck.sprite_index) * deck.image_xscale;
-                 var h = sprite_get_height(deck.sprite_index) * deck.image_yscale;
-                 var ox = sprite_get_xoffset(deck.sprite_index) * deck.image_xscale;
-                 var oy = sprite_get_yoffset(deck.sprite_index) * deck.image_yscale;
-                 var xx = deck.x - cam_x - ox;
-                 var yy = deck.y - cam_y - oy;
-                 
-                 // Highlight Deck
-                 tuto.updateHighlight(xx, yy, w, h);
-                 tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-                 
-                 // Vérifier si la phase a changé (l'action de pioche a été effectuée par le jeu)
-                 if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
-                      tuto.forceNextStep();
-                 }
-            }
+             // Wait for phase change (Pick -> Main)
+             if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
+                  //tuto.forceNextStep(); // Non, on laisse le joueur cliquer sur Suivant
+             }
         }
         // Etape 3: Sélectionner Feuillage Protecteur
         else if (step_idx == 3) {
@@ -855,10 +836,9 @@ function Tutorial_Turn5_Init() {
     
     var steps = [
         {
-            text: "C'est à votre tour ! Commencez par piocher une carte.",
+            text: "C'est à votre tour ! La pioche est automatique.",
             highlight: noone,
-            arrow: noone,
-            hide_next_button: true
+            arrow: noone
         },
         {
             text: "Un effet 'Crépuscule' se déclenche automatiquement à la fin de votre tour.\nÀ l'inverse, un effet 'Aube' s'activerait au début du tour.",
@@ -940,29 +920,12 @@ function Tutorial_Turn5_Update() {
         var cam_x = camera_get_view_x(view_camera[0]);
         var cam_y = camera_get_view_y(view_camera[0]);
         
-        // Etape 0: Piocher
+        // Etape 0: Attendre fin de pioche
         if (step_idx == 0) {
-            var deck = noone;
-            with (oDeck) {
-                if (isHeroOwner) { deck = id; break; }
-            }
-            
-            if (deck != noone) {
-                 var w = sprite_get_width(deck.sprite_index) * deck.image_xscale;
-                 var h = sprite_get_height(deck.sprite_index) * deck.image_yscale;
-                 var ox = sprite_get_xoffset(deck.sprite_index) * deck.image_xscale;
-                 var oy = sprite_get_yoffset(deck.sprite_index) * deck.image_yscale;
-                 var xx = deck.x - cam_x - ox;
-                 var yy = deck.y - cam_y - oy;
-                 
-                 tuto.updateHighlight(xx, yy, w, h);
-                 tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-                 
-                 // Wait for phase change (Pick -> Main)
-                 if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
-                      tuto.forceNextStep();
-                 }
-            }
+             // Wait for phase change (Pick -> Main)
+             if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
+                  //tuto.forceNextStep(); // Non, on laisse le joueur cliquer sur Suivant
+             }
         }
         
         // Etape 3: Sélectionner Maître des Passes
@@ -1216,14 +1179,12 @@ function Tutorial_Turn7_Init() {
     show_debug_message("### TUTO TURN 7: Init started");
     
     var tuto = instance_create_layer(0, 0, "UI", oTutorielManager);
-    tuto.tutorial_id = 7; // ID pour le Tour 7
-    
+    tuto.tutorial_id = 7; // Configuration des étapes du Tour 7
     var steps = [
         {
-            text: "C'est le tour 7 ! Commencez par piocher une carte.",
+            text: "C'est le tour 7 ! La pioche est automatique.",
             highlight: noone,
-            arrow: noone,
-            hide_next_button: true
+            arrow: noone
         },
         {
             text: "Certaines cartes possèdent des effets 'Eveil' ou 'Brisé'.\nUn effet 'Eveil' s'active dès que la carte entre en jeu.",
@@ -1305,29 +1266,12 @@ function Tutorial_Turn7_Update() {
         var cam_x = camera_get_view_x(view_camera[0]);
         var cam_y = camera_get_view_y(view_camera[0]);
         
-        // Etape 0: Piocher
+        // Etape 0: Attendre fin de pioche
         if (step_idx == 0) {
-            var deck = noone;
-            with (oDeck) {
-                if (isHeroOwner) { deck = id; break; }
-            }
-            
-            if (deck != noone) {
-                 var w = sprite_get_width(deck.sprite_index) * deck.image_xscale;
-                 var h = sprite_get_height(deck.sprite_index) * deck.image_yscale;
-                 var ox = sprite_get_xoffset(deck.sprite_index) * deck.image_xscale;
-                 var oy = sprite_get_yoffset(deck.sprite_index) * deck.image_yscale;
-                 var xx = deck.x - cam_x - ox;
-                 var yy = deck.y - cam_y - oy;
-                 
-                 tuto.updateHighlight(xx, yy, w, h);
-                 tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-                 
-                 // Wait for phase change (Pick -> Main)
-                 if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
-                      tuto.forceNextStep();
-                 }
-            }
+             // Wait for phase change (Pick -> Main)
+             if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
+                  //tuto.forceNextStep(); // Non, on laisse le joueur cliquer sur Suivant
+             }
         }
         
         // Etape 3: Sélectionner Peau-de-Roc Robuste
@@ -1614,10 +1558,9 @@ function Tutorial_Turn9_Init() {
     
     var steps = [
         {
-            text: "C'est le tour 9 ! Commencez par piocher une carte.",
+            text: "C'est le tour 9 ! La pioche est automatique.",
             highlight: noone,
-            arrow: noone,
-            hide_next_button: true
+            arrow: noone
         },
         {
             text: "Votre secret 'Feuillage Protecteur' s'est activé durant le tour adverse !\nLe Maître des Passes a été attaqué, ce qui a déclenché le piège.",
@@ -1746,29 +1689,12 @@ function Tutorial_Turn9_Update() {
         var cam_x = camera_get_view_x(view_camera[0]);
         var cam_y = camera_get_view_y(view_camera[0]);
         
-        // Etape 0: Piocher
+        // Etape 0: Attendre fin de pioche
         if (step_idx == 0) {
-            var deck = noone;
-            with (oDeck) {
-                if (isHeroOwner) { deck = id; break; }
-            }
-            
-            if (deck != noone) {
-                 var w = sprite_get_width(deck.sprite_index) * deck.image_xscale;
-                 var h = sprite_get_height(deck.sprite_index) * deck.image_yscale;
-                 var ox = sprite_get_xoffset(deck.sprite_index) * deck.image_xscale;
-                 var oy = sprite_get_yoffset(deck.sprite_index) * deck.image_yscale;
-                 var xx = deck.x - cam_x - ox;
-                 var yy = deck.y - cam_y - oy;
-                 
-                 tuto.updateHighlight(xx, yy, w, h);
-                 tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-                 
-                 // Wait for phase change (Pick -> Main)
-                 if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
-                      tuto.forceNextStep();
-                 }
-            }
+             // Wait for phase change (Pick -> Main)
+             if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
+                  //tuto.forceNextStep(); // Non, on laisse le joueur cliquer sur Suivant
+             }
         }
         
         // Etape 4: Sélectionner Envahisseur Gueule-Roche

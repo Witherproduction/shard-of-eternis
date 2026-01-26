@@ -64,7 +64,8 @@ updateDisplay = function() {
         }
         card.y = y;
         var isAdmin = (variable_global_exists("admin_mode") && global.admin_mode);
-        var show_face = isHeroOwner || reveal_now || isAdmin;
+        var isOnline = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
+        var show_face = isHeroOwner || reveal_now || (isAdmin && !isOnline);
         card.image_index = show_face ? 0 : 1;
     }
 }

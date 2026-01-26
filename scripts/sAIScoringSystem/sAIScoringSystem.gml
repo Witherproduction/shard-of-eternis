@@ -18,11 +18,15 @@
 function AI_Evaluate_BoardState() {
     var totalScore = 0;
     
-    // Récupération du profil IA
-    var profile = AI_Config_GetBotProfile(1);
+    // Récupération du profil IA dynamique
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var profile = AI_Config_GetBotProfile(botID);
+
     var p_board = (profile != undefined) ? (profile.board_presence_weight / 50.0) : 1.0;
     var p_hand = (profile != undefined) ? (profile.draw_weight / 50.0) : 1.0; // Approximation pour Card Advantage
     var p_risk = (profile != undefined) ? (profile.risk_tolerance / 50.0) : 1.0;
+    var p_continuous = (profile != undefined) ? (profile.continuous_weight / 50.0) : 1.0;
+    var p_manual = (profile != undefined) ? (profile.manual_effect_weight / 50.0) : 1.0;
 
     // 1. Évaluation des Monstres de l'IA (Positif)
     if (instance_exists(oFieldMonsterEnemy)) {
@@ -35,6 +39,26 @@ function AI_Evaluate_BoardState() {
         }
     }
 
+    // 1b. Évaluation des Magies/Pièges de l'IA (Positif)
+    if (instance_exists(oFieldMagicTrapEnemy)) {
+        var mySpells = oFieldMagicTrapEnemy.cards;
+        for (var i = 0; i < array_length(mySpells); i++) {
+            var card = mySpells[i];
+            if (card != 0 && instance_exists(card)) {
+                // Score de base pour une carte M/P posée
+                var cardScore = 300; 
+                
+                // Bonus si c'est une carte continue ou un secret (selon le profil)
+                if (variable_instance_exists(card, "genre")) {
+                    if (card.genre == "Continuous") cardScore += 200 * p_continuous;
+                    if (card.genre == "Secret") cardScore += 200 * p_manual;
+                }
+                
+                totalScore += cardScore * p_board;
+            }
+        }
+    }
+
     // 2. Évaluation des Monstres du Joueur (Négatif)
     if (instance_exists(oFieldMonsterHero)) {
         var enemyMonsters = oFieldMonsterHero.cards;
@@ -42,6 +66,21 @@ function AI_Evaluate_BoardState() {
             var card = enemyMonsters[i];
             if (card != 0 && instance_exists(card)) {
                 totalScore -= AI_GetCardScore(card); // On ne pondère pas l'ennemi par notre style, sauf si on veut ignorer le board
+            }
+        }
+    }
+
+    // 2b. Évaluation des Magies/Pièges du Joueur (Négatif)
+    if (instance_exists(oFieldMagicTrapHero)) {
+        var enemySpells = oFieldMagicTrapHero.cards;
+        for (var i = 0; i < array_length(enemySpells); i++) {
+            var card = enemySpells[i];
+            if (card != 0 && instance_exists(card)) {
+                totalScore -= 300; // Valeur standard pour une M/P adverse
+                // Si c'est une carte continue visible, on peut la considérer comme plus dangereuse
+                if (variable_instance_exists(card, "genre") && card.genre == "Continuous" && !card.is_facedown) {
+                    totalScore -= 200;
+                }
             }
         }
     }
@@ -93,7 +132,8 @@ function AI_GetCardScore(card) {
         buffRecompute(card);
     }
 
-    var profile = AI_Config_GetBotProfile(1);
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var profile = AI_Config_GetBotProfile(botID);
     var p_atk = (profile != undefined) ? (profile.attack_bias / 50.0) : 1.0;
     var p_def = (profile != undefined) ? (profile.defense_bias / 50.0) : 1.0;
 
@@ -114,6 +154,9 @@ function AI_GetCardScore(card) {
 
     // Ici on pourra ajouter des bonus pour les Effets (Mots-clés)
     // Ex: if (card.hasTaunt) currentScoreVal += 300 * p_def;
+    if (variable_instance_exists(card, "isCamouflage") && card.isCamouflage) {
+        currentScoreVal += 400 * p_def; // Le camouflage protège le monstre, c'est une valeur défensive
+    }
 
     return currentScoreVal;
 }
@@ -122,7 +165,8 @@ function AI_GetCardScore(card) {
 /// @description Estime la valeur d'une carte (monstre) avant qu'elle ne soit sur le terrain.
 function AI_GetCardScore_Predicted(card) {
     // Similaire à AI_GetCardScore mais lit les stats de base
-    var profile = AI_Config_GetBotProfile(1);
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var profile = AI_Config_GetBotProfile(botID);
     var p_atk = (profile != undefined) ? (profile.attack_bias / 50.0) : 1.0;
     var p_def = (profile != undefined) ? (profile.defense_bias / 50.0) : 1.0;
 
@@ -174,7 +218,7 @@ function AI_GetCardScore_Predicted(card) {
     // Préférence spécifique : pour le bot utilisant le deck 2 (Essaim Abyssien),
     // privilégier légèrement les monstres Abyssiens par rapport aux autres, sans eclips
     // totalement les grosses créatures non-Abyssiennes.
-    if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
+    if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == "Essaim_Abyssien") {
         var nameStr = "";
         if (is_struct(card) && variable_struct_exists(card, "name")) {
             nameStr = card.name;

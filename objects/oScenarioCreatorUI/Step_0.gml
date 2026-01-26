@@ -142,7 +142,11 @@ if (variable_instance_exists(id, "show_duel_window") && show_duel_window) {
                  for (var i = 0; i < array_length(player_deck_options); i++) {
                      var item_y = list_y_start + i * item_h;
                      if (my >= item_y && my < item_y + item_h) {
-                         current.duel_player_deck = player_deck_options[i];
+                         if (variable_struct_exists(player_deck_options[i], "id")) {
+                             current.duel_player_deck = player_deck_options[i].id;
+                         } else {
+                             current.duel_player_deck = player_deck_options[i];
+                         }
                      }
                  }
              }

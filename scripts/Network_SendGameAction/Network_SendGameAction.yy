@@ -5,10 +5,9 @@
   "isDnD":false,
   "name":"Network_SendGameAction",
   "parent":{
-    "name":"Duel",
-    "path":"folders/Scripts/Duel.yy",
+    "name":"Multi",
+    "path":"folders/Scripts/Duel/Multi.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
 }
-
