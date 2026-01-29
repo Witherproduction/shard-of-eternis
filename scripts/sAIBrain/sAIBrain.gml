@@ -679,7 +679,49 @@ function AI_ExecuteMove(move) {
                             }
                         }
                     }
-                    if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
+                    // --- CUSTOM RULE: Force Attack Abyssien Condition ---
+                    var customRules = variable_struct_exists(profile, "custom_rules") ? profile.custom_rules : undefined;
+                    if (customRules != undefined && variable_struct_exists(customRules, "force_attack_abyssien_condition") && customRules.force_attack_abyssien_condition) {
+                         var nStr = variable_instance_exists(card, "name") ? card.name : "";
+                         if (is_string(nStr) && string_pos("Abyssien", nStr) > 0) {
+                             var conditionMet = false;
+                             
+                             // 1. Check for Ruisselier on board
+                             if (instance_exists(oFieldMonsterEnemy)) {
+                                 var mm = oFieldMonsterEnemy.cards;
+                                 for (var j = 0; j < array_length(mm); j++) {
+                                     var c2 = mm[j];
+                                     if (c2 != 0 && instance_exists(c2)) {
+                                         var cName = variable_instance_exists(c2, "name") ? c2.name : "";
+                                         if (string_pos("Ruisselier", cName) > 0) {
+                                             conditionMet = true;
+                                             break;
+                                         }
+                                     }
+                                 }
+                             }
+                             
+                             // 2. Check for Continuous Magic (at least 1)
+                             if (!conditionMet && instance_exists(oFieldMagicTrapEnemy)) {
+                                 var mt = oFieldMagicTrapEnemy.cards;
+                                 for (var i = 0; i < array_length(mt); i++) {
+                                     var c = mt[i];
+                                     if (c != 0 && instance_exists(c)) {
+                                         var genre = variable_instance_exists(c, "genre") ? c.genre : "";
+                                         if (genre == "Continue" || genre == "Continu" || genre == "Terrain" || genre == "Field") {
+                                             conditionMet = true;
+                                             break;
+                                         }
+                                     }
+                                 }
+                             }
+                             
+                             if (conditionMet) {
+                                 orientation = "Attack";
+                             }
+                         }
+                    }
+                    else if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
                         var nStr = "";
                         if (variable_instance_exists(card, "name")) {
                             nStr = card.name;

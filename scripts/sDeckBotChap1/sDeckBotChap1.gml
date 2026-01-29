@@ -68,7 +68,8 @@ function get_bot_decks_chap1() {
                 custom_rules: {
                     prioritize_card_name: "Ruisselier", // Priorité #1
                     swarm_trigger_card: "Ruisselier",   // Si présent, invoquer tout ce qui bouge
-                    max_same_continuous: 2              // Limite de doublons continus
+                    max_same_continuous: 2,             // Limite de doublons continus
+                    force_attack_abyssien_condition: true // Si Magie Continue ou Ruisselier présent -> Attaque
                 }
             },
             deck_name: "Essaim Abyssien",
@@ -76,19 +77,23 @@ function get_bot_decks_chap1() {
             portrait: "sPortraitAbyssien",
             description: "Un deck basé sur les Abyssiens qui se multiplient et submergent l'adversaire, soutenus par quelques bêtes de la forêt.",
             cards: [
-                "oTortueVagabonde", "oTortueVagabonde", "oTortueVagabonde",
-                "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien",
-                "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien",
-                "oRodeurAbyssien", "oRodeurAbyssien", "oRodeurAbyssien", "oRodeurAbyssien", "oRodeurAbyssien", "oRodeurAbyssien",
+                "oTortueVagabonde", "oTortueVagabonde", "oTortueVagabonde", 
+                "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", 
+                "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", 
+                "oRodeurAbyssien", "oRodeurAbyssien", 
+ 
+                // Sorts Abyssiens 
+                "oMareeDeferlante", "oMareeDeferlante", "oMareeDeferlante", 
+                "oProtectionMaree", "oProtectionMaree", "oProtectionMaree", 
+                "oHurlementTribu", "oHurlementTribu", "oHurlementTribu", 
+                "oFerveurMarais", "oFerveurMarais", "oFerveurMarais", 
+ 
+ 	 	 	 	"oJeuneLoup", "oJeuneLoup", 
+ 	 	 	 	"oAraigneeForestiere", "oAraigneeForestiere", "oAraigneeForestiere",
 
-                // Sorts Abyssiens
-                "oMareeDeferlante", "oMareeDeferlante", "oMareeDeferlante",
-                "oProtectionMaree", "oProtectionMaree", "oProtectionMaree",
-                "oHurlementTribu", "oHurlementTribu", "oHurlementTribu",
-                "oFerveurMarais", "oFerveurMarais", "oFerveurMarais",
-
-				"oJeuneLoup", "oJeuneLoup",
-				"oAraigneeForestiere", "oAraigneeForestiere", "oAraigneeForestiere"
+                // Ajouts demandés
+                "oVieilOurs", "oVieilOurs",
+                "oLoupGaleux", "oLoupGaleux"
             ]
         },
         {
@@ -121,7 +126,7 @@ function get_bot_decks_chap1() {
             },
             deck_name: "Bandit de Grand Chemin",
             difficulty: "Difficile",
-            portrait: "sPortraitJames",
+            portrait: "sPortraitJameCalamite",
             description: "Un deck sournois utilisant les mécaniques de vol, de camouflage et de sacrifice pour contrôler le terrain et surprendre l'adversaire.",
             cards: [
                 // Monstres
