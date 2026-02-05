@@ -2,26 +2,28 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Mineur Tunnelin"
-attack = 3;
-defense = 4;
-star = 1;
+attack = 2;
+PV = 2;
+mana_cost = 2;
 genre = "Humanoïde"
-archetype = "Forêt des voleurs"
+archetype = "Souterrain"
 booster = "A la découverte du monde"
 rarity = "commun"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Réduit de 1 la DEF d'un serviteur adverse"
+description = "Eveil : Inflige 1 dégât à un serviteur adverse."
 effects = [
     {
         id: 1,
         trigger: TRIGGER_ON_SUMMON,
-        effect_type: EFFECT_BUFF,
-        scope: "single",
+        effect_type: EFFECT_DAMAGE_TARGET,
         owner: "enemy",
-        def: -1,
-        criteria: { type: "Monster" },
-        conditions: { summon_mode: "Summon" }
+        scope: "single",
+        select_mode: "target",
+        value: 1,
+        conditions: { summon_mode: "Summon" },
+        criteria: { type: "Monster" }
     }
 ]
+
 

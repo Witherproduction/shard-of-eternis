@@ -2,9 +2,9 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "VideGousset"
-attack = 4;
-defense = 4;
-star = 2;
+attack = 3;
+PV = 4;
+mana_cost = 4;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -29,4 +29,5 @@ effects = [
         conditions: { summon_mode: "Summon" }
     }
 ]
+
 

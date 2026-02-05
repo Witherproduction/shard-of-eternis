@@ -1,4 +1,4 @@
-show_debug_message("### oGraveyard.create")
+﻿show_debug_message("### oGraveyard.create")
 // Liste des cartes envoyées au cimetière (dernière carte = fin du tableau)
 cards = [];
 isHeroOwner = false; // false par défaut, sera true pour le cimetière héros dans la room
@@ -24,8 +24,8 @@ addToGraveyard = function(card, suppress_triggers = false) {
             archetype: (variable_instance_exists(card, "archetype") ? card.archetype : ""),
             genre: (variable_instance_exists(card, "genre") ? card.genre : ""),
             attack: card.attack,
-            defense: card.defense,
-            star: card.star,
+            PV: card.PV,
+            mana_cost: card.mana_cost,
             description: card.description,
             isHeroOwner: card.isHeroOwner,
             isFaceDown: false,
@@ -46,3 +46,4 @@ addToGraveyard = function(card, suppress_triggers = false) {
         }
     }
 };
+

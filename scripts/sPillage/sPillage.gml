@@ -1,4 +1,4 @@
-function sPillage(card, effect, context) {
+﻿function sPillage(card, effect, context) {
     if (card == noone || !instance_exists(card) || !is_struct(effect)) return false;
     var ownerIsHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
     if (variable_struct_exists(context, "owner_is_hero")) ownerIsHero = context.owner_is_hero;
@@ -128,8 +128,8 @@ function sPillage(card, effect, context) {
                         if (variable_instance_exists(srcCard, "archetype")) dstCard.archetype = srcCard.archetype;
                         if (variable_instance_exists(srcCard, "genre")) dstCard.genre = srcCard.genre;
                         if (variable_instance_exists(srcCard, "attack")) dstCard.attack = srcCard.attack;
-                        if (variable_instance_exists(srcCard, "defense")) dstCard.defense = srcCard.defense;
-                        if (variable_instance_exists(srcCard, "star")) dstCard.star = srcCard.star;
+                        if (variable_instance_exists(srcCard, "PV")) dstCard.PV = srcCard.PV;
+                        if (variable_instance_exists(srcCard, "mana_cost")) dstCard.mana_cost = srcCard.mana_cost;
                         if (variable_instance_exists(srcCard, "description")) dstCard.description = srcCard.description;
                         dstCard.isHeroOwner = ownerIsHero;
                         dstCard.image_angle = ownerIsHero ? 0 : 180;
@@ -145,8 +145,8 @@ function sPillage(card, effect, context) {
                         if (variable_instance_exists(srcCard, "archetype")) dstCard.archetype = srcCard.archetype;
                         if (variable_instance_exists(srcCard, "genre")) dstCard.genre = srcCard.genre;
                         if (variable_instance_exists(srcCard, "attack")) dstCard.attack = srcCard.attack;
-                        if (variable_instance_exists(srcCard, "defense")) dstCard.defense = srcCard.defense;
-                        if (variable_instance_exists(srcCard, "star")) dstCard.star = srcCard.star;
+                        if (variable_instance_exists(srcCard, "PV")) dstCard.PV = srcCard.PV;
+                        if (variable_instance_exists(srcCard, "mana_cost")) dstCard.mana_cost = srcCard.mana_cost;
                         if (variable_instance_exists(srcCard, "description")) dstCard.description = srcCard.description;
                         dstCard.isHeroOwner = ownerIsHero;
                         dstCard.image_index = 1;
@@ -169,8 +169,8 @@ function sPillage(card, effect, context) {
                         if (variable_instance_exists(srcCard, "archetype")) dstCard.archetype = srcCard.archetype;
                         if (variable_instance_exists(srcCard, "genre")) dstCard.genre = srcCard.genre;
                         if (variable_instance_exists(srcCard, "attack")) dstCard.attack = srcCard.attack;
-                        if (variable_instance_exists(srcCard, "defense")) dstCard.defense = srcCard.defense;
-                        if (variable_instance_exists(srcCard, "star")) dstCard.star = srcCard.star;
+                        if (variable_instance_exists(srcCard, "PV")) dstCard.PV = srcCard.PV;
+                        if (variable_instance_exists(srcCard, "mana_cost")) dstCard.mana_cost = srcCard.mana_cost;
                         if (variable_instance_exists(srcCard, "description")) dstCard.description = srcCard.description;
                         dstCard.isHeroOwner = ownerIsHero;
                         takerGY.addToGraveyard(dstCard);
@@ -183,3 +183,4 @@ function sPillage(card, effect, context) {
     }
     return true;
 }
+

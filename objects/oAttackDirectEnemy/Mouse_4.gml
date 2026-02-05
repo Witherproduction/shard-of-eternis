@@ -19,7 +19,7 @@ if (selectManager.attackMode && selectManager.selected != noone) {
         }
     }
 
-    if (card != noone && instance_exists(game) && isMyTurn && game.phase[game.phase_current] == "Attack" 
+    if (card != noone && instance_exists(game) && isMyTurn && (game.phase[game.phase_current] == "Attack" || game.phase[game.phase_current] == "Main")
         && card.zone == "FieldSelected") {
         var atk_lim = (variable_instance_exists(card, "isAmbidextrous") && card.isAmbidextrous) ? 2 : 1;
         var atk_used = (variable_instance_exists(card, "attacksUsedThisTurn") ? card.attacksUsedThisTurn : 0);
@@ -40,7 +40,7 @@ if (selectManager.attackMode && selectManager.selected != noone) {
             exit;
         }
         
-        // Vérifier qu'il n'y a pas de défenseur ennemi valide (non camouflé)
+        // Vérifier qu'il n'y a pas de défenseur ennemi valide (Taunt ou Front Line)
         var enemyHasMonsters = false;
         var enemyMonsters = fieldMonsterEnemy.cards;
         
@@ -48,9 +48,15 @@ if (selectManager.attackMode && selectManager.selected != noone) {
             var em = enemyMonsters[i];
             if (em != 0 && instance_exists(em)) {
                 var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
-                if (!isCamo) {
+                
+                // Nouvelle Règle: Seuls Taunt ou Front Line (0-3) bloquent
+                var isTaunt = (variable_instance_exists(em, "has_taunt") && em.has_taunt);
+                var isFrontLine = (variable_instance_exists(em, "fieldPosition") && em.fieldPosition >= 0 && em.fieldPosition <= 3);
+                var isDefender = (isTaunt || isFrontLine);
+                
+                if (!isCamo && isDefender) {
                     enemyHasMonsters = true;
-                    show_debug_message("### oAttackDirectEnemy: Défenseur ennemi valide trouvé - attaque directe impossible");
+                    show_debug_message("### oAttackDirectEnemy: Défenseur valide trouvé (FrontLine/Taunt) - attaque directe impossible");
                     break;
                 }
             }

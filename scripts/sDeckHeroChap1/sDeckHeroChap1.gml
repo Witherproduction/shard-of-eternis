@@ -1,4 +1,4 @@
-/// @function get_hero_decks_chap1() 
+﻿/// @function get_hero_decks_chap1() 
 /// @description Retourne la liste des decks héros préconstruits pour le Chapitre 1 
 function get_hero_decks_chap1() { 
     return [ 
@@ -24,7 +24,7 @@ function get_hero_decks_chap1() {
                 "oBougimencienTunnelin", "oBougimencienTunnelin", 
                 "oMineurTunnelin", "oMineurTunnelin", 
                 "oTunnelin", "oTunnelin", 
-                "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche", 
+                "oEnvahisseurGueuleRoche", "oEnvahisseurGueuleRoche", 
                 "oAraigneeForestiere", "oAraigneeForestiere", 
                 "oJeuneOursForet", "oJeuneOursForet", 
                 "oLoupGrisForet", "oLoupGrisForet", 
@@ -95,7 +95,14 @@ function get_hero_decks_chap1() {
                 "oCapeOmbre", "oCapeOmbre",
                 "oFiletOmbre", "oFiletOmbre",
                 "oDagueFilou", "oDagueFilou"
-            ] 
+            ],
+            hero_power: {
+                id: "protection_divine",
+                name: "Protection Divine",
+                description: "Réduit de 1 l'ATK d'un serviteur ennemi.",
+                mana_cost: 2
+            }
         }
     ];
 }
+

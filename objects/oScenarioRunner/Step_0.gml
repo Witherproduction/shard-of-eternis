@@ -1,4 +1,4 @@
-var panel_open = instance_exists(oPanelOptions);
+﻿var panel_open = instance_exists(oPanelOptions);
 if (input_block_frames > 0) { input_block_frames -= 1; exit; }
 var sc_k = (array_length(scenes) > 0) ? scenes[scene_index] : noone;
 if (!panel_open && keyboard_check_pressed(vk_right) && sc_k != noone) {
@@ -506,9 +506,56 @@ if (auto_mode && !await_scene_click) {
                 if (current.text_effect != "Aucune" && current.text_effect != "") { var dtl = dur_base_l; if (current.text_effect == "SlideGaucheInverse" || current.text_effect == "Slide gauche inversé" || current.text_effect == "SlideDroiteInverse" || current.text_effect == "Slide droite inversé" || current.text_effect == "SlideHautInverse" || current.text_effect == "Slide haut inversé" || current.text_effect == "SlideBasInverse" || current.text_effect == "Slide bas inversé") dtl *= fx_inverse_multiplier; anim_ms_l = max(anim_ms_l, dtl); }
                 if (lenl == 0) line_auto_target_ms = current_time + anim_ms_l + wait_msl; else line_auto_target_ms = current_time + reveal_msl + wait_msl;
             } else {
-                if (variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id != 0 && sc.duel_bot_id != noone) {
+                // --- MODIFIED DUEL TRIGGER LOGIC ---
+                var trigger_duel = false;
+                var is_last_line = (line_index == array_length(sc.lines) - 1);
+                
+                if (variable_struct_exists(sc, "duel_bot_id") && is_last_line) {
+                    var bid = sc.duel_bot_id;
+                    var is_valid = (bid != 0 && string(bid) != "0" && bid != noone);
+                    
+                    // HOTFIX: Handle numeric IDs (Legacy)
+                    if (is_real(bid)) {
+                        if (bid == 1) {
+                            if (scene_index > 0) {
+                                show_debug_message("### Step_0 V2: Legacy ID 1 detected at scene " + string(scene_index) + ". Converting to Invasion_Gueule_Roche.");
+                                sc.duel_bot_id = "Invasion_Gueule_Roche";
+                                bid = "Invasion_Gueule_Roche";
+                                is_valid = true;
+                            } else {
+                                show_debug_message("### Step_0 V2: BLOCKED LEGACY duel_bot_id: 1 at Scene 0");
+                                is_valid = false;
+                            }
+                        }
+                        else if (bid == 2) {
+                            show_debug_message("### Step_0 V2: Legacy ID 2 detected. Converting to Essaim_Abyssien.");
+                            sc.duel_bot_id = "Essaim_Abyssien";
+                            bid = "Essaim_Abyssien";
+                            is_valid = true;
+                        }
+                        else if (bid == 3) {
+                            show_debug_message("### Step_0 V2: Legacy ID 3 detected. Converting to Bandit_Grand_Chemin.");
+                            sc.duel_bot_id = "Bandit_Grand_Chemin";
+                            bid = "Bandit_Grand_Chemin";
+                            is_valid = true;
+                        }
+                    }
+
+            if (is_valid) {
+                 trigger_duel = true;
+                 show_debug_message("### Step_0 V2: Duel Trigger VALIDATED for ID: " + string(bid));
+            }
+                }
+
+                if (trigger_duel) {
                     if (!instance_exists(oDuelConfirmation)) {
-                        instance_create_depth(0, 0, -9999, oDuelConfirmation);
+                        var inst = instance_create_depth(0, 0, -9999, oDuelConfirmation);
+                        inst.selected_bot_deck_id = sc.duel_bot_id;
+                        
+                        // IMPORTANT: Set global variable for display
+                        global.selected_bot_deck_id = sc.duel_bot_id;
+                        
+                        show_debug_message("### Step_0: Created oDuelConfirmation with ID: " + string(sc.duel_bot_id));
                     }
                     await_scene_click = true;
                 } else {

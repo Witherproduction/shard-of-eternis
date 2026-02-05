@@ -3,8 +3,8 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 // Définit les stats spécifiques de ce monstre
 name = "Yvan le Costaud"
 attack = 2;
-defense = 5;
-star = 2;
+PV = 5;
+mana_cost = 3;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -27,4 +27,5 @@ effects = [
         effect_type: EFFECT_AURA_CLEANUP_SOURCE
     }
 ]
+
 

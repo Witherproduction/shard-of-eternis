@@ -2,9 +2,9 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Frère de Gorrak"
-attack = 6;
-defense = 4;
-star = 2;
+attack = 3;
+PV = 6;
+mana_cost = 6;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -23,4 +23,5 @@ effects = [
         aggregate: false
     }
 ];
+
 

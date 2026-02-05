@@ -32,13 +32,24 @@ if (image_index == 0) {
 	
 	// Utilisation du nouveau système de Commandes (Phase 1.2 PvP)
 	// Calcul des valeurs cibles pour forcer la synchro
+	// [HEARTHSTONE] Logic: Main Phase ends turn directly
+	var current_phase_str = oGame.phase[oGame.phase_current];
+	
 	var target_phase = (oGame.phase_current + 1) % 3;
 	var target_player = oGame.player_current;
 	var target_turn = oGame.nbTurn;
 	
-	if (oGame.phase[oGame.phase_current] == "Attack") {
+	if (current_phase_str == "Main") {
+	    // Skip End phase, go directly to Start of next player
+	    target_phase = 0; 
 	    target_player = (target_player + 1) % 2;
 	    target_turn++;
+	}
+	else if (current_phase_str == "Attack" || current_phase_str == "End") {
+	    // Normal turn end from last phase
+	    target_player = (target_player + 1) % 2;
+	    target_turn++;
+	    target_phase = 0; // Ensure next phase is Start
 	}
 	
 	RequestGameAction(ACTION_NEXT_PHASE, {

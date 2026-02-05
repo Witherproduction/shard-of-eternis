@@ -1,4 +1,4 @@
-// === oContreIaFrameLeft - Mouse Left Pressed ===
+﻿// === oContreIaFrameLeft - Mouse Left Pressed ===
 // Gère les clics sur les boutons de difficulté dans le cadre gauche
 
 // Vérifier si un bot a été sélectionné
@@ -33,7 +33,7 @@ var bot_info = grid_instance.bot_data[bot_id];
 var theme_name = get_bot_deck_name(bot_info.deck_id);
 var bot_description = "";
 switch (bot_info.deck_id) {
-    case "Invasion_Geule_Roche":
+    case "Invasion_Gueule_Roche":
         bot_description = "Un deck Rose noire utilisant uniquement des cartes d'archétype Rose noire";
         break;
     case "Essaim_Abyssien":

@@ -3,8 +3,8 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 // Définit les stats spécifiques de ce monstre
 name = "Tarrinox"
 attack = 5;
-defense = 7;
-star = 2;
+PV = 7;
+mana_cost = 6;
 genre = "Bête"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -26,4 +26,5 @@ effects = [
         def_bonus: 4
     }
 ]
+
 

@@ -46,160 +46,245 @@ if (variable_instance_exists(self, "selected")) {
     var image_bottom = draw_y + sprite_h * 0.5;
 
     // --- Position du texte et du cadre ---
-    var margin_top = round(10 * rel);
-    var margin_side = round(10 * rel);
-    var margin_bottom = round(10 * rel);
-    var text_x = draw_x - sprite_w * 0.5 + margin_side;
-    var text_y = image_bottom + margin_top;
-    var text_width = sprite_w - margin_side * 2;
-    // Police et mise à l’échelle cohérentes avec la collection
-    draw_set_font(fontCardText);
+    // Utilisation du style "Carte" comme dans la collection
+    var tlx = draw_x - sprite_w * 0.5;
+    var tly = draw_y - sprite_h * 0.5;
+    var s = scale;
+    var rel = scale / 0.6; // Ratio par rapport à la collection
+
+    // Fond semi-transparent derrière la carte
+    draw_set_alpha(0.8);
+    draw_set_color(c_black);
+    draw_rectangle(tlx - 10, tly - 10, tlx + sprite_w + 10, tly + sprite_h + 10, false);
+    draw_set_alpha(1);
+
+    // Affichage de la carte
+    draw_sprite_ext(card.sprite_index, card.image_index, draw_x, draw_y, s, s, 0, c_white, 1);
+
+    // --- Bordure de rareté ---
+    if (variable_instance_exists(card, "rarity")) {
+        var rarity_color = getRarityColor(card.rarity);
+        var glow_intensity = getRarityGlowIntensity(card.rarity);
+        
+        if (glow_intensity > 0) {
+            draw_set_color(rarity_color);
+            draw_set_alpha(glow_intensity);
+            var border_thickness = 4;
+            for (var i = 1; i <= border_thickness; i++) {
+                draw_rectangle(tlx - i, tly - i, tlx + sprite_w + i, tly + sprite_h + i, true);
+            }
+            draw_set_alpha(1);
+            draw_set_color(c_black);
+        }
+    }
+
+    // --- TEXTE SUR LA CARTE (Layout Global) ---
+    var layout = global.card_layout;
+    var name_x1 = layout.name.x1,  name_y1 = layout.name.y1;  var name_x2 = layout.name.x2, name_y2 = layout.name.y2;
+    var star_x1 = layout.mana.x1, star_y1 = layout.mana.y1;  var star_x2 = layout.mana.x2, star_y2 = layout.mana.y2;
+    var genre_x1 = layout.genre.x1, genre_y1 = layout.genre.y1; var genre_x2 = layout.genre.x2, genre_y2 = layout.genre.y2;
+    var arch_x1  = layout.archetype.x1, arch_y1  = layout.archetype.y1; var arch_x2  = layout.archetype.x2, arch_y2  = layout.archetype.y2;
+    var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2;
+    var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2;
+    
+    // Description (via Layout Global)
+    var desc_x1  = layout.description.x1, desc_y1  = layout.description.y1; var desc_x2  = layout.description.x2, desc_y2  = layout.description.y2;
+
+    // --- DEBUG FRAMES ---
+    if (variable_global_exists("show_green_frames") && global.show_green_frames) {
+        var active_field = (variable_global_exists("debug_selected_field")) ? global.debug_selected_field : "";
+        
+        var draw_debug_rect = function(f_name, x1, y1, x2, y2, tlx, tly, s, active_f) {
+            if (f_name == active_f) {
+                draw_set_color(c_red);
+                draw_set_alpha(0.6);
+            } else {
+                draw_set_color(c_lime);
+                draw_set_alpha(0.3);
+            }
+            draw_rectangle(tlx + x1 * s, tly + y1 * s, tlx + x2 * s, tly + y2 * s, false);
+            draw_set_alpha(1);
+            draw_rectangle(tlx + x1 * s, tly + y1 * s, tlx + x2 * s, tly + y2 * s, true);
+        };
+        
+        draw_debug_rect("name", name_x1, name_y1, name_x2, name_y2, tlx, tly, s, active_field);
+        draw_debug_rect("mana", star_x1, star_y1, star_x2, star_y2, tlx, tly, s, active_field);
+        draw_debug_rect("genre", genre_x1, genre_y1, genre_x2, genre_y2, tlx, tly, s, active_field);
+        draw_debug_rect("archetype", arch_x1, arch_y1, arch_x2, arch_y2, tlx, tly, s, active_field);
+        draw_debug_rect("description", desc_x1, desc_y1, desc_x2, desc_y2, tlx, tly, s, active_field);
+        draw_debug_rect("atk", atk_x1, atk_y1, atk_x2, atk_y2, tlx, tly, s, active_field);
+        draw_debug_rect("hp", def_x1, def_y1, def_x2, def_y2, tlx, tly, s, active_field);
+        
+        draw_set_color(c_black);
+    }
+
+    if (font_exists(fontCardText)) draw_set_font(fontCardText);
+    draw_set_color(c_black);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
 
-    // Échelle de ligne basée sur 20px à la référence 0.6
-    var base_line_h0 = string_height("Ag");
-    var line_scale = (base_line_h0 > 0) ? (20 * rel) / base_line_h0 : 1;
-    var line_height = base_line_h0 * line_scale;
+    var fit_line = function(text, max_px, rw, rh) {
+        var base_line_h = string_height("Ag");
+        var w0 = string_width(text);
+        var h0 = base_line_h;
+        var s_max = (h0 > 0) ? max_px / h0 : 1;
+        var s_w = (w0 > 0) ? rw / w0 : s_max;
+        var s_h = (h0 > 0) ? rh / h0 : s_max;
+        return min(s_max, s_w, s_h);
+    };
 
-    // --- Infos carte sous la carte (style rCollection) ---
-    var margin = round(8 * rel);
-    var info_x = draw_x - sprite_w * 0.5 + margin;
-    var info_y = draw_y + sprite_h * 0.5 + margin;
-    var line_height = 20;
+    var pad = 0;
+    var mar = 7;
 
-    // En-tête: nom, niveau, genre, archetype
-    var info_head_lines = array_create(0);
+    // --- NOM ---
     var display_name = "";
-    if (variable_instance_exists(card, "name") && string_length(string_trim(card.name)) > 0) {
-        display_name = card.name;
-    } else {
-        display_name = object_get_name(card.object_index);
-    }
-    array_push(info_head_lines, "Nom: " + string(display_name));
-    var is_magic = object_is_ancestor(card.object_index, oCardMagic) || (variable_instance_exists(card, "type") && string_lower(string(card.type)) == "magic");
-    if (!is_magic && variable_instance_exists(card, "star")) {
-        array_push(info_head_lines, "Niveau: " + string(card.star));
-    }
-    if (variable_instance_exists(card, "genre") && string_length(string_trim(card.genre)) > 0) {
-        array_push(info_head_lines, "Genre: " + string(card.genre));
-    }
-    if (variable_instance_exists(card, "archetype") && string_length(string_trim(card.archetype)) > 0) {
-        array_push(info_head_lines, "Archetype: " + string(card.archetype));
-    }
-
-    // Description (wrapped)
-    var desc_lines = array_create(0);
-    if (variable_instance_exists(card, "description") && string_length(string_trim(card.description)) > 0) {
-        array_push(desc_lines, "Description:");
-        var desc_full = string(card.description);
-        // Adapter la largeur max au texte transformé (compense l’échelle de ligne)
-        var max_width_info = (sprite_w - margin * 2) / line_scale;
-        var words_info = string_split(desc_full, " ");
-        var line_info = "";
-        for (var wi = 0; wi < array_length(words_info); wi++) {
-            var try_line_info = line_info + words_info[wi] + " ";
-            if (string_width(try_line_info) > max_width_info && string_length(line_info) > 0) {
-                array_push(desc_lines, string_trim(line_info));
-                line_info = words_info[wi] + " ";
-            } else {
-                line_info = try_line_info;
-            }
-        }
-        if (string_length(line_info) > 0) {
-            array_push(desc_lines, string_trim(line_info));
-        }
-    }
-
-    // Rareté: intercalée entre archetype et description
-    var rarity_present = variable_instance_exists(card, "rarity");
+    if (variable_instance_exists(card, "name") && string_length(string_trim(card.name)) > 0) display_name = card.name;
+    else display_name = object_get_name(card.object_index);
     
-    // ATK/DEF: à placer entre rareté et description pour les monstres
-    var is_monster = object_is_ancestor(card.object_index, oCardMonster) || (variable_instance_exists(card, "type") && string_lower(string(card.type)) == "monster");
-    var has_attack_defense = is_monster && variable_instance_exists(card, "attack") && variable_instance_exists(card, "defense");
+    var tx = string(display_name);
+    var rw = (name_x2 - name_x1) * s - pad * 2 - mar * 2;
+    var rh = (name_y2 - name_y1) * s - pad * 2;
+    var sc = fit_line(tx, 20 * rel, rw, rh);
+    sc = round(sc * 20) / 20;
+    draw_text_transformed(round(tlx + name_x1 * s + pad + mar), round(tly + name_y1 * s + pad + 2), tx, sc, sc, 0);
 
-    // Cadre pour infos (largeur = carte + cadre rareté si présent) avec scroll pour la description
-    var extra_border = 0;
-    if (rarity_present) {
-        var glow_intensity2 = getRarityGlowIntensity(card.rarity);
-        if (glow_intensity2 > 0) extra_border = 6;
+    // --- COUT MANA ---
+    var manaVal = (variable_instance_exists(card, "mana_cost")) ? card.mana_cost : 0;
+    // Si mana est 0 mais défini, on l'affiche (ou pas ? oCardParent l'affiche si > 0 ou défini)
+    if (manaVal > 0 || variable_instance_exists(card, "mana_cost")) {
+        // Cercle bleu (optionnel, retiré selon demande précédente mais présent dans le layout)
+        // Texte
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        var rw_m = (star_x2 - star_x1) * s;
+        var rh_m = (star_y2 - star_y1) * s;
+        var cx_m = tlx + (star_x1 + (star_x2-star_x1)/2) * s;
+        var cy_m = tly + (star_y1 + (star_y2-star_y1)/2) * s;
+        var sc_m = fit_line(string(manaVal), 22 * rel, rw_m, rh_m);
+        sc_m = round(sc_m * 20) / 20;
+        draw_text_transformed(round(cx_m), round(cy_m), string(manaVal), sc_m, sc_m, 0);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
     }
-    var frame_pad = round(5 * rel);
-    var rect_x1 = draw_x - sprite_w * 0.5 - extra_border;
-    var rect_y1 = info_y - frame_pad;
-    var rect_x2 = draw_x + sprite_w * 0.5 + extra_border;
 
-    // Hauteur max: jusqu'au bas de l'écran (marge 10px)
-    var frame_max_height = max(round(40 * rel), (room_height - 10) - rect_y1);
-    var header_lines = array_length(info_head_lines) + (rarity_present ? 1 : 0) + (has_attack_defense ? 1 : 0);
-    // Nombre max de lignes totales dans le cadre
-    var max_lines = floor((frame_max_height - frame_pad * 2) / line_height);
-    max_lines = max(max_lines, header_lines);
+    // --- GENRE ---
+    if (variable_instance_exists(card, "genre") && string_length(string_trim(card.genre)) > 0) {
+        var tx_g = string(card.genre);
+        var rw_g = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
+        var rh_g = (genre_y2 - genre_y1) * s - pad * 2;
+        var sc_g = fit_line(tx_g, 16 * rel, rw_g, rh_g);
+        sc_g = round(sc_g * 20) / 20;
+        draw_text_transformed(round(tlx + genre_x1 * s + pad + mar), round(tly + genre_y1 * s + pad + 2), tx_g, sc_g, sc_g, 0);
+    }
 
-    var rect_y2 = rect_y1 + max_lines * line_height + frame_pad;
+    // --- ARCHETYPE ---
+    if (variable_instance_exists(card, "archetype") && string_length(string_trim(card.archetype)) > 0) {
+        var tx_a = string(card.archetype);
+        var rw_a = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
+        var rh_a = (arch_y2 - arch_y1) * s - pad * 2;
+        var sc_a = fit_line(tx_a, 16 * rel, rw_a, rh_a);
+        sc_a = round(sc_a * 20) / 20;
+        draw_text_transformed(round(tlx + arch_x1 * s + pad + mar), round(tly + arch_y1 * s + pad + 2), tx_a, sc_a, sc_a, 0);
+    }
 
-    // Dessiner le cadre
-    draw_set_alpha(0.8);
-    draw_set_color(c_black);
-    draw_rectangle(rect_x1, rect_y1, rect_x2, rect_y2, false);
-    draw_set_alpha(1);
-    draw_set_color(c_white);
+    // --- STATS (ATK/HP) ---
+    var is_magic = object_is_ancestor(card.object_index, oCardMagic) || (variable_instance_exists(card, "type") && string_lower(string(card.type)) == "magic");
+    if (!is_magic) {
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
 
-    // Position de l'aire de description (viewport)
-    var info_start_y = info_y;
-    var desc_view_y1 = info_start_y + header_lines * line_height;
-    var desc_view_y2 = info_start_y + max_lines * line_height;
-    var desc_view_h = max(0, desc_view_y2 - desc_view_y1);
+        // ATK
+        var atkVal = (variable_instance_exists(card, "attack")) ? card.attack : 0;
+        // Cercle jaune
+        var cx_a = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s;
+        var cy_a = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s;
+        /*
+        draw_set_color(c_yellow);
+        draw_circle(cx_a, cy_a, 22 * s, false);
+        draw_set_color(c_black);
+        draw_circle(cx_a, cy_a, 22 * s, true); // Bordure
+        */
+        
+        var sc_atk = 1.2 * rel;
+        draw_set_color(c_black);
+        draw_text_transformed(round(cx_a), round(cy_a), string(atkVal), sc_atk, sc_atk, 0);
 
-    // Gestion du scroll (molette dans le viewport)
-    var desc_total_h = array_length(desc_lines) * line_height;
-    var maxScrollY = max(0, desc_total_h - desc_view_h);
-    if (maxScrollY <= 0) textScrollY = 0;
+        // HP
+        var hpVal = (variable_instance_exists(card, "current_hp")) ? card.current_hp : ((variable_instance_exists(card, "PV")) ? card.PV : 0);
+        var hpMax = (variable_instance_exists(card, "max_hp")) ? card.max_hp : hpVal;
+        var hpColor = (hpVal < hpMax) ? c_red : ((hpVal > hpMax) ? c_lime : c_black);
+        
+        // Cercle rouge (ou couleur selon état)
+        var cx_h = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
+        var cy_h = tly + (def_y1 + (def_y2-def_y1)/2) * s;
+        /*
+        draw_set_color(c_red); // Fond rouge standard
+        draw_circle(cx_h, cy_h, 22 * s, false);
+        draw_set_color(c_black);
+        draw_circle(cx_h, cy_h, 22 * s, true); // Bordure
+        */
+        
+        draw_set_color(c_black); // Texte en noir
+        draw_text_transformed(round(cx_h), round(cy_h), string(hpVal), sc_atk, sc_atk, 0);
+        
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        draw_set_color(c_black);
+    }
 
+    // --- DESCRIPTION COMPLETE (Keywords + Rareté + Texte) ---
+    var full_desc = "";
+    
+    // Keywords
+    var keywords = "";
+    if (variable_instance_exists(card, "has_taunt") && card.has_taunt) keywords += "[Provocation] ";
+    if (variable_instance_exists(card, "isCamouflage") && card.isCamouflage) keywords += "[Furtif] ";
+    if (variable_instance_exists(card, "charge") && card.charge) keywords += "[Charge] ";
+    if (keywords != "") full_desc += keywords + "\n";
+    
+    // Rareté
+    if (variable_instance_exists(card, "rarity")) {
+        full_desc += "Rareté: " + string(card.rarity) + "\n";
+    }
+
+    // Description texte
+    if (variable_instance_exists(card, "description")) {
+        full_desc += string(card.description);
+    }
+
+    // Affichage Description avec Scroll
+    var rw_d = (desc_x2 - desc_x1) * s;
+    var rh_d = (desc_y2 - desc_y1) * s;
+    var dx = tlx + desc_x1 * s;
+    var dy = tly + desc_y1 * s;
+
+    // Calcul du wrapping et scroll
+    // On utilise une méthode simplifiée: draw_text_ext dans une surface ou clipping
+    // Mais pour rester simple sans surface:
+    var sep = string_height("Ag");
+    var w_eff = rw_d; // Largeur effective
+    // Scale du texte description (on garde 1.0 ou adapté)
+    var desc_scale = fit_line("A", 20 * rel, 100, 100); // Juste pour avoir une taille de base ~20px
+    desc_scale = min(desc_scale, 1.0); // Pas trop gros
+    
+    // NOTE: Pour le scroll, on réutilise textScrollY
+    // On doit dessiner le texte décalé et couper ce qui dépasse
+    // GameMaker draw_text_ext ne supporte pas le clipping natif simple sans surface/shader
+    // On va afficher tout le texte pour l'instant, ou utiliser un algo simple
+    
+    draw_text_ext_transformed(dx, dy - textScrollY, full_desc, sep, w_eff / desc_scale, desc_scale, desc_scale, 0);
+    
+    // Logique de scroll (souris)
+    var total_h = string_height_ext(full_desc, sep, w_eff / desc_scale) * desc_scale;
+    var maxScrollY = max(0, total_h - rh_d);
+    
     var mx = mouse_x;
     var my = mouse_y;
-    var hover_desc = (mx >= rect_x1 && mx <= rect_x2 && my >= desc_view_y1 && my <= desc_view_y2);
-
-    if (hover_desc) {
+    if (mx >= dx && mx <= dx + rw_d && my >= dy && my <= dy + rh_d) {
         if (mouse_wheel_down()) textScrollY = min(textScrollY + scrollSpeed, maxScrollY);
         if (mouse_wheel_up())   textScrollY = max(textScrollY - scrollSpeed, 0);
-    }
-
-    // Dessin de l'en-tête (non scrollé)
-    var y_cursor = info_start_y;
-    for (var i = 0; i < array_length(info_head_lines); i++) {
-        draw_text_transformed(info_x, y_cursor + 2, info_head_lines[i], line_scale, line_scale, 0);
-        y_cursor += line_height;
-    }
-    if (rarity_present) {
-        var rarity_color = getRarityColor(card.rarity);
-        var rarity_name = getRarityDisplayName(card.rarity);
-        draw_set_color(c_white);
-        var rarity_label = "Rareté: ";
-        draw_text_transformed(info_x, y_cursor + 2, rarity_label, line_scale, line_scale, 0);
-        var rarity_text_x = info_x + string_width(rarity_label) * line_scale;
-        draw_set_color(rarity_color);
-        draw_text_transformed(rarity_text_x, y_cursor + 2, rarity_name, line_scale, line_scale, 0);
-        draw_set_color(c_white);
-        y_cursor += line_height;
-    }
-    
-    // Dessin des stats ATK/DEF pour les monstres
-    if (has_attack_defense) {
-        draw_set_color(c_white);
-        var atkdef_line = "ATK: " + string(card.attack) + " / DEF: " + string(card.defense);
-        draw_text_transformed(info_x, y_cursor + 2, atkdef_line, line_scale, line_scale, 0);
-        y_cursor += line_height;
-    }
-
-    // Clipping et dessin de la description (scrollable)
-    if (desc_view_h > 0) {
-        gpu_set_scissor(rect_x1 + 1, desc_view_y1, (rect_x2 - rect_x1) - 2, desc_view_h);
-        var base_y = desc_view_y1 - textScrollY + 2;
-        for (var j = 0; j < array_length(desc_lines); j++) {
-            draw_text_transformed(info_x, base_y + j * line_height, desc_lines[j], line_scale, line_scale, 0);
-        }
-        gpu_set_scissor(0, 0, room_width, room_height);
+    } else {
+        // Reset scroll si pas hover ? Non, on garde la position
     }
 
     // --- Affiche la carte en grand (après pour qu’elle soit toujours visible) ---
@@ -219,17 +304,18 @@ if (variable_instance_exists(self, "selected")) {
         var tlx = draw_x - cw * 0.5;
         var tly = draw_y - ch * 0.5;
 
-        // Détection carte magique pour masquer coût et ATK/DEF
+        // Détection carte magique pour masquer coût et ATK/PV
         var is_magic = object_is_ancestor(card.object_index, oCardMagic) || (variable_instance_exists(card, "type") && string_lower(string(card.type)) == "magic");
 
-        // Coordonnées des zones (référence scale 1.0)
-        var name_x1 = 24,  name_y1 = 16;  var name_x2 = 387, name_y2 = 59;
-        var star_x1 = 388, star_y1 = 16;  var star_x2 = 438, star_y2 = 60;
-        var genre_x1 = 29, genre_y1 = 394; var genre_x2 = 223, genre_y2 = 419;
-        var arch_x1  = 228, arch_y1  = 394; var arch_x2  = 422, arch_y2  = 419;
-        var desc_x1  = 23,  desc_y1  = 438; var desc_x2  = 421, desc_y2  = 592;
-        var atk_x1   = 303, atk_y1   = 594; var atk_x2   = 348, atk_y2   = 609;
-        var def_x1   = 383, def_y1   = 594; var def_x2   = 421, def_y2   = 608;
+        // Coordonnées des zones (référence scale 1.0) - Utilisation du Layout Global
+        var layout = global.card_layout;
+        var name_x1 = layout.name.x1,  name_y1 = layout.name.y1;  var name_x2 = layout.name.x2, name_y2 = layout.name.y2;
+        var star_x1 = layout.mana.x1, star_y1 = layout.mana.y1;  var star_x2 = layout.mana.x2, star_y2 = layout.mana.y2;
+        var genre_x1 = layout.genre.x1, genre_y1 = layout.genre.y1; var genre_x2 = layout.genre.x2, genre_y2 = layout.genre.y2;
+        var arch_x1  = layout.archetype.x1, arch_y1  = layout.archetype.y1; var arch_x2  = layout.archetype.x2, arch_y2  = layout.archetype.y2;
+        var desc_x1  = layout.description.x1, desc_y1  = layout.description.y1; var desc_x2  = layout.description.x2, desc_y2  = layout.description.y2;
+        var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2;
+        var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2;
 
         // Police et couleur
         if (font_exists(fontCardText)) draw_set_font(fontCardText);
@@ -280,9 +366,9 @@ if (variable_instance_exists(self, "selected")) {
             draw_text_transformed(left, cy, tx, scale_tx, scale_tx, 0);
         }
 
-        // STAR (coût)
-        if (!is_magic && variable_instance_exists(card, "star")) {
-            var tx = string(card.star);
+        // mana_cost (coût)
+        if (variable_instance_exists(card, "mana_cost")) {
+            var tx = string(card.mana_cost);
             var rw = (star_x2 - star_x1) * s - pad * 2;
             var rh = (star_y2 - star_y1) * s - pad * 2;
             var scale_tx = fit_line(tx, 20, rw, rh);
@@ -359,40 +445,46 @@ if (variable_instance_exists(self, "selected")) {
         if (!is_magic && variable_instance_exists(card, "attack")) {
             draw_set_color(c_black);
             var tx = string(card.attack);
-            var rw = (atk_x2 - atk_x1) * s - pad * 2;
-            var rh = (atk_y2 - atk_y1) * s - pad * 2;
-            var base_line_h = string_height("Ag");
-            var scale_tx = (base_line_h > 0) ? 10 / base_line_h : 1;
-            scale_tx = round(scale_tx * 20) / 20;
-            var left = tlx + atk_x1 * s + pad;
-            var top  = tly + atk_y1 * s + pad;
-            var wsc  = string_width(tx) * scale_tx;
-            var hsc  = base_line_h * scale_tx;
-            var cx   = left + max(0, (rw - wsc) * 0.5);
-            var cy   = top  + max(0, (rh - hsc) * 0.5) - 1;
+            
+            // Centered alignment
+            draw_set_halign(fa_center);
+            draw_set_valign(fa_middle);
+            
+            var scale_tx = 1.2 * rel;
+            
+            var cx = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s;
+            var cy = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s;
             cx = round(cx);
             cy = round(cy);
+            
             draw_text_transformed(cx, cy, tx, scale_tx, scale_tx, 0);
+            
+            // Reset alignment
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_top);
         }
 
-        // DEF
-        if (!is_magic && variable_instance_exists(card, "defense")) {
+        // PV
+        if (!is_magic && variable_instance_exists(card, "PV")) {
             draw_set_color(c_black);
-            var tx = string(card.defense);
-            var rw = (def_x2 - def_x1) * s - pad * 2;
-            var rh = (def_y2 - def_y1) * s - pad * 2;
-            var base_line_h = string_height("Ag");
-            var scale_tx = (base_line_h > 0) ? 10 / base_line_h : 1;
-            scale_tx = round(scale_tx * 20) / 20;
-            var left = tlx + def_x1 * s + pad;
-            var top  = tly + def_y1 * s + pad;
-            var wsc  = string_width(tx) * scale_tx;
-            var hsc  = base_line_h * scale_tx;
-            var cx   = left + max(0, (rw - wsc) * 0.5);
-            var cy   = top  + max(0, (rh - hsc) * 0.5) - 1;
+            var tx = string(card.PV);
+            
+            // Centered alignment
+            draw_set_halign(fa_center);
+            draw_set_valign(fa_middle);
+            
+            var scale_tx = 1.2 * rel;
+            
+            var cx = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
+            var cy = tly + (def_y1 + (def_y2-def_y1)/2) * s;
             cx = round(cx);
             cy = round(cy);
+            
             draw_text_transformed(cx, cy, tx, scale_tx, scale_tx, 0);
+            
+            // Reset alignment
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_top);
         }
     }
 
@@ -416,7 +508,7 @@ if (variable_instance_exists(self, "selected")) {
     if (side_y2 > room_height - 10) side_y2 = room_height - 10;
 
     draw_set_font(fontCardDisplay);
-    draw_set_color(c_white);
+    draw_set_color(c_black);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
 
@@ -454,6 +546,7 @@ if (variable_instance_exists(self, "selected")) {
     }
 
     if (has_named_effect) {
+        var line_height = string_height("Ag");
         // Construire la phrase: "<label> = ..." selon le trigger du premier effet correspondant
         var label = selected_label;
         var desc_text = label + " = ";
@@ -500,7 +593,7 @@ if (variable_instance_exists(self, "selected")) {
         draw_set_color(c_black);
         draw_rectangle(rect2_x1, rect2_y1, rect2_x2, rect2_y2, false);
         draw_set_alpha(1);
-        draw_set_color(c_white);
+        draw_set_color(c_black);
         
         // Affichage des lignes
         for (var i2 = 0; i2 < array_length(desc_lines2); i2++) {
@@ -509,7 +602,7 @@ if (variable_instance_exists(self, "selected")) {
     } else {
         draw_set_color(c_gray);
         draw_text(eff_x, eff_y, "Aucun effet");
-        draw_set_color(c_white);
+        draw_set_color(c_black);
     }
 
     // --- Bloc 1: infos principales (nom, niveau, genre, archetype) ---
@@ -520,8 +613,8 @@ if (variable_instance_exists(self, "selected")) {
     // 
     // var info_lines = array_create(0);
     // array_push(info_lines, "Nom: " + string(card.name));
-    // if (variable_instance_exists(card, "star")) {
-    //     array_push(info_lines, "Niveau: " + string(card.star));
+    // if (variable_instance_exists(card, "mana_cost")) {
+    //     array_push(info_lines, "Niveau: " + string(card.mana_cost));
     // }
     // if (variable_instance_exists(card, "genre") && string_length(string_trim(card.genre)) > 0) {
     //     array_push(info_lines, "Genre: " + string(card.genre));
@@ -537,3 +630,4 @@ if (variable_instance_exists(self, "selected")) {
     
     // --- Bloc 2: description rapprochée de la carte --- (désactivé)
     // Supprimé pour éviter le cadre long à droite
+

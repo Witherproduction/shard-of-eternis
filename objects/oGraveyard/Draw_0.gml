@@ -1,4 +1,4 @@
-// Affiche uniquement la dernière carte du cimetière, si elle existe
+﻿// Affiche uniquement la dernière carte du cimetière, si elle existe
 if (array_length(cards) > 0) {
     var lastCardData = cards[array_length(cards) - 1];
     
@@ -58,8 +58,8 @@ if (array_length(cards) > 0) {
             var top  = tly + name_y1 * s + pad;
             draw_text_transformed(left, top + 2, tx, sc, sc, 0);
         }
-        if (!is_magic && variable_struct_exists(lastCardData, "star")) {
-            var tx = string(lastCardData.star);
+        if (!is_magic && variable_struct_exists(lastCardData, "mana_cost")) {
+            var tx = string(lastCardData.mana_cost);
             var rw = (star_x2 - star_x1) * s - pad * 2;
             var rh = (star_y2 - star_y1) * s - pad * 2;
             var sc = fit_line(tx, 20 * rel, rw, rh);
@@ -152,3 +152,4 @@ if (array_length(cards) > 0) {
         // Instance invalide: ne rien dessiner pour éviter les erreurs
     }
 }
+

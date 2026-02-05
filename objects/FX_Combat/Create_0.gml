@@ -1,4 +1,4 @@
-// FX_Combat - Create
+﻿// FX_Combat - Create
 // Animation de combat: approche de l’attaquant, impact avec secousse, puis résolution
 
 // Attendus via spawner (oDamageManager.tryAttack):
@@ -78,7 +78,7 @@ approach_frames = round(0.22 * room_speed);
 shake_frames    = round(0.25 * room_speed);
 return_frames   = round(0.18 * room_speed);
 
-// Secousse: amplitude basée sur l’écart d’ATK/DEF (si défenseur présent)
+// Secousse: amplitude basée sur l’écart d’ATK/PV (si défenseur présent)
 shake_amp_px = 6;
 shake_side = "defender"; // "attacker" | "defender" | "both"
 if (variable_instance_exists(self, "defender") && defender != noone && variable_instance_exists(self, "attacker") && attacker != noone) {
@@ -86,8 +86,8 @@ if (variable_instance_exists(self, "defender") && defender != noone && variable_
     if (defender.orientation == "Attack") {
         compareVal = attacker.attack - defender.attack;
     } else {
-        // Defense ou DefenseVisible
-        compareVal = attacker.attack - defender.defense;
+        // PV ou DefenseVisible
+        compareVal = attacker.attack - defender.PV;
     }
     if (compareVal > 0) shake_side = "defender"; else if (compareVal < 0) shake_side = "attacker"; else shake_side = "both";
     shake_amp_px = clamp(abs(compareVal) / 300, 3, 10);

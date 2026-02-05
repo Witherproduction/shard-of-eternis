@@ -1,4 +1,4 @@
-// === oDeckBuilder - Create Event ===
+﻿// === oDeckBuilder - Create Event ===
 // Initialisation du constructeur de deck
 
 // Décaler vers la gauche puis vers la droite
@@ -536,11 +536,11 @@ function show_card_from_database(cardName) {
     tempInstance.visible = false;
     tempInstance.name = cardData.name;
     tempInstance.attack = variable_struct_exists(cardData, "attack") ? cardData.attack : 0;
-    tempInstance.defense = variable_struct_exists(cardData, "defense") ? cardData.defense : 0;
+    tempInstance.PV = variable_struct_exists(cardData, "PV") ? cardData.PV : 0;
     tempInstance.cost = variable_struct_exists(cardData, "cost") ? cardData.cost : 0;
     tempInstance.description = variable_struct_exists(cardData, "description") ? cardData.description : "";
     tempInstance.rarity = variable_struct_exists(cardData, "rarity") ? cardData.rarity : "commun";
-    tempInstance.star = variable_struct_exists(cardData, "star") ? cardData.star : 0;
+    tempInstance.mana_cost = variable_struct_exists(cardData, "mana_cost") ? cardData.mana_cost : 0;
     if (variable_struct_exists(cardData, "sprite")) {
         var spriteAsset = asset_get_index(cardData.sprite);
         if (spriteAsset != -1) {

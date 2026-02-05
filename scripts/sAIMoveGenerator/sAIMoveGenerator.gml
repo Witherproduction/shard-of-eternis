@@ -34,57 +34,24 @@ function AI_GetLegalMoves_Summon() {
         
         if (card == 0 || !instance_exists(card)) continue;
 
+        // --- MANA CHECK (Hearthstone Style) ---
+        var manaCost = variable_instance_exists(card, "mana_cost") ? card.mana_cost : ((variable_instance_exists(card, "mana_cost")) ? card.mana_cost : 0);
+        var currentMana = (variable_global_exists("mana_enemy")) ? global.mana_enemy : 0;
+        
+        if (manaCost > currentMana) continue; // Pas assez de mana
+
         // --- CAS MONSTRE ---
         if (variable_instance_exists(card, "type") && card.type == "Monster") {
-            // Vérifier la limite d'invocation (1 par tour pour l'IA/Enemy)
-            if (instance_exists(oGame) && oGame.hasSummonedThisTurn[1]) continue;
-
-            var star = variable_instance_exists(card, "star") ? card.star : 1;
-            var sacrificesNeeded = getSacrificeLevel(star);
-            
-            var myBoard = oFieldMonsterEnemy.cards; // Array
-            var myMonsters = [];
+            // Pas de limite d'invocation par tour en HS, juste le Mana
+            // Vérifier s'il y a de la place sur le board (Max 7 en général, 5 ici ?)
+            var myBoard = oFieldMonsterEnemy.cards;
             var emptySlots = 0;
-
-            // Compter les monstres et les slots vides
             for (var k = 0; k < array_length(myBoard); k++) {
-                var c = myBoard[k];
-                if (c == 0) {
-                    emptySlots++;
-                } else if (instance_exists(c)) {
-                    // Ensure stats are up-to-date before evaluating for sacrifice
-                    if (script_exists(asset_get_index("buffRecompute"))) {
-                        buffRecompute(c);
-                    }
-                    array_push(myMonsters, c);
-                }
-            }
-
-            var potentialSacrifices = [];
-            var canSummon = false;
-
-            // Vérifier si invocation possible
-            if (sacrificesNeeded == 0) {
-                if (emptySlots > 0) canSummon = true;
-            } else {
-                if (array_length(myMonsters) >= sacrificesNeeded) {
-                    // Stratégie simple : sacrifier les plus faibles
-                    // Trier myMonsters par valeur croissante (Effective ATK)
-                    array_sort(myMonsters, function(a, b) {
-                        var atk1 = variable_instance_exists(a, "effective_attack") ? a.effective_attack : (variable_instance_exists(a, "attack") ? a.attack : 0);
-                        var atk2 = variable_instance_exists(b, "effective_attack") ? b.effective_attack : (variable_instance_exists(b, "attack") ? b.attack : 0);
-                        return atk1 - atk2;
-                    });
-
-                    for (var s = 0; s < sacrificesNeeded; s++) {
-                        array_push(potentialSacrifices, myMonsters[s]);
-                    }
-                    canSummon = true;
-                }
+                if (myBoard[k] == 0) emptySlots++;
             }
             
-            if (canSummon) {
-                // --- GESTION DES EFFETS "ON SUMMON" ---
+            if (emptySlots > 0) {
+                // --- GESTION DES EFFETS "ON SUMMON" (Battlecry) ---
                 var onSummonEffects = [];
                 if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
                     for (var e = 0; e < array_length(card.effects); e++) {
@@ -101,11 +68,10 @@ function AI_GetLegalMoves_Summon() {
                     array_push(moves, {
                         type: "summon",
                         card: card,
-                        sacrifices: potentialSacrifices
+                        sacrifices: [] // Plus de sacrifices
                     });
                 } else {
-                    // Invocation avec effet déclenché
-                    // On gère le premier effet trouvé pour simplifier
+                    // Invocation avec Battlecry (simplifié : premier effet)
                     var effect = onSummonEffects[0];
                     var eType = variable_struct_exists(effect, "effect_type") ? effect.effect_type : "";
                     var targets = [];
@@ -132,41 +98,39 @@ function AI_GetLegalMoves_Summon() {
                         if (instance_exists(oFieldMonsterHero)) {
                              var enemies = oFieldMonsterHero.cards;
                              for (var t=0; t<array_length(enemies); t++) {
-                                 if (enemies[t] != 0 && instance_exists(enemies[t])) array_push(targets, enemies[t]);
+                                 if (enemies[t] != 0 && instance_exists(enemies[t])) {
+                                     // Check Stealth (Camouflage) - Cannot target stealth enemies
+                                     var isStealth = (variable_instance_exists(enemies[t], "isCamouflage") && enemies[t].isCamouflage);
+                                     if (!isStealth) array_push(targets, enemies[t]);
+                                 }
                              }
                         }
                     } else if (targetScope == "ally") {
-                         // Alliés existants (non sacrifiés)
-                         for (var t=0; t<array_length(myMonsters); t++) {
-                             var m = myMonsters[t];
-                             var isSacrificed = false;
-                             for (var s=0; s<array_length(potentialSacrifices); s++) {
-                                 if (potentialSacrifices[s] == m) isSacrificed = true;
-                             }
-                             if (!isSacrificed) array_push(targets, m);
+                         var allies = oFieldMonsterEnemy.cards;
+                         for (var t=0; t<array_length(allies); t++) {
+                             if (allies[t] != 0 && instance_exists(allies[t])) array_push(targets, allies[t]);
                          }
-                         // La carte elle-même (self)
-                         array_push(targets, card); 
+                         // La carte elle-même (self) si buff possible ? (Battlecry happens after summon usually, but targeting logic varies)
+                         // En général Battlecry ne cible pas self.
                     }
 
                     if (array_length(targets) > 0) {
-                        // Générer un move pour chaque cible possible
                         for (var t=0; t<array_length(targets); t++) {
                             array_push(moves, {
                                 type: "summon",
                                 card: card,
-                                sacrifices: potentialSacrifices,
+                                sacrifices: [],
                                 effect_target: targets[t],
                                 effect_type: eType,
                                 has_on_summon_effect: true
                             });
                         }
                     } else {
-                        // Effet global ou sans cible valide (ex: Draw, ou Board vide)
+                        // Pas de cible valide ou effet global
                          array_push(moves, {
                             type: "summon",
                             card: card,
-                            sacrifices: potentialSacrifices,
+                            sacrifices: [],
                             effect_type: eType,
                             has_on_summon_effect: true
                         });
@@ -177,49 +141,9 @@ function AI_GetLegalMoves_Summon() {
         
         // --- CAS MAGIE (MAIN) ---
         else if (variable_instance_exists(card, "type") && card.type == "Magic") {
-             if (variable_instance_exists(card, "genre") && card.genre == "Secret") {
-                 array_push(moves, {
-                     type: "set_card",
-                     card: card,
-                     target: noone
-                 });
-             } else {
-                 var movesCountBefore = array_length(moves);
-                 AI_AddEffectMoves(card, moves, "hand");
-                 
-                 // Si c'est une magie Continue (ou similaire) sans effet d'activation direct (effets passifs/déclenchés),
-                 // on doit quand même pouvoir la jouer.
-                if (array_length(moves) == movesCountBefore) {
-                    var genre = variable_instance_exists(card, "genre") ? card.genre : "";
-                    var isContinuous = (genre == "Continue" || genre == "Continu" || genre == "Terrain" || genre == "Field");
-                    
-                    if (isContinuous) {
-                        var allowPlay = true;
-                        if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == "Essaim_Abyssien") {
-                            if (instance_exists(card)) {
-                                var cname = object_get_name(card.object_index);
-                                if (cname == "oProtectionMaree") {
-                                    if (AI_CountEnemyContinuousByObjectName("oProtectionMaree") >= 1) {
-                                        allowPlay = false;
-                                    }
-                                } else if (cname == "oFerveurMarais") {
-                                    if (AI_CountEnemyContinuousByObjectName("oFerveurMarais") >= 2) {
-                                        allowPlay = false;
-                                    }
-                                }
-                            }
-                        }
-                        if (allowPlay) {
-                            array_push(moves, {
-                                type: "activate",
-                                card: card,
-                                target: noone,
-                                effect_type: "continuous_placement"
-                            });
-                        }
-                    }
-                }
-             }
+             // Traitement Magie (inchangé sauf Mana check déjà fait au début)
+             var movesCountBefore = array_length(moves);
+             AI_AddEffectMoves(card, moves, "hand");
         }
     }
     
@@ -247,6 +171,69 @@ function AI_GetLegalMoves_Summon() {
         }
     }
     
+    return moves;
+}
+
+/// @function AI_GetLegalMoves_HeroPower()
+/// @description Retourne la liste des activations de pouvoir héroïque possibles
+function AI_GetLegalMoves_HeroPower() {
+    var moves = [];
+    with (oHeroPower) {
+        if (!isHeroOwner && canActivate()) {
+             var pid = variable_struct_exists(powerData, "id") ? powerData.id : "";
+             
+             if (pid == "protection_divine") {
+                 // Generate moves for each valid target (Enemy Monster = Hero's monster)
+                 if (instance_exists(oFieldMonsterHero)) {
+                    var enemies = oFieldMonsterHero.cards;
+                    for (var i = 0; i < array_length(enemies); i++) {
+                        var target = enemies[i];
+                        if (target != 0 && instance_exists(target)) {
+                            array_push(moves, {
+                                type: "use_hero_power",
+                                instance: id,
+                                target: target
+                            });
+                        }
+                    }
+                 }
+             } else if (pid == "lancer_hache") {
+                 // Generate moves for each valid target (Enemy Monster OR Enemy Hero)
+                 // 1. Enemy Monsters
+                 if (instance_exists(oFieldMonsterHero)) {
+                    var enemies = oFieldMonsterHero.cards;
+                    for (var i = 0; i < array_length(enemies); i++) {
+                        var target = enemies[i];
+                        if (target != 0 && instance_exists(target)) {
+                            // Check Stealth
+                             var isStealth = (variable_instance_exists(target, "isCamouflage") && target.isCamouflage);
+                             if (!isStealth) {
+                                array_push(moves, {
+                                    type: "use_hero_power",
+                                    instance: id,
+                                    target: target
+                                });
+                             }
+                        }
+                    }
+                 }
+                 // 2. Enemy Hero (LP)
+                 if (instance_exists(oLP_Hero)) {
+                     array_push(moves, {
+                        type: "use_hero_power",
+                        instance: id,
+                        target: instance_find(oLP_Hero, 0)
+                    });
+                 }
+             } else {
+                 // Standard hero power (no target or internal target logic like rage_pierre)
+                 array_push(moves, {
+                    type: "use_hero_power",
+                    instance: id
+                });
+             }
+        }
+    }
     return moves;
 }
 
@@ -477,7 +464,7 @@ function AI_AddEffectMoves(card, moves, context) {
 }
 
 /// @function AI_GetLegalMoves_Attack()
-/// @description Retourne une liste d'attaques possibles
+/// @description Retourne une liste d'attaques possibles (Hearthstone Rules)
 function AI_GetLegalMoves_Attack() {
     var moves = [];
     
@@ -486,103 +473,85 @@ function AI_GetLegalMoves_Attack() {
     var myMonsters = oFieldMonsterEnemy.cards;
     var enemyMonsters = oFieldMonsterHero.cards;
     
-    // Identifier les cibles valides (Taunt / Camouflage)
-    var validTargets = [];
-    var hasTaunt = false; // A implémenter si la mécanique existe
-    var enemyHasNonCamo = false;
+    // --- 1. Identify Valid Targets (Taunt & Stealth Rules) ---
+    var tauntTargets = [];
+    var normalTargets = [];
+    var hasActiveTaunt = false;
 
-    // Filtrer les monstres adverses
+    // Filter enemy monsters
     for (var j = 0; j < array_length(enemyMonsters); j++) {
         var target = enemyMonsters[j];
         if (target != 0 && instance_exists(target)) {
-            // Vérif Camouflage : Les monstres camouflés ne sont JAMAIS des cibles valides pour une attaque standard
-            var isCamo = (variable_instance_exists(target, "isCamouflage") && target.isCamouflage);
-            if (!isCamo) {
-                array_push(validTargets, target);
-                enemyHasNonCamo = true;
+            // Check Stealth (Camouflage)
+            var isStealth = (variable_instance_exists(target, "isCamouflage") && target.isCamouflage);
+            if (!isStealth && variable_instance_exists(target, "effects_text") && string_pos("Camouflage", target.effects_text) > 0) isStealth = true;
+            
+            if (!isStealth) {
+                // Check Taunt OR Main Line Blocker (Slots 0-3)
+                var isTaunt = (variable_instance_exists(target, "has_taunt") && target.has_taunt);
+                // Les monstres sur la ligne principale (0-3) agissent comme des Taunts (bloquent l'accès au héros)
+                var isMainLine = (variable_instance_exists(target, "fieldPosition") && target.fieldPosition >= 0 && target.fieldPosition <= 3);
+                
+                if (isTaunt || isMainLine) {
+                    array_push(tauntTargets, target);
+                    hasActiveTaunt = true;
+                } else {
+                    array_push(normalTargets, target);
+                }
             }
         }
     }
 
+    var validTargets = hasActiveTaunt ? tauntTargets : normalTargets;
 
-
-    // Pour chaque attaquant potentiel
+    // --- 2. Generate Moves for Each Attacker ---
     for (var i = 0; i < array_length(myMonsters); i++) {
         var attacker = myMonsters[i];
         if (attacker == 0 || !instance_exists(attacker)) continue;
 
-        // Ensure stats are up-to-date (Buffs/Debuffs)
+        // Ensure stats are up-to-date
         if (script_exists(asset_get_index("buffRecompute"))) {
             buffRecompute(attacker);
         }
 
-        // Vérification Entrave (Empêche l'attaque)
+        // Check Entrave
         if (variable_instance_exists(attacker, "entrave_block_attack") && attacker.entrave_block_attack) {
              var turns = variable_instance_exists(attacker, "entrave_turns_remaining") ? attacker.entrave_turns_remaining : 0;
              if (turns > 0) continue;
         }
+        
+        // Check Summoning Sickness (Charge)
+        var isSummonedThisTurn = (variable_instance_exists(attacker, "summonedThisTurn") && attacker.summonedThisTurn);
+        var hasCharge = (variable_instance_exists(attacker, "has_charge") && attacker.has_charge);
+        
+        if (isSummonedThisTurn && !hasCharge) continue;
 
-        // Vérifications de base (Attack Position, Pas encore attaqué)
-        if (variable_instance_exists(attacker, "orientation") && attacker.orientation == "Attack") {
-            var limit = 1; 
-            if (variable_instance_exists(attacker, "isAmbidextrous") && attacker.isAmbidextrous) limit = 2;
-            var used = variable_instance_exists(attacker, "attacksUsedThisTurn") ? attacker.attacksUsedThisTurn : 0;
-            
-            if (used < limit) {
-                // 1. Attaque sur Monstres
-                for (var k = 0; k < array_length(validTargets); k++) {
-                    var target = validTargets[k];
-                    var canAttack = true;
-
-                    // Logique spéciale Camouflage : On n'attaque que si on est sûr de tuer (ou trade favorable)
-                    if (variable_instance_exists(attacker, "isCamouflage") && attacker.isCamouflage) {
-                        var attAtk = variable_instance_exists(attacker, "effective_attack") ? attacker.effective_attack : (variable_instance_exists(attacker, "attack") ? attacker.attack : 0);
-                        
-                        var defPos = "Attack";
-                        if (variable_instance_exists(target, "orientation")) defPos = target.orientation;
-                        // Si face cachée, on assume Defense (stats inconnues pour l'IA stricte, mais ici on triche un peu ou on utilise les stats de base si connues ?)
-                        // Pour l'instant, on lit les stats réelles (IA omnisciente sur les stats)
-                        
-                        if (defPos == "Defense" || defPos == "DefenseVisible") {
-                            var targetDef = variable_instance_exists(target, "effective_defense") ? target.effective_defense : (variable_instance_exists(target, "defense") ? target.defense : 0);
-                            if (attAtk <= targetDef) canAttack = false; // Rebond ou égalité : pas de destruction, on perd le camo pour rien -> NON.
-                        } else {
-                            // En position d'attaque : ATK vs ATK
-                            var targetAtk = variable_instance_exists(target, "effective_attack") ? target.effective_attack : (variable_instance_exists(target, "attack") ? target.attack : 0);
-                            if (attAtk < targetAtk) canAttack = false; // Suicide sans tuer la cible -> NON.
-                            // Si attAtk >= targetAtk, la cible meurt (Trade ou Win). -> OUI.
-                        }
-                    }
-
-                    if (canAttack) {
-                        array_push(moves, {
-                            type: "attack",
-                            attacker: attacker,
-                            target: target,
-                            isDirect: false
-                        });
-                    }
-                }
-
-                // 2. Attaque Directe (Si pas de monstres non-camo ?)
-                // Règle oDamageManager : Si enemyHasNonCamo == false, on peut attaquer direct ?
-                // Non, en général TCG : Si pas de monstres, Direct Attack.
-                // Si monstres Camo SEULEMENT : Direct Attack autorisée ? (Check oDamageManager)
-                // oDamageManager: "if (!heroHasNonCamo) { resolveAttackDirectEnemy(attacker); }"
+        // Check Attacks per Turn (Windfury)
+        var limit = 1; 
+        if (variable_instance_exists(attacker, "isAmbidextrous") && attacker.isAmbidextrous) limit = 2;
+        var used = variable_instance_exists(attacker, "attacksUsedThisTurn") ? attacker.attacksUsedThisTurn : 0;
+        
+        if (used < limit) {
+            // 2.1 Attack Minions
+            for (var k = 0; k < array_length(validTargets); k++) {
+                var target = validTargets[k];
                 
-                var canAttackDirect = (array_length(validTargets) == 0); 
-                // Si validTargets est vide, ça veut dire soit 0 monstres, soit que des cibles intouchables qui autorisent le direct.
-                
-                // Vérifions s'il y a des monstres "Taunt" qui obligent l'attaque sur eux (pas implémenté ici mais prévu)
-                
-                if (canAttackDirect) {
-                    array_push(moves, {
-                        type: "attack",
-                        attacker: attacker,
-                        target: noone,
-                        isDirect: true
-                    });
-                }
+                array_push(moves, {
+                    type: "attack",
+                    attacker: attacker,
+                    target: target,
+                    isDirect: false
+                });
+            }
+
+            // 2.2 Attack Direct (Hero) - Only if NO Active Taunt
+            if (!hasActiveTaunt) {
+                array_push(moves, {
+                    type: "attack",
+                    attacker: attacker,
+                    target: noone,
+                    isDirect: true
+                });
             }
         }
     }
@@ -606,3 +575,4 @@ function AI_CountEnemyContinuousByObjectName(objName) {
     }
     return count;
 }
+

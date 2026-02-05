@@ -27,9 +27,9 @@ function AI_GetTutorialMove(turn, phase) {
             if (move == noone) show_debug_message("### AI_GetTutorialMove: Failed to find oAraigneeForestiere in moves!");
             else show_debug_message("### AI_GetTutorialMove: Found oAraigneeForestiere move!");
         } 
-        // Tour 4 : Poser Tortue (Défense)
+        // Tour 4 : Poser Tortue (Attaque pour être sur la Frontline)
         else if (turn == 4) {
-            move = AI_FindMove_Summon(moves, "oTortueVagabonde", "Defense");
+            move = AI_FindMove_Summon(moves, "oTortueVagabonde", "Attack");
         }
         // Tour 6 : Invoquer Araignée (Attaque)
         else if (turn == 6) {
@@ -38,19 +38,55 @@ function AI_GetTutorialMove(turn, phase) {
         // Tour 8 : Invoquer Araignée (Attaque)
         else if (turn == 8) {
              move = AI_FindMove_Summon(moves, "oAraigneeForestiere", "Attack");
+             if (move != noone) move.force_slot = 4; // Force Backline placement (pour ne pas bloquer l'attaque directe du joueur au Tour 9)
         }
         // Tour 10 : Poser Araignée (Défense)
         else if (turn == 10) {
-             move = AI_FindMove_Summon(moves, "oAraigneeForestiere", "Defense");
+             move = AI_FindMove_Summon(moves, "oAraigneeForestiere", "PV");
         }
     } 
     // Phase d'Attaque
     else if (phase == "Attack") {
         var moves = AI_GetLegalMoves_Attack();
         
-        // Tour 8 : Attaquer le Maître des Passes avec une Araignée
+        // Tour 8 : Attaquer le Gobelin avec la Tortue, puis le Maître des Passes avec l'Araignée
         if (turn == 8) {
-             move = AI_FindMove_Attack(moves, "oAraigneeForestiere", "oMaitrePasse");
+             // Vérifier si le secret est encore actif (non déclenché)
+             var secretActive = false;
+             if (variable_global_exists("activeSecretsHero") && ds_exists(global.activeSecretsHero, ds_type_list)) {
+                 var size = ds_list_size(global.activeSecretsHero);
+                 for (var k = 0; k < size; k++) {
+                     var s = ds_list_find_value(global.activeSecretsHero, k);
+                     if (instance_exists(s)) {
+                         var sName = variable_instance_exists(s, "name") ? s.name : object_get_name(s.object_index);
+                         if (string_pos("Feuillage", sName) > 0 || s.object_index == oFeuillageProtecteur) {
+                             secretActive = true; 
+                             break;
+                         }
+                     }
+                 }
+             }
+
+             // Vérifier si le Gobelin a déjà reçu l'effet Illusion (signe que le secret a déclenché mais n'est pas encore nettoyé)
+             var gobHasIllusion = false;
+             var gobTarget = noone;
+             with(oCardParent) {
+                 if (object_index == oGobelinFurtif && isHeroOwner && zone == "Field") {
+                     gobTarget = id;
+                     if (variable_instance_exists(id, "illusion") && illusion > 0) {
+                         gobHasIllusion = true;
+                     }
+                     break;
+                 }
+             }
+             
+             // Priorité 1: Tortue -> Gobelin (SEULEMENT si le secret est encore actif ET que le Gobelin n'a pas encore Illusion)
+             var moveTortueGob = AI_FindMove_Attack(moves, "oTortueVagabonde", "oGobelinFurtif");
+             
+             if (secretActive && !gobHasIllusion && moveTortueGob != noone) {
+                 move = moveTortueGob;
+             } 
+             // ELSE: On ne fait rien. Le tour s'arrête là pour l'IA (pas de 2ème attaque).
         }
     }
     
@@ -91,3 +127,4 @@ function AI_FindMove_Attack(moves, attackerObjName, targetObjName) {
     }
     return noone;
 }
+

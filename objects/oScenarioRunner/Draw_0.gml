@@ -197,6 +197,14 @@ draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 draw_set_font(fontCardDisplay); // Utiliser la même police
 
+// Bouton Précédent
+var hover_prev = point_in_rectangle(mouse_x, mouse_y, btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2);
+draw_set_color(hover_prev ? c_ltgray : c_gray);
+draw_rectangle(btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2, false);
+draw_set_color(c_white);
+draw_rectangle(btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2, true);
+draw_text_transformed((btn_prev_x1+btn_prev_x2)/2, (btn_prev_y1+btn_prev_y2)/2, "Précédent", 0.5, 0.5, 0);
+
 // Bouton Suivant
 var hover_next = point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, btn_next_y2);
 draw_set_color(hover_next ? c_ltgray : c_gray);

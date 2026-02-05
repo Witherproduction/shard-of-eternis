@@ -30,9 +30,19 @@ if (!file_exists(path)) {
 if (file_exists(path)) {
     var fr = file_text_open_read(path);
     var s = "";
-    while (!file_text_eof(fr)) { s += file_text_read_string(fr); }
+    while (!file_text_eof(fr)) { 
+        s += file_text_read_string(fr);
+        file_text_readln(fr); // IMPORTANT: Force next line
+    }
     file_text_close(fr);
-    var data = json_parse(s);
+    
+    var data = undefined;
+    try {
+        data = json_parse(s);
+    } catch(e) {
+        show_debug_message("ERROR PARSING JSON IN ROOM START: " + string(e));
+    }
+
     if (is_struct(data) && variable_struct_exists(data, "scenes")) {
         var scenes = data.scenes;
         var idx = 0;

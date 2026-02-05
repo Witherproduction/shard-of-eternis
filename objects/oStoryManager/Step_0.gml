@@ -35,14 +35,34 @@ for (var i = 0; i < array_length(heroes); i++) {
 hover_chapter_id = -1;
 hover_act_index = -1;
 hover_start_btn = false;
+hover_talent_btn = false;
 
 if (selected_hero_index != -1) {
     var hero = heroes[selected_hero_index];
+    
+    // Gestion Bouton Talent
+    // On doit recalculer ou utiliser les coordonnées stockées (btn_talent_rect est mis à jour dans Draw, mais ici on est avant Draw dans la frame ?)
+    // Draw met à jour rect, donc au Step suivant c'est bon.
+    if (mx >= btn_talent_rect.x1 && mx <= btn_talent_rect.x2 &&
+        my >= btn_talent_rect.y1 && my <= btn_talent_rect.y2) {
+        
+        hover_talent_btn = true;
+        if (click) {
+             // Ouvrir le panel Talent
+             if (!instance_exists(oTalentPanel)) {
+                 var p = instance_create_depth(0, 0, depth - 1000, oTalentPanel);
+                 p.init(hero.id, hero.name, hero.hero_power);
+             }
+        }
+    }
+    
     var cx = panel_chap_x;
     var cy = panel_chap_y;
     
     // Entête du héros (pas d'interaction spéciale pour l'instant)
-    cy += 20; // Espace pour le titre du héros (réduit car titre supprimé)
+    // Ajustement pour le bouton Talent (hauteur 50 + marge 20)
+    var btn_t_h = 50;
+    cy += btn_t_h + 20; 
     
     // Liste des chapitres
     for (var i = 0; i < array_length(hero.chapters); i++) {
@@ -164,22 +184,39 @@ if (selected_hero_index != -1) {
                         }
                         
                         // 2. Cas Normal : Scénario
-                        if (variable_global_exists("current_chapter") && variable_global_exists("current_act")) {
-                             // Préparer les infos de reprise
-                             var resume_act = story_progress_get_resume_act(ch_id);
-                             var start_scene = 0;
-                             
-                             // Si on joue l'acte "en cours", on reprend la scène sauvegardée
-                             if (global.current_act == resume_act) {
-                                 var last = story_progress_read_last_scene(ch_id);
-                                 if (last.act == global.current_act) {
+                        // On sécurise l'accès aux variables globales
+                        var safe_chap = variable_global_exists("current_chapter") ? global.current_chapter : ch_id;
+                        var safe_act = variable_global_exists("current_act") ? global.current_act : 1;
+                        
+                        // Définir l'ID du héros pour le mode histoire (pour les Talents)
+                        global.story_hero_id = heroes[selected_hero_index].id;
+                        
+                        // Force update globals
+                        global.current_chapter = safe_chap;
+                        global.current_act = safe_act;
+
+                        // VERSION CORRIGÉE : On ne lit PAS le fichier INI ici pour éviter le crash Antivirus
+                        // On force le démarrage au début de l'acte.
+                        // La sauvegarde se fera à la fin de la première scène jouée.
+                        var start_scene = 0;
+                        
+                        /* 
+                        // CODE DÉSACTIVÉ TEMPORAIREMENT - CAUSE DES CRASHS CHEZ CERTAINS UTILISATEURS
+                        try {
+                             var resume_act = story_progress_get_resume_act(safe_chap);
+                             if (safe_act == resume_act) {
+                                 var last = story_progress_read_last_scene(safe_chap);
+                                 if (last.act == safe_act) {
                                      start_scene = last.scene_index;
                                  }
                              }
-                             
-                             global.story_resume_info = { chapter_id: ch_id, act: global.current_act, scene_index: start_scene };
-                             room_goto(rScenario);
+                        } catch(e) {
+                             start_scene = 0;
                         }
+                        */
+                        
+                        global.story_resume_info = { chapter_id: safe_chap, act: safe_act, scene_index: start_scene };
+                        room_goto(rScenario);
                     }
                 }
             }

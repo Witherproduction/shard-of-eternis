@@ -2,16 +2,16 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Portefaix"
-attack = 4;
-defense = 5;
-star = 2;
+attack = 3;
+PV = 3;
+mana_cost = 3;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
 rarity = "commun"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Camouflage. Eveil : Détruit un sort aléatoire sur le terrain adverse."
+description = "Camouflage. Eveil : Purge un serviteur adverse (Retire tous ses effets)."
 effects = [
     {
         id: 1,
@@ -21,13 +21,13 @@ effects = [
     {
         id: 2,
         trigger: TRIGGER_ON_SUMMON,
-        effect_type: EFFECT_DESTROY,
+        effect_type: EFFECT_PURGE,
         owner: "enemy",
         target_zone: "Field",
-        target_types: ["Magic"],
-        random_select: true,
-        value: 1,
+        target_types: ["Monster"],
+        random_select: false,
         conditions: { summon_mode: "Summon" }
     }
 ]
+
 

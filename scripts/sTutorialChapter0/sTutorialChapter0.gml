@@ -5,10 +5,10 @@ function Tutorial_Chapter0_Init() {
     
     tuto_turn1_done = true;
     
-    // Set Enemy HP to 5 for tutorial purposes
+    // Set Enemy HP to 3 for tutorial purposes
     var LP_Enemy_Instance = instance_find(oLP_Enemy, 0);
     if (LP_Enemy_Instance != noone) {
-        LP_Enemy_Instance.nbLP = 5;
+        LP_Enemy_Instance.nbLP = 3;
     }
     
     var tuto = instance_create_layer(0, 0, "UI", oTutorielManager);
@@ -37,48 +37,47 @@ function Tutorial_Chapter0_Init() {
             arrow: [1536, 870, 270]
         },
         {
+            text: "Pour jouer des cartes, vous avez besoin de Mana. Votre Mana augmente de 1 à chaque tour et se recharge complètement au début de votre tour.",
+            highlight: [1635, 847, 150, 150], // Highlight zone mana (estimé près du deck)
+            arrow: [1710, 827, 270]
+        },
+        {
             text: "A vous de jouer ! Cliquez sur la carte 'Araignée Forestière' pour la sélectionner.",
             highlight: [0,0,0,0], // Sera mis à jour dynamiquement
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Le bouton 'Invoquer' (Summon) permet de placer le monstre en position d'Attaque (visible).",
+            text: "Le bouton 'Invoquer' (Summon) permet de placer le monstre sur le terrain. Notez son coût en Mana.",
             highlight: noone, // Sera mis à jour dynamiquement
             arrow: noone,
             allow_clicks: false
         },
         {
-            text: "Le bouton 'Poser' (Set) permet de placer le monstre en position de Défense (caché).",
-            highlight: noone, // Sera mis à jour dynamiquement
-            arrow: noone,
-            allow_clicks: false
-        },
-        {
-            text: "Pour ce duel, nous allons jouer offensivement.\nCliquez sur le bouton 'Invoquer' pour continuer.",
+            text: "Cliquez sur le bouton 'Invoquer' pour continuer.",
             highlight: noone, // Sera mis à jour dynamiquement
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Choisissez un emplacement libre sur votre terrain pour invoquer le monstre.",
+            text: "Choisissez un emplacement libre. Les monstres peuvent être placés sur la Ligne de Front ou de Retraite.\nLa Ligne de Front protège votre Héros et votre Ligne de Retraite.",
             highlight: noone, // Sera mis à jour dynamiquement
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Voici l'indicateur de Phase et de Tour.\nLe tour est divisé en 3 phases :\n1. Pioche: Vous piochez une carte.\n2. Main Phase: Vous jouez vos cartes.\n3. Combat: Vous attaquez l'adversaire.",
+            text: "Voici l'indicateur de Phase et de Tour.\nLe tour est divisé en 3 phases :\n1. Start: Pioche et Mana.\n2. Main: Jouer des cartes et Attaquer.\n3. End: Fin du tour.",
             highlight: [1605, 380, 250, 270],
             arrow: [1590, 515, 0]
         },
         {
-            text: "Cliquez sur ce bouton pour passer à la phase de Combat.",
+            text: "Cliquez sur ce bouton pour passer à la phase de Fin (End).",
             highlight: noone, // Sera mis à jour dynamiquement
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Durant le premier tour, vous ne pouvez pas attaquer.\nCliquez à nouveau pour terminer votre tour.",
+            text: "Durant le premier tour où ils sont invoqués, les monstres ne peuvent pas attaquer (Mal d'invocation).\nCliquez à nouveau pour terminer votre tour.",
             highlight: noone, // Sera mis à jour dynamiquement
             arrow: noone,
             hide_next_button: true
@@ -112,8 +111,8 @@ function Tutorial_Chapter0_Update() {
         var cam_x = camera_get_view_x(view_camera[0]);
         var cam_y = camera_get_view_y(view_camera[0]);
         
-        // Etape 4: Sélection Araignée (Interactive)
-        if (step_idx == 4) {
+        // Etape 5: Sélection Araignée (Interactive)
+        if (step_idx == 5) {
              // 1. Vérifier si une carte valide est DÉJÀ sélectionnée (n'importe quelle Araignée)
              if (instance_exists(oSelectManager) && oSelectManager.selected != noone) {
                  var sel = oSelectManager.selected;
@@ -130,11 +129,7 @@ function Tutorial_Chapter0_Update() {
                      if (isNameValid && isHand && isOwner) {
                          show_debug_message("### TUTO: Valid spider selected, forcing next step");
                          tuto.forceNextStep();
-                         // Etape 15: Attaque Directe Gobelin
-                         // REMOVED FROM HERE
-
-        
-        return true; // Sortir pour éviter de redessiner le highlight inutilement
+                         return true; // Sortir pour éviter de redessiner le highlight inutilement
                      }
                  }
              }
@@ -166,8 +161,8 @@ function Tutorial_Chapter0_Update() {
                   if (current_time % 60 == 0) show_debug_message("### TUTO: No spider found to highlight!");
              }
         }
-        // Etape 5 (Explique Summon) ou 7 (Clic Summon)
-        else if (step_idx == 5 || step_idx == 7) {
+        // Etape 6 (Explique Summon) ou 7 (Clic Summon)
+        else if (step_idx == 6 || step_idx == 7) {
              var target = noone;
              if (instance_exists(oSummon)) target = instance_find(oSummon, 0);
              
@@ -195,29 +190,6 @@ function Tutorial_Chapter0_Update() {
                      show_debug_message("### TUTO: Summon clicked, forcing next step");
                      tuto.forceNextStep();
                  }
-             }
-        }
-        // Etape 6 (Explique Set)
-        else if (step_idx == 6) {
-             var target = noone;
-             if (instance_exists(oSet)) target = instance_find(oSet, 0);
-             
-             if (target != noone) {
-                 var w = sprite_get_width(target.sprite_index) * target.image_xscale;
-                 var h = sprite_get_height(target.sprite_index) * target.image_yscale;
-                 var ox = sprite_get_xoffset(target.sprite_index) * target.image_xscale;
-                 var oy = sprite_get_yoffset(target.sprite_index) * target.image_yscale;
-                 var xx = target.x - cam_x - ox;
-                 var yy = target.y - cam_y - oy;
-                 
-                 // Highlight
-                 var margin = 10;
-                 tuto.updateHighlight(xx - margin, yy - margin, w + margin*2, h + margin*2);
-                 
-                 // Arrow
-                 var cx = xx + w/2;
-                 var cy = yy; 
-                 tuto.updateArrows([[cx, cy - 10, 270]]);
              }
         }
         // Etape 8: Clic Terrain (Interactive)
@@ -313,6 +285,11 @@ function Tutorial_Turn3_Init() {
     
     tuto_turn3_done = true;
     show_debug_message("### TUTO TURN 3: Init started");
+
+    // FIX: Donner 4 mana pour permettre de jouer Secret (2) + Gobelin (2)
+    global.mana_hero = 4;
+    // Ajuster le max aussi pour éviter confusion visuelle 4/3
+    global.mana_max_hero = 4;
     
     var tuto = instance_create_layer(0, 0, "UI", oTutorielManager);
     tuto.tutorial_id = 3; // ID pour le Tour 3
@@ -355,17 +332,22 @@ function Tutorial_Turn3_Init() {
     // Configuration des étapes du Tour 3
     var steps = [
         {
-            text: "C'est à votre tour ! Au début de chaque tour, vous piochez automatiquement une carte.",
+            text: "C'est à votre tour ! Exceptionnellement, vous disposez de 4 Mana pour apprendre les règles.\nAu début de chaque tour, vous piochez automatiquement une carte.",
             highlight: noone, 
             arrow: noone
         },
         {
-            text: "Vous avez pioché une nouvelle carte !\nParlons des cartes Magie. Il en existe 4 types :",
+            text: "Vous avez pioché une nouvelle carte !\nParlons des cartes Magie. Il en existe 2 types principaux :",
             highlight: noone,
             arrow: noone
         },
         {
-            text: "- Direct : Effet immédiat.\n- Continue : Reste sur le terrain.\n- Artéfact  : Equipement.\n- Secret : Se déclenche automatiquement sous condition une fois posé.",
+            text: "- Sort : Effet immédiat.\n- Secret : Se déclenche automatiquement sous condition (généralement pendant le tour adverse).",
+            highlight: noone,
+            arrow: noone
+        },
+        {
+            text: "Tant que vous avez assez de Mana, vous pouvez jouer autant de cartes que vous voulez par tour.",
             highlight: noone,
             arrow: noone
         },
@@ -376,14 +358,8 @@ function Tutorial_Turn3_Init() {
             hide_next_button: true
         },
         {
-            text: "Notez que les cartes Secret s'activent automatiquement si leur condition est remplie une fois posées sur le terrain.\n\nCliquez sur le bouton 'Poser' (Set) pour préparer la carte.",
-            highlight: noone, // Sera mis à jour dynamiquement (oSet)
-            arrow: noone,
-            hide_next_button: true
-        },
-        {
-            text: "Cliquez sur une zone Magie/Piège (ligne arrière) pour poser la carte.",
-            highlight: noone, // Sera mis à jour dynamiquement (Terrain)
+            text: "Cliquez sur le bouton 'Activer' pour préparer le Secret.",
+            highlight: noone, // Sera mis à jour dynamiquement (oEffectButton)
             arrow: noone,
             hide_next_button: true
         },
@@ -397,12 +373,6 @@ function Tutorial_Turn3_Init() {
             text: "Ce monstre possède la capacité 'Camouflage'.\nIl ne peut pas être attaqué ou ciblé tant qu'il est camouflé.",
             highlight: noone, // Sera mis à jour dynamiquement (Gobelin sur terrain)
             arrow: noone
-        },
-        {
-            text: "Passez maintenant en Phase de Combat (Battle).",
-            highlight: h_phase, // Battle Button
-            arrow: noone,
-            hide_next_button: true
         },
         {
             text: "Sélectionnez votre 'Araignée Forestière'.",
@@ -423,7 +393,7 @@ function Tutorial_Turn3_Init() {
             hide_next_button: true
         },
         {
-            text: "Lorsque deux monstres en position d'Attaque combattent et ont la même ATK, les deux sont détruits !\n\nSi l'attaque n'est pas égale, alors c'est celui avec le plus gros montant qui gagne et détruit le perdant en infligeant des dégâts au propriétaire.",
+            text: "Lorsque deux monstres combattent, ils s'infligent des dégâts égaux à leur ATK.\nSi les dégâts reçus sont supérieurs aux PV, le monstre est détruit.",
             highlight: noone,
             arrow: noone
         },
@@ -467,8 +437,8 @@ function Tutorial_Turn3_Update() {
                   //tuto.forceNextStep(); // Non, on laisse le joueur cliquer sur Suivant
              }
         }
-        // Etape 3: Sélectionner Feuillage Protecteur
-        else if (step_idx == 3) {
+        // Etape 4: Sélectionner Feuillage Protecteur
+        else if (step_idx == 4) {
              var isSelected = false;
              // Vérifier si la carte est sélectionnée
              if (instance_exists(oSelectManager) && oSelectManager.selected != noone) {
@@ -515,10 +485,10 @@ function Tutorial_Turn3_Update() {
                  }
              }
         }
-        // Etape 4: Cliquer sur le bouton Set (avec explication Secret)
-        else if (step_idx == 4) {
+        // Etape 5: Cliquer sur le bouton Activer (oEffectButton) et Vérifier si joué
+        else if (step_idx == 5) {
              var target = noone;
-             if (instance_exists(oSet)) target = instance_find(oSet, 0);
+             if (instance_exists(oEffectButton)) target = instance_find(oEffectButton, 0);
              
              if (target != noone) {
                  var w = sprite_get_width(target.sprite_index) * target.image_xscale;
@@ -534,70 +504,22 @@ function Tutorial_Turn3_Update() {
                  tuto.updateArrows([[xx + w/2, yy - 10, 270]]);
              }
              
-             // Vérifier si le mode Set est actif
-             if (instance_exists(oUIManager) && oUIManager.selectedSummonOrSet == "Set") {
+             // Vérifier si le mode placement est actif (bouton cliqué) OU si la carte est sur le terrain (Auto-play)
+             var cardOnField = false;
+             with(oCardParent) {
+                 if ((object_index == oFeuillageProtecteur || (variable_instance_exists(id, "name") && string_pos("Feuillage", name) > 0)) && 
+                     (zone == "Field" || zone == "Secret") && isHeroOwner) {
+                     cardOnField = true;
+                     break;
+                 }
+             }
+
+             if (instance_exists(oIndicatorParent) || cardOnField) {
                  tuto.forceNextStep();
              }
         }
 
-        // Etape 5: Poser Feuillage Protecteur
-        else if (step_idx == 5) {
-             // Highlight le terrain (Magic Zones)
-             var min_x = 99999, min_y = 99999, max_x = -99999, max_y = -99999;
-             var found = false;
-             
-             // On cible les zones Magie/Piège du héros
-             with(oFieldMagicTrapHero) {
-                 found = true;
-                 if (sprite_index != -1) {
-                     var w = sprite_get_width(sprite_index) * image_xscale;
-                     var h = sprite_get_height(sprite_index) * image_yscale;
-                     var ox = sprite_get_xoffset(sprite_index) * image_xscale;
-                     var oy = sprite_get_yoffset(sprite_index) * image_yscale;
-                     var xx = x - cam_x - ox; 
-                     var yy = y - cam_y - oy;
-                     
-                     if (xx < min_x) min_x = xx;
-                     if (yy < min_y) min_y = yy;
-                     if (xx + w > max_x) max_x = xx + w;
-                     if (yy + h > max_y) max_y = yy + h;
-                 } else if (variable_instance_exists(id, "posLocation")) {
-                     var cardW = 150;
-                     var cardH = 210;
-                     for (var i = 0; i < array_length(posLocation); i++) {
-                         var pos = posLocation[i];
-                         var xx = pos[0] - cam_x - cardW/2;
-                         var yy = pos[1] - cam_y - cardH/2;
-                         
-                         if (xx < min_x) min_x = xx;
-                         if (yy < min_y) min_y = yy;
-                         if (xx + cardW > max_x) max_x = xx + cardW;
-                         if (yy + cardH > max_y) max_y = yy + cardH;
-                     }
-                 }
-             }
-             
-             if (found) {
-                 var margin = 5;
-                 tuto.updateHighlight(min_x - margin, min_y - margin, (max_x - min_x) + margin*2, (max_y - min_y) + margin*2);
-                 tuto.updateArrows([[min_x + (max_x - min_x)/2, min_y - 20, 270]]);
-             }
-             
-             // Vérifier si joué (sur le terrain)
-             var played = false;
-             with(oCardParent) {
-                 if ((object_index == oFeuillageProtecteur || (variable_instance_exists(id, "name") && string_pos("Feuillage", name) > 0)) && 
-                     zone == "Field" && isHeroOwner) {
-                     played = true;
-                     break;
-                 }
-             }
-             if (played) {
-                 show_debug_message("### TUTO TURN 3: Feuillage played!");
-                 tuto.forceNextStep();
-             }
-        }
-        // Etape 6: Invoquer Gobelin Furtif
+        // Etape 6: Invoquer Gobelin Furtif (Index recalé suite suppression étape placement)
         else if (step_idx == 6) {
              var isSelected = false;
              var isSummonMode = false;
@@ -724,16 +646,8 @@ function Tutorial_Turn3_Update() {
              }
         }
         
-        // Etape 8: Passer en Battle Phase
+        // Etape 8: Selectionner Araignee (Index recalé: était 9)
         else if (step_idx == 8) {
-             // On attend que la phase devienne "Attack"
-             if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] == "Attack") {
-                 tuto.forceNextStep();
-             }
-        }
-        
-        // Etape 9: Selectionner Araignee
-        else if (step_idx == 9) {
              var attacker = noone;
              with(oAraigneeForestiere) {
                  if (isHeroOwner && (zone == "Field" || zone == "FieldSelected")) attacker = id;
@@ -746,8 +660,8 @@ function Tutorial_Turn3_Update() {
              }
         }
         
-        // Etape 10: Cliquer Attack
-        else if (step_idx == 10) {
+        // Etape 9: Cliquer Attack (Index recalé: était 10)
+        else if (step_idx == 9) {
              var btn = instance_find(oAttack, 0);
              if (btn != noone) {
                  var bx = btn.bbox_left - cam_x;
@@ -764,8 +678,8 @@ function Tutorial_Turn3_Update() {
              }
         }
         
-        // Etape 11: Cibler Ennemi
-        else if (step_idx == 11) {
+        // Etape 10: Cibler Ennemi (Index recalé: était 11)
+        else if (step_idx == 10) {
              var enemyAlive = false;
              with(oAraigneeForestiere) {
                  if (!isHeroOwner && (zone == "Field" || zone == "FieldSelected")) {
@@ -779,22 +693,35 @@ function Tutorial_Turn3_Update() {
              }
         }
         
-        // Etape 13: Secret Highlight
-        else if (step_idx == 13) {
-             var secret = noone;
-             with(oFeuillageProtecteur) {
-                 if (isHeroOwner && zone == "Field") secret = id;
-             }
-             if (secret != noone) {
-                 var bx = secret.bbox_left - cam_x;
-                 var by = secret.bbox_top - cam_y;
-                 var bw = secret.bbox_right - secret.bbox_left;
-                 var bh = secret.bbox_bottom - secret.bbox_top;
-                 tuto.updateHighlight(bx, by, bw, bh);
+        // Etape 12: Secret Highlight (Icone à côté des PV)
+        else if (step_idx == 12) {
+             var lp = instance_find(oLP_Hero, 0);
+             if (lp != noone) {
+                 // L'icône est dessinée à (x, y-70) avec un scale de 0.5
+                 var secret_x = lp.x;
+                 var secret_y = lp.y - 70;
+                 
+                 var spr = asset_get_index("sSecret");
+                 var w = 60; 
+                 var h = 60;
+                 
+                 if (spr != -1) {
+                     w = sprite_get_width(spr) * 0.5;
+                     h = sprite_get_height(spr) * 0.5;
+                 }
+                 
+                 // Centrer le highlight sur l'icône
+                 var xx = secret_x - w/2 - cam_x;
+                 var yy = secret_y - h/2 - cam_y;
+                 
+                 // Ajustement fin pour bien encadrer
+                 var margin = 5;
+                 tuto.updateHighlight(xx - margin, yy - margin, w + margin*2, h + margin*2);
+                 tuto.updateArrows([[xx + w/2 + margin, yy - 20, 270]]);
              }
         }
-        // Etape 14: Fin de tour
-        else if (step_idx == 14) {
+        // Etape 13: Fin de tour (Index recalé: était 14)
+        else if (step_idx == 13) {
              var target = noone;
              if (instance_exists(oNextStep)) target = instance_find(oNextStep, 0);
              
@@ -841,12 +768,12 @@ function Tutorial_Turn5_Init() {
             arrow: noone
         },
         {
-            text: "Un effet 'Crépuscule' se déclenche automatiquement à la fin de votre tour.\nÀ l'inverse, un effet 'Aube' s'activerait au début du tour.",
+            text: "Le Maître des Passes a un effet 'Crépuscule'. Cela signifie qu'il s'active automatiquement à la fin de votre tour.",
             highlight: noone,
             arrow: noone
         },
         {
-            text: "Justement, le Maître des Passes possède un effet Crépuscule, essayons-le.",
+            text: "À l'inverse, un effet 'Aube' s'activerait au début du tour.",
             highlight: noone,
             arrow: noone
         },
@@ -868,12 +795,7 @@ function Tutorial_Turn5_Init() {
             arrow: noone,
             hide_next_button: true
         },
-        {
-            text: "Bien joué ! Passez maintenant en phase d'Attaque.",
-            highlight: noone,
-            arrow: noone,
-            hide_next_button: true
-        },
+        // Etape supprimée (Phase d'attaque obsolète)
         {
             text: "Votre Gobelin Furtif est prêt à combattre.\nSélectionnez-le.",
             highlight: noone,
@@ -893,7 +815,7 @@ function Tutorial_Turn5_Init() {
             hide_next_button: true
         },
         {
-            text: "Observez le résultat : Votre attaque (4) est inférieure à sa défense (6).\nVous subissez la différence (2) en dégâts.\nSi votre ATK est égale à la DEF ennemi, alors il ne se passe rien.\nSi votre ATK est supérieur à la DEF adverse alors son monstre est détruit mais aucun dégat n'est subis.",
+            text: "La Tortue a perdu des PV mais n'est pas détruite car ses PV sont supérieurs à votre ATK.",
             highlight: noone,
             arrow: noone
         },
@@ -1026,7 +948,8 @@ function Tutorial_Turn5_Update() {
              }
         }
         
-        // Etape 6: Passer en Phase Attaque
+        // Etape 6: Passer en Phase Attaque (SUPPRIMÉ)
+        /*
         else if (step_idx == 6) {
              var btn = instance_find(oNextStep, 0);
              
@@ -1046,9 +969,10 @@ function Tutorial_Turn5_Update() {
                  tuto.forceNextStep();
              }
         }
+        */
         
-        // Etape 7: Sélectionner Gobelin Furtif
-        else if (step_idx == 7) {
+        // Etape 7: Sélectionner Gobelin Furtif (Index recalé: devient 6)
+        else if (step_idx == 6) {
              var target = noone;
              var isSelected = false;
              
@@ -1081,8 +1005,8 @@ function Tutorial_Turn5_Update() {
              }
         }
         
-        // Etape 8: Cliquer sur Attaquer
-        else if (step_idx == 8) {
+        // Etape 7: Cliquer sur Attaquer (Index recalé: devient 7)
+        else if (step_idx == 7) {
              var btn = instance_find(oAttack, 0);
              if (btn != noone) {
                  var bx = btn.bbox_left - cam_x;
@@ -1098,23 +1022,8 @@ function Tutorial_Turn5_Update() {
              }
         }
         
-        // Etape 9: Attaquer Tortue Vagabonde
-        else if (step_idx == 9) {
-             // Init tracking HP variable
-             if (!variable_instance_exists(tuto, "hp_start_step_9")) {
-                 var lp_obj = instance_find(oLP_Hero, 0);
-                 tuto.hp_start_step_9 = (lp_obj != noone) ? lp_obj.nbLP : 50;
-            }
-            
-            // Check HP drop
-            var current_hp = 50;
-             var lp_obj = instance_find(oLP_Hero, 0);
-             if (lp_obj != noone) current_hp = lp_obj.nbLP;
-             
-             if (current_hp < tuto.hp_start_step_9) {
-                 tuto.forceNextStep();
-             }
-
+        // Etape 8: Attaquer Tortue Vagabonde (Index recalé: devient 8)
+        else if (step_idx == 8) {
              var target = noone;
              with(oCardParent) {
                  if (object_index == oTortueVagabonde && !isHeroOwner && zone == "Field") {
@@ -1131,7 +1040,8 @@ function Tutorial_Turn5_Update() {
                  }
              }
              
-             if (gobelin != noone && variable_instance_exists(gobelin, "hasAttacked") && gobelin.hasAttacked) {
+             // Detection de l'attaque via attacksUsedThisTurn (hasAttacked n'existe pas)
+             if (gobelin != noone && variable_instance_exists(gobelin, "attacksUsedThisTurn") && gobelin.attacksUsedThisTurn > 0) {
                  tuto.forceNextStep();
              }
              else if (target != noone) {
@@ -1145,8 +1055,8 @@ function Tutorial_Turn5_Update() {
              }
         }
         
-        // Etape 11: Fin de tour (skip step 10 car c'est juste du texte)
-        else if (step_idx == 11) {
+        // Etape 10: Fin de tour (Index recalé: devient 10)
+        else if (step_idx == 10) {
              var btn = instance_find(oNextStep, 0);
              if (btn != noone) {
                  var w = sprite_get_width(btn.sprite_index) * btn.image_xscale;
@@ -1197,7 +1107,7 @@ function Tutorial_Turn7_Init() {
             arrow: noone
         },
         {
-            text: "Le Peau-de-Roc Robuste dans votre main possède un effet Eveil.\nSélectionnez-le.",
+            text: "Le Peau-de-Roc Robuste possède 'Charge' (attaque immédiate) et 'Percée' (ignore la Ligne de Front).\nSélectionnez-le.",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
@@ -1215,16 +1125,11 @@ function Tutorial_Turn7_Init() {
             hide_next_button: true
         },
         {
-            text: "Regardez ! Son attaque a augmenté grâce à son effet Eveil.",
+            text: "Grâce à son effet 'Charge', il est prêt à attaquer immédiatement !",
             highlight: noone,
             arrow: noone
         },
-        {
-            text: "Passez maintenant en phase d'Attaque.",
-            highlight: noone,
-            arrow: noone,
-            hide_next_button: true
-        },
+        // Etape supprimée (Phase d'attaque obsolète)
         {
             text: "Sélectionnez votre Peau-de-Roc Robuste.",
             highlight: noone,
@@ -1394,29 +1299,10 @@ function Tutorial_Turn7_Update() {
              }
         }
         
-        // Etape 7: Passer en Phase Attaque
-        else if (step_idx == 7) {
-             var btn = instance_find(oNextStep, 0);
-             
-             if (btn != noone) {
-                 var w = sprite_get_width(btn.sprite_index) * btn.image_xscale;
-                 var h = sprite_get_height(btn.sprite_index) * btn.image_yscale;
-                 var ox = sprite_get_xoffset(btn.sprite_index) * btn.image_xscale;
-                 var oy = sprite_get_yoffset(btn.sprite_index) * btn.image_yscale;
-                 var xx = btn.x - cam_x - ox;
-                 var yy = btn.y - cam_y - oy;
-                 
-                 tuto.updateHighlight(xx, yy, w, h);
-                 tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-             }
-             
-             if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] == "Attack") {
-                 tuto.forceNextStep();
-             }
-        }
+        // (Ancienne étape 7 supprimée - Phase Attaque)
         
-        // Etape 8: Sélectionner Peau-de-Roc Robuste
-        else if (step_idx == 8) {
+        // Etape 7: Sélectionner Peau-de-Roc Robuste (Index recalé: devient 7)
+        else if (step_idx == 7) {
              var target = noone;
              var isSelected = false;
              
@@ -1449,8 +1335,8 @@ function Tutorial_Turn7_Update() {
              }
         }
         
-        // Etape 9: Cliquer sur Attaquer
-        else if (step_idx == 9) {
+        // Etape 8: Cliquer sur Attaquer (Index recalé: devient 8)
+        else if (step_idx == 8) {
              var btn = instance_find(oAttack, 0);
              if (btn != noone) {
                  var bx = btn.bbox_left - cam_x;
@@ -1466,8 +1352,8 @@ function Tutorial_Turn7_Update() {
              }
         }
         
-        // Etape 10: Attaquer Tortue Vagabonde
-        else if (step_idx == 10) {
+        // Etape 9: Attaquer Tortue Vagabonde (Index recalé: devient 9)
+        else if (step_idx == 9) {
              // Init tracking variables
              if (!variable_instance_exists(tuto, "turn7_step10_init")) {
                  tuto.turn7_step10_init = true;
@@ -1513,8 +1399,8 @@ function Tutorial_Turn7_Update() {
              }
         }
         
-        // Etape 11: Fin de tour
-        else if (step_idx == 11) {
+        // Etape 10: Fin de tour (Index recalé: devient 10)
+        else if (step_idx == 10) {
              var btn = instance_find(oNextStep, 0);
              if (btn != noone) {
                  var w = sprite_get_width(btn.sprite_index) * btn.image_xscale;
@@ -1545,10 +1431,10 @@ function Tutorial_Turn9_Init() {
     
     tuto_turn9_done = true;
     
-    // Set Enemy HP to 5 for tutorial purposes (redundant check)
+    // Set Enemy HP to 3 for tutorial purposes
     var LP_Enemy_Instance = instance_find(oLP_Enemy, 0);
     if (LP_Enemy_Instance != noone) {
-        LP_Enemy_Instance.nbLP = 5;
+        LP_Enemy_Instance.nbLP = 3;
     }
 
     show_debug_message("### TUTO TURN 9: Init started");
@@ -1563,70 +1449,42 @@ function Tutorial_Turn9_Init() {
             arrow: noone
         },
         {
-            text: "Votre secret 'Feuillage Protecteur' s'est activé durant le tour adverse !\nLe Maître des Passes a été attaqué, ce qui a déclenché le piège.",
+            text: "Votre secret 'Feuillage Protecteur' s'est activé durant le tour adverse !\nLe Gobelin Furtif a été attaqué, ce qui a déclenché le piège.",
             highlight: noone,
             arrow: noone
         },
         {
-            text: "Maintenant, parlons des Sacrifices.\nPour invoquer un monstre de Niveau 2, vous devez sacrifier 1 monstre.",
+            text: "Voici l'Envahisseur Gueule-Roche.\n'Eveil' : Effet immédiat à l'invocation.\n'Brisé' : Effet déclenché à la destruction.",
             highlight: noone,
-            arrow: noone
+            arrow: noone,
+            hide_next_button: false
         },
         {
-            text: "Pour un monstre de Niveau 3, il faut 2 sacrifices.\nL'Envahisseur Gueule-Roche est de Niveau 2.",
-            highlight: noone,
-            arrow: noone
-        },
-        {
-            text: "Sélectionnez l'Envahisseur Gueule-Roche dans votre main.",
+            text: "Invoquez l'Envahisseur Gueule-Roche maintenant.",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Pour l'invoquer, cliquez sur 'Invoquer', sélectionnez le 'Maître des Passes' comme sacrifice, puis validez.",
+            text: "Cliquez sur le bouton 'Invoquer' (Summon).",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "C'est validé ! Vous avez sacrifié votre monstre pour en invoquer un plus puissant.",
-            highlight: noone,
-            arrow: noone,
-            hide_next_button: true // Passera automatiquement
-        },
-        {
-            text: "Vous avez maintenant une puissante créature ! Equipons le Peau-de-Roc Robuste pour le renforcer.\nSélectionnez 'Griffe de Prédateur' dans votre main.",
+            text: "Choisissez un emplacement libre sur votre Ligne de Front pour invoquer le monstre.",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Cliquez sur le bouton 'Activer' pour équiper la carte.",
+            text: "Vos créatures sont prêtes à attaquer.",
             highlight: noone,
             arrow: noone,
-            hide_next_button: true
+            hide_next_button: false
         },
         {
-            text: "Choisissez un emplacement libre sur le terrain Magie/Piège pour poser la carte.",
-            highlight: noone,
-            arrow: noone,
-            hide_next_button: true
-        },
-        {
-            text: "Choisissez le Peau-de-Roc Robuste comme cible de l'équipement.",
-            highlight: noone,
-            arrow: noone,
-            hide_next_button: true
-        },
-        {
-            text: "Parfait ! Il est temps de passer à l'attaque.",
-            highlight: noone,
-            arrow: noone,
-            hide_next_button: true
-        },
-        {
-            text: "Sélectionnez votre Gobelin Furtif sur le terrain.",
+            text: "Sélectionnez votre Peau-de-Roc Robuste sur le terrain.",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
@@ -1638,25 +1496,43 @@ function Tutorial_Turn9_Init() {
             hide_next_button: true
         },
         {
-            text: "Attaquez l'Araignée Forestière en Défense avec le Gobelin.",
+            text: "Si l'Araignée est sur la Ligne de Front, détruisez-la avec le Peau-de-Roc. Sinon, attaquez directement.",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Sélectionnez votre Envahisseur Gueule-Roche sur le terrain.",
+            text: "Sélectionnez votre Gobelin Furtif.",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Cliquez sur le bouton 'Attaquer' (Envahisseur).",
+            text: "Cliquez sur le bouton 'Attaquer'.",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
         },
         {
-            text: "Attaquez directement l'adversaire. L'emplacement est mis en évidence.",
+            text: "Attaquez directement l'adversaire avec le Gobelin.",
+            highlight: noone,
+            arrow: noone,
+            hide_next_button: true
+        },
+        {
+            text: "Sélectionnez votre Envahisseur Gueule-Roche.",
+            highlight: noone,
+            arrow: noone,
+            hide_next_button: true
+        },
+        {
+            text: "Cliquez sur le bouton 'Attaquer'.",
+            highlight: noone,
+            arrow: noone,
+            hide_next_button: true
+        },
+        {
+            text: "Attaquez directement pour finir le duel !",
             highlight: noone,
             arrow: noone,
             hide_next_button: true
@@ -1691,111 +1567,27 @@ function Tutorial_Turn9_Update() {
         
         // Etape 0: Attendre fin de pioche
         if (step_idx == 0) {
-             // Wait for phase change (Pick -> Main)
              if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] != "Pick") {
-                  //tuto.forceNextStep(); // Non, on laisse le joueur cliquer sur Suivant
+                  //tuto.forceNextStep();
              }
         }
         
-        // Etape 4: Sélectionner Envahisseur Gueule-Roche
-        else if (step_idx == 4) {
+        // Etape 1: Texte explication secret (Juste attendre le clic Suivant)
+        else if (step_idx == 1) {
+             // Rien à faire, le joueur lit le texte et clique sur Suivant
+        }
+        
+        // Etape 2: Explication Envahisseur (Juste Highlight, pas d'action forcée)
+        else if (step_idx == 2) {
              var target = noone;
-             var isSelected = false;
-             
              with(oCardParent) {
-                 if (object_index == oEnvahisseurGeuleRoche && (zone == "Hand" || zone == "HandSelected") && isHeroOwner) {
+                 var instName = (variable_instance_exists(id, "name")) ? name : "";
+                 var isEnvahisseur = (object_index == oEnvahisseurGueuleRoche) || (string_pos("Envahisseur", instName) > 0);
+                 if (isEnvahisseur && isHeroOwner && (zone == "Hand" || zone == "HandSelected")) {
                      target = id;
-                     if (zone == "HandSelected") isSelected = true;
                      break;
                  }
              }
-             
-             if (instance_exists(oSelectManager) && oSelectManager.selected == target) {
-                 isSelected = true;
-             }
-             
-             if (isSelected) {
-                 tuto.forceNextStep();
-             } else if (target != noone) {
-                 var w = sprite_get_width(target.sprite_index) * target.image_xscale;
-                 var h = sprite_get_height(target.sprite_index) * target.image_yscale;
-                 var ox = sprite_get_xoffset(target.sprite_index) * target.image_xscale;
-                 var oy = sprite_get_yoffset(target.sprite_index) * target.image_yscale;
-                 var xx = target.x - cam_x - ox;
-                 var yy = target.y - cam_y - oy;
-                 
-                 tuto.updateHighlight(xx, yy, w, h);
-                 tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-             }
-        }
-        
-        // Etape 5: Invoquer Envahisseur Gueule-Roche (Sacrifice)
-        else if (step_idx == 5) {
-             // On s'assure que tout l'écran est accessible pour cliquer sur Invoquer puis gérer le sacrifice
-             var vw = camera_get_view_width(view_camera[0]);
-             var vh = camera_get_view_height(view_camera[0]);
-             tuto.updateHighlight(0, 0, vw, vh);
-             tuto.updateArrows(noone);
-
-             // On vérifie si l'Envahisseur Gueule-Roche a bien été invoqué sur le terrain
-             var isSummoned = false;
-             with(oCardParent) {
-                 if (object_index == oEnvahisseurGeuleRoche && (zone == "Field" || zone == "FieldSelected") && isHeroOwner) {
-                     isSummoned = true;
-                     break;
-                 }
-             }
-             
-             if (isSummoned) {
-                 // Si invoqué, on passe directement l'étape 5 ET l'étape 6 (validation sacrifice)
-                 // car l'invocation implique que le sacrifice a été fait et validé
-                 tuto.current_step = 7; // Saut vers l'étape 7 (Equiper Griffe)
-             }
-        }
-        
-        // Etape 6: (Obsolète car sauté par étape 5, mais gardé en fallback)
-        else if (step_idx == 6) {
-             tuto.forceNextStep();
-        }
-        
-        // Etape 7: Sélectionner Griffe de Prédateur
-        else if (step_idx == 7) {
-             var target = noone;
-             var isSelected = false;
-             
-             with(oCardParent) {
-                 if (object_index == oGriffePredateur && (zone == "Hand" || zone == "HandSelected") && isHeroOwner) {
-                     target = id;
-                     if (zone == "HandSelected") isSelected = true;
-                     break;
-                 }
-             }
-             
-             if (instance_exists(oSelectManager) && oSelectManager.selected == target) {
-                 isSelected = true;
-             }
-             
-             if (isSelected) {
-                 tuto.forceNextStep();
-             } else if (target != noone) {
-                 var w = sprite_get_width(target.sprite_index) * target.image_xscale;
-                 var h = sprite_get_height(target.sprite_index) * target.image_yscale;
-                 var ox = sprite_get_xoffset(target.sprite_index) * target.image_xscale;
-                 var oy = sprite_get_yoffset(target.sprite_index) * target.image_yscale;
-                 var xx = target.x - cam_x - ox;
-                 var yy = target.y - cam_y - oy;
-                 
-                 tuto.updateHighlight(xx, yy, w, h);
-                 tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-             }
-        }
-        
-        // Etape 8: Cliquer Activer
-        else if (step_idx == 8) {
-             var target = noone;
-             if (instance_exists(oEffectButton)) target = instance_find(oEffectButton, 0); 
-             // Fallback to oSummon if oEffectButton doesn't exist (sometimes shared logic)
-             if (target == noone && instance_exists(oSummon)) target = instance_find(oSummon, 0);
              
              if (target != noone) {
                  var w = sprite_get_width(target.sprite_index) * target.image_xscale;
@@ -1805,126 +1597,160 @@ function Tutorial_Turn9_Update() {
                  var xx = target.x - cam_x - ox;
                  var yy = target.y - cam_y - oy;
                  
-                 tuto.updateHighlight(xx, yy, w, h);
+                 tuto.updateHighlight(xx - 8, yy - 8, w + 16, h + 16);
+                 tuto.updateArrows([[xx + w/2, yy - 30, 270]]);
+             }
+        }
+
+        // Etape 3: Sélectionner Envahisseur Gueule-Roche (Texte "Invoquez...")
+        else if (step_idx == 3) {
+             var target = noone;
+             var isSelected = false;
+             
+             with(oCardParent) {
+                 var instName = (variable_instance_exists(id, "name")) ? name : "";
+                 var isEnvahisseur = (object_index == oEnvahisseurGueuleRoche) || (string_pos("Envahisseur", instName) > 0);
+                 
+                 if (isEnvahisseur && isHeroOwner && (zone == "Hand" || zone == "HandSelected")) {
+                     target = id;
+                     if (zone == "HandSelected") isSelected = true;
+                     break;
+                 }
+             }
+             
+             if (instance_exists(oSelectManager) && oSelectManager.selected == target) {
+                 isSelected = true;
+             }
+             
+             if (isSelected) {
+                 tuto.forceNextStep();
+             } else if (target != noone) {
+                 var w = sprite_get_width(target.sprite_index) * target.image_xscale;
+                 var h = sprite_get_height(target.sprite_index) * target.image_yscale;
+                 var ox = sprite_get_xoffset(target.sprite_index) * target.image_xscale;
+                 var oy = sprite_get_yoffset(target.sprite_index) * target.image_yscale;
+                 var xx = target.x - cam_x - ox;
+                 var yy = target.y - cam_y - oy;
+                 
+                 tuto.updateHighlight(xx - 8, yy - 8, w + 16, h + 16);
+                 tuto.updateArrows([[xx + w/2, yy - 30, 270]]);
+             }
+        }
+        
+        // Etape 4: Cliquer sur Summon
+        else if (step_idx == 4) {
+             // Vérifier D'ABORD si l'action a réussi (bouton cliqué = passage en mode placement)
+             if (instance_exists(oUIManager) && oUIManager.selectedSummonOrSet == "Summon") {
+                 tuto.forceNextStep();
+                 return true;
+             }
+
+             var target = noone;
+             if (instance_exists(oSummon)) target = instance_find(oSummon, 0);
+             
+             // Si le bouton n'existe plus (désélection) ET qu'on n'est pas passé en mode Summon, on retourne à l'étape 3
+             if (target == noone) {
+                 tuto.current_step = 3;
+                 return true;
+             }
+             
+             if (target != noone) {
+                 var w = sprite_get_width(target.sprite_index) * target.image_xscale;
+                 var h = sprite_get_height(target.sprite_index) * target.image_yscale;
+                 var ox = sprite_get_xoffset(target.sprite_index) * target.image_xscale;
+                 var oy = sprite_get_yoffset(target.sprite_index) * target.image_yscale;
+                 var xx = target.x - cam_x - ox;
+                 var yy = target.y - cam_y - oy;
+                 
+                 tuto.updateHighlight(xx - 10, yy - 10, w + 20, h + 20);
                  tuto.updateArrows([[xx + w/2, yy - 10, 270]]);
              }
-             
-             // Wait for equip target selection mode
-             if (instance_exists(oSelectManager) && variable_instance_exists(oSelectManager, "mode") && oSelectManager.mode == "EquipTarget") {
-                  tuto.forceNextStep();
-             }
-             // Or if we clicked button
-             if (instance_exists(oUIManager) && (oUIManager.selectedSummonOrSet == "Activate" || oUIManager.selectedSummonOrSet == "Summon")) {
-                  tuto.forceNextStep();
-             }
         }
         
-        // Etape 9: Choisir un emplacement Magic/Piège
-        else if (step_idx == 9) {
-             var spellOnField = false;
-             with(oCardParent) {
-                  if (object_index == oGriffePredateur && zone == "Field" && isHeroOwner) spellOnField = true;
+        // Etape 5: Placer sur le terrain
+        else if (step_idx == 5) {
+             // Highlight Field Zones
+             var min_x = 99999, min_y = 99999, max_x = -99999, max_y = -99999;
+             var found = false;
+             
+             with(oIndicatorParent) {
+                 if (sprite_index != -1) {
+                     found = true;
+                     var w = sprite_get_width(sprite_index) * image_xscale;
+                     var h = sprite_get_height(sprite_index) * image_yscale;
+                     var ox = sprite_get_xoffset(sprite_index) * image_xscale;
+                     var oy = sprite_get_yoffset(sprite_index) * image_yscale;
+                     var xx = x - cam_x - ox; 
+                     var yy = y - cam_y - oy;
+                     
+                     if (xx < min_x) min_x = xx;
+                     if (yy < min_y) min_y = yy;
+                     if (xx + w > max_x) max_x = xx + w;
+                     if (yy + h > max_y) max_y = yy + h;
+                 }
              }
              
-             if (spellOnField) {
-                  tuto.forceNextStep();
-             } else {
-                  var fld = instance_find(oFieldMagicTrapHero, 0);
-                  if (fld != noone && variable_instance_exists(fld, "posLocation")) {
-                       var pos = fld.posLocation[0];
-                       var xx = pos[0] - cam_x - 80;
-                       var yy = pos[1] - cam_y - 80;
-                       var w = 160;
-                       var h = 160;
-                       tuto.updateHighlight(xx, yy, w, h);
-                  }
+             if (found) {
+                  tuto.updateHighlight(min_x - 5, min_y - 5, (max_x - min_x) + 10, (max_y - min_y) + 10);
+                  tuto.updateArrows([[min_x + (max_x - min_x)/2, min_y - 20, 270]]);
              }
-        }
-        
-        // Etape 10: Choisir Cible Equipement (Peau-de-Roc Robuste)
-        else if (step_idx == 10) {
+
              var target = noone;
              with(oCardParent) {
-                  if (object_index == oPeauRocRobuste && zone == "Field" && isHeroOwner) {
-                      target = id;
-                      break;
-                  }
+                 if (object_index == oEnvahisseurGueuleRoche && isHeroOwner && zone == "Field") {
+                     target = id;
+                     break;
+                 }
              }
              
              if (target != noone) {
-                 // Vérifier que la Griffe est posée ET équipée à Peau-de-Roc
-                 var isEquipped = false;
-                 var griffe = noone;
-                 with(oCardParent) {
-                      if (object_index == oGriffePredateur && isHeroOwner && zone == "Field") {
-                           griffe = id;
-                           break;
-                      }
-                 }
-                 if (griffe != noone && variable_instance_exists(griffe, "equipped_target") && griffe.equipped_target == target) {
-                      isEquipped = true;
-                 }
-                 if (isEquipped) {
-                      tuto.forceNextStep();
-                 } else {
-                      var w = sprite_get_width(target.sprite_index) * target.image_xscale;
-                      var h = sprite_get_height(target.sprite_index) * target.image_yscale;
-                      var ox = sprite_get_xoffset(target.sprite_index) * target.image_xscale;
-                      var oy = sprite_get_yoffset(target.sprite_index) * target.image_yscale;
-                      var xx = target.x - cam_x - ox;
-                      var yy = target.y - cam_y - oy;
-                      
-                      tuto.updateHighlight(xx, yy, w, h);
-                      tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-                 }
-             }
-        }
-        
-        // Etape 11: Passer en Phase Attaque
-        else if (step_idx == 11) {
-             var btn = instance_find(oNextStep, 0);
-             if (btn != noone) {
-                 var w = sprite_get_width(btn.sprite_index) * btn.image_xscale;
-                 var h = sprite_get_height(btn.sprite_index) * btn.image_yscale;
-                 var ox = sprite_get_xoffset(btn.sprite_index) * btn.image_xscale;
-                 var oy = sprite_get_yoffset(btn.sprite_index) * btn.image_yscale;
-                 var xx = btn.x - cam_x - ox;
-                 var yy = btn.y - cam_y - oy;
-                 
-                 tuto.updateHighlight(xx, yy, w, h);
-                 tuto.updateArrows([[xx + w/2, yy - 20, 270]]);
-             }
-             
-             if (variable_instance_exists(oGame, "phase") && oGame.phase[oGame.phase_current] == "Attack") {
+                 // HACK TUTORIEL: Donner la charge à l'Envahisseur pour qu'il puisse attaquer ce tour-ci
+                 target.has_charge = true;
                  tuto.forceNextStep();
              }
         }
         
-        // Etape 12: Transition vers l'attaque (déjà existant)
-        else if (step_idx == 12) {
-            var gobelin = noone;
-            with(oCardParent) { if(object_index == oGobelinFurtif && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) gobelin = id; }
+        // Etape 6: Transition texte (Ne plus demander de changer de phase car Phase Attaque n'existe plus)
+        else if (step_idx == 6) {
+             // On laisse juste le joueur cliquer sur Suivant (configuré dans Init)
+        }
+        
+        // Etape 7: Sélectionner Peau-de-Roc Robuste
+        else if (step_idx == 7) {
+            // Check SKIP: Si Peau-de-Roc a déjà attaqué, on passe à la suite (Gobelin - Etape 10)
+            var peauCheck = noone;
+            with(oCardParent) { if((object_index == oPeauRocRobuste || object_index == oSanglierPeauRoc) && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { peauCheck = id; break; } }
+            if (peauCheck != noone && variable_instance_exists(peauCheck, "attacksUsedThisTurn") && peauCheck.attacksUsedThisTurn > 0) {
+                 tuto.current_step = 10;
+                 return true;
+            }
+
+            var target = noone;
+            with(oCardParent) { if((object_index == oPeauRocRobuste || object_index == oSanglierPeauRoc) && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) target = id; }
             
-            // Cette étape ne force rien, elle prépare la transition vers la sélection du Gobelin (étape 13)
-            if (gobelin != noone) {
-                // FIX: Si le joueur sélectionne le Gobelin ici, on passe à la suite (évite d'être bloqué)
-                if (instance_exists(oSelectManager) && oSelectManager.selected == gobelin) {
+            if (target != noone) {
+                if (instance_exists(oSelectManager) && oSelectManager.selected == target) {
                     tuto.forceNextStep();
                 } else {
-                    var xx = gobelin.bbox_left - cam_x;
-                    var yy = gobelin.bbox_top - cam_y;
-                    var w = gobelin.bbox_right - gobelin.bbox_left;
-                    var h = gobelin.bbox_bottom - gobelin.bbox_top;
+                    var xx = target.bbox_left - cam_x;
+                    var yy = target.bbox_top - cam_y;
+                    var w = target.bbox_right - target.bbox_left;
+                    var h = target.bbox_bottom - target.bbox_top;
                     tuto.updateHighlight(xx, yy, w, h);
                 }
             }
         }
         
-        // Etape 13: Bouton Attaquer (Gobelin)
-        else if (step_idx == 13) {
-             var attacker = noone;
-             with(oCardParent) { if(object_index == oGobelinFurtif && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { attacker = id; break; } }
-             
+        // Etape 8: Bouton Attaquer (Peau-de-Roc)
+        else if (step_idx == 8) {
+             // Check SKIP
+             var peauCheck = noone;
+             with(oCardParent) { if((object_index == oPeauRocRobuste || object_index == oSanglierPeauRoc) && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { peauCheck = id; break; } }
+             if (peauCheck != noone && variable_instance_exists(peauCheck, "attacksUsedThisTurn") && peauCheck.attacksUsedThisTurn > 0) {
+                 tuto.current_step = 10;
+                 return true;
+             }
+
              var btn = instance_find(oAttack, 0);
              if (btn != noone) {
                  var bx = btn.bbox_left - cam_x;
@@ -1939,34 +1765,155 @@ function Tutorial_Turn9_Update() {
              }
         }
         
-        // Etape 14: Attaquer Araignée Forestière en Défense
-        else if (step_idx == 14) {
+        // Etape 9: Attaquer Araignée (Peau-de-Roc) ou Direct
+        else if (step_idx == 9) {
+             var anyPeauAttacked = false;
+             with(oCardParent) { 
+                 if((object_index == oPeauRocRobuste || object_index == oSanglierPeauRoc) && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { 
+                     if (variable_instance_exists(id, "attacksUsedThisTurn") && attacksUsedThisTurn > 0) {
+                         anyPeauAttacked = true;
+                     }
+                 } 
+             }
+             if (anyPeauAttacked) {
+                 tuto.forceNextStep(); // Passera à 10 naturellement
+                 return true;
+             }
+
              var target = noone;
-             // Utilisation de oCardMonster pour détecter tout monstre adverse (plus robuste)
              with(oCardMonster) { 
                  var isEnemy = (variable_instance_exists(self, "isHeroOwner") && !isHeroOwner);
                  var onField = (variable_instance_exists(self, "zone") && (zone == "Field" || zone == "FieldSelected"));
+                 var isFrontline = (variable_instance_exists(self, "fieldPosition") && self.fieldPosition <= 3);
                  
-                 if (isEnemy && onField) { 
+                 if (isEnemy && onField && isFrontline) { 
                      target = id; 
                  }
              }
              
-             if (target == noone) {
-                 tuto.forceNextStep();
-             } else {
+             if (target != noone) {
                  var xx = target.bbox_left - cam_x;
                  var yy = target.bbox_top - cam_y;
                  var w = target.bbox_right - target.bbox_left;
                  var h = target.bbox_bottom - target.bbox_top;
                  tuto.updateHighlight(xx, yy, w, h);
+             } else {
+                 var atkDir = instance_find(oAttackDirectEnemy, 0);
+                 if (atkDir != noone) {
+                     var xx = atkDir.bbox_left - cam_x;
+                     var yy = atkDir.bbox_top - cam_y;
+                     var w = atkDir.bbox_right - atkDir.bbox_left;
+                     var h = atkDir.bbox_bottom - atkDir.bbox_top;
+                     tuto.updateHighlight(xx, yy, w, h);
+                 }
              }
         }
         
-        // Etape 15: Sélectionner l'Envahisseur Gueule-Roche
-        else if (step_idx == 15) {
+        // Etape 10: Sélectionner Gobelin Furtif
+        else if (step_idx == 10) {
+            // Check SKIP: Si Gobelin a déjà attaqué, on passe à la suite (Envahisseur - Etape 13)
+            var anyGobAttacked = false;
+            with(oCardParent) { 
+                var isGob = (object_index == oGobelinFurtif || (variable_instance_exists(id, "name") && string_pos("Gobelin", name) > 0));
+                if(isGob && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { 
+                    if (variable_instance_exists(id, "attacksUsedThisTurn") && attacksUsedThisTurn > 0) {
+                        anyGobAttacked = true;
+                    }
+                } 
+            }
+            if (anyGobAttacked) {
+                 tuto.current_step = 13;
+                 return true;
+            }
+
+            var target = noone;
+            with(oCardParent) { 
+                var isGob = (object_index == oGobelinFurtif || (variable_instance_exists(id, "name") && string_pos("Gobelin", name) > 0));
+                if(isGob && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) target = id; 
+            }
+            
+            if (target != noone) {
+                if (instance_exists(oSelectManager) && oSelectManager.selected == target) {
+                    tuto.forceNextStep();
+                } else {
+                    var xx = target.bbox_left - cam_x;
+                    var yy = target.bbox_top - cam_y;
+                    var w = target.bbox_right - target.bbox_left;
+                    var h = target.bbox_bottom - target.bbox_top;
+                    tuto.updateHighlight(xx, yy, w, h);
+                }
+            }
+        }
+        
+        // Etape 11: Bouton Attaquer (Gobelin)
+        else if (step_idx == 11) {
+             // Check SKIP
+             var anyGobAttacked = false;
+             with(oCardParent) { 
+                var isGob = (object_index == oGobelinFurtif || (variable_instance_exists(id, "name") && string_pos("Gobelin", name) > 0));
+                if(isGob && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { 
+                    if (variable_instance_exists(id, "attacksUsedThisTurn") && attacksUsedThisTurn > 0) {
+                        anyGobAttacked = true;
+                    }
+                } 
+             }
+             if (anyGobAttacked) {
+                 tuto.current_step = 13;
+                 return true;
+             }
+
+             var btn = instance_find(oAttack, 0);
+             if (btn != noone) {
+                 var bx = btn.bbox_left - cam_x;
+                 var by = btn.bbox_top - cam_y;
+                 var bw = btn.bbox_right - btn.bbox_left;
+                 var bh = btn.bbox_bottom - btn.bbox_top;
+                 tuto.updateHighlight(bx, by, bw, bh);
+             }
+             
+             if (instance_exists(oSelectManager) && oSelectManager.attackMode) {
+                 tuto.forceNextStep();
+             }
+        }
+        
+        // Etape 12: Attaque Directe (Gobelin)
+        else if (step_idx == 12) {
+             var anyGobAttacked = false;
+             with(oCardParent) { 
+                var isGob = (object_index == oGobelinFurtif || (variable_instance_exists(id, "name") && string_pos("Gobelin", name) > 0));
+                if(isGob && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { 
+                    if (variable_instance_exists(id, "attacksUsedThisTurn") && attacksUsedThisTurn > 0) {
+                        anyGobAttacked = true;
+                    }
+                } 
+             }
+             if (anyGobAttacked) {
+                 tuto.forceNextStep(); // Passera à 13
+                 return true;
+             }
+
+             var atkDir = instance_find(oAttackDirectEnemy, 0);
+             if (atkDir != noone) {
+                 var xx = atkDir.bbox_left - cam_x;
+                 var yy = atkDir.bbox_top - cam_y;
+                 var w = atkDir.bbox_right - atkDir.bbox_left;
+                 var h = atkDir.bbox_bottom - atkDir.bbox_top;
+                 tuto.updateHighlight(xx, yy, w, h);
+             }
+        }
+        
+        // Etape 13: Sélectionner l'Envahisseur Gueule-Roche
+        else if (step_idx == 13) {
+             // Check SKIP: Si Envahisseur a déjà attaqué, on passe à la suite (Fin - Etape 16)
+             var envCheck = noone;
+             with(oCardParent) { if(object_index == oEnvahisseurGueuleRoche && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { envCheck = id; break; } }
+             if (envCheck != noone && variable_instance_exists(envCheck, "attacksUsedThisTurn") && envCheck.attacksUsedThisTurn > 0) {
+                 tuto.current_step = 16;
+                 return true;
+             }
+
              var env = noone;
-             with(oCardParent) { if(object_index == oEnvahisseurGeuleRoche && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { env = id; break; } }
+             with(oCardParent) { if(object_index == oEnvahisseurGueuleRoche && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { env = id; break; } }
              
              if (env != noone) {
                  var isSelected = (instance_exists(oSelectManager) && oSelectManager.selected == env);
@@ -1982,8 +1929,16 @@ function Tutorial_Turn9_Update() {
              }
         }
         
-        // Etape 16: Bouton Attaquer (Envahisseur)
-        else if (step_idx == 16) {
+        // Etape 14: Bouton Attaquer (Envahisseur)
+        else if (step_idx == 14) {
+             // Check SKIP
+             var envCheck = noone;
+             with(oCardParent) { if(object_index == oEnvahisseurGueuleRoche && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { envCheck = id; break; } }
+             if (envCheck != noone && variable_instance_exists(envCheck, "attacksUsedThisTurn") && envCheck.attacksUsedThisTurn > 0) {
+                 tuto.current_step = 16;
+                 return true;
+             }
+
              var btn = instance_find(oAttack, 0);
              if (btn != noone) {
                  var bx = btn.bbox_left - cam_x;
@@ -1998,8 +1953,15 @@ function Tutorial_Turn9_Update() {
              }
         }
         
-        // Etape 17: Attaque directe (mise en évidence de l'emplacement)
-        else if (step_idx == 17) {
+        // Etape 15: Attaque directe (Envahisseur - Final)
+        else if (step_idx == 15) {
+             var env = noone;
+             with(oCardParent) { if(object_index == oEnvahisseurGueuleRoche && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { env = id; break; } }
+             if (env != noone && variable_instance_exists(env, "attacksUsedThisTurn") && env.attacksUsedThisTurn > 0) {
+                 tuto.forceNextStep(); // Passera à 16
+                 return true;
+             }
+
              var atkDir = instance_find(oAttackDirectEnemy, 0);
              if (atkDir != noone) {
                  var xx = atkDir.bbox_left - cam_x;
@@ -2009,34 +1971,18 @@ function Tutorial_Turn9_Update() {
                  tuto.updateHighlight(xx, yy, w, h);
              }
              
-             // Detection Victoire / Fin de Duel
              if (instance_exists(oGameOverScreen) || instance_exists(oValiderDuel)) {
                  tuto.forceNextStep();
              }
-             
-             if (!variable_instance_exists(tuto, "turn9_step17_lp_start")) {
-                 var lp0 = instance_find(oLP_Enemy, 0);
-                 tuto.turn9_step17_lp_start = (lp0 != noone) ? lp0.nbLP : 100;
-             }
-             var lpInst = instance_find(oLP_Enemy, 0);
-             var lpNow = (lpInst != noone) ? lpInst.nbLP : 100;
-             if (lpNow < tuto.turn9_step17_lp_start) {
-                 tuto.forceNextStep();
-             }
-             var env = noone;
-             with(oCardParent) { if(object_index == oEnvahisseurGeuleRoche && isHeroOwner && (zone == "Field" || zone == "FieldSelected")) { env = id; break; } }
-             if (env != noone && variable_instance_exists(env, "attacksUsedThisTurn") && env.attacksUsedThisTurn > 0) {
-                 tuto.forceNextStep();
-             }
         }
         
-        // Etape 18: Texte de félicitations (pas d'action)
-        else if (step_idx == 18) {
+        // Etape 16: Texte de félicitations
+        else if (step_idx == 16) {
              // Attente du clic "Suivant"
         }
         
-        // Etape 19: Bouton "Valider" de fin de duel
-        else if (step_idx == 19) {
+        // Etape 17: Bouton "Valider" de fin de duel
+        else if (step_idx == 17) {
              var btnValider = instance_find(oValiderDuel, 0);
              if (btnValider != noone) {
                  var xx = btnValider.collision_left - cam_x;
@@ -2058,3 +2004,5 @@ function Tutorial_Turn9_Update() {
     }
     return false;
 }
+
+

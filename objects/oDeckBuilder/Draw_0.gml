@@ -1,4 +1,4 @@
-// === oDeckBuilder - Draw Event ===
+﻿// === oDeckBuilder - Draw Event ===
 // Affichage du cadre de construction de deck
 
 // Cadre principal sans bordure (complètement transparent)
@@ -108,7 +108,7 @@ var line_margin = 2;
         }
 
         if (!ds_map_exists(grouped_map, key)) {
-            // Résoudre le niveau (star/level/cost) via la base de données si possible
+            // Résoudre le niveau (mana_cost/level/cost) via la base de données si possible
             var clevel = 0;
             var cardData = noone;
 
@@ -139,7 +139,7 @@ var line_margin = 2;
             }
 
             if (cardData != noone) {
-                if (variable_struct_exists(cardData, "star")) clevel = cardData.star;
+                if (variable_struct_exists(cardData, "mana_cost")) clevel = cardData.mana_cost;
                 else if (variable_struct_exists(cardData, "level")) clevel = cardData.level;
                 else if (variable_struct_exists(cardData, "cost")) clevel = cardData.cost;
             }

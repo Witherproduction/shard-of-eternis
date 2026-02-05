@@ -2,13 +2,14 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Camouflage stratégique"
-genre = "Direct"
+mana_cost = 2;
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "rare"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Selectionne un serviteur avec camouflage. Lui permet d'attaquer ce tour sans perdre camouflage."
+description = "Donne +1/+2 à un serviteur. S'il a Camouflage, il peut attaquer ce tour sans le perdre."
 effects = [
     {
         id: 1,
@@ -18,9 +19,8 @@ effects = [
         owner: "ally",
         target_zone: "field",
         criteria: { type: "Monster" },
-        only_camouflaged: true,
         keep_camouflage_this_turn: true,
-        atk: 0,
-        def: 0
+        atk: 1,
+        PV: 2
     }
 ]

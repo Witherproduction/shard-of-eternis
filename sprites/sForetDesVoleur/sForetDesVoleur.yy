@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"foret des voleur",
-    "path":"folders/Sprites/map/region/foret des voleur.yy",
+    "path":"folders/Sprites/interface/map/region/foret des voleur.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

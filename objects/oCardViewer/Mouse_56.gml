@@ -100,10 +100,10 @@ var my = device_mouse_y_to_gui(0);
 if (instance_exists(oCollectionCardDisplay) && 
     oCollectionCardDisplay.selectedCard != noone && 
     instance_exists(oCollectionCardDisplay.selectedCard)) {
-    // IMPORTANT: la carte affichée est dessinée dans le repère "monde" (Draw normal),
-    // donc on utilise les coordonnées souris du monde pour les zones cliquables ici
-    var mx_world = mouse_x;
-    var my_world = mouse_y;
+    // IMPORTANT: les boutons sont dessinés dans l'événement Draw GUI (Draw_64),
+    // donc on utilise les coordonnées souris du GUI pour les zones cliquables
+    var mx_check = mx;
+    var my_check = my;
 
     var viewer_x = oCollectionCardDisplay.x;
     var viewer_y = oCollectionCardDisplay.y;
@@ -131,7 +131,7 @@ if (instance_exists(oCollectionCardDisplay) &&
     var star_x2 = frames_x + 20;
     var star_y2 = frames_start_y + spacing * 2 + 20;
 
-    if (mx_world >= plus_x1 && mx_world <= plus_x2 && my_world >= plus_y1 && my_world <= plus_y2) {
+    if (mx_check >= plus_x1 && mx_check <= plus_x2 && my_check >= plus_y1 && my_check <= plus_y2) {
         var displayObj = instance_find(oCollectionCardDisplay, 0);
         if (displayObj != noone && instance_exists(displayObj)) {
             var sel = displayObj.selectedCard;
@@ -153,7 +153,7 @@ if (instance_exists(oCollectionCardDisplay) &&
         }
         exit;
     }
-    if (mx_world >= minus_x1 && mx_world <= minus_x2 && my_world >= minus_y1 && my_world <= minus_y2) {
+    if (mx_check >= minus_x1 && mx_check <= minus_x2 && my_check >= minus_y1 && my_check <= minus_y2) {
         var displayObj2 = instance_find(oCollectionCardDisplay, 0);
         if (displayObj2 != noone && instance_exists(displayObj2)) {
             var sel2 = displayObj2.selectedCard;
@@ -176,7 +176,7 @@ if (instance_exists(oCollectionCardDisplay) &&
         }
         exit;
     }
-    if (mx_world >= star_x1 && mx_world <= star_x2 && my_world >= star_y1 && my_world <= star_y2) {
+    if (mx_check >= star_x1 && mx_check <= star_x2 && my_check >= star_y1 && my_check <= star_y2) {
         var displayObj3 = instance_find(oCollectionCardDisplay, 0);
         if (displayObj3 != noone && instance_exists(displayObj3)) {
             var sel3 = displayObj3.selectedCard;

@@ -1,4 +1,4 @@
-show_debug_message("### oUIManager.create")
+﻿show_debug_message("### oUIManager.create")
 
 // Initialiser le flag global d'overlay d'action
 global.isActionMenuOpen = false;
@@ -10,8 +10,8 @@ global.isActionMenuOpen = false;
 //selected = "";
 selectedSummonOrSet = "";
 instanceSummon = "";
-instanceSet = "";
-instancePositionButton = "";
+// instanceSet removed
+// instancePositionButton removed
 instanceAttackButton = "";
 instanceEffectButton = "";
 
@@ -29,7 +29,6 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
 
     // Nettoyer tout ancien bouton avant de créer de nouveaux
     if (instanceSummon != "" && instance_exists(instanceSummon)) { instance_destroy(instanceSummon); instanceSummon = ""; }
-    if (instanceSet != "" && instance_exists(instanceSet)) { instance_destroy(instanceSet); instanceSet = ""; }
     if (instanceEffectButton != "" && instance_exists(instanceEffectButton)) { instance_destroy(instanceEffectButton); instanceEffectButton = ""; }
 
     // Montrer Summon/Set uniquement pour les monstres et si l'invocation normale est possible
@@ -38,10 +37,10 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
         if (card.type == "Monster") {
             // Vérifier s'il y a de la place sur le terrain (sauf si sacrifice nécessaire)
             var hasFreeSlot = false;
-            var reqSacrifice = getSacrificeLevel(card.star);
+            var reqSacrifice = getSacrificeLevel(card.mana_cost);
             
             // Si monstre de niveau 1, il faut un slot libre
-            if (card.star == 1) {
+            if (card.mana_cost == 1) {
                 var fm = instance_exists(fieldManagerHero) ? fieldManagerHero : instance_find(oFieldManagerHero, 0);
                 if (fm != noone && instance_exists(fm)) {
                     var monsterField = fm.getField("Monster");
@@ -56,41 +55,29 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
                 hasFreeSlot = true;
             }
 
-            canNormalSummon = (game.phase[game.phase_current] == "Summon"
+            // HS: Phase Main au lieu de Summon. Pas de limite d'invocation par tour (juste Mana)
+            canNormalSummon = (game.phase[game.phase_current] == "Main"
                                && game.is_local_turn
-                               && !game.hasSummonedThisTurn[game.local_player_index]
+                               // && !game.hasSummonedThisTurn[game.local_player_index] // Pas de limite en HS
                                && hasFreeSlot);
         }
     }
 
     if (canNormalSummon) {
-        instanceSummon = instance_create_layer(card.x - 100, card.y - 280, layer_get_id("Instances"), oSummon);
+        // Position centrée pour le bouton unique (Play/Summon)
+        instanceSummon = instance_create_layer(card.x, card.y - 280, layer_get_id("Instances"), oSummon);
+        instanceSummon.parentCard = card;
         instanceSummon.depth = -2000;
-        instanceSet = instance_create_layer(card.x - 10, card.y - 280, layer_get_id("Instances"), oSet);
-        instanceSet.depth = -2000;
+        // instanceSet supprimé (pas de Set en HS)
         instanceSummon.image_xscale = 0.5;
         instanceSummon.image_yscale = 0.5;
-        instanceSet.image_xscale = 0.5;
-        instanceSet.image_yscale = 0.5;
     }
 
-    // Actions pour les cartes Magie en main (Set + Effet)
+    // Actions pour les cartes Magie en main (Play)
     if (card != noone && instance_exists(card) && card.type == "Magic") {
-        var canSetSpell = (game.phase[game.phase_current] == "Summon" && game.is_local_turn);
-        if (canSetSpell) {
-            instanceSet = instance_create_layer(card.x - 10, card.y - 280, layer_get_id("Instances"), oSet);
-            instanceSet.depth = -2000;
-            instanceSet.image_xscale = 0.5;
-            instanceSet.image_yscale = 0.5;
-        }
         // Centraliser l'affichage du bouton effet selon les règles courantes
+        // Cela créera le bouton d'effet (Swirl) qui gère le "Play" pour les magies (ciblage ou direct)
         UIManager.displayEffectButton(card);
-
-        // Repositionner le bouton effet si le bouton Set est présent (pour éviter l'overlap suite au changement d'origine)
-        if (instanceSet != "" && instance_exists(instanceSet) && instanceEffectButton != "" && instance_exists(instanceEffectButton)) {
-             instanceEffectButton.x = card.x + 80;
-             instanceEffectButton.y = card.y - 280;
-        }
     }
 
     // Bouton effet pour cartes non-Magie en main si disponible
@@ -106,7 +93,7 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
     }
     
     // Activer le blocage des clics sur le terrain tant que des boutons sont visibles
-    if (instanceSummon != "" || instanceSet != "" || instanceEffectButton != "") {
+    if (instanceSummon != "" || instanceEffectButton != "") {
         global.isActionMenuOpen = true;
     }
 }
@@ -121,11 +108,6 @@ hideSummonAndSet = function() {show_debug_message("### oUIManager.hideSummonAndS
         instance_destroy(instanceSummon);
         instanceSummon = "";
     }
-    // Cache le bouton Set
-    if(instanceSet != "") {
-        instance_destroy(instanceSet);
-        instanceSet = "";
-    }
     // Cache le bouton d'effet
     if(instanceEffectButton != "") {
         instance_destroy(instanceEffectButton);
@@ -137,42 +119,15 @@ hideSummonAndSet = function() {show_debug_message("### oUIManager.hideSummonAndS
 }
 #endregion
 
-#region Function displayPositionButton
-displayPositionButton = function(card) {show_debug_message("### oUIManager.displayPositionButton")
-	
-	if (card != noone && instance_exists(card)) {
-		if (variable_instance_exists(card, "entrave_turns_remaining") && card.entrave_turns_remaining > 0 && variable_instance_exists(card, "entrave_block_position") && card.entrave_block_position) {
-			return;
-		}
-	}
-	instancePositionButton = instance_create_layer(card.x + 10, card.y - 175, layer_get_id("Instances"), oPositionButton);
-	instancePositionButton.parentCard = card;
-	instancePositionButton.depth = -2000;
-	
-	// Activer le blocage pendant l'affichage du bouton de position
-	global.isActionMenuOpen = true;
-}
-#endregion
 
-#region Function hidePositionButton
-hidePositionButton = function() {show_debug_message("### oUIManager.hidePositionButton")
-	
-	// Cache le bouton Position
-	if(instancePositionButton != "") {
-		instance_destroy(instancePositionButton);
-		instancePositionButton = "";
-	}
-	
-	// Déverrouillage différé: géré dans Step_0
-	// Ne pas modifier global.isActionMenuOpen ici
-}
-#endregion
+// displayPositionButton and hidePositionButton removed for HS transition
+
 
 #region Function displayAttackButton
 displayAttackButton = function(card) {show_debug_message("### oUIManager.displayAttackButton")
     // Garde phase/joueur/type/zone/orientation pour éviter l'affichage sur des cartes non éligibles
-    if (!(instance_exists(game) && game.is_local_turn && game.phase[game.phase_current] == "Attack")) {
-        show_debug_message("### UIManager.displayAttackButton: hors phase Attack ou pas tour du héros");
+    if (!(instance_exists(game) && game.is_local_turn && game.phase[game.phase_current] == "Main")) {
+        show_debug_message("### UIManager.displayAttackButton: hors phase Main ou pas tour du héros");
         return;
     }
     // Règle: pas d'attaque au tour 1 du duel
@@ -251,9 +206,24 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
     // Vérifier la disponibilité d'un effet manuel
     if (card != noone && instance_exists(card)) {
         // Règle UI: les cartes de genre "Secret" n'affichent jamais le bouton effet
+        // MODIFICATION: Autoriser l'affichage du bouton pour les Secrets, MAIS appliquer les règles de limite (5 max, pas de doublon)
         if (variable_instance_exists(card, "genre") && string_lower(card.genre) == string_lower("Secret")) {
-            show_debug_message("### oUIManager.displayEffectButton: carte Secret -> bouton effet masqué");
-            return;
+            if (variable_global_exists("activeSecretsHero") && ds_exists(global.activeSecretsHero, ds_type_list)) {
+                // 1. Limite Max 5
+                if (ds_list_size(global.activeSecretsHero) >= 5) {
+                    show_debug_message("### oUIManager.displayEffectButton: Secret caché (Max 5 atteints)");
+                    return;
+                }
+                // 2. Pas de doublon
+                var cardName = variable_instance_exists(card, "name") ? card.name : "";
+                for (var i = 0; i < ds_list_size(global.activeSecretsHero); i++) {
+                    var existing = ds_list_find_value(global.activeSecretsHero, i);
+                    if (instance_exists(existing) && variable_instance_exists(existing, "name") && existing.name == cardName) {
+                        show_debug_message("### oUIManager.displayEffectButton: Secret caché (Déjà actif: " + string(cardName) + ")");
+                        return;
+                    }
+                }
+            }
         }
 
         // États utiles
@@ -284,11 +254,13 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
             if (gl == "continu" || gl == "continue") { hasContinuous = true; }
         }
 
-        // NOUVELLE RÈGLE: n'afficher le bouton que si au moins 1 monstre face visible est présent
+        // NOUVELLE RÈGLE: n'afficher le bouton que si au moins 1 monstre face visible est présent (OBSOLÈTE pour Artéfact)
+        /*
         if (isArtifact && !has_any_monster_on_field()) {
             show_debug_message("### oUIManager.displayEffectButton: aucun monstre face visible -> bouton masqué (Artéfact)");
             return;
         }
+        */
 
         // Cas spécial: carte face cachée sur le terrain du héros
         // Afficher le bouton si une cible valide existe pour un effet manuel OU si la carte possède un effet continu (pour permettre le retournement)
@@ -300,8 +272,8 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
             } else if (hasContinuous) {
                 allowFD = true;
             }
-            // Affichage uniquement pendant le tour du héros et en phase "Summon"
-            if (allowFD && isHeroTurn && currentPhase == "Summon") {
+            // Affichage uniquement pendant le tour du héros et en phase "Main"
+            if (allowFD && isHeroTurn && currentPhase == "Main") {
                 var sprite_h_fd = sprite_get_height(card.sprite_index) * card.image_yscale;
                 instanceEffectButton = instance_create_layer(card.x + 85, card.y - sprite_h_fd/2 + 5, layer_get_id("Instances"), oEffectButton);
                 instanceEffectButton.parentCard = card;
@@ -315,8 +287,25 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
             return;
         }
 
-        // Carte Magie en main avec effet continu -> afficher un bouton pour poser face visible (pendant le tour du héros, toutes phases)
+        // Carte Magie en main -> afficher le bouton "Activer" (Play)
+        // (Remplaçant l'ancien bouton Summon pour les magies)
+        if (card.type == "Magic" && isInHand && isOwnerHero && isHeroTurn && currentPhase == "Main") {
+             // Position centrée (comme l'ancien bouton Summon) car c'est le seul bouton
+            if (instanceEffectButton == "" || !instance_exists(instanceEffectButton)) {
+                instanceEffectButton = instance_create_layer(card.x, card.y - 280, layer_get_id("Instances"), oEffectButton);
+                instanceEffectButton.parentCard = card;
+                instanceEffectButton.depth = -2000;
+                instanceEffectButton.image_xscale = 0.5; // Un peu plus gros comme c'est l'action principale
+                instanceEffectButton.image_yscale = 0.5;
+                global.isActionMenuOpen = true;
+            }
+            return;
+        }
+
+        // Carte Magie en main avec effet continu (Legacy/Backup si condition ci-dessus échoue pour une raison quelconque)
         if (card.type == "Magic" && isInHand && isOwnerHero && hasContinuous && isHeroTurn) {
+            // OBSOLÈTE: La logique Artéfact a été supprimée
+            /*
             // Si la carte est un Artéfact avec sélection de cible, n'afficher le bouton que s'il existe une cible valide
             var equipEff = noone;
             if (variable_instance_exists(card, "effects")) {
@@ -331,6 +320,7 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
                 show_debug_message("### oUIManager.displayEffectButton: aucune cible valide pour Artefact en main -> bouton masqué");
                 return;
             }
+            */
             var sprite_h_c = sprite_get_height(card.sprite_index) * card.image_yscale;
             instanceEffectButton = instance_create_layer(card.x + 85, card.y - sprite_h_c/2 + 5, layer_get_id("Instances"), oEffectButton);
             instanceEffectButton.parentCard = card;
@@ -344,10 +334,10 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
         // Affichage standard si un effet est disponible ET au moins une cible valide
         var effect = getAvailableEffect(card);
         if (effect != noone && hasValidTargetForEffect(card, effect)) {
-            // Autoriser l'affichage seulement pendant le tour du héros et en phase Summon,
+            // Autoriser l'affichage seulement pendant le tour du héros et en phase Main,
             // sauf pour les effets rapides (TRIGGER_QUICK_EFFECT) qui peuvent s'afficher à tout moment du tour du héros
             var isQuick = (variable_struct_exists(effect, "trigger") && effect.trigger == TRIGGER_QUICK_EFFECT);
-            if (!(isQuick || (isHeroTurn && currentPhase == "Summon"))) {
+            if (!(isQuick || (isHeroTurn && currentPhase == "Main"))) {
                 show_debug_message("### oUIManager.displayEffectButton: hors tour/phase -> bouton masqué");
                 return;
             }
@@ -412,7 +402,7 @@ displayIndicator = function(cardToDisplay = noone) {show_debug_message("### oUIM
 	if (card.type == "Magic" && selectedSummonOrSet == "Set") {
 		card.position = "Attack"; // Set Magie: face cachée mais en position Attaque
 	} else {
-		card.position = selectedSummonOrSet == "Summon" ? "Attack" : "Defense";
+		card.position = selectedSummonOrSet == "Summon" ? "Attack" : "PV";
 	}
 	selectManager.unSelect(card); // Replace la carte sélectionnée
 	selectManager.set(card); // Conserver la sélection pour retrouver la carte à invoquer
@@ -450,3 +440,4 @@ stopIndicator = function() {show_debug_message("### oUIManager.stopIndicator")
 	    instance_destroy(instance_find(oIndicatorParent, 0));
 }
 #endregion
+

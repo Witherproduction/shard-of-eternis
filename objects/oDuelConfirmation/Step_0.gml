@@ -1,4 +1,4 @@
-// --- INITIALIZATION (Run once) ---
+﻿// --- INITIALIZATION (Run once) ---
 if (!variable_instance_exists(id, "setup_done")) {
     show_debug_message("### oDuelConfirmation - Initializing Duel Setup...");
     
@@ -94,7 +94,12 @@ if (!variable_instance_exists(id, "setup_done")) {
     }
 
     global.previous_room_before_duel = rScenario;
-    // Moved global.selected_bot_deck_id assignment to end of block
+    
+    // ENSURE GLOBAL ID IS SET for Draw Event
+    if (selected_bot_deck_id != noone && (!variable_global_exists("selected_bot_deck_id") || global.selected_bot_deck_id != selected_bot_deck_id)) {
+        global.selected_bot_deck_id = selected_bot_deck_id;
+        show_debug_message("### oDuelConfirmation - Synced global.selected_bot_deck_id to: " + string(selected_bot_deck_id));
+    }
     
     // --- 3. Determine Player Deck ---
     // Ensure player deck is set
@@ -199,7 +204,7 @@ if (!variable_instance_exists(id, "setup_done")) {
     }
     
     if (current_chapter == 1 || (variable_global_exists("current_chapter") && global.current_chapter == 1)) {
-        if (check_id == 1) selected_bot_deck_id = "Invasion_Geule_Roche";
+        if (check_id == 1) selected_bot_deck_id = "Invasion_Gueule_Roche";
         if (check_id == 2) selected_bot_deck_id = "Essaim_Abyssien";
         if (check_id == 3) selected_bot_deck_id = "Bandit_Grand_Chemin";
     }
@@ -223,3 +228,4 @@ if (mouse_check_button_pressed(mb_left)) {
         room_goto(rDuel);
     }
 }
+

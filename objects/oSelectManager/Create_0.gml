@@ -72,25 +72,10 @@ destroyTargetingArrow = function() {
     }
 }
 
-// Affiche une flèche d'équipement depuis l'artéfact vers son monstre ciblé
+// Affiche une flèche d'équipement (OBSOLÈTE: Les Artéfacts sont devenus des sorts Directs)
 showEquipLinkArrowFor = function(artifactCard) {
-    if (!instance_exists(artifactCard)) return;
-    // Vérifier qu'il s'agit bien d'un Artéfact et qu'une cible est reliée
-    var isArtifact = (variable_instance_exists(artifactCard, "genre") && string_lower(artifactCard.genre) == string_lower("Artéfact"));
-    var tgt = (variable_instance_exists(artifactCard, "equipped_target")) ? artifactCard.equipped_target : noone;
-    if (isArtifact && tgt != noone && instance_exists(tgt)) {
-        // Créer une flèche dédiée qui pointe vers la cible fixe
-        if (targetingArrow != noone) {
-            instance_destroy(targetingArrow);
-        }
-        targetingArrow = instance_create_layer(0, 0, "Instances", oTargetingArrow);
-        targetingArrow.setSourceCard(artifactCard);
-        targetingArrow.setFixedTarget(tgt);
-        show_debug_message("### Flèche d'équipement affichée: " + string(artifactCard.name) + " -> " + string(tgt.name));
-    } else {
-        // Nettoyer si pas de cible
-        destroyTargetingArrow();
-    }
+    // Fonction désactivée suite à la suppression du genre Artéfact
+    return;
 }
 
 // Enlève la sélection
@@ -118,7 +103,7 @@ trySelect = function(card) {
             // Désélectionner proprement l'ancienne carte et masquer les UI
             unSelectAll();
             UIManager.hideSummonAndSet();
-            UIManager.hidePositionButton();
+            // UIManager.hidePositionButton(); // Removed for HS transition
             UIManager.hideEffectButton();
             if (attackDirectInstance != noone) attackDirectInstance.image_alpha = 0;
             UIManager.hideAttackButton();
@@ -144,12 +129,15 @@ trySelect = function(card) {
                     newPreview.selected = card;
                     newPreview.depth = -100000;
                 }
-                // Afficher la flèche d'équipement en mode viewer-only si applicable
+                // Afficher la flèche d'équipement en mode viewer-only si applicable (OBSOLÈTE)
+                /*
                 if (card.type == "Magic" && variable_instance_exists(card, "genre") && string_lower(card.genre) == string_lower("Artéfact")) {
                     showEquipLinkArrowFor(card);
                 } else {
                     destroyTargetingArrow();
                 }
+                */
+                destroyTargetingArrow();
                 // Afficher le bouton effet même en mode viewer-only si carte FD héros sur terrain
                 if (card.isHeroOwner && card.isFaceDown && (card.zone == "Field" || card.zone == "FieldSelected")) {
                     UIManager.displayEffectButton(card);
@@ -168,12 +156,15 @@ trySelect = function(card) {
                     newPreviewEnemy.selected = card;
                     newPreviewEnemy.depth = -100000;
                 }
-                // Afficher la flèche d'équipement en mode viewer-only si applicable
+                // Afficher la flèche d'équipement en mode viewer-only si applicable (OBSOLÈTE)
+                /*
                 if (card.type == "Magic" && variable_instance_exists(card, "genre") && string_lower(card.genre) == string_lower("Artéfact")) {
                     showEquipLinkArrowFor(card);
                 } else {
                     destroyTargetingArrow();
                 }
+                */
+                destroyTargetingArrow();
                 return true;
             }
             show_debug_message("### Action menu ouvert: blocage de trySelect (carte non autorisée)");
@@ -239,114 +230,89 @@ trySelect = function(card) {
     // même si ce n'est pas son tour (les UI ne s'affichent que quand c'est pertinent).
     if(card.isHeroOwner) {
         
-        if(game.phase[game.phase_current] == "Attack") {
-            show_debug_message("### Phase d'attaque, zone=" + card.zone + ", orientation=" + card.orientation);
+        // === Phase MAIN (Hearthstone Style: Invocation et Attaque combinées) ===
+    if(game.phase[game.phase_current] == "Main") {
+        
+        // --- Gestion Attaque (Carte sur le Terrain) ---
         if(card.zone == "Field") {
-                // Toujours autoriser la sélection pour afficher le viewer
-                unSelectAll();
-                select(card);
+            show_debug_message("### Phase Main (Attaque), zone=" + card.zone + ", orientation=" + card.orientation);
+            // Toujours autoriser la sélection pour afficher le viewer
+            unSelectAll();
+            select(card);
 
-                // UI d'attaque uniquement si c'est le tour du joueur local et que la carte est un monstre en Attaque
-                if (isLocalTurn && card.type == "Monster" && card.orientation == "Attack") {
-                    // Affiche le bouton d'attaque via UIManager (sécurisé côté UIManager)
-                    UIManager.displayAttackButton(card);
+            // UI d'attaque uniquement si c'est le tour du joueur local et que la carte est un monstre en Attaque
+            // Note: En HS, pas de mode défense, donc orientation toujours "Attack" normalement
+            if (isLocalTurn && card.type == "Monster" && card.orientation == "Attack") {
+                // Affiche le bouton d'attaque via UIManager (sécurisé côté UIManager)
+                UIManager.displayAttackButton(card);
 
-                    // Vérifie s'il existe un défenseur valide (non camouflé) côté ennemi
-                    var enemyHasMonsters = false;
-                    var enemyMonsterField = fieldManagerEnemy.getField("Monster");
-                    for (var i = 0; i < array_length(enemyMonsterField.cards); i++) {
-                        var em = enemyMonsterField.cards[i];
-                        if (em != 0 && instance_exists(em)) {
-                            var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
-                            if (!isCamo) { enemyHasMonsters = true; break; }
-                        }
+                // Vérifie s'il existe un défenseur valide (non camouflé) côté ennemi
+                var enemyHasMonsters = false;
+                var enemyMonsterField = fieldManagerEnemy.getField("Monster");
+                for (var i = 0; i < array_length(enemyMonsterField.cards); i++) {
+                    var em = enemyMonsterField.cards[i];
+                    if (em != 0 && instance_exists(em)) {
+                        var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
+                        if (!isCamo) { enemyHasMonsters = true; break; }
                     }
-
-                    show_debug_message("### L'adversaire a des monstres: " + string(enemyHasMonsters));
-                    // Le bouton d'attaque directe est visible si aucune cible valide n'existe (tous camouflés ou aucun)
-                    if(!enemyHasMonsters && attackMode && attackDirectInstance != noone) {
-                        attackDirectInstance.x = attackDirectX;
-                        attackDirectInstance.y = attackDirectY;
-                        attackDirectInstance.image_alpha = 1; // bouton visible
-                        show_debug_message("### Bouton d'attaque directe affiché (mode attaque activé)");
-                    } else if (attackDirectInstance != noone) {
-                        attackDirectInstance.image_alpha = 0; // bouton caché
-                        show_debug_message("### Bouton d'attaque directe caché (pas en mode attaque ou monstres présents)");
-                    }
-
-                    // Créer la flèche de ciblage si le mode attaque est activé
-                    if(attackMode) {
-                        createTargetingArrow(card);
-                    }
-                } else {
-                    // Orientation défensive ou tour adverse: cacher les UI d'attaque
-                    if (attackDirectInstance != noone) attackDirectInstance.image_alpha = 0;
-                    UIManager.hideAttackButton();
-                    attackMode = false;
-                    destroyTargetingArrow();
                 }
 
-                show_debug_message("### Sélection effectuée en phase d'attaque (viewer visible)");
-                return true;
+                show_debug_message("### L'adversaire a des monstres: " + string(enemyHasMonsters));
+                
+                // Percée logic for UI: Allow direct attack if card has isPercee or canAttackDirectAlways
+                var allowDirect = !enemyHasMonsters;
+                if (variable_instance_exists(card, "isPercee") && card.isPercee) allowDirect = true;
+                if (variable_instance_exists(card, "canAttackDirectAlways") && card.canAttackDirectAlways) allowDirect = true;
+                
+                // Le bouton d'attaque directe est visible si aucune cible valide n'existe (tous camouflés ou aucun) OU si Percée
+                if(allowDirect && attackMode && attackDirectInstance != noone) {
+                    attackDirectInstance.x = attackDirectX;
+                    attackDirectInstance.y = attackDirectY;
+                    attackDirectInstance.image_alpha = 1; // bouton visible
+                    show_debug_message("### Bouton d'attaque directe affiché (mode attaque activé)");
+                } else if (attackDirectInstance != noone) {
+                    attackDirectInstance.image_alpha = 0; // bouton caché
+                    show_debug_message("### Bouton d'attaque directe caché (pas en mode attaque ou monstres présents)");
+                }
+
+                // Créer la flèche de ciblage si le mode attaque est activé
+                if(attackMode) {
+                    createTargetingArrow(card);
+                }
+            } else {
+                // Tour adverse: cacher les UI d'attaque
+                if (attackDirectInstance != noone) attackDirectInstance.image_alpha = 0;
+                UIManager.hideAttackButton();
+                attackMode = false;
+                destroyTargetingArrow();
             }
+
+            show_debug_message("### Sélection effectuée en phase Main (Field) (viewer visible)");
+            return true;
         }
         
-        if(game.phase[game.phase_current] == "Summon") {
-            show_debug_message("### Phase d'invocation, zone=" + card.zone);
-            if(card.zone == "Hand") {
-                unSelectAll();
-                select(card);
-                
-                // UI d'invocation uniquement si c'est le tour du joueur local
-                if (isLocalTurn) {
-                    UIManager.displaySummonSetAction(card);
-                } else {
-                    UIManager.hideSummonAndSet();
-                }
-
-                if (attackDirectInstance != noone) {
-                    attackDirectInstance.image_alpha = 0; // cacher bouton en phase summon
-                }
-                show_debug_message("### Carte de la main sélectionnée (viewer visible) en phase d'invocation");
-                return true;
-            }
-            // Permettre la sélection des monstres sur le terrain pour viewer
-            if(card.zone == "Field" && card.type == "Monster") {
-                show_debug_message("### Sélection d'un monstre sur le terrain (viewer visible)");
-                unSelectAll();
-                select(card);
-                if (attackDirectInstance != noone) {
-                    attackDirectInstance.image_alpha = 0; // masquer le bouton d'attaque
-                }
+        // --- Gestion Invocation (Carte en Main) ---
+        if(card.zone == "Hand") {
+            show_debug_message("### Phase Main (Invocation), zone=" + card.zone);
+            unSelectAll();
+            select(card);
+            
+            // UI d'invocation uniquement si c'est le tour du joueur local
+            if (isLocalTurn) {
+                UIManager.displaySummonSetAction(card);
+            } else {
                 UIManager.hideSummonAndSet();
-                show_debug_message("### Viewer mis à jour (phase Summon)");
-                return true;
             }
-            // Permettre la sélection des cartes face cachée du héros sur le terrain
-            if(card.zone == "Field" && card.isHeroOwner && card.isFaceDown) {
-                show_debug_message("### Sélection d'une carte face cachée du héros");
-                unSelectAll();
-                select(card);
-                if (attackDirectInstance != noone) {
-                    attackDirectInstance.image_alpha = 0; // masquer le bouton d'attaque
-                }
-                // UIManager.hideSummonAndSet(); // ne pas cacher le bouton effet juste après
-                show_debug_message("### Carte face cachée sélectionnée (bouton effet disponible)");
-                return true;
+
+            if (attackDirectInstance != noone) {
+                attackDirectInstance.image_alpha = 0; // cacher bouton en phase summon
             }
-            // NEW: Permettre la sélection des cartes visibles du héros sur le terrain (non-monstres)
-            if(card.zone == "Field" && card.isHeroOwner && !card.isFaceDown && card.type != "Monster") {
-                show_debug_message("### Sélection d'une carte visible du héros sur le terrain (non-monstre)");
-                unSelectAll();
-                select(card);
-                if (attackDirectInstance != noone) {
-                    attackDirectInstance.image_alpha = 0; // masquer le bouton d'attaque
-                }
-                // UIManager.hideSummonAndSet(); // ne pas cacher le bouton effet juste après
-                show_debug_message("### Carte visible du héros sélectionnée (bouton effet potentiellement disponible)");
-                return true;
-            }
+            show_debug_message("### Carte de la main sélectionnée (viewer visible) en phase d'invocation");
+            return true;
         }
+
+        // --- Fallback (pour autres types de cartes) ---
+    }
     }
 
     // Sélection côté ennemi: autoriser le viewer-only si la carte est visible ou main révélée
@@ -397,8 +363,8 @@ select = function(card) {
             isLocalTurn_sel = (game.player[game.player_current] == "Hero");
         }
         
-        if(card.type == "Monster" && card.isHeroOwner && game.phase[game.phase_current] == "Summon" && isLocalTurn_sel && !card.orientationChangedThisTurn) {
-            UIManager.displayPositionButton(card);
+        if(card.type == "Monster" && card.isHeroOwner && game.phase[game.phase_current] == "Main" && isLocalTurn_sel) {
+            // UIManager.displayPositionButton(card); // Removed for HS transition
             UIManager.displayEffectButton(card);
         }
         // Afficher le bouton effet pour les cartes face cachée du héros (toutes phases)
@@ -409,13 +375,16 @@ select = function(card) {
         if(card.isHeroOwner && !card.isFaceDown && isLocalTurn_sel) {
             UIManager.displayEffectButton(card);
         }
-        // Indicateur visuel: si carte Artéfact équipée, afficher la flèche vers sa cible
+        // Indicateur visuel: si carte Artéfact équipée, afficher la flèche vers sa cible (OBSOLÈTE)
+        /*
         if (card.type == "Magic" && variable_instance_exists(card, "genre") && string_lower(card.genre) == string_lower("Artéfact")) {
             showEquipLinkArrowFor(card);
         } else {
             // Pas un artéfact: s'assurer qu'on n'affiche pas une flèche d'équipement résiduelle
             destroyTargetingArrow();
         }
+        */
+        destroyTargetingArrow();
     } else if(card.zone == "Hand") {
         card.zone = "HandSelected";
         card.image_xscale = 0.5;
@@ -439,7 +408,7 @@ tryUnselect = function(card) {
     if (card.zone == "HandSelected" || card.zone == "FieldSelected") {
         unSelect(card);
         UIManager.hideSummonAndSet();
-        UIManager.hidePositionButton();
+        // UIManager.hidePositionButton(); // Removed for HS transition
         UIManager.hideEffectButton();
         UIManager.hideAttackButton();
         if (attackDirectInstance != noone) attackDirectInstance.image_alpha = 0;
@@ -457,7 +426,7 @@ unSelect = function(card) {
         card.zone = "Field";
         card.image_xscale = 0.2475;
         card.image_yscale = 0.2475;
-        UIManager.hidePositionButton();
+        // UIManager.hidePositionButton(); // Removed for HS transition
         UIManager.hideEffectButton();
         card.y += 10;
     } else if(card.zone == "HandSelected") {
@@ -497,4 +466,21 @@ startTargeting = function(effectInstance) {
     unSelectAll();
     targetingEffect = true;
     targetingEffectId = effectInstance;
+    
+    // Ajout de la flèche de ciblage pour les effets
+    var src = noone;
+    
+    if (is_struct(effectInstance)) {
+        if (variable_struct_exists(effectInstance, "source_card")) {
+            src = effectInstance.source_card;
+        }
+    } else if (instance_exists(effectInstance)) {
+        if (variable_instance_exists(effectInstance, "source_card")) {
+            src = effectInstance.source_card;
+        }
+    }
+    
+    if (src != noone && instance_exists(src)) {
+        createTargetingArrow(src);
+    }
 }

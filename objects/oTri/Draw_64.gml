@@ -1,4 +1,4 @@
-// === Barre de tri a cote du filtre ===
+﻿// === Barre de tri a cote du filtre ===
 
 // Position et dimensions basées sur `sButton`
 var baseW = sprite_get_width(sButton);
@@ -27,8 +27,8 @@ var text_shadow_color = make_color_rgb(80, 50, 20);      // ombre portée
 var text_main_color = make_color_rgb(230, 200, 120);     // texte crème dorée
 
 // Dessiner les 7 boutons ronds (ajout du tri alphabétique)
-var buttons = ["attack", "defense", "level", "type", "favorites", "rarity", "alpha"];
-var buttonLabels = ["ATK", "DEF", "LVL", "TYPE", "FAV", "RAR", "A-Z"];
+var buttons = ["attack", "PV", "level", "type", "favorites", "rarity", "alpha"];
+var buttonLabels = ["ATK", "PV", "LVL", "TYPE", "FAV", "RAR", "A-Z"];
 
 // Configurer le texte
 draw_set_font(fontCardDisplay);

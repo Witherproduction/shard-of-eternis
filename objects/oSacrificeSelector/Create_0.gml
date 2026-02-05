@@ -1,4 +1,4 @@
-show_debug_message("### oSacrificeSelector.create");
+﻿show_debug_message("### oSacrificeSelector.create");
 
 ///////////////////////////////////////////////////////////////////////
 // Attributs
@@ -46,7 +46,7 @@ initSacrificeSelection = function(monster, position, mode) {
     selectedSacrifices = [];
     
     // Détermine le niveau de sacrifice requis
-    requiredLevel = getSacrificeLevel(monster.star);
+    requiredLevel = getSacrificeLevel(monster.mana_cost);
     
     // Détermine le nombre de sacrifices requis
     switch(requiredLevel) {
@@ -231,3 +231,4 @@ completeSummon = function(position, mode_override) {
         selectManager.unSelectAll();
     }
 };
+

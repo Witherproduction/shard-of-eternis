@@ -3,15 +3,15 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 // Définit les stats spécifiques de ce monstre
 name = "Gorrak"
 attack = 7;
-defense = 7;
-star = 3;
+PV = 7;
+mana_cost = 8;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
 rarity = "legendaire"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque 2 'Estafette Skarl'. Crépuscule : Inflige 3 dégats à votre adversaire pour chaque Humanoïde allié sur le terrain."
+description = "Eveil : Invoque 2 'Skarl Chétif'. Crépuscule : Inflige 2 dégats à votre adversaire pour chaque Humanoïde allié sur le terrain."
 element = "physique"
 
 effects = [
@@ -21,7 +21,8 @@ effects = [
         effect_type: EFFECT_SUMMON,
         conditions: { summon_mode: "Summon" },
         summon_mode: "named",
-        object_name: "oEstafetteSkarl"
+        object_name: "oSkarlChetif",
+        placement_criteria: { relative_role: "front" }
     },
     {
         id: 2,
@@ -29,7 +30,8 @@ effects = [
         effect_type: EFFECT_SUMMON,
         conditions: { summon_mode: "Summon" },
         summon_mode: "named",
-        object_name: "oEstafetteSkarl"
+        object_name: "oSkarlChetif",
+        placement_criteria: { relative_role: "front" }
     },
     {
         id: 3,
@@ -38,11 +40,12 @@ effects = [
         op: "damage",
         scope: "lp",
         owner: "enemy",
-        value_per_card: 3,
+        value_per_card: 2,
         target_zone: "field",
         criteria: { type: "Monster", genre: "Humanoïde" },
         count_owner: "ally",
         label: "Crépuscule"
     }
 ]
+
 

@@ -1,4 +1,4 @@
-/// sEffectCombat.gml — Helpers d’effets de combat (ATK/DEF, dégâts/soins, destruction)
+/// sEffectCombat.gml — Helpers d’effets de combat (ATK/PV, dégâts/soins, destruction)
 
 function modifyAttack(card, amount, temporary = false) {
     if (card == noone) return false;
@@ -39,13 +39,25 @@ function modifyDefense(card, amount, temporary = false) {
             if (!is_undefined(buffRecompute)) buffRecompute(card);
         }
     } else {
-        card.defense += amount;
-        card.defense = max(0, card.defense);
-        // Recalculer la DEF effective si le système est en place
+        card.PV += amount;
+        card.PV = max(0, card.PV);
+        
+        // Mettre à jour max_hp et current_hp pour refléter le buff
+        if (variable_instance_exists(card, "max_hp")) {
+            card.max_hp += amount;
+            card.max_hp = max(0, card.max_hp);
+        }
+        if (variable_instance_exists(card, "current_hp")) {
+            card.current_hp += amount;
+            // Optionnel: ne pas descendre en dessous de 1 si c'est un buff positif? Non, standard logic.
+            // Si c'est un debuff qui tue, current_hp <= 0 sera géré ailleurs ou nécessite destroyCheck.
+        }
+
+        // Recalculer la PV effective si le système est en place
         if (variable_instance_exists(card, "effective_defense") || variable_instance_exists(card, "buff_contribs")) {
             if (is_undefined(buffRecompute)) {
                 if (variable_instance_exists(card, "effective_defense")) {
-                    card.effective_defense = card.defense;
+                    card.effective_defense = card.PV;
                 }
             } else {
                 buffRecompute(card);
@@ -75,12 +87,12 @@ function setAttack(card, value) {
 /// @function setDefense(card, value)
 function setDefense(card, value) {
     if (card == noone) return false;
-    card.defense = max(0, value);
-    // Synchroniser la DEF effective si présente
+    card.PV = max(0, value);
+    // Synchroniser la PV effective si présente
     if (variable_instance_exists(card, "effective_defense") || variable_instance_exists(card, "buff_contribs")) {
         if (is_undefined(buffRecompute)) {
             if (variable_instance_exists(card, "effective_defense")) {
-                card.effective_defense = card.defense;
+                card.effective_defense = card.PV;
             }
         } else {
             buffRecompute(card);
@@ -94,12 +106,22 @@ function setDefense(card, value) {
 function damageCard(card, amount) {
     if (card == noone) return false;
     registerTriggerEvent(TRIGGER_ON_DAMAGE, card, { damage: amount, source: card });
-    if (variable_struct_exists(card, "current_hp")) {
+    
+    // Support for both Structs and Instances
+    var has_current_hp = variable_struct_exists(card, "current_hp");
+    if (!has_current_hp && instance_exists(card)) has_current_hp = variable_instance_exists(card, "current_hp");
+    
+    if (has_current_hp) {
         card.current_hp -= amount;
         if (card.current_hp <= 0) { destroyCard(card); }
-    } else if (variable_struct_exists(card, "defense")) {
-        card.defense -= amount;
-        if (card.defense <= 0) { destroyCard(card); }
+    } else {
+        var has_pv = variable_struct_exists(card, "PV");
+        if (!has_pv && instance_exists(card)) has_pv = variable_instance_exists(card, "PV");
+        
+        if (has_pv) {
+            card.PV -= amount;
+            if (card.PV <= 0) { destroyCard(card); }
+        }
     }
     return true;
 }
@@ -108,10 +130,26 @@ function damageCard(card, amount) {
 function healCard(card, amount) {
     if (card == noone) return false;
     registerTriggerEvent(TRIGGER_ON_HEAL, card, { heal: amount, target: card });
-    if (variable_struct_exists(card, "current_hp") && variable_struct_exists(card, "max_hp")) {
+    
+    // Support for both Structs and Instances
+    var has_current_hp = variable_struct_exists(card, "current_hp");
+    if (!has_current_hp && instance_exists(card)) has_current_hp = variable_instance_exists(card, "current_hp");
+    
+    var has_max_hp = variable_struct_exists(card, "max_hp");
+    if (!has_max_hp && instance_exists(card)) has_max_hp = variable_instance_exists(card, "max_hp");
+
+    if (has_current_hp && has_max_hp) {
         card.current_hp = min(card.max_hp, card.current_hp + amount);
-    } else if (variable_struct_exists(card, "defense") && variable_struct_exists(card, "original_defense")) {
-        card.defense = min(card.original_defense, card.defense + amount);
+    } else {
+        var has_pv = variable_struct_exists(card, "PV");
+        if (!has_pv && instance_exists(card)) has_pv = variable_instance_exists(card, "PV");
+        
+        var has_def = variable_struct_exists(card, "original_defense");
+        if (!has_def && instance_exists(card)) has_def = variable_instance_exists(card, "original_defense");
+        
+        if (has_pv && has_def) {
+            card.PV = min(card.original_defense, card.PV + amount);
+        }
     }
     return true;
 }
@@ -131,13 +169,16 @@ function destroyCard(card, source = noone) {
         }
     }
     if (instance_exists(card) && variable_instance_exists(card, "protection_sources") && is_array(card.protection_sources) && array_length(card.protection_sources) > 0) {
+        // FIX: If protected from destruction but HP reached 0, clamp to 1 to avoid "0 HP zombie" state
+        if (variable_instance_exists(card, "PV") && card.PV <= 0) { card.PV = 1; }
+        if (variable_instance_exists(card, "current_hp") && card.current_hp <= 0) { card.current_hp = 1; }
         return false;
     }
     var ctx = { destroyed_card: card };
     if (source != noone && instance_exists(source)) { ctx.attacker = source; }
-    if (instance_exists(card) && variable_instance_exists(card, "Shield") && card.Shield > 0) {
-        card.Shield -= 1;
-        if (variable_instance_exists(card, "defense") && card.defense <= 0) { card.defense = 1; }
+    if (instance_exists(card) && variable_instance_exists(card, "illusion") && card.illusion > 0) {
+        card.illusion -= 1;
+        if (variable_instance_exists(card, "PV") && card.PV <= 0) { card.PV = 1; }
         if (variable_instance_exists(card, "current_hp") && card.current_hp <= 0) { card.current_hp = 1; }
         return true;
     }
@@ -169,6 +210,12 @@ function destroyCard(card, source = noone) {
                     else if (instance_exists(fieldManagerEnemy)) { fm = fieldManagerEnemy; }
                 }
                 if (fm != noone && variable_instance_exists(card, "fieldPosition")) { fm.remove(card); }
+            } else if (card.zone == "Secret") {
+                var sList = card.isHeroOwner ? global.activeSecretsHero : global.activeSecretsEnemy;
+                if (ds_exists(sList, ds_type_list)) {
+                    var idx = ds_list_find_index(sList, card);
+                    if (idx != -1) ds_list_delete(sList, idx);
+                }
             }
             card.zone = "Graveyard";
         }
@@ -296,3 +343,4 @@ function destroyAllMonsters(effect) {
     for (var i = 0; i < array_length(targets); i++) { destroyCard(targets[i]); }
     return true;
 }
+

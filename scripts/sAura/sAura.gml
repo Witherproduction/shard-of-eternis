@@ -1,4 +1,4 @@
-/// Aura: fonctions utilitaires pour appliquer et nettoyer les contributions de buff
+﻿/// Aura: fonctions utilitaires pour appliquer et nettoyer les contributions de buff
 
 
 function cleanupAuraSource(card, effect) {
@@ -57,7 +57,7 @@ function applyAllMonstersAuraDebuff(card, effect) {
     if (variable_instance_exists(card, "isFaceDown") && card.isFaceDown) return false;
 
     var atk = variable_struct_exists(effect, "atk") ? effect.atk : -500;
-    var def = variable_struct_exists(effect, "def") ? effect.def : -500;
+    var PV = variable_struct_exists(effect, "PV") ? effect.PV : -500;
     var srcKey = "aura:" + string(card.id);
     var excludeGenres = [];
     if (variable_struct_exists(effect, "exclude_genres")) {
@@ -81,10 +81,11 @@ function applyAllMonstersAuraDebuff(card, effect) {
                     }
                 }
                 if (excluded) continue;
-                buffSetContribution(id, srcKey, atk, def);
+                buffSetContribution(id, srcKey, atk, PV);
                 buffRecompute(id);
             }
         }
     }
     return true;
 }
+

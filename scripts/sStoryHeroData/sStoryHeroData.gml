@@ -14,7 +14,13 @@ function get_story_heroes() {
             name: "Kaelen",
             description: "",
             portrait: "sPortraitKaelen",
-            chapters: [1, 2, 3, 4, 5] // Chapitres de l'histoire principale
+            chapters: [1, 2, 3, 4, 5], // Chapitres de l'histoire principale
+            hero_power: {
+                id: "protection_divine",
+                name: "Protection Divine",
+                description: "Réduit de 1 l'ATK d'un serviteur ennemi.",
+                mana_cost: 2
+            }
         }
         // Ajoutez d'autres héros ici...
     ];

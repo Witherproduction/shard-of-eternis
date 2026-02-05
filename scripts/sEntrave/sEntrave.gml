@@ -3,9 +3,10 @@ function sEntrave(card, effect, context) {
     var scopeB = variable_struct_exists(effect, "scope") ? string_lower(effect.scope) : "single";
     var ownerB = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "enemy";
     var appliedOk = false;
-    // Politique globale: Entrave bloque l'attaque ET le changement de position
+    // Politique globale: Entrave bloque l'attaque uniquement (changement de position retiré du système)
     var blockAtk = true;
-    var blockPos = true;
+    // blockPos removed as per user instruction
+
     // Durée par défaut: jusqu'au début du prochain tour du propriétaire de la cible
     // Implémentation approximée via décrément à END_TURN: 1 si appliqué pendant le tour adverse, 2 si pendant le tour du propriétaire
     var activeIsHero = instance_exists(game) ? (game.player_current == 0) : true;
@@ -56,7 +57,7 @@ function sEntrave(card, effect, context) {
                     var ownerE = (variable_instance_exists(ce, "isHeroOwner") ? ce.isHeroOwner : !activeIsHero);
                     var durE = baseDur + ((ownerE == activeIsHero) ? 1 : 0);
                     ce.entrave_block_attack = true;
-                    ce.entrave_block_position = true;
+                    // ce.entrave_block_position = true; // Removed
                     var remE = variable_instance_exists(ce, "entrave_turns_remaining") ? ce.entrave_turns_remaining : 0;
                     ce.entrave_turns_remaining = max(remE, durE);
                     appliedOk = true;

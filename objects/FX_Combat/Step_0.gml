@@ -14,8 +14,9 @@ if (!initialized) {
         exit;
     }
     
-    // Ne pas exécuter de FX de combat hors phase Attaque, sauf si un effet l'autorise
-    if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
+    // Ne pas exécuter de FX de combat hors phase Attaque ou Main, sauf si un effet l'autorise ou si on est en tutoriel
+    var is_tutorial = instance_exists(oTutorielManager);
+    if (!(instance_exists(game) && (game.phase[game.phase_current] == "Attack" || game.phase[game.phase_current] == "Main" || is_tutorial))) {
         var allow_out_of_phase = false;
         if (variable_instance_exists(self, "attacker") && attacker != noone && instance_exists(attacker)) {
             if (variable_instance_exists(attacker, "effect_force_direct_attack") && attacker.effect_force_direct_attack) {
@@ -84,7 +85,7 @@ if (!initialized) {
     if (variable_instance_exists(self, "mode") && mode == "vsMonster" && defender != noone && instance_exists(defender)) {
         if (variable_instance_exists(defender.id, "isFaceDown") && defender.isFaceDown) {
             defender.isFaceDown = false;
-            if (defender.orientation == "Defense") defender.orientation = "DefenseVisible";
+            if (defender.orientation == "PV") defender.orientation = "DefenseVisible";
             defender.image_index = 0;
             defender.image_angle = (defender.isHeroOwner ? 90 : 270);
             defender.orientationChangedThisTurn = true; // verrouiller changement de position ce tour
@@ -102,7 +103,7 @@ if (!initialized) {
         variable_instance_exists(self, "attacker") && attacker != noone && instance_exists(attacker) &&
         variable_instance_exists(self, "defender") && defender != noone && instance_exists(defender)) {
         var compareVal = 0;
-        if (defender.orientation == "Attack") compareVal = attacker.attack - defender.attack; else compareVal = attacker.attack - defender.defense;
+        if (defender.orientation == "Attack") compareVal = attacker.attack - defender.attack; else compareVal = attacker.attack - defender.PV;
         if (compareVal > 0) shake_side = "defender"; else if (compareVal < 0) shake_side = "attacker"; else shake_side = "both";
         shake_amp_px = clamp(abs(compareVal) / 300, 3, 10);
     } else if (variable_instance_exists(self, "mode") && mode != "vsMonster") {

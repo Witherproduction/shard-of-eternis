@@ -1,4 +1,4 @@
-// === Gestion des clics dans l'evenement Step ===
+﻿// === Gestion des clics dans l'evenement Step ===
 
 // Hériter de la garde de oButtonBlock
 event_inherited();
@@ -39,8 +39,8 @@ if (mouse_check_button_pressed(mb_left)) {
         }
         
         // Boutons avec boucle pour simplifier (ajout du tri alphabétique)
-        var buttons = ["attack", "defense", "level", "type", "favorites", "rarity", "alpha"];
-        var buttonLabels = ["Attaque", "Defense", "Niveau", "Type", "Favoris", "Rarete", "Alphabetique"];
+        var buttons = ["attack", "PV", "level", "type", "favorites", "rarity", "alpha"];
+        var buttonLabels = ["Attaque", "PV", "Niveau", "Type", "Favoris", "Rarete", "Alphabetique"];
         
         for (var i = 0; i < 7; i++) {
             var buttonX = startX + (i * buttonSpacing);

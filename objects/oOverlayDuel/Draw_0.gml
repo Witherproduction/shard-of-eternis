@@ -1,4 +1,4 @@
-var n = array_length(cards);
+﻿var n = array_length(cards);
 if (n <= 0) exit;
 var scale = scaleView;
 var totalW = 0;
@@ -55,8 +55,8 @@ for (var j = 0; j < n; j++) {
         leftn = round(leftn); var cyn = topn + max(0, (rhn - hscn) * 0.5) + 2; cyn = round(cyn);
         draw_text_transformed(leftn, cyn, txn, scn, scn, 0);
     }
-    if (!is_magic && variable_instance_exists(c, "star")) {
-        var txs = string(c.star);
+    if (!is_magic && variable_instance_exists(c, "mana_cost")) {
+        var txs = string(c.mana_cost);
         var rws = (star_x2 - star_x1) * s - pad * 2;
         var rhs = (star_y2 - star_y1) * s - pad * 2;
         var scs = fit_line(txs, 20, rws, rhs); scs = round(scs * 20) / 20;
@@ -106,9 +106,9 @@ for (var j = 0; j < n; j++) {
         var cxk   = leftk + max(0, (rwk - wssk) * 0.5); var cyk   = topk  + max(0, (rhk - basek * sck) * 0.5) - 1; cxk = round(cxk); cyk = round(cyk);
         draw_text_transformed(cxk, cyk, txk, sck, sck, 0);
     }
-    if (!is_magic && variable_instance_exists(c, "defense")) {
+    if (!is_magic && variable_instance_exists(c, "PV")) {
         draw_set_color(c_black);
-        var txd2 = string(c.defense);
+        var txd2 = string(c.PV);
         var rwd2 = (def_x2 - def_x1) * s - pad * 2; var rhd2 = (def_y2 - def_y1) * s - pad * 2;
         var based2 = string_height("Ag"); var scd2 = (based2 > 0) ? 10 / based2 : 1; scd2 = round(scd2 * 20) / 20;
         var leftd2 = tlx + def_x1 * s + pad; var topd2  = tly + def_y1 * s + pad; var wssd2  = string_width(txd2) * scd2;

@@ -7,14 +7,16 @@ archetype = "Forêt des voleurs"
 rarity = "epique"
 booster = "A la découverte du monde"
 is_player_card = true;
+mana_cost = 2;
 
-description = "S'active lorsque vous êtes attaqué directement. Entrave tout les serviteurs adverse."
+description = "Secret : Quand un ennemi vous attaque, inflige 2 dégâts à tous les serviteurs adverses."
 effects = [
     {
         id: 1,
         secret_activation: { direct_attack: true },
-        effect_type: EFFECT_ENTRAVE,
-        scope: "all",
-        owner: "enemy"
+        effect_type: EFFECT_DAMAGE_ALL,
+        value: 2,
+        owner: "enemy",
+        scope: "all"
     }
-]
+];

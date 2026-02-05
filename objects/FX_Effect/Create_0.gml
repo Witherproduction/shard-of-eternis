@@ -1,11 +1,44 @@
 // FX_Effect - Create
-// Aura dorée au centre pour mise en avant d’une carte
+// Aura dorée au centre pour mise en avant d’une carte OU Projectile
 // Paramètres via spawner:
+// - mode: "halo" (default) ou "projectile"
 // - spriteGhost, imageGhost, image_xscale, image_yscale, image_angle
 // - duration_ms (optionnel)
 // - halo_pad_px, halo_thickness (optionnels)
 // - depth_override (optionnel)
+// Pour projectile: target_inst, move_speed, callback
 
+if (!variable_instance_exists(self, "mode")) mode = "halo";
+
+// === MODE PROJECTILE ===
+if (mode == "projectile") {
+    if (!variable_instance_exists(self, "move_speed")) move_speed = 25;
+    if (!variable_instance_exists(self, "target_inst")) target_inst = noone;
+    if (!variable_instance_exists(self, "callback")) callback = noone;
+    
+    // Initialisation
+    start_x = x;
+    start_y = y;
+    reached = false;
+    
+    // Profondeur
+    if (variable_instance_exists(self, "depth_override")) {
+        depth = depth_override;
+    } else {
+        depth = -100000;
+    }
+    
+    // Sprite
+    if (variable_instance_exists(self, "spriteGhost") && spriteGhost != noone) {
+        sprite_index = spriteGhost;
+    }
+    image_speed = 1;
+    
+    // Pas besoin du reste de l'initialisation Halo
+    return;
+}
+
+// === MODE HALO (Legacy) ===
 start_x = x;
 start_y = y;
 

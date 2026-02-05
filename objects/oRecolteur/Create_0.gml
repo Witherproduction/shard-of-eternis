@@ -2,9 +2,9 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Le Récolteur"
-attack = 6;
-defense = 6;
-star = 3;
+attack = 4;
+PV = 6;
+mana_cost = 6;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -19,7 +19,8 @@ effects = [
         effect_type: EFFECT_SUMMON,
         conditions: { summon_mode: "Summon" },
         summon_mode: "named",
-        object_name: "oCatherineFumerol"
+        object_name: "oCatherineFumerol",
+        placement_criteria: { relative_role: "support" }
     },
     {
         id: 2,
@@ -27,7 +28,9 @@ effects = [
         effect_type: EFFECT_SUMMON,
         conditions: { summon_mode: "Summon" },
         summon_mode: "named",
-        object_name: "oYvanCostaud"
+        object_name: "oYvanCostaud",
+        placement_criteria: { relative_role: "tank" }
     }
 ]
+
 

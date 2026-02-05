@@ -1,5 +1,11 @@
 show_debug_message("### oCardParent.Click - room: " + string(room))
 
+// Protection contre les clics traversants (si un bouton UI a été cliqué dans la même frame ou très récemment)
+if (variable_global_exists("last_ui_click_time") && (current_time - global.last_ui_click_time) < 200) {
+    show_debug_message("### oCardParent: Clic ignoré car bouton UI cliqué récemment");
+    return;
+}
+
 // Bloque immédiatement tout clic si le panneau d'options est présent
 if (instance_exists(oPanelOptions)) return;
 
@@ -28,7 +34,7 @@ if (room == rDuel && variable_global_exists("isGraveyardViewerOpen") && global.i
 
 // Bloquer les clics quand le menu d'action est visible — uniquement en Duel
 if (room == rDuel && variable_global_exists("isActionMenuOpen") && global.isActionMenuOpen) {
-    var allowDeckPick = instance_exists(game) && game.phase[game.phase_current] == "Pick" && zone == "Deck";
+    var allowDeckPick = false; // Legacy "Pick" phase removed
     var allowUnselectClick = instance_exists(oSelectManager) && selectManager.selected == id;
     // Autoriser un clic de carte héros pour afficher le viewer, même avec le menu ouvert
     var allowViewerClick = instance_exists(oSelectManager) && isHeroOwner && (zone == "Hand" || zone == "Field");
@@ -43,88 +49,43 @@ if (room == rDuel && variable_global_exists("isActionMenuOpen") && global.isActi
 }
 
 // Vérifier si un bouton UI est présent et bloque les clics — uniquement en Duel
-var uiButtonPresent = false;
-if (room == rDuel && (instance_exists(oSummon) || instance_exists(oSet) || instance_exists(oPositionButton) || instance_exists(oAttack) || instance_exists(oEffectButton))) {
+if (room == rDuel && (instance_exists(oSummon) || instance_exists(oAttack) || instance_exists(oEffectButton))) {
     // Vérifier si le clic est directement sur un bouton UI
+    var uiButtonClicked = false;
+    
     with(oSummon) {
-        var w = sprite_get_width(sprite_index) * image_xscale;
-        var h = sprite_get_height(sprite_index) * image_yscale;
-        var ox = sprite_get_xoffset(sprite_index) * image_xscale;
-        var oy = sprite_get_yoffset(sprite_index) * image_yscale;
-        var left = x - ox;
-        var top = y - oy;
-        var right = left + w;
-        var bottom = top + h;
-        if (point_in_rectangle(mouse_x, mouse_y, left, top, right, bottom)) {
-            uiButtonPresent = true;
+        if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
+            uiButtonClicked = true;
             break;
         }
     }
-    with(oSet) {
-        var w = sprite_get_width(sprite_index) * image_xscale;
-        var h = sprite_get_height(sprite_index) * image_yscale;
-        var ox = sprite_get_xoffset(sprite_index) * image_xscale;
-        var oy = sprite_get_yoffset(sprite_index) * image_yscale;
-        var left = x - ox;
-        var top = y - oy;
-        var right = left + w;
-        var bottom = top + h;
-        if (point_in_rectangle(mouse_x, mouse_y, left, top, right, bottom)) {
-            uiButtonPresent = true;
-            break;
+    
+    if (!uiButtonClicked) {
+        with(oAttack) {
+            if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
+                uiButtonClicked = true;
+                break;
+            }
         }
     }
-    with(oPositionButton) {
-        var w = sprite_get_width(sprite_index) * image_xscale;
-        var h = sprite_get_height(sprite_index) * image_yscale;
-        var ox = sprite_get_xoffset(sprite_index) * image_xscale;
-        var oy = sprite_get_yoffset(sprite_index) * image_yscale;
-        var left = x - ox;
-        var top = y - oy;
-        var right = left + w;
-        var bottom = top + h;
-        if (point_in_rectangle(mouse_x, mouse_y, left, top, right, bottom)) {
-            uiButtonPresent = true;
-            break;
-        }
-    }
-    with(oAttack) {
-        var w = sprite_get_width(sprite_index) * image_xscale;
-        var h = sprite_get_height(sprite_index) * image_yscale;
-        var ox = sprite_get_xoffset(sprite_index) * image_xscale;
-        var oy = sprite_get_yoffset(sprite_index) * image_yscale;
-        var left = x - ox;
-        var top = y - oy;
-        var right = left + w;
-        var bottom = top + h;
-        if (point_in_rectangle(mouse_x, mouse_y, left, top, right, bottom)) {
-            uiButtonPresent = true;
-            break;
-        }
-    }
-    with(oEffectButton) {
-        var w = sprite_get_width(sprite_index) * image_xscale;
-        var h = sprite_get_height(sprite_index) * image_yscale;
-        var ox = sprite_get_xoffset(sprite_index) * image_xscale;
-        var oy = sprite_get_yoffset(sprite_index) * image_yscale;
-        var left = x - ox;
-        var top = y - oy;
-        var right = left + w;
-        var bottom = top + h;
-        if (point_in_rectangle(mouse_x, mouse_y, left, top, right, bottom)) {
-            uiButtonPresent = true;
-            break;
-        }
-    }
-}
 
-// Si un bouton UI est cliqué, bloquer complètement le traitement de la carte
-if (uiButtonPresent) {
-    return;
+    if (!uiButtonClicked) {
+        with(oEffectButton) {
+            if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
+                uiButtonClicked = true;
+                break;
+            }
+        }
+    }
+    
+    // Si un bouton UI a été cliqué, ne pas sélectionner la carte
+    if (uiButtonClicked) {
+        exit;
+    }
 }
 
 // Bloquer uniquement pendant la distribution en phase Pick — Duel
-if (room == rDuel && instance_exists(game) && game.timerEnabledPick && game.phase[game.phase_current] == "Pick")
+if (room == rDuel && instance_exists(game) && game.timerEnabledMulligan && game.phase[game.phase_current] == "Pick")
     return;
 
 ///////////////////////////////////////////////////////////////////////
@@ -146,22 +107,8 @@ if (instance_exists(game)) {
     }
 }
 
-if(isHeroOwner && instance_exists(game) && isMyTurn && game.phase[game.phase_current] == "Pick" && zone == "Deck") {
-	
-    // Utilisation du système d'action réseau pour la pioche
-    var pIndex = 0;
-    if (variable_instance_exists(game, "local_player_index")) {
-        pIndex = game.local_player_index;
-    }
-    
-    var payload = {
-        player_index: pIndex,
-        trigger_next_phase: true
-    };
-    RequestGameAction(ACTION_DRAW, payload);
-
-	return; // Evite de tester les autres actions ci-dessous
-}
+// Manual draw logic removed for HS transition
+// if(isHeroOwner && instance_exists(game) && isMyTurn && game.phase[game.phase_current] == "Pick" && zone == "Deck") { ... }
 
 //----------------------------------
 // Sélection / Désélection

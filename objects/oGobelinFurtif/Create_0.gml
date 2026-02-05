@@ -1,10 +1,8 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
-
 // Définit les stats spécifiques de ce monstre
 name = "Gobelin Furtif"
-attack = 4;
-defense = 3;
-star = 1;
+attack = 3;
+PV = 2;
+mana_cost = 2;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -18,3 +16,5 @@ effects = [
         effect_type: EFFECT_CAMOUFLAGE
     }
 ]
+
+event_inherited();  // Hérite des variables et comportement de oCardMonster

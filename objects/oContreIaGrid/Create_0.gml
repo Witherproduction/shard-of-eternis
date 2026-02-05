@@ -1,4 +1,4 @@
-// === oContreIaGrid - Create Event ===
+﻿// === oContreIaGrid - Create Event ===
 // Initialisation des variables pour la sélection des bots
 
 // Configuration du tableau
@@ -38,7 +38,7 @@ for (var i = 0; i < array_length(all_available_decks); i++) {
     
     // Mapping manuel des nouveaux IDs string vers les anciens slots numériques
     if (is_string(bot_id)) {
-        if (bot_id == "Invasion_Geule_Roche") bot_id = 1;
+        if (bot_id == "Invasion_Gueule_Roche") bot_id = 1;
         else if (bot_id == "Essaim_Abyssien") bot_id = 2;
         else if (bot_id == "Bandit_Grand_Chemin") bot_id = 3;
     }
@@ -63,7 +63,8 @@ available_bots = [];
 for (var i = 1; i < total_cells; i++) {
     if (variable_struct_exists(bot_data[i], "name")) {
         // Vérifier si le bot est débloqué via le gestionnaire de progression
-        if (is_bot_unlocked(i)) {
+        // Vérifie l'ID numérique (i) OU l'ID string réel (deck_id)
+        if (is_bot_unlocked(i) || is_bot_unlocked(bot_data[i].deck_id)) {
             array_push(available_bots, i);
         }
     }

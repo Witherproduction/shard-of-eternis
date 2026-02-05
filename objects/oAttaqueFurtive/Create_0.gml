@@ -2,24 +2,26 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Attaque furtive"
-genre = "Direct"
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "epique"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Donne +2 ATK à vos serviteurs avec camouflage"
+description = "Combo : camouflage\nInflige 2 dégâts. Si vous contrôlez un serviteur avec Camouflage, inflige 4 dégâts à la place."
+mana_cost = 1;
+
 effects = [
     {
         id: 1,
         trigger: TRIGGER_MAIN_PHASE,
-        effect_type: EFFECT_BUFF,
-        scope: "all",
-        owner: "ally",
-        target_zone: "field",
+        effect_type: EFFECT_DAMAGE_TARGET,
+        value: 2,
         criteria: { type: "Monster" },
-        only_camouflaged: true,
-        atk: 2,
-        def: 0
+        owner: "enemy",
+        bonus_condition: "control_camouflaged",
+        bonus_value: 4,
+        replace_base_value: true
     }
 ]
+

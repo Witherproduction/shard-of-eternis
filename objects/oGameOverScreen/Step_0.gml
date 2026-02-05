@@ -144,6 +144,9 @@ if (alpha >= targetAlpha) {
             if (variable_global_exists("isGraveyardViewerOpen")) {
                 global.isGraveyardViewerOpen = false;
             }
+            if (variable_global_exists("story_hero_id")) {
+                global.story_hero_id = noone;
+            }
             
             room_goto(target_room);
         } else {

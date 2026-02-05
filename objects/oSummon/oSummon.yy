@@ -30,8 +30,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"sSummon",
-    "path":"sprites/sSummon/sSummon.yy",
+    "name":"sPlace",
+    "path":"sprites/sPlace/sPlace.yy",
   },
   "spriteMaskId":null,
   "visible":true,

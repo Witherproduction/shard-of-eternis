@@ -7,11 +7,7 @@ var anyActionUI = false;
 // Vérifie les instances suivies par oUIManager (visibles et alpha > 0)
 if (instanceSummon != "" && instance_exists(instanceSummon) && instanceSummon.visible && instanceSummon.image_alpha > 0) {
     anyActionUI = true;
-} else if (instanceSet != "" && instance_exists(instanceSet) && instanceSet.visible && instanceSet.image_alpha > 0) {
-    anyActionUI = true;
 } else if (instanceEffectButton != "" && instance_exists(instanceEffectButton) && instanceEffectButton.visible && instanceEffectButton.image_alpha > 0) {
-    anyActionUI = true;
-} else if (instancePositionButton != "" && instance_exists(instancePositionButton) && instancePositionButton.visible && instancePositionButton.image_alpha > 0) {
     anyActionUI = true;
 } else if (instanceAttackButton != "" && instance_exists(instanceAttackButton) && instanceAttackButton.visible && instanceAttackButton.image_alpha > 0) {
     anyActionUI = true;

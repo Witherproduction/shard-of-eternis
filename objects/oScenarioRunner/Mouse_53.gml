@@ -1,8 +1,14 @@
-if (instance_exists(oPanelOptions)) exit;
+﻿if (instance_exists(oPanelOptions)) exit;
 
 // Gestion du bouton Auto
 if (point_in_rectangle(mouse_x, mouse_y, btn_auto_x1, btn_auto_y1, btn_auto_x2, btn_auto_y2)) {
     auto_mode = !auto_mode;
+    exit;
+}
+
+// Gestion du bouton Précédent
+if (point_in_rectangle(mouse_x, mouse_y, btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2)) {
+    event_perform(ev_mouse, ev_global_right_press);
     exit;
 }
 
@@ -111,20 +117,32 @@ if (point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, 
         
         var is_last_scene = (scene_index + 1 >= array_length(scenes));
 
-        // Patch: Empêcher un deuxième duel accidentel à la toute dernière scène du Chapitre 1 Acte 1
-        // Le joueur a déjà combattu avant cette scène finale
-        if (is_last_scene && bot_id != 0 && bot_id != noone) {
-            // Check broadly for Chapter 1 Act 1
-            if (real(chapter_id) == 1 && real(act_num) == 1) {
-                 show_debug_message("### PATCH: Blocage du duel accidentel en fin de Ch1 Act1 (Scene " + string(scene_index) + ")");
-                 bot_id = 0;
+        show_debug_message("### CHECK DUEL V2: Scene " + string(scene_index) + " / " + string(array_length(scenes)) + " | bot_id=" + string(bot_id));
+
+        // Patch supprimé: On autorise désormais le duel en fin de Ch1 Act1 si configuré dans le JSON
+        // if (is_last_scene && bot_id != 0 && bot_id != noone) { ... }
+
+        var is_valid_duel = (bot_id != 0 && string(bot_id) != "0" && bot_id != noone);
+        
+        // HOTFIX: Handle numeric ID 1 (Legacy)
+        if (is_real(bot_id) && bot_id == 1) {
+            if (scene_index > 0) {
+                show_debug_message("### CHECK DUEL V2: Legacy ID 1 detected at scene " + string(scene_index) + ". Converting to Invasion_Gueule_Roche.");
+                bot_id = "Invasion_Gueule_Roche";
+                is_valid_duel = true;
+            } else {
+                show_debug_message("### CHECK DUEL V2: BLOCKED LEGACY bot_id: 1 at Scene 0");
+                is_valid_duel = false;
             }
         }
 
-        if (bot_id != 0 && bot_id != noone) {
+        if (is_valid_duel) {
              if (!instance_exists(oDuelConfirmation)) {
                 var inst = instance_create_depth(0, 0, -9999, oDuelConfirmation);
                 inst.selected_bot_deck_id = bot_id;
+                
+                // IMPORTANT: Set global variable for display
+                global.selected_bot_deck_id = bot_id;
                 
                 // Save state for Duel Outcome
                 global.duel_resume_scene = scene_index;
@@ -222,3 +240,4 @@ if (point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, 
         }
     }
 }
+

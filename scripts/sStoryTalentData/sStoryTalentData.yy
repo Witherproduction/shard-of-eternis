@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sStoryTalentData",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sStoryTalentData",
+  "parent":{
+    "name":"progress",
+    "path":"folders/Scripts/progress.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

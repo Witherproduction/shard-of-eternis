@@ -2,29 +2,34 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Brume de la forêt"
-genre = "Direct"
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "epique"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Réduit de 1 l'ATK des serviteurs adverse jusqu'à la fin du tour."
+description = "Confère +2 ATK et Camouflage à un serviteur allié.\nCombo (Camouflage) : Détruit un serviteur ennemi aléatoire."
+mana_cost = 2;
+
 effects = [
     {
         id: 1,
         trigger: TRIGGER_MAIN_PHASE,
-        effect_type: EFFECT_BUFF,
-        scope: "all",
+        effect_type: EFFECT_DESTROY_TARGET,
+        select_mode: "random",
         owner: "enemy",
-        target_zone: "field",
         criteria: { type: "Monster" },
-        aggregate: true,
-        atk: -1,
-        def: 0
+        condition: "control_camouflaged"
     },
     {
-        id: 99,
-        trigger: TRIGGER_END_TURN,
-        effect_type: EFFECT_AURA_CLEANUP_SOURCE
+        id: 2,
+        trigger: TRIGGER_MAIN_PHASE,
+        effect_type: EFFECT_BUFF,
+        target_type: "monster",
+        scope: "single",
+        owner: "ally",
+        atk: 2,
+        PV: 0,
+        grant_camouflage: true
     }
 ]

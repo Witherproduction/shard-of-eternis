@@ -1,4 +1,4 @@
-// FX_Invocation - Step
+﻿// FX_Invocation - Step
 // Phase 1: Interpolation vers l'emplacement désigné
 // Phase 2: Post-effet circuit imprimé autour de la carte posée
 
@@ -99,7 +99,7 @@ if (!finished_move) {
                 // Orientation/face selon camp et mode
                 if (ownerHero) {
                     if (ctype == "Monster" && mode == "Set") {
-                        orientation = "Defense";
+                        orientation = "PV";
                         image_angle = 90;
                         image_index = 1;
                         isFaceDown = true;
@@ -123,8 +123,8 @@ if (!finished_move) {
                         isFaceDown = false;
                     }
                 } else {
-                    if (desiredOr == "Defense") {
-                        orientation = "Defense";
+                    if (desiredOr == "PV") {
+                        orientation = "PV";
                         image_angle = 270;
                         image_index = 1;
                         isFaceDown = true;
@@ -208,3 +208,4 @@ if (!finished_move) {
         instance_destroy();
     }
 }
+

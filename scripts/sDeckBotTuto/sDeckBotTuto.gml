@@ -1,4 +1,4 @@
-/// @function get_bot_decks_tuto()
+﻿/// @function get_bot_decks_tuto()
 /// @description Retourne la liste des decks bots pour le Tutoriel
 function get_bot_decks_tuto() {
     return [
@@ -12,12 +12,13 @@ function get_bot_decks_tuto() {
             description: "Un adversaire simple pour apprendre les bases.",
             cards: [
                 "oAraigneeForestiere", "oAraigneeForestiere", "oAraigneeForestiere",
+				"oTortueVagabonde","oTortueVagabonde","oTortueVagabonde",
                 "oFeuillageProtecteur", "oFeuillageProtecteur", "oFeuillageProtecteur",
                 "oGriffePredateur", "oGriffePredateur", "oGriffePredateur",
                 "oPeauRocRobuste", "oPeauRocRobuste", "oPeauRocRobuste",
                 "oMaitrePasse", "oMaitrePasse", "oMaitrePasse",
                 "oGobelinFurtif", "oGobelinFurtif", "oGobelinFurtif",
-                "oEnvahisseurGeuleRoche", "oEnvahisseurGeuleRoche"
+                "oEnvahisseurGueuleRoche", "oEnvahisseurGueuleRoche"
             ],
             profile: {
                 summon_weight: 50,
@@ -32,3 +33,4 @@ function get_bot_decks_tuto() {
         }
     ];
 }
+

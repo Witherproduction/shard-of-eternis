@@ -2,7 +2,8 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Espionnage"
-genre = "Direct"
+mana_cost = 1;
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "rare"
 booster = "A la découverte du monde"

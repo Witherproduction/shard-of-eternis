@@ -1,35 +1,24 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
 
-// Définit les stats spécifiques de ce sort
-name = "Anneau du voleur"
-genre = "Artéfact"
-archetype = "Forêt des voleurs"
-rarity = "epique"
-booster = "A la découverte du monde"
+name = "Anneau du voleur";
+genre = "Sort";
+archetype = "Forêt des voleurs";
+rarity = "epique";
+booster = "A la découverte du monde";
 is_player_card = true;
 
-description = "Lorsque le serviteur équipé attaque, copie une carte de la main adverse et l'ajoute à votre main."
+description = "Vole une carte aléatoire du deck de votre adversaire et l'ajoute à votre main.";
+mana_cost = 2;
+
 effects = [
     {
         id: 1,
         trigger: TRIGGER_MAIN_PHASE,
-        effect_type: EFFECT_EQUIP_SELECT_TARGET,
-        ally_only: true
-    },
-    {
-        id: 2,
-        trigger: TRIGGER_ON_ATTACK,
         effect_type: EFFECT_PILLAGE,
-        operation: "copy",
-        source_zone: "Hand",
+        operation: "steal",
+        source_zone: "Deck",
         destination: "Hand",
         random_select: true,
-        value: 1,
-        conditions: { attacker_is_equipped_target: true }
-    },
-    {
-        id: 99,
-        trigger: TRIGGER_LEAVE_FIELD,
-        effect_type: EFFECT_EQUIP_CLEANUP
+        value: 1
     }
-]
+];

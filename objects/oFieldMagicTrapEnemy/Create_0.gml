@@ -7,17 +7,20 @@ show_debug_message("### oFieldMagicTrapEnemy.create - after event_inherited")
 // Attributs
 ///////////////////////////////////////////////////////////////////////
 
-posLocation = [
+// [HEARTHSTONE] Magic zones disabled/hidden
+visible = false;
+posLocation = [];
+/* Legacy positions:
+[
 	[641, 182],
 	[800, 182],
 	[960, 182],
 	[1120, 182],
 	[1280, 182],
 ];
+*/
 
 
 ///////////////////////////////////////////////////////////////////////
 // Méthodes
 ///////////////////////////////////////////////////////////////////////
-
-

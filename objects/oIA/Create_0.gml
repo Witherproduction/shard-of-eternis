@@ -19,7 +19,7 @@ if (!variable_instance_exists(id, "oHandEnemy")) {
 }
 
 // Initialisation du profil de comportement IA selon le deck choisi
-var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
 
 if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
     // Récupère le nom de profil associé au deck (ex: "aggro", "control", etc.) ou une struct de directives
@@ -56,104 +56,22 @@ if (!variable_instance_exists(id, "iaNextPhasePending")) iaNextPhasePending = fa
 // File des actions manuelles (effets, sorts) et état de traitement
 if (!variable_instance_exists(id, "manualEffectsQueue")) manualEffectsQueue = [];
 if (!variable_instance_exists(id, "manualEffectProcessing")) manualEffectProcessing = false;
+if (!variable_instance_exists(id, "aiTurnState")) aiTurnState = "Idle"; // Idle, Summoning, Attacking
+
 scheduleNextPhase = function() { iaNextPhasePending = true; iaDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : room_speed); };
+
+startTurnLogic = function() {
+    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.startTurnLogic");
+    aiTurnState = "Summoning";
+    aiMainPhaseActive = true;
+    summon();
+}
+
 #region Function manageOrientation
 manageOrientation = function() {
-    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.manageOrientation")
-    
-    var dif = (variable_global_exists("IA_DIFFICULTY") ? global.IA_DIFFICULTY : 0);
-    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : 1;
-    
-    // Récupération du profil IA
-    var profile = AI_Config_GetBotProfile(botID);
-    var p_def_bias = (profile != undefined) ? profile.defense_bias : 50;
-    var p_risk = (profile != undefined) ? profile.risk_tolerance : 50;
-
-    // Parcourt les monstres de l'IA pour optimiser leur orientation
-    for (var i = 0; i < 5; i++) {
-        var cardEnemy = fieldMonsterEnemy.cards[i];
-        var shouldDefend = false;
-
-        // Nettoyage des références invalides
-        if (cardEnemy != 0 && !instance_exists(cardEnemy)) {
-            fieldMonsterEnemy.cards[i] = 0;
-            continue;
-        }
-
-        if (cardEnemy != 0 && instance_exists(cardEnemy) && !cardEnemy.orientationChangedThisTurn) {
-            if (variable_instance_exists(cardEnemy, "entrave_turns_remaining") && cardEnemy.entrave_turns_remaining > 0 && variable_instance_exists(cardEnemy, "entrave_block_position") && cardEnemy.entrave_block_position) {
-                continue;
-            }
-            if (cardEnemy.isFaceDown) { continue; }
-            
-            var eAtkE = (variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : (variable_instance_exists(cardEnemy, "attack") ? cardEnemy.attack : 0));
-            var eDefE = (variable_struct_exists(cardEnemy, "effective_defense") ? cardEnemy.effective_defense : (variable_instance_exists(cardEnemy, "defense") ? cardEnemy.defense : 0));
-
-            // Logique de base : Si DEF >> ATK, on défend
-            // Modifié par le profil : Si defense_bias est haut (ex: 80), on défend même si DEF est juste un peu mieux ou égal
-            if (eDefE > eAtkE + (50 - p_def_bias)) { 
-                shouldDefend = true; 
-            }
-
-            // Analyser les menaces du héros
-            var maxHeroAtk = 0;
-            for (var j = 0; j < array_length(fieldMonsterHero.cards); j++) {
-                var cardHero = fieldMonsterHero.cards[j];
-                if (cardHero != 0 && instance_exists(cardHero) && instance_exists(cardEnemy)) {
-                    var eAtkH = (variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : (variable_instance_exists(cardHero, "attack") ? cardHero.attack : 0));
-                    var eDefH = (variable_struct_exists(cardHero, "effective_defense") ? cardHero.effective_defense : (variable_instance_exists(cardHero, "defense") ? cardHero.defense : 0));
-                    var heroInAttack = (variable_instance_exists(cardHero, "orientation") && cardHero.orientation == "Attack");
-                    if (eAtkH > maxHeroAtk) maxHeroAtk = eAtkH;
-                    
-                    // Si on risque de mourir en Attaque
-                    if (heroInAttack && eAtkH > eAtkE) { 
-                        // Si on est "Aggro" (risk_tolerance élevé), on accepte le risque si on peut aussi tuer ou faire mal
-                        // Si risk_tolerance < 50, on a peur -> Defend
-                        if (p_risk < 60) shouldDefend = true; 
-                    }
-                    
-                    // Si on survit mieux en Défense
-                    if (eAtkH < eDefE && eAtkH >= eAtkE) {
-                        shouldDefend = true;
-                    }
-                }
-            }
-
-            if (maxHeroAtk > 0) {
-                if (maxHeroAtk >= eAtkE + 2 && maxHeroAtk >= eDefE + 2) {
-                    shouldDefend = true;
-                }
-            }
-
-            // --- EXCEPTIONS ET SURCHARGES (James la Calamité / Profils Agressifs) ---
-            // 1. Camouflage : Si le monstre est camouflé, il est intouchable aux attaques, donc on reste en attaque pour menacer
-            if (variable_instance_exists(cardEnemy, "isCamouflage") && cardEnemy.isCamouflage) {
-                shouldDefend = false;
-            }
-            // 2. Agressivité Extrême : Si le bot a un profil très agressif (risk >= 65), il privilégie l'attaque
-            // Cela évite que James mette tout en défense dès qu'il y a un monstre fort en face
-            else if (p_risk >= 65 && eAtkE > 0) {
-                 shouldDefend = false;
-            }
-
-            // Changer l'orientation si nécessaire
-            if (instance_exists(cardEnemy)) {
-                if (shouldDefend && cardEnemy.orientation == "Attack") {
-                    if (script_exists(asset_get_index("RequestGameAction"))) {
-                        RequestGameAction(ACTION_SWITCH_POSITION, { card_uid: cardEnemy.instance_uid, immediate: true });
-                    }
-                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("IA change monstre en défense visible (Command)");
-                    continue;
-                } else if (!shouldDefend && (cardEnemy.orientation == "Defense" || cardEnemy.orientation == "DefenseVisible")) {
-                    if (script_exists(asset_get_index("RequestGameAction"))) {
-                        RequestGameAction(ACTION_SWITCH_POSITION, { card_uid: cardEnemy.instance_uid, immediate: true });
-                    }
-                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("IA change monstre en attaque (Command)");
-                    continue;
-                }
-            }
-        }
-    }
+    // HEARTHSTONE MODE: No orientation management.
+    // All minions are always in Attack mode.
+    // This function is kept empty to prevent legacy calls from crashing.
 }
 #endregion
 
@@ -163,7 +81,7 @@ manageOrientation = function() {
 pick = function() {
     if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.pick")
     deckEnemy.pick();
-    if (instance_exists(game) && !game.timerEnabledPick) { scheduleNextPhase(); }
+    if (instance_exists(game) && !game.timerEnabledMulligan) { scheduleNextPhase(); }
 }
 #endregion
 
@@ -206,6 +124,10 @@ summon = function() {
     // -------------------------
 
     var moves = AI_GetLegalMoves_Summon();
+    // Add Hero Power Moves
+    var hpMoves = AI_GetLegalMoves_HeroPower();
+    for(var i=0; i<array_length(hpMoves); i++) array_push(moves, hpMoves[i]);
+
     var bestMove = AI_SelectBestMove(moves);
     
     if (bestMove != noone) {
@@ -237,6 +159,27 @@ iaAttackResetEngagement = function() {
 
 iaAttackTryLaunchNext = function() {
     if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.iaAttackTryLaunchNext (Refactored)");
+    
+    // --- TUTORIAL OVERRIDE ---
+    if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
+        var tutoMove = AI_GetTutorialMove(game.nbTurn, "Attack");
+        if (tutoMove != noone) {
+             var success = AI_ExecuteMove(tutoMove);
+             if (success) return true;
+             return false;
+        } else {
+             // Si pas de move tuto
+             
+             // SPECIAL TOUR 8: On interdit l'IA standard pour empêcher la 2ème attaque
+             if (game.nbTurn == 8) {
+                 return false;
+             }
+             
+             // Pour les autres tours, on laisse le comportement par défaut (fall-through)
+             // qui va exécuter l'IA standard ci-dessous.
+        }
+    }
+    // -------------------------
     
     var moves = AI_GetLegalMoves_Attack();
     var bestMove = AI_SelectBestMove(moves);
@@ -273,7 +216,7 @@ attack = function() {
              }
         } 
         // Si pas de move ou move fait, on passe le tour d'attaque (IA passive sauf script)
-        game.nextPhase();
+        scheduleNextPhase();
         return;
     }
     // -------------------------
@@ -296,4 +239,5 @@ attack = function() {
     // Sans FX: idem, le Step s'occupe du séquencement lent
 }
 #endregion
+
 

@@ -1,4 +1,7 @@
-show_debug_message("### oSummon.create")
+﻿show_debug_message("### oSummon.create")
+
+// Enregistrer le clic UI pour bloquer la sélection de carte sous-jacente
+global.last_ui_click_time = current_time;
 
 if (global.isGraveyardViewerOpen) exit;
 // Bloque l'interaction si le sélecteur de sacrifice est ouvert
@@ -14,7 +17,7 @@ var selectedCard = selectManager.selected;
 
 // Vérifie si c'est un monstre qui nécessite des sacrifices
 if (selectedCard.type == "Monster") {
-    var requiredLevel = getSacrificeLevel(selectedCard.star);
+    var requiredLevel = getSacrificeLevel(selectedCard.mana_cost);
     
     // Si le monstre nécessite des sacrifices, utilise le sélecteur
     if (requiredLevel == 1 || requiredLevel == 2) {
@@ -39,8 +42,9 @@ if (selectedCard.type == "Monster") {
     }
 }
 
-// Pour les monstres sans sacrifice ou les cartes magiques, affiche directement les indicateurs
+// Pour les monstres sans sacrifice, affiche les indicateurs
 UIManager.displayIndicator();
 
 // Empêche la propagation du clic vers les objets en dessous
 exit;
+

@@ -86,6 +86,58 @@ function animEffectRequestProjectile(element, srcCard, amount, targetIsHero) {
     array_push(global.anim_fx_list, fx);
 }
 
+function animEffectRequestProjectileTarget(element, srcCard, targetInstance, amount) {
+    // Utilisation du nouveau système FX_Effect (Objet) pour une meilleure fiabilité
+    if (room != rDuel) return;
+    if (srcCard == noone || !instance_exists(srcCard)) return;
+    if (targetInstance == noone || !instance_exists(targetInstance)) return;
+
+    var srcx = srcCard.x; var srcy = srcCard.y;
+    var dstx = targetInstance.x;
+    var dsty = targetInstance.y;
+
+    // Calcul de la durée (pour déterminer la vitesse)
+    var dur_ms = clamp(700 + amount * 80, 700, 1600);
+    var is_physique = (string_lower(element) == "physique");
+    if (is_physique) { dur_ms = clamp(450 + amount * 40, 350, 1000); }
+    
+    // Calcul de la vitesse (pixels par step)
+    // Vitesse = Distance / (Duration_ms / 1000 * 60)
+    var dist = point_distance(srcx, srcy, dstx, dsty);
+    var frames = (dur_ms / 1000) * 60; // Base 60 FPS
+    var spd = (frames > 0) ? (dist / frames) : 25;
+    
+    // Choix du sprite et sons
+    var sprProj = asset_get_index(is_physique ? "sEpee" : "sBouleDeFeu");
+    var sndLaunch = is_physique ? asset_get_index("SwordDraw") : asset_get_index("FireBallLaunch");
+    var sndImpact = is_physique ? asset_get_index("SwordHit") : asset_get_index("FireBallImpact");
+    
+    // Création de l'effet visuel
+    var fx = instance_create_layer(srcx, srcy, "UI", FX_Effect);
+    if (fx != noone) {
+        fx.mode = "projectile";
+        fx.move_speed = spd;
+        fx.target_inst = targetInstance;
+        fx.spriteGhost = sprProj;
+        
+        // Configuration manuelle car le Create Event a déjà tourné avec mode="halo"
+        fx.sprite_index = sprProj;
+        fx.depth = -20000;
+        fx.depth_override = -20000;
+        fx.snd_impact = sndImpact;
+        
+        // Jouer le son de lancement maintenant
+        if (sndLaunch != -1) {
+            audio_play_sound(sndLaunch, 0, false);
+        }
+        
+        // Configuration spécifique pour le physique (rotation)
+        if (is_physique) {
+            fx.image_angle = 0; 
+        }
+    }
+}
+
 function animEffectDrawAll() {
     if (!variable_global_exists("anim_fx_list") || !is_array(global.anim_fx_list)) return;
     var remaining = [];

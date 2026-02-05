@@ -1,5 +1,8 @@
 /// @description Attack Button Click
 
+// Enregistrer le clic UI pour bloquer la sélection de carte sous-jacente
+global.last_ui_click_time = current_time;
+
 if (global.isGraveyardViewerOpen) exit;
 
 // Bloque si le tutoriel restreint les clics
@@ -13,7 +16,7 @@ if (parentCard != "" && selectManager.attackMode == false) {
         return;
     }
     // Garde: activer le mode attaque uniquement pour un monstre du héros en phase Attack et orienté en Attaque
-    if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
+    if (!(instance_exists(game) && (game.phase[game.phase_current] == "Attack" || game.phase[game.phase_current] == "Main"))) {
         show_debug_message("### oAttack.Click: Pas en phase d'attaque");
         exit;
     }

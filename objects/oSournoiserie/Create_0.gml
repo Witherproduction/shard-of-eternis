@@ -1,20 +1,27 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
 
-// Définit les stats spécifiques de ce sort
-name = "Sournoiserie"
-genre = "Continue"
-archetype = "Forêt des voleurs"
-rarity = "rare"
-booster = "A la découverte du monde"
+name = "Sournoiserie";
+genre = "Sort";
+archetype = "Forêt des voleurs";
+rarity = "rare";
+booster = "A la découverte du monde";
 is_player_card = true;
 
-description = "Chaque fois qu'un Humanoïde est invoqué, pioche une carte."
+description = "Inflige 2 dégâts à un serviteur ennemi et l'Entrave.";
+mana_cost = 2;
+
 effects = [
     {
         id: 1,
-        trigger: TRIGGER_ON_MONSTER_SUMMON,
-        effect_type: EFFECT_DRAW_CARDS,
-        value: 1,
-        conditions: { source_genre: "Humanoïde" }
+        trigger: TRIGGER_MAIN_PHASE,
+        effect_type: EFFECT_DAMAGE_TARGET,
+        damage: 2,
+        scope: "single",
+        target_zone: "field",
+        owner: "enemy",
+        criteria: { type: "Monster" },
+        flow: [
+            { effect_type: EFFECT_ENTRAVE, scope: "single" }
+        ]
     }
-]
+];

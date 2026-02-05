@@ -1,4 +1,4 @@
-// === oValiderDuel - Create Event ===
+﻿// === oValiderDuel - Create Event ===
 // Bouton pour valider le duel et aller vers rDuel
 
 show_debug_message("### oValiderDuel.Create_0 - Objet créé à la position (" + string(x) + ", " + string(y) + ")");
@@ -19,4 +19,4 @@ show_debug_message("### Zone de collision: (" + string(collision_left) + ", " + 
 
 // Variables pour le deck sélectionné
 selected_player_deck = noone;
-selected_bot_deck_id = "Invasion_Geule_Roche"; // Deck par défaut du bot
+selected_bot_deck_id = "Invasion_Gueule_Roche"; // Deck par défaut du bot

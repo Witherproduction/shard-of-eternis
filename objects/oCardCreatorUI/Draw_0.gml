@@ -156,7 +156,7 @@ for (var i = 0; i < array_length(field_names); i++) {
     var field = field_positions[$ field_name];
     
     // Afficher seulement les champs pertinents selon le type
-    if (card_type == "Magic" && (field_name == "attack" || field_name == "defense" || field_name == "star")) {
+    if (card_type == "Magic" && (field_name == "attack" || field_name == "PV" || field_name == "genre")) {
         continue;
     }
     
@@ -284,8 +284,11 @@ if (show_preview) {
     if (is_string(input_fields.sprite) && string_length(input_fields.sprite) > 0) {
         spr_id = asset_get_index(input_fields.sprite);
         if (spr_id == -1) {
-            var spr_num = real(input_fields.sprite);
-            if (sprite_exists(spr_num)) spr_id = spr_num;
+            // Check if string is numeric before converting to prevent crash
+            if (string_length(string_digits(input_fields.sprite)) == string_length(input_fields.sprite) && input_fields.sprite != "") {
+                var spr_num = real(input_fields.sprite);
+                if (sprite_exists(spr_num)) spr_id = spr_num;
+            }
         }
     } else if (is_real(input_fields.sprite)) {
         spr_id = input_fields.sprite;
@@ -308,7 +311,7 @@ if (show_preview) {
     // Stats basiques
     draw_text(preview_x + 10, preview_y_offset, "ATK: " + string(input_fields.attack));
     preview_y_offset += 18;
-    draw_text(preview_x + 10, preview_y_offset, "DEF: " + string(input_fields.defense));
+    draw_text(preview_x + 10, preview_y_offset, "PV: " + string(input_fields.PV));
     preview_y_offset += 18;
 
     // Description (avec retour à la ligne)

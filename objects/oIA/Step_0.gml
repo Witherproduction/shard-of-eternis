@@ -30,13 +30,35 @@ if (iaDelayFrames > 0) iaDelayFrames -= 1;
 // Transition de phase planifiée avec délai
 if (iaNextPhasePending && iaDelayFrames <= 0) {
     iaNextPhasePending = false;
-    game.nextPhase();
+    
+    // [HEARTHSTONE] Transition logic: Summoning -> Attacking -> End Turn
+    if (aiTurnState == "Summoning") {
+        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA Step: Summoning done -> Switching to Attacking");
+        aiTurnState = "Attacking";
+        attack();
+    } 
+    else if (aiTurnState == "Attacking") {
+        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA Step: Attacking done -> End Turn");
+        aiTurnState = "Done";
+        game.nextPhase();
+    } 
+    else {
+        // Fallback for other states or safety
+        game.nextPhase();
+    }
+    
     exit; // ne pas enchaîner d'autres actions ce Step
 }
 
 // --- Boucle de phase principale (Summon/Main) ---
 // Si l'IA est active dans sa phase principale, on boucle tant qu'elle a des actions
 if (variable_instance_exists(id, "aiMainPhaseActive") && aiMainPhaseActive) {
+    // SECURITY CHECK
+    if (variable_instance_exists(game, "player") && game.player[game.player_current] != "Enemy") {
+        aiMainPhaseActive = false;
+        exit;
+    }
+
     if (iaDelayFrames <= 0) {
         // Relancer la logique d'invocation pour voir s'il y a d'autres actions possibles
         summon();
@@ -89,7 +111,14 @@ if (global.current_phase == "Summon" && variable_instance_exists(id, "aiMainPhas
 }
 
 // --- Séquencement d'attaque uniquement pendant la phase Attack ---
-if (global.current_phase == "Attack" && attackProcessing) {
+// [HEARTHSTONE] "Main" phase also covers attacking now
+if ((global.current_phase == "Attack" || global.current_phase == "Main") && attackProcessing) {
+    // SECURITY CHECK
+    if (variable_instance_exists(game, "player") && game.player[game.player_current] != "Enemy") {
+        attackProcessing = false;
+        exit;
+    }
+
     // Délai configurable entre attaques
     if (attackDelayFrames > 0) { attackDelayFrames -= 1; exit; }
 

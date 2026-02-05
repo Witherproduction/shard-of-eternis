@@ -3,8 +3,8 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 // Définit les stats spécifiques de ce monstre
 name = "Bandit guerrier"
 attack = 3;
-defense = 3;
-star = 1;
+PV = 2;
+mana_cost = 4;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -19,7 +19,9 @@ effects = [
         effect_type: EFFECT_SUMMON,
         summon_mode: "named",
         object_name: "oBandit",
-        conditions: { summon_mode: "Summon" }
+        conditions: { summon_mode: "Summon" },
+        placement_criteria: { relative_role: "adjacent" }
     }
 ]
+
 

@@ -55,9 +55,28 @@ function _cardMatchesCriteria(card, criteria) {
     // Nouveau critère: star_eq (niveau exact)
     if (variable_struct_exists(criteria, "star_eq")) {
         var star_to_check = is_struct(card_data)
-            ? (variable_struct_exists(card_data, "star") ? card_data.star : -1)
-            : (variable_instance_exists(card_data, "star") ? card_data.star : -1);
+            ? (variable_struct_exists(card_data, "mana_cost") ? card_data.mana_cost : -1)
+            : (variable_instance_exists(card_data, "mana_cost") ? card_data.mana_cost : -1);
         if (star_to_check != criteria.star_eq) return false;
+    }
+
+    // Critère: star_lte (niveau <= X)
+    if (variable_struct_exists(criteria, "star_lte")) {
+        var star_to_check = is_struct(card_data)
+            ? (variable_struct_exists(card_data, "mana_cost") ? card_data.mana_cost : -1)
+            : (variable_instance_exists(card_data, "mana_cost") ? card_data.mana_cost : -1);
+        if (star_to_check == -1 || star_to_check > criteria.star_lte) return false;
+    }
+
+    // Critère: exclude_camouflaged (exclure si camouflé)
+    if (variable_struct_exists(criteria, "exclude_camouflaged") && criteria.exclude_camouflaged) {
+        var isCamou = false;
+        if (is_struct(card_data)) {
+            if (variable_struct_exists(card_data, "isCamouflage") && card_data.isCamouflage) isCamou = true;
+        } else if (instance_exists(card_data)) {
+            if (variable_instance_exists(card_data, "isCamouflage") && card_data.isCamouflage) isCamou = true;
+        }
+        if (isCamou) return false;
     }
 
 // Ajouter d'autres vérifications de critères ici (type, attribut, etc.)
@@ -212,8 +231,8 @@ function _transferSelectedCards(ownerIsHero, selectedData, destination, shuffleA
                             if (variable_struct_exists(card, "archetype")) newInst.archetype = card.archetype;
                             if (variable_struct_exists(card, "genre")) newInst.genre = card.genre;
                             if (variable_struct_exists(card, "attack")) newInst.attack = card.attack;
-                            if (variable_struct_exists(card, "defense")) newInst.defense = card.defense;
-                            if (variable_struct_exists(card, "star")) newInst.star = card.star;
+                            if (variable_struct_exists(card, "PV")) newInst.PV = card.PV;
+                            if (variable_struct_exists(card, "mana_cost")) newInst.mana_cost = card.mana_cost;
                             if (variable_struct_exists(card, "description")) newInst.description = card.description;
                             newInst.isHeroOwner = ownerIsHero;
                             newInst.image_angle = ownerIsHero ? 0 : 180;
@@ -242,8 +261,8 @@ function _transferSelectedCards(ownerIsHero, selectedData, destination, shuffleA
                             if (variable_struct_exists(card, "archetype")) newInst2.archetype = card.archetype;
                             if (variable_struct_exists(card, "genre")) newInst2.genre = card.genre;
                             if (variable_struct_exists(card, "attack")) newInst2.attack = card.attack;
-                            if (variable_struct_exists(card, "defense")) newInst2.defense = card.defense;
-                            if (variable_struct_exists(card, "star")) newInst2.star = card.star;
+                            if (variable_struct_exists(card, "PV")) newInst2.PV = card.PV;
+                            if (variable_struct_exists(card, "mana_cost")) newInst2.mana_cost = card.mana_cost;
                             if (variable_struct_exists(card, "description")) newInst2.description = card.description;
                             newInst2.isHeroOwner = ownerIsHero;
                             var idxd2 = ds_list_size(deckInst.cards);
@@ -697,3 +716,4 @@ function findCard(ownerIsHero, criteria, allowedSources) {
     return noone;
 }
                                 if (variable_instance_exists(self, "_fx_shuffle_after"))    self._fx_shuffle_after = undefined;
+

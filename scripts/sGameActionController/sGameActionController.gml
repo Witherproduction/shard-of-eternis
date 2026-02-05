@@ -9,7 +9,6 @@
 #macro ACTION_SYNC_LP "SYNC_LP"
 #macro ACTION_ATTACK "ATTACK"
 #macro ACTION_ACTIVATE_EFFECT "ACTIVATE_EFFECT"
-#macro ACTION_SWITCH_POSITION "SWITCH_POSITION"
 #macro ACTION_SURRENDER "SURRENDER"
 #macro MSG_HELLO "HELLO"
 #macro MSG_GAME_START "GAME_START"
@@ -107,13 +106,6 @@ function SerializeGameActionPayload(actionType, payload) {
                 variable_struct_remove(newP, "target");
             }
             break;
-
-        case ACTION_SWITCH_POSITION:
-            if (variable_struct_exists(newP, "card") && instance_exists(newP.card)) {
-                newP.card_uid = getUID(newP.card);
-                variable_struct_remove(newP, "card");
-            }
-            break;
     }
     return newP;
 }
@@ -149,10 +141,6 @@ function ExecuteGameAction(actionType, payload) {
             
         case ACTION_ACTIVATE_EFFECT:
             _execute_ActivateEffect(payload);
-            break;
-
-        case ACTION_SWITCH_POSITION:
-            _execute_SwitchPosition(payload);
             break;
 
         case ACTION_SURRENDER:
@@ -346,23 +334,68 @@ function _execute_Summon(payload) {
     // Appel à la main appropriée pour invoquer (Correction du crash oGame.summonCard)
     var ownerIsHero = variable_instance_exists(card, "isHeroOwner") ? card.isHeroOwner : true;
     
+    // --- HEARTHSTONE MANA CHECK (Phase 3) ---
+    var currentMana = ownerIsHero ? global.mana_hero : global.mana_enemy;
+    var cost = variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0;
+    
+    if (currentMana < cost) {
+        show_debug_message("ERREUR: Mana insuffisant pour invoquer " + object_get_name(card.object_index) + " (" + string(currentMana) + "/" + string(cost) + ")");
+        return;
+    }
+    
+    // Consommation du Mana
+    if (ownerIsHero) {
+        global.mana_hero -= cost;
+    } else {
+        global.mana_enemy -= cost;
+    }
+    show_debug_message("### Mana consumed: " + string(cost) + ". Remaining: " + string(ownerIsHero ? global.mana_hero : global.mana_enemy));
+    // ----------------------------------------
+    
     // Récupération des instances de gestion
     var hand = ownerIsHero ? handHero : handEnemy;
     var fm = ownerIsHero ? fieldManagerHero : fieldManagerEnemy;
     
     // Détermination de l'orientation souhaitée à partir du payload
-    var desiredOrientation = "";
-    if (variable_struct_exists(payload, "summon_mode") && payload.summon_mode == "Set") {
-        desiredOrientation = "Defense";
-    }
+    // --- HEARTHSTONE MODE (Phase 3) ---
+    // Force Attack mode (Face Up) for all summons. No PV mode.
+    var desiredOrientation = "Attack";
+    // ----------------------------------
     
-    if (fieldPos != -1 && instance_exists(hand) && instance_exists(fm)) {
+    if ((fieldPos != -1 || card.type == "Magic") && instance_exists(hand) && instance_exists(fm)) {
         // Recalcul des coordonnées locales précises
-        var posXY = fm.getPosLocation(card.type, fieldPos);
+        var posXY = [0, 0];
+        if (fieldPos != -1) {
+            posXY = fm.getPosLocation(card.type, fieldPos);
+        }
         
+        // Récupération de la cible d'effet (si présente) pour les Sorts ciblés
+        var effectTarget = noone;
+        if (variable_struct_exists(payload, "target")) {
+            effectTarget = payload.target;
+        } else if (variable_struct_exists(payload, "target_uid")) {
+            effectTarget = _findCardByInstanceUID(payload.target_uid);
+        }
+
         // Exécution de l'invocation via le gestionnaire de main
-        // Note: summon attend [x, y, slotIndex, desiredOrientation]
-        hand.summon(card, [posXY[0], posXY[1], fieldPos], desiredOrientation);
+        // Note: summon attend [x, y, slotIndex, desiredOrientation, effectTarget]
+        // Legacy: remove desiredOrientation argument if summon() doesn't support it anymore, but currently hand.summon uses it.
+        // For HS, we force "Attack" orientation internally in hand.summon or here.
+        hand.summon(card, [posXY[0], posXY[1], fieldPos], desiredOrientation, effectTarget);
+        
+        // --- HEARTHSTONE SUMMONING SICKNESS (Phase 3) ---
+        // Appliquer le mal d'invocation immédiatement après le placement
+        if (instance_exists(card) && card.type == "Monster") {
+            var hasCharge = variable_instance_exists(card, "has_charge") && card.has_charge;
+            if (hasCharge) {
+                card.attacksUsedThisTurn = 0;
+            } else {
+                // Bloque l'attaque pour ce tour (reset au prochain tour via oGame/triggers)
+                card.attacksUsedThisTurn = 99; 
+            }
+        }
+        // -----------------------------------------------
+        
     } else {
         show_debug_message("ERREUR: Impossible d'invoquer (Hand/FieldManager introuvable ou Position invalide)");
     }
@@ -423,7 +456,12 @@ function _execute_Attack(payload) {
                     var em = enemyMonsters[i];
                     if (em != 0 && instance_exists(em)) {
                         var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
-                        if (!isCamo) {
+                        // HS Logic: Taunt OR Front Line (0-3) blocks direct attacks
+                        var isTaunt = (variable_instance_exists(em, "has_taunt") && em.has_taunt);
+                        var isFrontLine = (variable_instance_exists(em, "fieldPosition") && em.fieldPosition >= 0 && em.fieldPosition <= 3);
+                        var isDefender = (isTaunt || isFrontLine);
+                        
+                        if (!isCamo && isDefender) {
                             enemyHasBlockingMonsters = true;
                             break;
                         }
@@ -432,17 +470,16 @@ function _execute_Attack(payload) {
             }
             
             var allowThrough = (variable_struct_exists(attacker, "canAttackDirectAlways") && attacker.canAttackDirectAlways);
-            if (enemyHasBlockingMonsters && allowThrough) enemyHasBlockingMonsters = false;
+            var allowPercee = (variable_struct_exists(attacker, "isPercee") && attacker.isPercee);
+            
+            if (enemyHasBlockingMonsters && (allowThrough || allowPercee)) enemyHasBlockingMonsters = false;
             
             if (enemyHasBlockingMonsters) {
-                 show_debug_message("### Attaque directe impossible : monstres ennemis présents");
+                 show_debug_message("### Attaque directe impossible : Provocation (Taunt) présente");
                  return;
             }
             
-            if (instance_exists(oGame) && oGame.nbTurn == 1) {
-                 show_debug_message("### Attaque directe interdite au tour 1 du duel");
-                 return;
-            }
+            // Turn 1 check removed for HS (Summoning Sickness handles it)
             
             with (dm) tryAttack(noone);
         } else {
@@ -450,6 +487,32 @@ function _execute_Attack(payload) {
         }
     } else {
         if (isDirect) {
+            // Check for Hero Blockers (Front Line or Taunt)
+            var heroHasBlockingMonsters = false;
+            var fmH = instance_find(oFieldMonsterHero, 0);
+            if (fmH != noone) {
+                var heroMonsters = fmH.cards;
+                for (var i = 0; i < array_length(heroMonsters); i++) {
+                    var hm = heroMonsters[i];
+                    if (hm != 0 && instance_exists(hm)) {
+                         var isCamo = (variable_instance_exists(hm, "isCamouflage") && hm.isCamouflage);
+                         var isTaunt = (variable_instance_exists(hm, "has_taunt") && hm.has_taunt);
+                         var isFrontLine = (variable_instance_exists(hm, "fieldPosition") && hm.fieldPosition >= 0 && hm.fieldPosition <= 3);
+                         var isDefender = (isTaunt || isFrontLine);
+                         
+                         if (!isCamo && isDefender) {
+                             heroHasBlockingMonsters = true;
+                             break;
+                         }
+                    }
+                }
+            }
+            
+            if (heroHasBlockingMonsters) {
+                 show_debug_message("### AI Attaque directe impossible : Défenseur présent");
+                 return;
+            }
+            
             with (dm) initiateAttackDirectEnemy(attacker);
         } else {
             if (target == noone || !instance_exists(target)) {
@@ -501,8 +564,8 @@ function _execute_SwitchPosition(payload) {
         var atk_angle = isHero ? 0 : 180;
         var def_vis_angle = isHero ? 90 : 270;
         
-        if (orientation == "Defense") {
-            // Defense (Caché) -> Attaque
+        if (orientation == "PV") {
+            // PV (Caché) -> Attaque
             image_index = 0; // Pré-reveal
             if (variable_instance_exists(id, "isFaceDown")) isFaceDown = false;
             anim_phase = "flip_in";
@@ -661,3 +724,4 @@ function _findCardByInstanceUID(uid) {
     }
     return noone;
 }
+

@@ -18,10 +18,10 @@ function summonToken(card, effect, context) {
     if (token == noone) return false;
     if (variable_struct_exists(tokenData, "name")) token.name = tokenData.name;
     if (variable_struct_exists(tokenData, "attack")) token.attack = tokenData.attack;
-    if (variable_struct_exists(tokenData, "defense")) token.defense = tokenData.defense;
+    if (variable_struct_exists(tokenData, "PV")) token.PV = tokenData.PV;
     if (variable_struct_exists(tokenData, "type")) token.type = tokenData.type;
     if (variable_struct_exists(tokenData, "archetype")) token.archetype = tokenData.archetype;
-    if (variable_struct_exists(tokenData, "star")) token.star = tokenData.star;
+    if (variable_struct_exists(tokenData, "mana_cost")) token.mana_cost = tokenData.mana_cost;
     token.isToken = true;
     token.isHeroOwner = ownerIsHero;
     token.is_player_card = ownerIsHero;
@@ -77,7 +77,31 @@ function copySummonFromTarget(card, effect, context) {
 
     var ownerIsHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
                        : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
-    var slot = getLeftmostFreeMonsterSlot(ownerIsHero);
+    
+    var slot = noone;
+    var forceFront = variable_struct_exists(effect, "force_front_line") && effect.force_front_line;
+    
+    if (forceFront) {
+        var fieldMgr = ownerIsHero ? fieldManagerHero : fieldManagerEnemy;
+        var monsterField = fieldMgr.getField("Monster");
+        var pos = -1;
+        // Front line is typically slots 0-3 (or 0-4 depending on exact layout, we check 0-3 for safety on 8-slot board)
+        // Memory says 0-4 is Front Line, but code implies 2 rows of 4 (0-3 Front, 4-7 Back). 
+        // We will try to find a free slot in the first 4 slots (0,1,2,3).
+        for (var i = 0; i < 4; i++) {
+             if (i < array_length(monsterField.cards) && monsterField.cards[i] == 0) { pos = i; break; }
+        }
+        if (pos != -1) {
+            var XY = fieldMgr.getPosLocation("Monster", pos);
+            slot = { fieldMgr: fieldMgr, pos: pos, x: XY[0], y: XY[1] };
+        } else {
+             show_debug_message("### copySummonFromTarget: Aucun slot Front Line libre"); 
+             return false; 
+        }
+    } else {
+        slot = getLeftmostFreeMonsterSlot(ownerIsHero);
+    }
+
     if (slot == noone) { show_debug_message("### copySummonFromTarget: Aucun slot libre"); return false; }
     var fieldMgr = slot.fieldMgr;
     var pos = slot.pos;
@@ -91,10 +115,10 @@ function copySummonFromTarget(card, effect, context) {
     // Copier les propriétés essentielles
     if (variable_instance_exists(srcTarget, "name")) copy.name = srcTarget.name;
     if (variable_instance_exists(srcTarget, "attack")) copy.attack = srcTarget.attack;
-    if (variable_instance_exists(srcTarget, "defense")) copy.defense = srcTarget.defense;
+    if (variable_instance_exists(srcTarget, "PV")) copy.PV = srcTarget.PV;
     if (variable_instance_exists(srcTarget, "type")) copy.type = srcTarget.type;
     if (variable_instance_exists(srcTarget, "archetype")) copy.archetype = srcTarget.archetype;
-    if (variable_instance_exists(srcTarget, "star")) copy.star = srcTarget.star;
+    if (variable_instance_exists(srcTarget, "mana_cost")) copy.mana_cost = srcTarget.mana_cost;
 
     // Poser la copie côté lanceur
     copy.isHeroOwner = ownerIsHero;
@@ -322,10 +346,10 @@ function specialSummonSourceFromHandByCriteria(card, effect, context) {
     if (wantGenre != "" && (!variable_instance_exists(src, "genre") || string_lower(src.genre) != wantGenre)) return false;
     if (nameWanted != "" && (!variable_instance_exists(src, "name") || string_lower(src.name) != string_lower(nameWanted))) return false;
     if (archeWanted != "" && (!variable_instance_exists(src, "archetype") || string_lower(src.archetype) != string_lower(archeWanted))) return false;
-    if (variable_instance_exists(src, "star")) {
-        if (starEq != undefined && starEq != noone && is_real(starEq)) { if (src.star != starEq) return false; }
-        if (src.star < starGte) return false;
-        if (src.star > starLte) return false;
+    if (variable_instance_exists(src, "mana_cost")) {
+        if (starEq != undefined && starEq != noone && is_real(starEq)) { if (src.mana_cost != starEq) return false; }
+        if (src.mana_cost < starGte) return false;
+        if (src.mana_cost > starLte) return false;
     }
     if (fromDeckOnly && !variable_struct_exists(context, "from_deck")) return false;
 
@@ -394,4 +418,5 @@ function applySummonBySpec(card, effect, context) {
     // À défaut, tenter l’invocation de la carte elle-même si en main
     return specialSummonSelf(card, effect, context);
 }
+
 

@@ -1,6 +1,13 @@
 // FX_Effect - Draw
 // Affiche la carte fantôme au centre et une aura dorée autour
 
+if (variable_instance_exists(self, "mode") && mode == "projectile") {
+    if (sprite_index != -1) {
+        draw_sprite_ext(sprite_index, image_index, x, y, image_xscale, image_yscale, image_angle, c_white, 1);
+    }
+    return;
+}
+
 var old_alpha = draw_get_alpha();
 var old_blend = gpu_get_blendmode();
 

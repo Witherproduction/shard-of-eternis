@@ -111,13 +111,13 @@ if (mouse_check_button_pressed(mb_left)) {
     // === ACTIVATION DES CHAMPS DE SAISIE ===
     var field_clicked = false;
     var prev_active_field = active_field;
-    var field_names = ["card_id", "name", "attack", "defense", "star", "genre", "archetype", "booster", "sprite", "object_id", "description"];
+    var field_names = ["card_id", "name", "attack", "PV", "mana_cost", "genre", "archetype", "booster", "sprite", "object_id", "description"];
     for (var i = 0; i < array_length(field_names); i++) {
         var field_name = field_names[i];
         var field = field_positions[$ field_name];
         if (point_in_rectangle(mx, my, field.x, field.y, field.x + field.width, field.y + field.height)) {
             // Ignorer les champs non pertinents pour les cartes magiques
-            if (card_type == "Magic" && (field_name == "attack" || field_name == "defense" || field_name == "star")) {
+            if (card_type == "Magic" && (field_name == "attack" || field_name == "PV" || field_name == "genre")) {
                 continue;
             }
             // Déclencher l'auto-remplissage si on quitte object_id par clic
@@ -477,11 +477,11 @@ function auto_fill_fields_from_object(obj_name) {
         if (variable_instance_exists(inst, "attack")) {
             input_fields.attack = string(inst.attack);
         }
-        if (variable_instance_exists(inst, "defense")) {
-            input_fields.defense = string(inst.defense);
+        if (variable_instance_exists(inst, "PV")) {
+            input_fields.PV = string(inst.PV);
         }
-        if (variable_instance_exists(inst, "star")) {
-            input_fields.star = string(inst.star);
+        if (variable_instance_exists(inst, "mana_cost")) {
+            input_fields.mana_cost = string(inst.mana_cost);
         }
         if (variable_instance_exists(inst, "description")) {
             input_fields.description = inst.description;
@@ -607,7 +607,7 @@ if (!show_card_list && !show_booster_list && !show_archetype_list) {
             var len = string_length(keyboard_string);
             for (var i = 1; i <= len; i++) {
                 var ch = string_char_at(keyboard_string, i);
-                var is_numeric_field = (active_field == "attack") || (active_field == "defense") || (active_field == "star");
+                var is_numeric_field = (active_field == "attack") || (active_field == "PV") || (active_field == "mana_cost");
                 var is_id_field = (active_field == "card_id");
                 if (is_numeric_field) {
                     if (ch >= "0" && ch <= "9") {
@@ -642,8 +642,8 @@ function load_card_for_editing(card_id) {
     input_fields.card_id = string(card.id);
     input_fields.name = string(card.name);
     input_fields.attack = string(variable_struct_exists(card, "attack") ? card.attack : 0);
-    input_fields.defense = string(variable_struct_exists(card, "defense") ? card.defense : 0);
-    input_fields.star = string(variable_struct_exists(card, "star") ? card.star : 0);
+    input_fields.PV = string(variable_struct_exists(card, "PV") ? card.PV : 0);
+    input_fields.mana_cost = string(variable_struct_exists(card, "mana_cost") ? card.mana_cost : 0);
     input_fields.genre = string(variable_struct_exists(card, "genre") ? card.genre : "");
     input_fields.archetype = string(variable_struct_exists(card, "archetype") ? card.archetype : "");
     input_fields.booster = string(variable_struct_exists(card, "booster") ? card.booster : "");
@@ -726,8 +726,8 @@ function reset_fields() {
     input_fields.card_id = "";
     input_fields.name = "";
     input_fields.attack = "0";
-    input_fields.defense = "0";
-    input_fields.star = "0";
+    input_fields.PV = "0";
+    input_fields.mana_cost = "0";
     input_fields.genre = "";
     input_fields.archetype = "";
     input_fields.booster = "";
@@ -744,8 +744,8 @@ function reset_fields_keep_type() {
     input_fields.card_id = "";
     input_fields.name = "";
     input_fields.attack = "0";
-    input_fields.defense = "0";
-    input_fields.star = "0";
+    input_fields.PV = "0";
+    input_fields.mana_cost = "0";
     input_fields.genre = "";
     input_fields.archetype = "";
     input_fields.booster = "";
@@ -778,22 +778,34 @@ function create_new_card() {
     var objectId = string(input_fields.object_id);
     var description = string(input_fields.description);
     var type_local = card_type;
-    var attack = real(input_fields.attack);
-    var defense = real(input_fields.defense);
-    var star = real(input_fields.star);
+    
+    var attack = 0;
+    if (string_length(string_digits(input_fields.attack)) == string_length(input_fields.attack) && input_fields.attack != "") {
+        attack = real(input_fields.attack);
+    }
+    
+    var PV = 0;
+    if (string_length(string_digits(input_fields.PV)) == string_length(input_fields.PV) && input_fields.PV != "") {
+        PV = real(input_fields.PV);
+    }
+    
+    var mana_cost = 0;
+    if (string_length(string_digits(input_fields.mana_cost)) == string_length(input_fields.mana_cost) && input_fields.mana_cost != "") {
+        mana_cost = real(input_fields.mana_cost);
+    }
     
     var card_data = {
         id: new_id,
         name: new_name,
         type: type_local,
         attack: (type_local == "Monster") ? attack : 0,
-        defense: (type_local == "Monster") ? defense : 0,
-        star: (type_local == "Monster") ? star : 0,
+        PV: (type_local == "Monster") ? PV : 0,
+        mana_cost: mana_cost,
         description: description,
         sprite: sprite,
         objectId: objectId,
         rarity: rarity,
-        genre: genre,
+        genre: (type_local == "Monster") ? genre : "",
         archetype: archetype,
         booster: booster
     };

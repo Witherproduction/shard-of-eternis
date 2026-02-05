@@ -59,6 +59,10 @@ hover_act_index = -1; // Format: {chapter: id, act: num}
 btn_start_rect = { x1: 0, y1: 0, x2: 0, y2: 0 };
 hover_start_btn = false;
 
+// Bouton Talents (Nouveau)
+btn_talent_rect = { x1: 0, y1: 0, x2: 0, y2: 0 };
+hover_talent_btn = false;
+
 // Fonction pour rafraîchir l'acte par défaut lors du changement de chapitre
 function update_resume_act() {
     var resume = story_progress_get_resume_act(selected_chapter_id);

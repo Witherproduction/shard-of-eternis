@@ -2,13 +2,14 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Cri de la meute"
-genre = "Direct"
+mana_cost = 2;
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Jusqu'à la fin du tour, vos Bêtes gagnent +1 ATK."
+description = "Vos Bêtes gagnent +1/+1."
 effects = [
     {
         id: 1,
@@ -18,8 +19,7 @@ effects = [
         owner: "ally",
         target_zone: "field",
         criteria: { type: "Monster", genre: "Bête" },
-        temporary: true,
         atk: 1,
-        def: 0
+        PV: 1
     }
 ]

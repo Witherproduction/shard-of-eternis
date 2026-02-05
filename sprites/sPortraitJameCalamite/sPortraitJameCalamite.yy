@@ -26,7 +26,7 @@
   "origin":0,
   "parent":{
     "name":"bot",
-    "path":"folders/Sprites/portrait/bot.yy",
+    "path":"folders/Sprites/Histoire/portrait/bot.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

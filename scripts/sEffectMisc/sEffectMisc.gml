@@ -213,7 +213,7 @@ function hasValidTargetForEffect(card, effect) {
             if (!(variable_instance_exists(self, "zone") && (zone == "Field" || zone == "FieldSelected"))) continue;
             // Interdire cible en défense face cachée
             if (variable_instance_exists(self, "orientation") && variable_instance_exists(self, "isFaceDown")) {
-                if (orientation == "Defense" && isFaceDown) continue;
+                if (orientation == "PV" && isFaceDown) continue;
             }
             // Restriction allégeance
             if (allyOnly) {
@@ -281,7 +281,7 @@ function isEffectActivatable(card, effect) {
             if (!instance_exists(self)) continue;
             if (!(variable_instance_exists(self, "zone") && (zone == "Field" || zone == "FieldSelected"))) continue;
             if (variable_instance_exists(self, "orientation") && variable_instance_exists(self, "isFaceDown")) {
-                if (orientation == "Defense" && isFaceDown) continue;
+                if (orientation == "PV" && isFaceDown) continue;
             }
             if (allyOnly) {
                 if (!(variable_instance_exists(self, "isHeroOwner") && isHeroOwner == ownerIsHero)) continue;
@@ -350,6 +350,42 @@ function negateEffect(targetEffect) {
     return true;
 }
 
+/// @function purgeUnit(targetUnit)
+/// @description Retire tous les effets et mots-clés d'une unité (Silence)
+function purgeUnit(targetUnit) {
+    if (targetUnit == noone || !instance_exists(targetUnit)) return false;
+    
+    show_debug_message("Purge de l'unité : " + string(targetUnit.id));
+    
+    // 1. Annuler les effets actifs dans la liste
+    if (variable_instance_exists(targetUnit, "effects") && is_array(targetUnit.effects)) {
+        var len = array_length(targetUnit.effects);
+        for (var i = 0; i < len; i++) {
+            var eff = targetUnit.effects[i];
+            if (is_struct(eff)) {
+                eff.negated = true;
+            }
+        }
+    }
+    
+    // 2. Retirer les mots-clés (Keywords)
+    if (variable_instance_exists(targetUnit, "isCamouflage")) targetUnit.isCamouflage = false;
+    if (variable_instance_exists(targetUnit, "has_taunt")) targetUnit.has_taunt = false;
+    if (variable_instance_exists(targetUnit, "is_stealth")) targetUnit.is_stealth = false;
+    if (variable_instance_exists(targetUnit, "is_ward")) targetUnit.is_ward = false;
+    if (variable_instance_exists(targetUnit, "is_lethal")) targetUnit.is_lethal = false;
+    if (variable_instance_exists(targetUnit, "has_guard")) targetUnit.has_guard = false;
+    
+    // 3. Retirer les protections
+    if (variable_instance_exists(targetUnit, "protection_sources")) targetUnit.protection_sources = [];
+    if (variable_instance_exists(targetUnit, "protection_from_destroy")) targetUnit.protection_from_destroy = false;
+    
+    // 4. Retirer les buffs temporaires (Optionnel, mais logique pour un Silence complet)
+    // Pour l'instant on ne reset pas les stats de base, juste les effets
+    
+    return true;
+}
+
 /// @function resetTemporaryEffects()
 function resetTemporaryEffects() {
     with (oCardMonster) {
@@ -389,10 +425,10 @@ function getEffectDescription(effect) {
             break;
         case EFFECT_BUFF:
             var a = variable_struct_exists(effect, "atk") ? effect.atk : (variable_struct_exists(effect, "value") ? effect.value : 0);
-            var d = variable_struct_exists(effect, "def") ? effect.def : 0;
+            var d = variable_struct_exists(effect, "PV") ? effect.PV : 0;
             var parts = [];
             if (a != 0) array_push(parts, "+" + string(a) + " ATK");
-            if (d != 0) array_push(parts, "+" + string(d) + " DEF");
+            if (d != 0) array_push(parts, "+" + string(d) + " PV");
             var txt = (array_length(parts) > 0) ? string_join(parts, " / ") : "Buff";
             desc = txt;
             break;
@@ -663,3 +699,4 @@ function applyDestroyBySpec(card, effect, context) {
 /// @param {instance} card - La carte qui déclenche l'effet
 /// @param {struct} effect - L'effet contenant les filtres
 /// @returns {bool} - true si au moins une carte détruite
+

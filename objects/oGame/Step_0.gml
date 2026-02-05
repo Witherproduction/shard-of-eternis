@@ -128,8 +128,8 @@ if (timerAutoDraw > 0 && timerAutoDrawEnabled) {
 } else if (timerAutoDrawEnabled) {
     timerAutoDrawEnabled = false;
     
-    // Vérifier qu'on est toujours en phase de pioche et au tour du joueur
-    if (phase[phase_current] == "Pick" && is_local_turn) {
+    // Vérifier qu'on est toujours en phase de Start et au tour du joueur
+    if (phase[phase_current] == "Start" && is_local_turn) {
         show_debug_message("### Executing Auto-Draw");
         // Logique de pioche (similaire à oCardParent Mouse_4)
         if (variable_instance_exists(id, "local_player_index")) {
@@ -151,31 +151,31 @@ if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
     if (Tutorial_Turn9_Update()) return;
 
     // 2. Déclenchement Tour 1 (Début Main Phase 1)
-    if (nbTurn == 1 && phase[phase_current] == "Summon") {
+    if (nbTurn == 1 && phase[phase_current] == "Main") {
         Tutorial_Chapter0_Init();
         if (instance_exists(oTutorielManager)) return;
     }
 
-    // 3. Déclenchement Tour 3 (Début Pick Phase - Tour du Joueur)
-    if (nbTurn == 3 && phase[phase_current] == "Pick") {
+    // 3. Déclenchement Tour 3 (Début Start Phase - Tour du Joueur)
+    if (nbTurn == 3 && phase[phase_current] == "Start") {
         Tutorial_Turn3_Init();
         if (instance_exists(oTutorielManager)) return;
     }
 
-    // 4. Déclenchement Tour 5 (Début Pick Phase - Tour du Joueur)
-    if (nbTurn == 5 && phase[phase_current] == "Pick") {
+    // 4. Déclenchement Tour 5 (Début Start Phase - Tour du Joueur)
+    if (nbTurn == 5 && phase[phase_current] == "Start") {
         Tutorial_Turn5_Init();
         if (instance_exists(oTutorielManager)) return;
     }
 
-    // 5. Déclenchement Tour 7 (Début Pick Phase - Tour du Joueur)
-    if (nbTurn == 7 && phase[phase_current] == "Pick") {
+    // 5. Déclenchement Tour 7 (Début Start Phase - Tour du Joueur)
+    if (nbTurn == 7 && phase[phase_current] == "Start") {
         Tutorial_Turn7_Init();
         if (instance_exists(oTutorielManager)) return;
     }
 
-    // 6. Déclenchement Tour 9 (Début Pick Phase - Tour du Joueur)
-    if (nbTurn == 9 && phase[phase_current] == "Pick") {
+    // 6. Déclenchement Tour 9 (Début Start Phase - Tour du Joueur)
+    if (nbTurn == 9 && phase[phase_current] == "Start") {
         Tutorial_Turn9_Init();
         if (instance_exists(oTutorielManager)) return;
     }
@@ -184,26 +184,32 @@ if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
 // Arrêter si la partie est terminée (après avoir laissé le Tuto se mettre à jour)
 if (variable_instance_exists(id, "gameEnded") && gameEnded) return;
 
-if(timerPick > 0 && timerEnabledPick) {
-	timerPick -= 1/room_speed;
+if(timerMulligan > 0 && timerEnabledMulligan) {
+	timerMulligan -= 1/room_speed;
 }
-else if(timerEnabledPick) {
-	// Piocher pour le héros seulement s'il a moins de 5 cartes
-	if(ds_list_size(handHero.cards) < 5) {
+else if(timerEnabledMulligan) {
+	// Piocher pour le héros seulement s'il a moins de 4 cartes (HS style mulligan)
+	if(ds_list_size(handHero.cards) < 4) {
 		deckHero.pick();
 	}
 	
-	// Piocher pour l'ennemi seulement s'il a moins de 5 cartes
-	if(ds_list_size(handEnemy.cards) < 5) {
+	// Piocher pour l'ennemi seulement s'il a moins de 4 cartes
+	if(ds_list_size(handEnemy.cards) < 4) {
 		IA.pick();
 	}
 	
-	// Continuer la pioche tant que l'un des joueurs n'a pas 5 cartes
-	if(ds_list_size(handHero.cards) < 5 || ds_list_size(handEnemy.cards) < 5) {
-		timerPick = 0.5;
+	// Continuer la pioche tant que l'un des joueurs n'a pas 4 cartes
+	if(ds_list_size(handHero.cards) < 4 || ds_list_size(handEnemy.cards) < 4) {
+		timerMulligan = 0.5;
 	} else {
-		timerEnabledPick = false;
-		game.nextPhase();
+		timerEnabledMulligan = false;
+        
+        // Transitionner vers le Tour 1 (Phase Start)
+        nextPhase();
+        
+        // Activer la pioche automatique pour la 5ème carte
+        timerAutoDraw = 0.5;
+        timerAutoDrawEnabled = true;
 		nextStep.image_index = 0;
 	}
 }
@@ -215,14 +221,31 @@ if(timerIA > 0 && timerEnabledIA) {
 else if(timerEnabledIA) {
 	
 	timerEnabledIA = false;
+
+    // SECURITY CHECK: IA timer should only execute if it's Enemy turn
+    if (player[player_current] != "Enemy") {
+        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oGame: Blocked IA timer execution during Hero turn");
+        exit;
+    }
+
 	switch (phase[phase_current])
 	{
-		case "Pick": IA.pick();
-		break;
-		case "Summon": IA.summon();
-		break;
-		case "Attack": IA.attack();
-		break;
+		case "Start": 
+            IA.pick(); 
+            // Force passage Main Phase for IA (simulated)
+            if (instance_exists(oGame)) oGame.nextPhase();
+            break;
+            
+		case "Main": 
+            // IA logic simple: Invoque puis attaque puis fin de tour
+            // [HEARTHSTONE] Asynchronous Turn Logic
+            IA.startTurnLogic();
+            
+            // Note: IA.startTurnLogic() initiates the Summoning phase.
+            // oIA Step event handles the transition Summon -> Attack -> NextPhase.
+            break;
+            
+        // Legacy phases removed
 	}
 }
 
@@ -232,7 +255,7 @@ with (oCardParent) {
     if (zone == "Field" && variable_struct_exists(self, "effects")) {
         for (var i = 0; i < array_length(effects); i++) {
             var effect = effects[i];
-            if (variable_struct_exists(effect, "trigger") && effect.trigger == TRIGGER_CONTINUOUS) {
+            if (variable_struct_exists(effect, "trigger") && (effect.trigger == TRIGGER_CONTINUOUS || effect.trigger == TRIGGER_PASSIVE)) {
                 // Vérifier les conditions du trigger continu
                 if (checkTriggerConditions(self, effect)) {
                     // Exécuter l'effet continu

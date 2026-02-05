@@ -84,7 +84,7 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
         if (isHeroOwner) {
             // Côté joueur: fallback simple si vide
             if (card.type == "Monster") {
-                mode_resolved = (desiredOrientation == "Defense") ? "Set" : "Summon";
+                mode_resolved = (desiredOrientation == "PV") ? "Set" : "Summon";
             } else if (card.type == "Magic") {
                 mode_resolved = isSecret ? "Set" : "Summon";
             } else {
@@ -93,7 +93,7 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
         } else {
             // Côté IA: déduire le mode d'après le type et desiredOrientation
             if (card.type == "Monster") {
-                mode_resolved = (desiredOrientation == "Defense") ? "Set" : "Summon";
+                mode_resolved = (desiredOrientation == "PV") ? "Set" : "Summon";
             } else if (card.type == "Magic") {
                 mode_resolved = isSecret ? "Set" : "Summon";
             } else {
@@ -114,26 +114,50 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
         show_debug_message("### oHand.summon - Erreur: fieldManager introuvable");
         return false;
     }
-    var fieldTarget = fieldMgrSummon.getField(card.type);
-    if (fieldTarget == noone || !instance_exists(fieldTarget) || !variable_struct_exists(fieldTarget, "cards")) {
-        show_debug_message("### oHand.summon - Erreur: champ introuvable pour type=" + string(card.type));
-        return false;
+
+    // [HEARTHSTONE] Bypass slot check for Spells (Magic cards played without slot)
+    var isSpellPlay = (card.type == "Magic" && target_pos == -1);
+
+    // --- FIX: Empêcher l'activation de Secrets en double ---
+    var isSecretCheck = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "secret");
+    if (isSecretCheck) {
+        var secretListCheck = isHeroOwner ? global.activeSecretsHero : global.activeSecretsEnemy;
+        if (variable_global_exists("activeSecretsHero") && ds_exists(secretListCheck, ds_type_list)) {
+            var sz = ds_list_size(secretListCheck);
+            for (var i = 0; i < sz; i++) {
+                var existing = ds_list_find_value(secretListCheck, i);
+                if (instance_exists(existing) && variable_instance_exists(existing, "name") && existing.name == card.name) {
+                    show_debug_message("### oHand.summon - BLOCKED: Secret duplicate found (" + string(card.name) + ")");
+                    return false;
+                }
+            }
+        }
     }
-    if (target_pos < 0 || target_pos >= array_length(fieldTarget.cards)) {
-        show_debug_message("### oHand.summon - Erreur: position cible hors limites: " + string(target_pos));
-        return false;
+
+    if (!isSpellPlay) {
+        var fieldTarget = fieldMgrSummon.getField(card.type);
+        if (fieldTarget == noone || !instance_exists(fieldTarget) || !variable_struct_exists(fieldTarget, "cards")) {
+            show_debug_message("### oHand.summon - Erreur: champ introuvable pour type=" + string(card.type));
+            return false;
+        }
+        if (target_pos < 0 || target_pos >= array_length(fieldTarget.cards)) {
+            show_debug_message("### oHand.summon - Erreur: position cible hors limites: " + string(target_pos));
+            return false;
+        }
+        if (fieldTarget.cards[target_pos] != 0) {
+            show_debug_message("### oHand.summon - Slot déjà occupé, annulation de la pose");
+            return false;
+        }
+        // Réserver le slot tout de suite pour bloquer les poses simultanées sur la même case
+        card.fieldPosition = target_pos;
+        fieldMgrSummon.add(card);
     }
-    if (fieldTarget.cards[target_pos] != 0) {
-        show_debug_message("### oHand.summon - Slot déjà occupé, annulation de la pose");
-        return false;
-    }
-    // Réserver le slot tout de suite pour bloquer les poses simultanées sur la même case
-    card.fieldPosition = target_pos;
-    fieldMgrSummon.add(card);
 
     // Retire la carte de la main du joueur (immédiat pour libérer l'espace visuel)
     var idx = ds_list_find_index(cards, card);
+    var removedIndex = -1;
     if (idx != -1) {
+        removedIndex = idx;
         ds_list_delete(cards, idx);
     }
     updateDisplay();
@@ -178,7 +202,7 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
             ghost_index = 0; // face visible
         }
     } else {
-        if (desiredOrientation == "Defense" || (card.type == "Monster" && mode_resolved == "Set")) {
+        if (desiredOrientation == "PV" || (card.type == "Monster" && mode_resolved == "Set")) {
             ghost_angle = 270; // 180° (retourne) + 90° (défense)
             ghost_index = 1; // face cachée
         } else if (card.type == "Magic" && isSecret && mode_resolved == "Set") {
@@ -189,6 +213,144 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
             ghost_angle = 180; // attaque côté ennemi
             ghost_index = 0; // face visible
         }
+    }
+
+    // [HEARTHSTONE] Handle Spell Play (Immediate resolution, no field placement)
+    if (isSpellPlay) {
+        // --- FIX UI: Cacher les boutons Summon/Set immédiatement ---
+        if (variable_instance_exists(self, "UIManager") && instance_exists(UIManager)) {
+            UIManager.hideSummonAndSet();
+        } else if (instance_exists(oUIManager)) {
+            oUIManager.hideSummonAndSet();
+        }
+        
+        // --- SECRET HANDLING (Hearthstone Style) ---
+        var isSecret = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "secret");
+        if (isSecret) {
+             card.visible = false;
+             card.zone = "Secret";
+             
+             // Add to Active Secrets List
+             var secretList = isHeroOwner ? global.activeSecretsHero : global.activeSecretsEnemy;
+             if (ds_list_find_index(secretList, card) == -1) {
+                 ds_list_add(secretList, card);
+             }
+             
+             // Secrets are NOT sent to graveyard yet. They stay in "Secret" zone.
+             // Triggers will check this list.
+             
+             // Trigger ON_SUMMON (for other cards reacting to spell cast)
+             var ctxSummon = { summon_mode: mode_resolved, owner_is_hero: isHeroOwner, target: effectTarget };
+             registerTriggerEvent(TRIGGER_ON_SUMMON, card, ctxSummon);
+             
+             return true;
+        }
+        
+        // --- FIX EFFECT: Exécuter l'effet principal de la carte Magie ---
+        // Les cartes magiques "Sort" doivent exécuter leurs effets immédiatement.
+        var executed = false;
+        var targetingStarted = false;
+
+        if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
+            for (var i = 0; i < array_length(card.effects); i++) {
+                var eff = card.effects[i];
+                var trig = variable_struct_exists(eff, "trigger") ? eff.trigger : "";
+                
+                // Exécuter si pas de trigger spécifique (défaut) OU si trigger d'activation standard
+                // On exclut les triggers de mort/cimetière/tour
+                var isActivationEffect = (trig == "" || trig == "main_phase" || trig == "on_spell_cast" || trig == "on_summon");
+                
+                if (isActivationEffect) {
+                     var res = executeEffect(card, eff, { target: effectTarget, owner_is_hero: isHeroOwner });
+                     
+                     // Check if targeting started
+                     if (instance_exists(oSelectManager) && oSelectManager.targetingEffect) {
+                         targetingStarted = true;
+                         executed = true; // Handled
+                         break;
+                     }
+                     
+                     if (res) executed = true;
+                }
+            }
+        } 
+        
+        if (!executed && !targetingStarted && variable_instance_exists(card, "effect")) {
+             // Cas simple: un seul effet (fallback)
+             var res = executeEffect(card, card.effect, { target: effectTarget, owner_is_hero: isHeroOwner });
+             if (instance_exists(oSelectManager) && oSelectManager.targetingEffect) {
+                 targetingStarted = true;
+             }
+             if (res) executed = true;
+        }
+        
+        if (targetingStarted) {
+            show_debug_message("### oHand.summon: Targeting started for " + string(card.name) + " -> Pausing graveyard logic.");
+            card.visible = true; // Keep visible for targeting
+            card.zone = "Hand"; // Keep as Hand temporarily
+            
+            // Re-add to hand list temporarily so it doesn't disappear from UI if updateDisplay called?
+            // Actually, if we return true, the card is "played" but waiting.
+            // If we want it to stay in hand VISUALLY, we might need to re-add it?
+            // "card.visible = true" makes the instance visible.
+            // But if it's not in "cards" list, updateDisplay won't position it.
+            // So it might sit at its current position (where user dropped it?).
+            // For targeting, usually we want to see the card.
+            // Let's re-add it to the list so updateDisplay manages it.
+            if (removedIndex != -1) {
+                 ds_list_insert(cards, removedIndex, card);
+            } else {
+                 ds_list_add(cards, card);
+            }
+            updateDisplay();
+            
+            return true;
+        }
+
+        if (!executed) {
+             show_debug_message("### oHand.summon: Effect execution failed (Condition not met) -> Cancel Play & Refund");
+             
+             // Restore Card to Hand
+             if (removedIndex != -1) {
+                 ds_list_insert(cards, removedIndex, card);
+             } else {
+                 ds_list_add(cards, card);
+             }
+             updateDisplay();
+             
+             card.visible = true;
+             card.zone = "Hand";
+             
+             // Refund Mana
+             var cost = variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0;
+             if (isHeroOwner) {
+                 global.mana_hero += cost;
+             } else {
+                 global.mana_enemy += cost;
+             }
+             
+             return false;
+        }
+        
+        card.visible = false;
+        card.zone = "Graveyard";
+        
+        // Trigger Effect (Execute Spell) - Pour les réactions d'autres cartes
+        var ctxSummon = { summon_mode: mode_resolved, owner_is_hero: isHeroOwner, target: effectTarget };
+        registerTriggerEvent(TRIGGER_ON_SUMMON, card, ctxSummon);
+        
+        // Send to Graveyard via consumeSpellIfNeeded (handles Tempo flows correctly)
+        if (script_exists(asset_get_index("consumeSpellIfNeeded"))) {
+             consumeSpellIfNeeded(card, undefined);
+        } else {
+             var grave = isHeroOwner ? global.graveyardHero : global.graveyardEnemy;
+             if (grave != noone && instance_exists(grave)) {
+                 grave.addToGraveyard(card);
+             }
+             if (instance_exists(card)) instance_destroy(card);
+        }
+        
+        return true;
     }
 
     // Crée l'effet d'invocation (glissade vers le terrain) sur le layer UI
@@ -239,7 +401,7 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
         // Orientation/face selon camp et mode
         if (isHeroOwner) {
             if (card.type == "Monster" && mode_resolved == "Set") {
-                card.orientation = "Defense";
+                card.orientation = "PV";
                 card.image_angle = 90;
                 card.image_index = 1;
                 card.isFaceDown = true;
@@ -263,8 +425,8 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
                 card.isFaceDown = false;
             }
         } else {
-            if (desiredOrientation == "Defense" || (card.type == "Monster" && mode_resolved == "Set")) {
-                card.orientation = "Defense";
+            if (desiredOrientation == "PV" || (card.type == "Monster" && mode_resolved == "Set")) {
+                card.orientation = "PV";
                 card.image_angle = 270;
                 card.image_index = 1;
                 card.isFaceDown = true;
@@ -335,3 +497,4 @@ chooseCardIA = function() {
     return noone;
 }
 #endregion
+

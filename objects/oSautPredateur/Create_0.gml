@@ -2,26 +2,25 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Saut du prédateur"
-genre = "Direct"
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Si vous contrôlez au moins 2 Bêtes, selectionne un Bête et lui donne +2 ATK."
+description = "Inflige des dégâts égaux à l'Attaque de votre Bête la plus puissante à un serviteur adverse.";
+mana_cost = 2;
 effects = [
     {
         id: 1,
         trigger: TRIGGER_MAIN_PHASE,
-        effect_type: EFFECT_BUFF,
+        effect_type: EFFECT_DAMAGE_TARGET,
         scope: "single",
-        owner: "ally",
+        use_highest_attack_of_genre: "Bête",
         target_zone: "field",
-        criteria: { type: "Monster", genre: "Bête" },
-        atk: 2,
-        conditions: {
-            owner_turn: true,
-            min_genre_count_on_field: { genre: "Bête", owner: "ally", count: 2 }
+        owner: "enemy",
+        criteria: {
+            type: "Monster"
         }
     }
 ]

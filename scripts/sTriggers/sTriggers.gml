@@ -72,7 +72,7 @@
 
 #macro TRIGGER_AFTER_ATTACK "after_attack"              // Apres la resolution dune attaque
 
-#macro TRIGGER_AFTER_DEFENSE "after_defense"            // Apres la resolution dune defense
+#macro TRIGGER_AFTER_DEFENSE "after_defense"            // Apres la resolution dune PV
 
 
 
@@ -94,6 +94,7 @@
 #macro TRIGGER_ONCE_PER_TURN "once_per_turn"            // Une fois par tour
 
 #macro TRIGGER_CONTINUOUS "continuous"                   // Effet continu
+#macro TRIGGER_PASSIVE "passive"
 
 #macro TRIGGER_QUICK_EFFECT "quick_effect"              // Effet rapide
 
@@ -284,7 +285,7 @@ function checkTriggerConditions(card, effect, context) {
             var isMonReq = object_is_ancestor(def_req.object_index, oCardMonster) || (variable_instance_exists(def_req, "type") && string_lower(def_req.type) == "monster");
             if (!isMonReq) { return false; }
         }
-        // Orientation du défenseur (ex: "Defense" ou "DefenseVisible")
+        // Orientation du défenseur (ex: "PV" ou "DefenseVisible")
         if (variable_struct_exists(conditions, "defender_orientation") || variable_struct_exists(conditions, "defender_orientation_in")) {
             if (!variable_struct_exists(context, "defender_orientation")) { return false; }
             var dOri = string(context.defender_orientation);
@@ -297,6 +298,26 @@ function checkTriggerConditions(card, effect, context) {
                     for (var oi = 0; oi < array_length(arrOr); oi++) { if (dOri == string(arrOr[oi])) { okOri = true; break; } }
                 }
                 if (!okOri) { return false; }
+            }
+        }
+
+        // Check defender field position
+        if (variable_struct_exists(conditions, "defender_field_position_in") && variable_struct_exists(context, "defender")) {
+            var def_pos = context.defender;
+            if (instance_exists(def_pos) && variable_instance_exists(def_pos, "fieldPosition")) {
+                var pos = def_pos.fieldPosition;
+                var allowedPos = conditions.defender_field_position_in;
+                var match = false;
+                if (is_array(allowedPos)) {
+                    for (var i = 0; i < array_length(allowedPos); i++) {
+                        if (pos == allowedPos[i]) { match = true; break; }
+                    }
+                } else {
+                    if (pos == allowedPos) match = true;
+                }
+                if (!match) return false;
+            } else {
+                return false;
             }
         }
         
@@ -690,11 +711,15 @@ function getAvailableEffect(card) {
 
     // Rassembler tous les effets manuels disponibles (conditions OK)
     var eligible = [];
+    var isSort = (variable_instance_exists(card, "genre") && (card.genre == "Sort" || card.genre == "Direct"));
+
     for (var i = 0; i < array_length(card.effects); i++) {
         var effect = card.effects[i];
         var hasManualTrigger = !variable_struct_exists(effect, "trigger") 
             || effect.trigger == TRIGGER_MAIN_PHASE 
-            || effect.trigger == TRIGGER_QUICK_EFFECT;
+            || effect.trigger == TRIGGER_QUICK_EFFECT
+            || (isSort && (effect.trigger == TRIGGER_ON_SPELL_CAST || effect.trigger == TRIGGER_ON_SUMMON));
+
         if (hasManualTrigger) {
             if (checkTriggerConditions(card, effect, {})) {
                 array_push(eligible, effect);
@@ -1218,4 +1243,5 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
 // getTriggerDetailedDescription centralisé dans scripts/sTriggerLabels/sTriggerLabels.gml
 
     // (garde ignore_when_sacrifice déplacée dans checkTriggerConditions)
+
 

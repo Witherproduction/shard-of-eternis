@@ -1,4 +1,4 @@
-/// Fonctions de gestion des Artefacts (équipements) — généralisées
+﻿/// Fonctions de gestion des Artefacts (équipements) — généralisées
 
 function equipSelectTarget(card, effect, context) {
     if (card == noone || !instance_exists(card)) return false;
@@ -24,7 +24,7 @@ function equipSelectTarget(card, effect, context) {
     if (!(variable_instance_exists(target, "zone") && (target.zone == "Field" || target.zone == "FieldSelected"))) return false;
     // Interdire cible en défense face cachée
     if (variable_instance_exists(target, "orientation") && variable_instance_exists(target, "isFaceDown")) {
-        if (target.orientation == "Defense" && target.isFaceDown) {
+        if (target.orientation == "PV" && target.isFaceDown) {
             show_debug_message("### Equip: cible en défense cachée refusée");
             if (variable_instance_exists(card, "equip_pending")) card.equip_pending = false;
             return false;
@@ -143,3 +143,4 @@ function equipCleanup(card, effect, context) {
 
     return true;
 }
+

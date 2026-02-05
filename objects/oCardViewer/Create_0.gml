@@ -214,25 +214,25 @@ function applyFilter(filterText) {
             var matches = false;
             
             // Verifier le nom
-            if (string_pos(currentFilter, string_lower(card.name)) > 0) matches = true;
+            if (variable_struct_exists(card, "name") && string_pos(currentFilter, string_lower(card.name)) > 0) matches = true;
             
             // Verifier l'attaque (si existe)
             if (variable_struct_exists(card, "attack") && string_pos(currentFilter, string_lower(string(card.attack))) > 0) matches = true;
             
-            // Verifier la defense (si existe)
-            if (variable_struct_exists(card, "defense") && string_pos(currentFilter, string_lower(string(card.defense))) > 0) matches = true;
+            // Verifier la PV (si existe)
+            if (variable_struct_exists(card, "PV") && string_pos(currentFilter, string_lower(string(card.PV))) > 0) matches = true;
             
             // Verifier le type
-            if (string_pos(currentFilter, string_lower(card.type)) > 0) matches = true;
+            if (variable_struct_exists(card, "type") && string_pos(currentFilter, string_lower(card.type)) > 0) matches = true;
             
             // Verifier la description
-            if (string_pos(currentFilter, string_lower(card.description)) > 0) matches = true;
+            if (variable_struct_exists(card, "description") && string_pos(currentFilter, string_lower(card.description)) > 0) matches = true;
             
             // Verifier l'archetype (si existe)
             if (variable_struct_exists(card, "archetype") && string_pos(currentFilter, string_lower(card.archetype)) > 0) matches = true;
             
             // Verifier les etoiles (si existe)
-            if (variable_struct_exists(card, "star") && string_pos(currentFilter, string_lower(string(card.star))) > 0) matches = true;
+            if (variable_struct_exists(card, "mana_cost") && string_pos(currentFilter, string_lower(string(card.mana_cost))) > 0) matches = true;
             
             // Verifier la rarete
             if (variable_struct_exists(card, "rarity") && string_pos(currentFilter, string_lower(card.rarity)) > 0) matches = true;
@@ -269,12 +269,12 @@ function displayFilteredCards() {
         var posY = startY + (row * cardSpacingVertical) + scrollY;
         
         // Créer une instance de l'objet original de la carte
-        var cardObjectName = card.objectId;
+        var cardObjectName = variable_struct_exists(card, "objectId") ? card.objectId : "oCardParent";
         var cardObject = asset_get_index(cardObjectName);
 
         // Si l'objet n'existe pas, appliquer un fallback sûr pour éviter l'erreur -1
         if (cardObject == -1) {
-            show_debug_message("### ERREUR: Objet introuvable: " + string(cardObjectName) + " pour la carte " + string(card.name));
+            show_debug_message("### ERREUR: Objet introuvable: " + string(cardObjectName) + " pour la carte " + (variable_struct_exists(card, "name") ? card.name : "???"));
             var typeLower = variable_struct_exists(card, "type") ? string_lower(string(card.type)) : "";
             if (typeLower == "magic") {
                 cardObject = oCardMagic;
@@ -289,16 +289,46 @@ function displayFilteredCards() {
         var cardInstance = instance_create_layer(posX, posY, "Instances", cardObject);
         
         if (cardInstance != noone) {
-            show_debug_message("### Carte creee: " + card.name + " a la position (" + string(posX) + ", " + string(posY) + ")");
+            show_debug_message("### Carte creee: " + (variable_struct_exists(card, "name") ? card.name : "???") + " a la position (" + string(posX) + ", " + string(posY) + ")");
             
             // Configure la carte avec les donnees de la base
-            cardInstance.name = card.name;
-            cardInstance.attack = (card.attack != undefined) ? card.attack : 0;
-            cardInstance.defense = (card.defense != undefined) ? card.defense : 0;
-            cardInstance.star = (card.star != undefined) ? card.star : 0;
-            cardInstance.description = (card.description != undefined) ? card.description : "";
-            cardInstance.rarity = (card.rarity != undefined) ? card.rarity : "commun";
-            cardInstance.archetype = (card.archetype != undefined) ? card.archetype : (variable_instance_exists(cardInstance, "archetype") ? cardInstance.archetype : "");
+            cardInstance.name = variable_struct_exists(card, "name") ? card.name : "???";
+            
+            // Ne surcharger les stats que si la base de données contient des valeurs > 0
+            // Cela évite d'écraser les valeurs définies dans le Create de l'objet spécifique par des 0 de la DB
+            var db_atk = variable_struct_exists(card, "attack") ? card.attack : 0;
+            if (db_atk > 0) cardInstance.attack = db_atk;
+            
+            var db_pv = variable_struct_exists(card, "PV") ? card.PV : 0;
+            if (db_pv > 0) cardInstance.PV = db_pv;
+            
+            // Sync derived stats (Hearthstone System / Buffs)
+            // Force update these because oCardParent initializes them to 0 before the subclass sets the base stats
+            
+            // DEBUG: Check stats before sync
+            // show_debug_message("### DEBUG PRE-SYNC: " + string(cardInstance.name) + " | ATK: " + string(cardInstance.attack) + " | PV: " + string(cardInstance.PV));
+
+            if (variable_instance_exists(cardInstance, "effective_attack")) {
+                cardInstance.effective_attack = cardInstance.attack;
+            }
+            if (variable_instance_exists(cardInstance, "max_hp")) {
+                cardInstance.max_hp = cardInstance.PV;
+            }
+            if (variable_instance_exists(cardInstance, "current_hp")) {
+                cardInstance.current_hp = cardInstance.PV;
+            }
+            if (variable_instance_exists(cardInstance, "effective_defense")) {
+                cardInstance.effective_defense = cardInstance.PV;
+            }
+            
+            // DEBUG: Check stats after sync
+            // show_debug_message("### DEBUG POST-SYNC: " + string(cardInstance.name) + " | EffATK: " + string(cardInstance.effective_attack) + " | EffDEF: " + string(cardInstance.effective_defense));
+
+
+            cardInstance.mana_cost = variable_struct_exists(card, "mana_cost") ? card.mana_cost : 0;
+            cardInstance.description = variable_struct_exists(card, "description") ? card.description : "";
+            cardInstance.rarity = variable_struct_exists(card, "rarity") ? card.rarity : "commun";
+            cardInstance.archetype = variable_struct_exists(card, "archetype") ? card.archetype : (variable_instance_exists(cardInstance, "archetype") ? cardInstance.archetype : "");
 
             // Définir la limite d'exemplaires pour affichage depuis l'objet uniquement
             // Si l'objet possède déjà la variable 'limited', on la respecte; sinon on met 3 par défaut
@@ -313,11 +343,15 @@ function displayFilteredCards() {
                 cardInstance.limited = lim_try;
             }
             // Résoudre et valider le sprite; fallback si introuvable
-            var sprIndex = asset_get_index(card.sprite);
+            var sprIndex = -1;
+            if (variable_struct_exists(card, "sprite")) {
+                sprIndex = asset_get_index(card.sprite);
+            }
             if (sprIndex != -1) {
                 cardInstance.sprite_index = sprIndex;
             } else {
-                show_debug_message("### WARN: Sprite introuvable: " + string(card.sprite) + ", fallback sprite par défaut");
+                var sprName = variable_struct_exists(card, "sprite") ? string(card.sprite) : "N/A";
+                show_debug_message("### WARN: Sprite introuvable: " + sprName + ", fallback sprite par défaut");
                 // Garder le sprite par défaut actuel de l'objet
             }
             cardInstance.image_index = 0;
@@ -339,7 +373,7 @@ function displayFilteredCards() {
             // Ajoute a la liste des instances
             array_push(cardInstances, cardInstance);
         } else {
-            show_debug_message("### ERREUR: Impossible de creer l'instance pour " + card.name);
+            show_debug_message("### ERREUR: Impossible de creer l'instance pour " + (variable_struct_exists(card, "name") ? card.name : "???"));
         }
     }
     
@@ -368,7 +402,7 @@ function sortCards(sortMode) {
             });
             break;
             
-        case "defense":
+        case "PV":
             array_sort(filteredCards, function(a, b) {
                 var typeA = variable_struct_exists(a, "type") ? string_lower(string(a.type)) : "";
                 var typeB = variable_struct_exists(b, "type") ? string_lower(string(b.type)) : "";
@@ -376,8 +410,8 @@ function sortCards(sortMode) {
                 var isMagicB = (typeB == "magic");
                 if (isMagicA != isMagicB) return isMagicA ? 1 : -1;
                 
-                var defenseA = variable_struct_exists(a, "defense") ? a.defense : 0;
-                var defenseB = variable_struct_exists(b, "defense") ? b.defense : 0;
+                var defenseA = variable_struct_exists(a, "PV") ? a.PV : 0;
+                var defenseB = variable_struct_exists(b, "PV") ? b.PV : 0;
                 return global.sort_descending ? (defenseB - defenseA) : (defenseA - defenseB);
             });
             break;
@@ -390,8 +424,8 @@ function sortCards(sortMode) {
                 var isMagicB = (typeB == "magic");
                 if (isMagicA != isMagicB) return isMagicA ? 1 : -1;
                 
-                var levelA = variable_struct_exists(a, "star") ? a.star : 0;
-                var levelB = variable_struct_exists(b, "star") ? b.star : 0;
+                var levelA = variable_struct_exists(a, "mana_cost") ? a.mana_cost : 0;
+                var levelB = variable_struct_exists(b, "mana_cost") ? b.mana_cost : 0;
                 return global.sort_descending ? (levelB - levelA) : (levelA - levelB);
             });
             break;

@@ -2,7 +2,8 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Chasse en meute"
-genre = "Direct"
+mana_cost = 3;
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
 booster = "A la découverte du monde"

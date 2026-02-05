@@ -2,20 +2,21 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Marée déferlante"
-genre = "Direct"
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Invoque 2 'Coureur Abyssien'"
+description = "Renvoyez un serviteur adverse dans la main de son propriétaire."
+mana_cost = 2;
+
 effects = [
     {
         id: 1,
         trigger: TRIGGER_MAIN_PHASE,
-        effect_type: EFFECT_SUMMON,
-        summon_mode: "named",
-        object_name: "oCoureurAbyssien",
-        count: 2
+        effect_type: EFFECT_RETURN_TO_HAND,
+        target_type: "monster",
+        owner: "enemy"
     }
-]
+];

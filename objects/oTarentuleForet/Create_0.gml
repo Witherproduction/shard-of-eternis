@@ -2,9 +2,9 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Tarentule des forêts"
-attack = 6;
-defense = 5;
-star = 2;
+attack = 4;
+PV = 4;
+mana_cost = 4;
 genre = "Bête"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -18,14 +18,17 @@ effects = [
         trigger: TRIGGER_ON_DESTROY,
         effect_type: EFFECT_SUMMON,
         summon_mode: "named",
-        object_name: "oAraigneeForestiere"
+        object_name: "oAraigneeForestiere",
+        placement_criteria: { relative_role: "adjacent" }
     },
     {
         id: 2,
         trigger: TRIGGER_ON_DESTROY,
         effect_type: EFFECT_SUMMON,
         summon_mode: "named",
-        object_name: "oAraigneeForestiere"
+        object_name: "oAraigneeForestiere",
+        placement_criteria: { relative_role: "adjacent" }
     }
 ]
+
 

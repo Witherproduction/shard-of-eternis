@@ -1,27 +1,30 @@
 /// sSpellUtils.gml — Utilitaires pour la gestion des cartes Magie
 
 /// @function consumeSpellIfNeeded(card, effect)
-/// @description Si la carte est une Magie de genre "Direct" (non continue), l'envoyer au cimetière après la résolution de l'effet.
+/// @description Si la carte est une Magie de genre "Sort" (non continue), l'envoyer au cimetière après la résolution de l'effet.
 /// @returns {bool} - True si la carte a été envoyée au cimetière, sinon false
 function consumeSpellIfNeeded(card, effect) {
     if (card == noone || !instance_exists(card)) return false;
 
+    // DEBUG: Trace
+    // var cname = (variable_instance_exists(card, "name")) ? card.name : "unknown";
+    
     // Valider qu'il s'agit bien d'une carte Magie
     var isMagic = object_is_ancestor(card.object_index, oCardMagic) || (variable_instance_exists(card, "type") && string_lower(card.type) == "magic");
-    if (!isMagic) return false;
+    if (!isMagic) { return false; }
 
-    // Ne pas consommer les Magies continues ou les artefacts/équipements
+    // Ne pas consommer les Magies continues (si elles existent encore)
+    // Les Artéfacts et Continus sont maintenant des Directs, donc on les consomme.
     var isContinuous = (variable_instance_exists(card, "type") && string_lower(card.type) == "continuous") 
         || (is_struct(effect) && variable_struct_exists(effect, "trigger") && effect.trigger == TRIGGER_CONTINUOUS);
-    var isArtifact = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "artéfact");
-    if (isContinuous || isArtifact) return false;
+    if (isContinuous) { return false; }
 
-    // Consommer uniquement les sorts "Direct" ou "Secret" (activé)
+    // Consommer uniquement les sorts "Sort" ou "Secret" (activé)
     var genre = (variable_instance_exists(card, "genre") ? string_lower(card.genre) : "");
-    var isDirect = (genre == "direct");
+    var isDirect = (genre == "sort" || genre == "direct"); // Keep "direct" for backwards compatibility during migration if needed
     var isSecret = (genre == "secret");
     
-    if (!isDirect && !isSecret) return false;
+    if (!isDirect && !isSecret) { return false; }
 
     if (variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending) {
         card._consume_after_flow = true;

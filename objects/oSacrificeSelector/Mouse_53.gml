@@ -5,29 +5,40 @@ if(!visible) return;
 // Vérifier si la variable globale existe avant de l'utiliser
 if (variable_global_exists("isGraveyardViewerOpen") && global.isGraveyardViewerOpen) return;
 
-// Vérifier d'abord si le clic est sur un bouton UI
-var uiButtonClicked = false;
-with(oSummon) {
-    if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
-        uiButtonClicked = true;
-        break;
+if (room == rDuel && (instance_exists(oSummon) || instance_exists(oAttack) || instance_exists(oEffectButton))) {
+    // Vérifier si le clic est directement sur un bouton UI
+    var uiButtonClicked = false;
+    
+    with(oSummon) {
+        if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
+            uiButtonClicked = true;
+            break;
+        }
     }
-}
-with(oSet) {
-    if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
-        uiButtonClicked = true;
-        break;
+    
+    if (!uiButtonClicked) {
+        with(oAttack) {
+            if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
+                uiButtonClicked = true;
+                break;
+            }
+        }
     }
-}
-with(oPositionButton) {
-    if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
-        uiButtonClicked = true;
-        break;
-    }
-}
 
-// Si un bouton UI est cliqué, ne pas traiter les clics du sacrifice selector
-if(uiButtonClicked) return;
+    if (!uiButtonClicked) {
+        with(oEffectButton) {
+            if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
+                uiButtonClicked = true;
+                break;
+            }
+        }
+    }
+    
+    // Si un bouton UI a été cliqué, ne pas traiter le clic global
+    if (uiButtonClicked) {
+        exit;
+    }
+}
 
 // Calcule les positions des boutons (même calcul que dans Draw_0) en tenant compte de l'échelle du cadre
 var uiSprite = sFond;

@@ -25,7 +25,7 @@ if (selectManager.attackMode && selectManager.selected != noone) {
 
     if (selectedCard.isHeroOwner && selectedCard.type == "Monster" && selectedCard.zone == "FieldSelected" 
         && selectedCard.orientation == "Attack"
-        && instance_exists(game) && isMyTurn && game.phase[game.phase_current] == "Attack") {
+        && instance_exists(game) && isMyTurn && (game.phase[game.phase_current] == "Attack" || game.phase[game.phase_current] == "Main")) {
         
         // Utilisation du Command Pattern pour l'attaque directe
         RequestGameAction(ACTION_ATTACK, {

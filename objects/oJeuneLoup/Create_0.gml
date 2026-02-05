@@ -2,9 +2,9 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Jeune loup"
-attack = 4;
-defense = 3;
-star = 1;
+attack = 1;
+PV = 2;
+mana_cost = 1;
 genre = "Bête"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -27,3 +27,4 @@ effects = [
         exclude_face_down_in_per_count: true
     }
 ]
+

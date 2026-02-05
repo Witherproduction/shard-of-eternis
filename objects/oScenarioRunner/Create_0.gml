@@ -26,6 +26,12 @@ btn_next_y2 = btn_auto_y1 - gap;
 btn_next_y1 = btn_next_y2 - bh;
 btn_next_x2 = bx + bw/2;
 
+// Précédent (au-dessus de Suivant)
+btn_prev_x1 = bx - bw/2;
+btn_prev_y2 = btn_next_y1 - gap;
+btn_prev_y1 = btn_prev_y2 - bh;
+btn_prev_x2 = bx + bw/2;
+
 btn_quit_x1 = 0; btn_quit_y1 = 0; btn_quit_x2 = 0; btn_quit_y2 = 0;
 
 auto_mode = true; // Par défaut activé
@@ -71,19 +77,37 @@ if (variable_global_exists("scenario_loaded_data") && is_struct(global.scenario_
 } else {
     var base_name = "scenario_chapter_" + string(chapter_id) + "_act_" + string(act_num) + ".json";
     var path = "scenarios/ch" + string(chapter_id) + "/" + base_name;
+    
+    show_debug_message("### ScenarioRunner: Attempting to load " + path);
+    
     if (!file_exists(path)) {
+        show_debug_message("### ScenarioRunner: File not found at " + path + ". Trying fallback to " + base_name);
         path = base_name;
     }
+    
     if (file_exists(path)) {
+        show_debug_message("### ScenarioRunner: Loading scenario from " + path);
         var fr = file_text_open_read(path);
         var s = "";
-        while (!file_text_eof(fr)) { s += file_text_read_string(fr); }
-        file_text_close(fr);
-        var data2 = json_parse(s);
-        if (is_struct(data2) && variable_struct_exists(data2, "scenes")) {
-            scenes = data2.scenes;
-            scene_index = clamp(scene_index, 0, max(0, array_length(scenes)-1));
+        while (!file_text_eof(fr)) { 
+            s += file_text_read_string(fr);
+            file_text_readln(fr); // IMPORTANT: Force next line to avoid infinite loop
         }
+        file_text_close(fr);
+        try {
+            var data2 = json_parse(s);
+            if (is_struct(data2) && variable_struct_exists(data2, "scenes")) {
+                scenes = data2.scenes;
+                scene_index = clamp(scene_index, 0, max(0, array_length(scenes)-1));
+                show_debug_message("### ScenarioRunner: Successfully loaded " + string(array_length(scenes)) + " scenes.");
+            } else {
+                show_debug_message("### ScenarioRunner: JSON parsed but invalid structure (missing 'scenes').");
+            }
+        } catch(e) {
+            show_debug_message("ERROR PARSING SCENARIO JSON: " + string(e));
+        }
+    } else {
+        show_debug_message("### ScenarioRunner: CRITICAL - Scenario file not found anywhere!");
     }
 }
 

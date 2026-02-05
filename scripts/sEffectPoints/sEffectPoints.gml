@@ -7,11 +7,75 @@ function sEffectPoints(card, effect, context) {
     if (variable_struct_exists(effect, "use_attacker_attack_as_value") && variable_struct_exists(context, "attacker") && instance_exists(context.attacker)) {
         var att = context.attacker;
         var baseAtk = variable_instance_exists(att, "attack") ? att.attack : 0;
+        if (variable_instance_exists(att, "effective_attack")) baseAtk = att.effective_attack;
         var divisor = variable_struct_exists(effect, "attack_value_divisor") ? max(1, effect.attack_value_divisor) : 1;
         val = floor(baseAtk / divisor);
     } else {
         if (variable_struct_exists(effect, "value")) val = effect.value; else if (variable_struct_exists(effect, "amount")) val = effect.amount; else if (variable_struct_exists(effect, "damage")) val = effect.damage; else if (variable_struct_exists(effect, "heal")) val = effect.heal;
     }
+    
+    // [Start] Logic for use_highest_attack_of_genre (Alpha Strike)
+    if (variable_struct_exists(effect, "use_highest_attack_of_genre")) {
+        var genreT = effect.use_highest_attack_of_genre;
+        var checkHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
+        var ownerS = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "ally";
+        var lookAtHero = (ownerS == "ally") ? checkHero : !checkHero;
+        var mgr = lookAtHero ? (instance_exists(oFieldManagerHero) ? oFieldManagerHero : noone) : (instance_exists(oFieldManagerEnemy) ? oFieldManagerEnemy : noone);
+        
+        var highest = 0;
+        if (mgr != noone) {
+            var fM = mgr.getField("Monster");
+            if (fM != noone) {
+                for (var im = 0; im < array_length(fM.cards); im++) {
+                    var cm = fM.cards[im];
+                    if (cm != 0 && instance_exists(cm)) {
+                         var g = variable_instance_exists(cm, "genre") ? cm.genre : "";
+                         if (g == genreT) {
+                             var at = variable_instance_exists(cm, "attack") ? cm.attack : 0;
+                             if (variable_instance_exists(cm, "effective_attack")) at = cm.effective_attack;
+                             if (at > highest) highest = at;
+                         }
+                    }
+                }
+            }
+        }
+        val = highest;
+    }
+    // [End] Logic
+    
+    // [Start] Logic for conditional bonus value (e.g. Combo: Camouflage)
+    if (variable_struct_exists(effect, "bonus_condition") && variable_struct_exists(effect, "bonus_value")) {
+        var bCond = effect.bonus_condition;
+        var bVal = effect.bonus_value;
+        var bMet = false;
+        
+        if (bCond == "control_camouflaged") {
+            var checkHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
+            var mgr = checkHero ? (instance_exists(oFieldManagerHero) ? oFieldManagerHero : noone) : (instance_exists(oFieldManagerEnemy) ? oFieldManagerEnemy : noone);
+            if (mgr != noone) {
+                var fM = mgr.getField("Monster");
+                if (fM != noone) {
+                    for (var im = 0; im < array_length(fM.cards); im++) {
+                        var cm = fM.cards[im];
+                        if (cm != 0 && instance_exists(cm) && variable_instance_exists(cm, "isCamouflage") && cm.isCamouflage) {
+                            bMet = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (bMet) {
+            if (variable_struct_exists(effect, "replace_base_value") && effect.replace_base_value) {
+                val = bVal;
+            } else {
+                val += bVal;
+            }
+        }
+    }
+    // [End] Logic
+
     var ownerSide = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "ally";
     if (variable_struct_exists(effect, "affect_opponent_lp") && effect.affect_opponent_lp) ownerSide = "enemy";
     var srcHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
@@ -70,7 +134,11 @@ function sEffectPoints(card, effect, context) {
             else if (variable_struct_exists(effect, "target") && instance_exists(effect.target)) { targetLocal = effect.target; }
         }
         if (targetLocal != noone) {
-            if (op == "damage") { return damageCard(targetLocal, val); } else { return healCard(targetLocal, val); }
+            if (op == "damage") { 
+                var elem = (card != noone && instance_exists(card) && variable_instance_exists(card, "element")) ? string_lower(card.element) : "neutre";
+                if (!is_undefined(animEffectRequestProjectileTarget)) { animEffectRequestProjectileTarget(elem, card, targetLocal, val); }
+                return damageCard(targetLocal, val); 
+            } else { return healCard(targetLocal, val); }
         } else {
             var effOwner = ownerSide;
             if (effOwner == "ally") {

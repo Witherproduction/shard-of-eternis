@@ -10,6 +10,13 @@ if (!variable_global_exists("options_loaded") || !global.options_loaded) {
     // Ce bloc est gardé en secours si on lance le jeu directement depuis rDuel
     progression_init();
     
+    // CLEANUP: Ensure story talents are disabled in non-story modes (or Tutorial)
+    if (!variable_global_exists("current_chapter") || global.current_chapter == 0) {
+        if (variable_global_exists("story_hero_id")) {
+            global.story_hero_id = noone;
+        }
+    }
+    
     // Charger les decks de bots personnalisés
     load_bot_decks_from_file();
 load_hero_decks_from_file();
@@ -62,8 +69,8 @@ if (!_isOnlineGame) {
     }
 }
 
-timerPick = 0.5;
-timerEnabledPick = true;
+timerMulligan = 0.5;
+timerEnabledMulligan = true;
 timerAutoDraw = 0;
 timerAutoDrawEnabled = false;
 global.isGraveyardViewerOpen = false;
@@ -84,6 +91,29 @@ if (!variable_global_exists("VERBOSE_LOGS")) global.VERBOSE_LOGS = false;
 
 // Limite de taille de main (IA et Héros)
 if (!variable_global_exists("MAX_HAND_SIZE")) global.MAX_HAND_SIZE = 10;
+
+// --- HEARTHSTONE SYSTEM MIGRATION (Phase 1) ---
+// Mana system globals
+// FIX: Always reset mana at start of duel to avoid persistence bugs
+global.mana_hero = 0;
+global.mana_max_hero = 0;
+global.mana_enemy = 0;
+global.mana_max_enemy = 0;
+
+// Secrets system globals
+// FIX: Clear existing lists or create new ones
+if (variable_global_exists("activeSecretsHero") && ds_exists(global.activeSecretsHero, ds_type_list)) {
+    ds_list_clear(global.activeSecretsHero);
+} else {
+    global.activeSecretsHero = ds_list_create();
+}
+
+if (variable_global_exists("activeSecretsEnemy") && ds_exists(global.activeSecretsEnemy, ds_type_list)) {
+    ds_list_clear(global.activeSecretsEnemy);
+} else {
+    global.activeSecretsEnemy = ds_list_create();
+}
+// ----------------------------------------------
 
 // Variable pour sauvegarder la room précédente avant d'entrer dans rDuel
 if (!variable_global_exists("previous_room_before_duel")) {
@@ -124,7 +154,7 @@ setDuelBackground = function() {
         var bg_groups = [
             {
                 sprite: "sTerrain2",
-                bots: [1, 2, 3, "Invasion_Geule_Roche", "Essaim_Abyssien", "Bandit_Grand_Chemin"] // Bot 1, 2 et 3 (Chapitre 1) utilisent sTerrain2
+                bots: [1, 2, 3, "Invasion_Gueule_Roche", "Essaim_Abyssien", "Bandit_Grand_Chemin"] // Bot 1, 2 et 3 (Chapitre 1) utilisent sTerrain2
             }
             // Ajoutez d'autres groupes ici pour d'autres exceptions
         ];
@@ -163,12 +193,12 @@ setDuelBackground = function() {
 // Appliquer le fond d'écran au démarrage
 setDuelBackground();
 
-phase = ["Pick", "Summon", "Attack"];
+phase = ["Start", "Main", "End"];
 player = ["Hero", "Enemy"];
-phase_current = 0;
+phase_current = 2; // Start at End so nextPhase() cycles to Start
 global.current_phase = phase[phase_current];
-player_current = 0;
-nbTurn = 1;
+player_current = 1; // Start at Enemy so nextPhase() cycles to Hero (Player 0)
+nbTurn = 0; // Will increment to 1 on first Start
 timerIA = 0;
 timerEnabledIA = false;
 
@@ -222,67 +252,226 @@ if (!instance_exists(oDataBase)) {
     show_debug_message("### oGame: oDataBase créé automatiquement");
 }
 
+// --- HERO POWER INSTANTIATION ---
+// Uniquement disponible en Mode Histoire (Si un chapitre est défini et valide)
+// ET PAS DANS LE TUTORIEL (Chapitre 0)
+if (variable_global_exists("current_chapter") && global.current_chapter != -1 && global.current_chapter != 0 && !instance_exists(oHeroPower)) {
+    // 1. Hero Power (Player)
+    var powerDataPlayer = {};
+    var heroFound = false;
+
+    // A. Attempt to find Hero based on Chapter (Story Mode)
+    // Ensure script exists
+    if (script_exists(asset_get_index("get_story_heroes"))) {
+        var heroes = get_story_heroes();
+        for (var i=0; i<array_length(heroes); i++) {
+            var h = heroes[i];
+            if (variable_struct_exists(h, "chapters")) {
+                for (var j=0; j<array_length(h.chapters); j++) {
+                    if (h.chapters[j] == global.current_chapter) {
+                            if (variable_struct_exists(h, "hero_power")) {
+                                powerDataPlayer = h.hero_power;
+                                heroFound = true;
+                                show_debug_message("### oGame: Hero Power loaded from Hero Definition (" + h.name + ")");
+                            }
+                            break;
+                    }
+                }
+            }
+            if (heroFound) break;
+        }
+    }
+
+    // B. Fallback to Deck if not found in Hero
+    if (!heroFound && variable_global_exists("selected_player_deck") && global.selected_player_deck != noone) {
+        if (variable_struct_exists(global.selected_player_deck, "hero_power")) {
+            powerDataPlayer = global.selected_player_deck.hero_power;
+            show_debug_message("### oGame: Hero Power loaded from Deck");
+        }
+    }
+    
+    // Create Player Hero Power
+    var hp = instance_create_layer(0, 0, "Instances", oHeroPower);
+    hp.init(true, powerDataPlayer);
+
+
+    // 2. Hero Power (Enemy/Bot)
+    if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
+            var botDeckStruct = noone;
+            
+            // Search in Chapter 1 Decks
+            if (script_exists(asset_get_index("get_bot_decks_chap1"))) {
+                var decks = get_bot_decks_chap1();
+                for(var i=0; i<array_length(decks); i++) {
+                    if (decks[i].id == global.selected_bot_deck_id) {
+                        botDeckStruct = decks[i];
+                        break;
+                    }
+                }
+            }
+            
+            // Search in Tuto Decks (Fallback)
+            if (botDeckStruct == noone && script_exists(asset_get_index("get_bot_decks_tuto"))) {
+                var decks = get_bot_decks_tuto();
+                for(var i=0; i<array_length(decks); i++) {
+                    if (decks[i].id == global.selected_bot_deck_id) {
+                        botDeckStruct = decks[i];
+                        break;
+                    }
+                }
+            }
+            
+            if (botDeckStruct != noone) {
+                var hpEnemy = instance_create_layer(0, 0, "Instances", oHeroPower);
+                var powerDataEnemy = variable_struct_exists(botDeckStruct, "hero_power") ? botDeckStruct.hero_power : {};
+                hpEnemy.init(false, powerDataEnemy);
+                show_debug_message("### oGame: Hero Power created for Bot (" + global.selected_bot_deck_id + ")");
+            }
+    }
+}
+
+
 ///////////////////////////////////////////////////////////////////////
 // Méthodes
 
 
 #region Function nextPhase
 nextPhase = function() {
-    show_debug_message("### oGame.nextPhase")
+    show_debug_message("### oGame.nextPhase: Current=" + phase[phase_current]);
 
     var prev_phase = phase[phase_current];
     registerTriggerEvent(TRIGGER_END_PHASE, noone, { phase: prev_phase });
 
-    if (phase[phase_current] == "Attack") {
-        // Fin du tour: déclenche les effets de fin
+    // --- HEARTHSTONE FLOW LOGIC ---
+    
+    // Cycle: Start -> Main -> (End skipped) -> (Next Player) Start
+    // [HEARTHSTONE] Main Phase acts as the final phase (End Turn)
+    
+    if (phase[phase_current] == "Main" || phase[phase_current] == "End") {
+        // Fin du tour actuel
         registerTriggerEvent(TRIGGER_END_TURN, noone, {});
+        
+        // Nettoyage visuel des mains
         if (instance_exists(handHero)) { handHero.reveal_override = false; if (variable_instance_exists(handHero, "updateDisplay")) { handHero.updateDisplay(); } }
         if (instance_exists(handEnemy)) { handEnemy.reveal_override = false; if (variable_instance_exists(handEnemy, "updateDisplay")) { handEnemy.updateDisplay(); } }
+        
+        // Changement de joueur
         player_current = (player_current + 1) % 2;
         is_local_turn = (player_current == local_player_index);
-        nextStep.image_index = 1;
+        
+        // Mise à jour visuelle du bouton "Next Phase"
+        // Dans HS, le bouton sert juste à dire "Fin de tour"
+        if (instance_exists(oNextStep)) oNextStep.image_index = 1; 
+        
         nbTurn++;
+        
+        // Passage à Start du nouveau joueur
+        phase_current = 0; // "Start"
+    } else {
+        // Passage à la phase suivante (Start -> Main)
+        phase_current = (phase_current + 1) % 3;
     }
 
-    phase_current = (phase_current + 1) % 3;
     global.current_phase = phase[phase_current];
-    if (phase[phase_current] == "Attack") {
-        registerTriggerEvent(TRIGGER_BATTLE_PHASE, noone, {});
+    show_debug_message("### New Phase: " + global.current_phase + " (Player " + string(player_current) + ")");
+
+    // --- LOGIQUE DE DÉBUT DE PHASE ---
+
+    if (phase[phase_current] == "Start") {
+        // --- MANA & DRAW STEP ---
+        
+        // 1. Gestion du Mana (Ramp up + Refill)
+        if (player_current == 0) { // Hero
+            // Augmenter le max si < 10 (Sauf tour 1 du joueur 2 si on veut équilibrer plus tard, mais standard HS: +1 tout le temps)
+            // Note: HS commence à 1 mana au T1. 
+            // Ici nbTurn s'incrémente à chaque changement de joueur, donc T1 Hero, T2 Enemy, T3 Hero...
+            // C'est pas idéal. Généralement T1 = Tour complet.
+            // On va simplifier: mana_max += 1 à chaque début de MON tour.
+            
+            global.mana_max_hero = min(global.mana_max_hero + 1, 10);
+            global.mana_hero = global.mana_max_hero;
+            show_debug_message("### Mana Hero: " + string(global.mana_hero) + "/" + string(global.mana_max_hero));
+            
+        } else { // Enemy
+            global.mana_max_enemy = min(global.mana_max_enemy + 1, 10);
+            global.mana_enemy = global.mana_max_enemy;
+            show_debug_message("### Mana Enemy: " + string(global.mana_enemy) + "/" + string(global.mana_max_enemy));
+        }
+
+        // 2. Reset des états de combat (Mal d'invocation géré à l'invocation, mais reset des attaques ici)
+        hasSummonedThisTurn[player_current] = false;
+        
+        // Reset Hero Power
+        with (oHeroPower) {
+            var localIdx = (variable_instance_exists(oGame, "local_player_index")) ? oGame.local_player_index : 0;
+            var ownerIdx = (isHeroOwner) ? localIdx : (1 - localIdx);
+            if (ownerIdx == oGame.player_current) {
+                hasUsedThisTurn = false;
+            }
+        }
+
+        with (oCardMonster) {
+            var localIdx = (variable_instance_exists(oGame, "local_player_index")) ? oGame.local_player_index : 0;
+            var ownerIdx = (isHeroOwner) ? localIdx : (1 - localIdx);
+            
+            if (ownerIdx == oGame.player_current) {
+                // Nouvelle règle: peut attaquer si pas mal d'invocation
+                if (variable_instance_exists(id, "attacksUsedThisTurn")) attacksUsedThisTurn = 0;
+                
+                // Reset de la "Charge" ou autre état temporaire si besoin
+                // Dans HS, le mal d'invocation saute au début du tour.
+                if (variable_instance_exists(id, "summoningSickness")) summoningSickness = false;
+            }
+        }
+
+        // 3. Déclencheurs de début de tour
+        registerTriggerEvent(TRIGGER_START_TURN, noone, {});
+
+        // 4. Pioche Automatique
+        // Sauf si c'est la toute première distribution (gérée par timerMulligan)
+        if (!timerEnabledMulligan) {
+            // Auto-transition vers Main Phase après pioche
+            // On déclenche la pioche, et on demandera la suite
+            
+             if (is_local_turn) {
+                timerAutoDraw = 0.5;
+                timerAutoDrawEnabled = true;
+                show_debug_message("### Auto-Draw enabled for Turn " + string(nbTurn));
+            } else {
+                // Pour l'ennemi, l'IA ou le réseau déclenchera la pioche
+                // Si IA Offline:
+                var isOnline = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
+                if (!isOnline) {
+                     // L'IA pioche et passe en Main
+                     // On laisse le timerIA gérer ça
+                }
+            }
+        } else {
+            // Premier tour distribution: On passe direct en Main manuellement après distribution
+            // (La distribution appelle nextPhase quand finie)
+        }
+        
+        // Dans HS, la phase Start est instantanée. On passe en Main direct après la pioche.
+        // La pioche se fera via timerAutoDraw qui appelle pick() -> qui PEUT appeler nextPhase() si configuré.
+        // Pour l'instant on reste en Start le temps de l'anim pioche.
     }
-
-    // Réinitialisation des états au début du tour
-  if (phase[phase_current] == "Pick") {
-    hasSummonedThisTurn[player_current] = false;
-
-    // Réinitialise orientation pour tous les monstres du joueur actif
- with (oCardMonster) {
-    var localIdx = (variable_instance_exists(oGame, "local_player_index")) ? oGame.local_player_index : 0;
-    var ownerIdx = (isHeroOwner) ? localIdx : (1 - localIdx);
     
-    if (ownerIdx == oGame.player_current) {
-        orientationChangedThisTurn = false;
-        if (variable_instance_exists(id, "attacksUsedThisTurn")) attacksUsedThisTurn = 0;
-    }
-}
-
-    // Début du tour: déclenche les effets de début
-    registerTriggerEvent(TRIGGER_START_TURN, noone, {});
-
-    // Activer la pioche automatique pour le joueur local
-    // On vérifie !timerEnabledPick pour ne pas interférer avec la distribution initiale (tour 1)
-    if (is_local_turn && !timerEnabledPick) {
-        timerAutoDraw = 0.5;
-        timerAutoDrawEnabled = true;
-        show_debug_message("### Auto-Draw enabled for Turn " + string(nbTurn));
-    }
-
-}
+    // --- GESTION IA ---
     var isOnline = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
     if (!isOnline && player[player_current] == "Enemy") {
-        timerIA = 1;
-        timerEnabledIA = true;
+        if (phase[phase_current] == "Main") {
+            // L'IA joue pendant la Main Phase
+            timerIA = 1;
+            timerEnabledIA = true;
+        } else if (phase[phase_current] == "Start" && !timerEnabledMulligan) {
+             // IA doit piocher en Start
+             // On force un délai court pour simuler
+             timerIA = 0.5;
+             timerEnabledIA = true;
+        }
     } else if (isOnline) {
         timerEnabledIA = false;
     }
 }
 #endregion
+

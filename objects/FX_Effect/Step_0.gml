@@ -1,4 +1,44 @@
 // FX_Effect - Step
+
+// === MODE PROJECTILE ===
+if (variable_instance_exists(self, "mode") && mode == "projectile") {
+    if (target_inst != noone && instance_exists(target_inst)) {
+        var tx = target_inst.x;
+        var ty = target_inst.y;
+        var dist = point_distance(x, y, tx, ty);
+        
+        if (dist <= move_speed) {
+            x = tx;
+            y = ty;
+            // Impact
+            if (!reached) {
+                reached = true;
+                // Jouer son d'impact si défini
+                if (variable_instance_exists(self, "snd_impact") && snd_impact != -1) {
+                    audio_play_sound(snd_impact, 0, false);
+                }
+                
+                if (callback != noone && is_method(callback)) {
+                    callback();
+                }
+                instance_destroy();
+            }
+        } else {
+            var dir = point_direction(x, y, tx, ty);
+            x += lengthdir_x(move_speed, dir);
+            y += lengthdir_y(move_speed, dir);
+            
+            // Rotation visuelle (tourne sur lui-même)
+            image_angle -= 25; 
+        }
+    } else {
+        // Target lost
+        instance_destroy();
+    }
+    return;
+}
+
+// === MODE HALO (Legacy) ===
 _t++;
 var progress = clamp(_t / duration, 0, 1);
 

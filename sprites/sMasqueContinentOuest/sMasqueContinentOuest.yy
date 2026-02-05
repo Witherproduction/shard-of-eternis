@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"continent",
-    "path":"folders/Sprites/map/continent.yy",
+    "path":"folders/Sprites/interface/map/continent.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

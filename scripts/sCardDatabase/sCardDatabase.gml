@@ -80,8 +80,8 @@ function dbShowAllData() {
         show_debug_message("  Type: " + card.type);
         
         if (card.type == "Monster") {
-            show_debug_message("  ATK: " + string(card.attack) + " / DEF: " + string(card.defense));
-            show_debug_message("  Étoiles: " + string(card.star));
+            show_debug_message("  ATK: " + string(card.attack) + " / PV: " + string(card.PV));
+            show_debug_message("  Étoiles: " + string(card.mana_cost));
         }
         
         show_debug_message("  Description: " + card.description);
@@ -153,7 +153,7 @@ function dbShowAllCards() {
         show_debug_message("ID: " + card.id + " | Nom: " + card.name + " | Type: " + card.type);
         
         if (card.type == "Monster") {
-            show_debug_message("  ATK: " + string(card.attack) + " | DEF: " + string(card.defense) + " | Étoiles: " + string(card.star));
+            show_debug_message("  ATK: " + string(card.attack) + " | PV: " + string(card.PV) + " | Étoiles: " + string(card.mana_cost));
         }
         
         show_debug_message("  Description: " + card.description);
@@ -329,16 +329,16 @@ function dbCheckForTestCards() {
 
 // === FONCTIONS POUR CARTES PERSONNALISÉES ===
 
-/// @function create_custom_monster_card(card_id, name, attack, defense, star, description, sprite, object_id, rarity, genre, archetype, booster)
+/// @function create_custom_monster_card(card_id, name, attack, PV, mana_cost, description, sprite, object_id, rarity, genre, archetype, booster)
 /// @description Crée et sauvegarde une nouvelle carte monstre personnalisée
-function create_custom_monster_card(card_id, name, attack, defense, star, description, sprite, object_id, rarity, genre, archetype, booster) {
+function create_custom_monster_card(card_id, name, attack, PV, mana_cost, description, sprite, object_id, rarity, genre, archetype, booster) {
     var card_data = {
         id: card_id,
         name: name,
         type: "Monster",
         attack: attack,
-        defense: defense,
-        star: star,
+        PV: PV,
+        mana_cost: mana_cost,
         description: description,
         sprite: sprite,
         objectId: object_id,
@@ -351,16 +351,16 @@ function create_custom_monster_card(card_id, name, attack, defense, star, descri
     return add_card_and_save(card_id, card_data);
 }
 
-/// @function create_custom_magic_card(card_id, name, description, sprite, object_id, rarity, genre, archetype, booster)
+/// @function create_custom_magic_card(card_id, name, description, sprite, object_id, rarity, genre, archetype, booster, mana_cost)
 /// @description Crée et sauvegarde une nouvelle carte magique personnalisée
-function create_custom_magic_card(card_id, name, description, sprite, object_id, rarity, genre, archetype, booster) {
+function create_custom_magic_card(card_id, name, description, sprite, object_id, rarity, genre, archetype, booster, mana_cost) {
     var card_data = {
         id: card_id,
         name: name,
         type: "Magic",
         attack: 0,
-        defense: 0,
-        star: 0,
+        PV: 0,
+        mana_cost: mana_cost,
         description: description,
         sprite: sprite,
         objectId: object_id,

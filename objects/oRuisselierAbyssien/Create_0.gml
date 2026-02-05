@@ -3,8 +3,8 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 // Définit les stats spécifiques de ce monstre
 name = "Ruisselier Abyssien"
 attack = 2;
-defense = 3;
-star = 1;
+PV = 3;
+mana_cost = 2;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -26,4 +26,5 @@ effects = [
         }
     }
 ]
+
 

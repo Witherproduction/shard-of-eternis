@@ -31,8 +31,7 @@ if (__entrave_on) {
         var spr_chain = asset_get_index("sChain");
         if (spr_chain != -1) {
             var chain_w = sprite_get_width(spr_chain);
-            var orient = (variable_instance_exists(self, "orientation") ? string(orientation) : "Attack");
-            var ang_off = (string_lower(orient) == "defense") ? 0 : 90;
+            var ang_off = 90; // Toujours vertical (Attack mode)
             var x1a = cx - cw * 0.5 + inset;
             var y1a = cy - ch * 0.5 + inset;
             var x2a = cx + cw * 0.5 - inset;
@@ -59,87 +58,7 @@ if (__entrave_on) {
     }
 }
 
-    // Camouflage: voile sombre + brume légère animée
-    if (variable_instance_exists(self, "isCamouflage") && isCamouflage) {
-        var cw_c = sprite_get_width(sprite_index) * image_xscale;
-        var ch_c = sprite_get_height(sprite_index) * image_yscale;
-        var x1_c = x - cw_c * 0.5;
-        var y1_c = y - ch_c * 0.5;
-        var x2_c = x + cw_c * 0.5;
-        var y2_c = y + ch_c * 0.5;
-        var sprOverlay = asset_get_index("sCamouflageOverlay");
-        if (sprOverlay != -1) {
-            var card_w = sprite_get_width(sprite_index);
-            var card_h = sprite_get_height(sprite_index);
-            var card_ox = sprite_get_xoffset(sprite_index);
-            var card_oy = sprite_get_yoffset(sprite_index);
-            var cx_off = (card_w * 0.5 - card_ox) * image_xscale;
-            var cy_off = (card_h * 0.5 - card_oy) * image_yscale;
-            var ang = image_angle;
-            var rad = ang * pi / 180;
-            var dx = cx_off * cos(rad) - cy_off * sin(rad);
-            var dy = cx_off * sin(rad) + cy_off * cos(rad);
-            var drawX = x + dx;
-            var drawY = y + dy;
-            var ow = sprite_get_width(sprOverlay);
-            var oh = sprite_get_height(sprOverlay);
-            var sx = cw_c / max(1, ow);
-            var sy = ch_c / max(1, oh);
-            draw_sprite_ext(sprOverlay, 0, drawX, drawY, sx, sy, ang, c_white, 0.5);
-        } else {
-            draw_set_alpha(0.5);
-            draw_set_color(make_color_rgb(0, 0, 0));
-            draw_rectangle(x1_c, y1_c, x2_c, y2_c, false);
-            draw_set_alpha(1);
-            draw_set_color(c_white);
-        }
-        // Reset
-        draw_set_alpha(1);
-        draw_set_color(c_white);
-    }
-    if (should_show_stats && variable_instance_exists(self, "attack") && variable_instance_exists(self, "defense")) {
-        // Configuration du texte
-        draw_set_font(fontCardDisplay);
-        draw_set_halign(fa_center);
-        draw_set_valign(fa_middle);
-        
-        // Position des stats (en bas de la carte), avec rotation selon orientation
-        var card_width = sprite_get_width(sprite_index) * image_xscale;
-        var card_height = sprite_get_height(sprite_index) * image_yscale;
-
-        var stats_y = y + (card_height / 2) + 6;
-        var attack_x = x - (card_width / 4);
-        var defense_x = x + (card_width / 4);
-        stats_y = round(stats_y);
-        attack_x = round(attack_x);
-        defense_x = round(defense_x);
-
-        // Ancien comportement: pas de rotation du texte
-        
-        // Déterminer les stats à afficher (effectives si disponibles)
-        var dispAttack = (variable_instance_exists(self, "effective_attack") ? effective_attack : attack);
-        var dispDefense = (variable_instance_exists(self, "effective_defense") ? effective_defense : defense);
-
-        // Déterminer les couleurs selon variation (blanc = base, vert = augmenté, rouge = réduit)
-        var baseAttack = attack;
-        var baseDefense = defense;
-
-        var attack_color = c_white;
-        var defense_color = c_white;
-        if (dispAttack > baseAttack) attack_color = c_green; else if (dispAttack < baseAttack) attack_color = c_red;
-        if (dispDefense > baseDefense) defense_color = c_green; else if (dispDefense < baseDefense) defense_color = c_red;
-
-        // Texte de l'attaque (blanc/vert/rouge)
-        draw_set_color(attack_color);
-        draw_text(attack_x, stats_y, string(dispAttack));
-
-        // Texte de la défense (blanc/vert/rouge)
-        draw_set_color(defense_color);
-        draw_text(defense_x, stats_y, string(dispDefense));
-        
-        // Remettre les paramètres par défaut
-        draw_set_color(c_white);
-        draw_set_halign(fa_left);
-        draw_set_valign(fa_top);
-    }
+    // Camouflage handled in oCardParent now (Hearthstone style)
+    
+    // Stats (ATK/HP) handled in oCardParent now (Hearthstone style circles)
 }

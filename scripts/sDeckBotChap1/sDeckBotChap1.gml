@@ -3,8 +3,8 @@
 function get_bot_decks_chap1() {
     return [
         {
-            id: "Invasion_Geule_Roche",
-            name: "Orc Geule-Roche",
+            id: "Invasion_Gueule_Roche",
+            name: "Orc Gueule-Roche",
             profile: {
                 // Style Equilibré & Puissant
                 summon_weight: 85,          // Priorité haute à l'invocation
@@ -16,37 +16,57 @@ function get_bot_decks_chap1() {
                 defense_trigger_margin: 50, // Passe en défense si l'adversaire prend l'avantage
                 
                 target_monster_policy: "strongest", // Vise les menaces
-                target_spell_policy: "tempo"
+                target_spell_policy: "tempo",
+
+                custom_rules: {
+                    placement_strategy: "tank_front_dps_back",
+                    placement_priority: {
+                        "oTortueVagabonde": "front",
+                        "oJeuneOursForet": "front",
+                        "oSanglierPeauRoc": "front"
+                    },
+                    hero_power_rule: "finish_off_1hp",
+                    conditional_play: {
+                        "oMassacreurGueuleRoche": {
+                             requires_on_board: ["oLoupGuerreGueuleRoche"]
+                        }
+                    }
+                }
             },
-            deck_name: "Invasion Geule-Roche",
+            deck_name: "Invasion Gueule-Roche",
             difficulty: "Facile",
-            portrait: "sPortraitOrcGeuleRoche",
-            description: "Un deck agressif basé sur les orcs de la tribu Geule-Roche et les bêtes sauvages. Submergez l'adversaire rapidement !",
+            portrait: "sPortraitOrcGueuleRoche",
+            description: "Un deck agressif basé sur les orcs de la tribu Gueule-Roche et les bêtes sauvages. Submergez l'adversaire rapidement !",
             cards: [
                 "oMassacreurGueuleRoche", "oMassacreurGueuleRoche",
-                "oEnvahisseurGueuleRoche", "oEnvahisseurGueuleRoche",
+                "oEnvahisseurGueuleRoche", "oEnvahisseurGueuleRoche", "oEnvahisseurGueuleRoche",
                 "oLoupGuerreGueuleRoche", "oLoupGuerreGueuleRoche",
                 
                 "oGobelinFurtif", "oGobelinFurtif",
                 "oTunnelin", "oTunnelin",
                 "oMineurTunnelin", "oMineurTunnelin",
                 
-                "oTarentuleForet",
                 "oTortueVagabonde","oTortueVagabonde",
-                "oTortueVagabonde",
-                "oSanglierPeauRoc",
-                "oJeuneOursForet", "oJeuneOursForet", "oJeuneOursForet",
+                "oSanglierPeauRoc", "oSanglierPeauRoc",
+                "oJeuneOursForet", "oJeuneOursForet",
                 "oLoupGaleux", "oLoupGaleux",
                 "oLoupGrisForet", "oLoupGrisForet",
                 "oAraigneeForestiere", "oAraigneeForestiere",
+                "oJeuneLoup", "oJeuneLoup", "oJeuneLoup",
                 
                 "oGriffePredateur", "oGriffePredateur",
                 "oSautPredateur", "oSautPredateur",
-                "oChasseMeute", "oChasseMeute",
+                "oFrenesieSauvage", "oFrenesieSauvage",
                 "oRugissementForet", "oRugissementForet",
                 "oCriMeute", "oCriMeute",
                 "oFeuillageProtecteur", "oFeuillageProtecteur"
-            ]
+            ],
+            hero_power: {
+                id: "lancer_hache",
+                name: "Lancer de Hache",
+                description: "Inflige 1 dégât.",
+                mana_cost: 2
+            }
         },
         {
             id: "Essaim_Abyssien",
@@ -69,7 +89,22 @@ function get_bot_decks_chap1() {
                     prioritize_card_name: "Ruisselier", // Priorité #1
                     swarm_trigger_card: "Ruisselier",   // Si présent, invoquer tout ce qui bouge
                     max_same_continuous: 2,             // Limite de doublons continus
-                    force_attack_abyssien_condition: true // Si Magie Continue ou Ruisselier présent -> Attaque
+                    force_attack_abyssien_condition: true, // Si Magie Continue ou Ruisselier présent -> Attaque
+                    
+                    // Placement
+                    placement_priority: {
+                        "oRuisselierAbyssien": "back",
+                        "oCoureurAbyssien": "front",
+                        "oFourrageurAbyssien": "front"
+                    },
+                    
+                    // Règles de Sorts
+                    spell_rules: {
+                        "oMareeDeferlante": "bounce_big_threat",
+                        "oProtectionMaree": "buff_if_3_abyssien",
+                        "oHurlementTribu": "sac_coureur_buff_2",
+                        "oFerveurMarais": "summon_if_3_slots"
+                    }
                 }
             },
             deck_name: "Essaim Abyssien",
@@ -80,6 +115,7 @@ function get_bot_decks_chap1() {
                 "oTortueVagabonde", "oTortueVagabonde", "oTortueVagabonde", 
                 "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", 
                 "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", "oRuisselierAbyssien", 
+                "oRodeurAbyssien", "oRodeurAbyssien", 
                 "oRodeurAbyssien", "oRodeurAbyssien", 
  
                 // Sorts Abyssiens 
@@ -94,7 +130,13 @@ function get_bot_decks_chap1() {
                 // Ajouts demandés
                 "oVieilOurs", "oVieilOurs",
                 "oLoupGaleux", "oLoupGaleux"
-            ]
+            ],
+            hero_power: {
+                id: "appel_profondeurs",
+                name: "Appel des Profondeurs",
+                description: "Invoque un Coureur Abyssien aléatoirement.",
+                mana_cost: 1
+            }
         },
         {
             id: "Bandit_Grand_Chemin",
@@ -121,7 +163,15 @@ function get_bot_decks_chap1() {
                 custom_rules: {
                     prioritize_card_name: ["James la Calamité", "Morgane la Venimeuse"], // Priorité #1
                     protect_card: "James la Calamité", // Ne jamais attaquer avec cette carte
-                    stealth_lethal_only: true // Les furtifs attaquent seulement pour tuer (Hero) ou si trade gratuit
+                    // stealth_lethal_only: true, // RETIRÉ: Les furtifs peuvent attaquer normalement
+                    
+                    // Placement : James au fond pour le protéger
+                    placement_priority: {
+                        "oJamesCalamite": "back",
+                        "oMorganeVenimeuse": "back",
+                        "oGobelinFurtif": "front", // Ecran de fumée
+                        "oVideGousset": "front"
+                    }
                 }
             },
             deck_name: "Bandit de Grand Chemin",
@@ -132,25 +182,32 @@ function get_bot_decks_chap1() {
                 // Monstres
                 "oJamesCalamite",
                 "oMorganeVenimeuse", "oMorganeVenimeuse",
-                 "oGobelinFurtif", "oGobelinFurtif", "oGobelinFurtif", "oGobelinFurtif",
+                 "oGobelinFurtif", "oGobelinFurtif", "oGobelinFurtif",
                  "oMaitrePasse", "oMaitrePasse", "oMaitrePasse",
                 "oPortefaix", "oPortefaix",
                 "oMineurTunnelin", "oMineurTunnelin", "oMineurTunnelin",
                 "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien",
-                "oVideGousset",
+                "oVideGousset", "oVideGousset", "oVideGousset",
                 "oVoleurFinelame", "oVoleurFinelame",
                 "oBanditGuerrier", "oBanditGuerrier", "oBanditGuerrier",
                 
                 // Magie
                 "oSournoiserie", "oSournoiserie",
-                "oMainFurtive",
+                "oBrumeTrompeuse",
+                "oBrumeForet", "oBrumeForet",
                 "oFiletOmbre", "oFiletOmbre",
                 "oFeuillageProtecteur", "oFeuillageProtecteur",
                 "oDagueFilou", "oDagueFilou",
                 "oCapeOmbre", "oCapeOmbre",
                 "oCamouflageStrategique", "oCamouflageStrategique",
                 "oAttaqueFurtive", "oAttaqueFurtive"
-            ]
+            ],
+            hero_power: {
+                id: "pillage",
+                name: "Pillage",
+                description: "Copie une carte de la main adverse et l'ajoute à sa main. Elle coute (1) de moins.",
+                mana_cost: 2
+            }
         }
     ];
 }

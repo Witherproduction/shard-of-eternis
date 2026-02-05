@@ -4,14 +4,14 @@
 // Fonction principale de gestion des attaques
 tryAttack = function(target) {
     // Vérifications de base
-    if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
+    if (!(instance_exists(game) && (game.phase[game.phase_current] == "Main" || game.phase[game.phase_current] == "Attack"))) {
         var allow = (variable_instance_exists(cardEnemy, "effect_force_direct_attack") && cardEnemy.effect_force_direct_attack);
         if (!allow) { return; }
     }
-    // Règle: pas d'attaque au tour 1 du duel
-    if (variable_instance_exists(game, "nbTurn") && game.nbTurn == 1) {
-        return;
-    }
+    // Règle: pas d'attaque au tour 1 du duel - REMOVED FOR HS
+    // if (variable_instance_exists(game, "nbTurn") && game.nbTurn == 1) {
+    //     return;
+    // }
 
     // Déterminer l'attaquant depuis le SelectManager
     var sm = noone;
@@ -40,10 +40,10 @@ tryAttack = function(target) {
     if (variable_instance_exists(attacker, "attacksUsedThisTurn") && attacker.attacksUsedThisTurn >= _limit) {
         return;
     }
-    // Vérifier l'orientation
-    if (attacker.orientation != "Attack") {
-        return;
-    }
+    // Vérifier l'orientation - REMOVED FOR HS (Always Attack)
+    // if (attacker.orientation != "Attack") {
+    //     return;
+    // }
 
     // Déterminer le défenseur depuis le paramètre 'target' (carte cliquée)
     var defender = noone;
@@ -51,26 +51,52 @@ tryAttack = function(target) {
         if (variable_instance_exists(target, "isHeroOwner") && !target.isHeroOwner &&
             variable_instance_exists(target, "zone") && target.zone == "Field" &&
             variable_instance_exists(target, "type") && target.type == "Monster") {
+            
+            // 1. Check Stealth/Camouflage (Cannot target Stealth)
             if (variable_instance_exists(target, "isCamouflage") && target.isCamouflage) {
-                var enemyHasNonCamo = false;
-                if (instance_exists(fieldManagerEnemy)) {
+                show_debug_message("Target is Stealth - Cannot attack.");
+                return;
+            }
+            
+            // 2. Check Taunt/Provocation AND Front Line (m0-m3)
+            var targetHasTaunt = (variable_instance_exists(target, "has_taunt") && target.has_taunt);
+            var targetIsFrontLine = (variable_instance_exists(target, "fieldPosition") && target.fieldPosition >= 0 && target.fieldPosition <= 3);
+            var targetIsDefender = (targetHasTaunt || targetIsFrontLine);
+            
+            // If target is NOT a Defender, check if a Defender exists elsewhere
+            if (!targetIsDefender) {
+                 var defenderBlockerExists = false;
+                 if (instance_exists(fieldManagerEnemy)) {
                     var arrEnemy = fieldMonsterEnemy.cards;
                     for (var ie = 0; ie < array_length(arrEnemy); ie++) {
                         var em = arrEnemy[ie];
                         if (em != 0 && instance_exists(em)) {
-                            var camo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
-                            if (!camo) { enemyHasNonCamo = true; break; }
+                            var emTaunt = (variable_instance_exists(em, "has_taunt") && em.has_taunt);
+                            var emFrontLine = (variable_instance_exists(em, "fieldPosition") && em.fieldPosition >= 0 && em.fieldPosition <= 4);
+                            var emIsDefender = (emTaunt || emFrontLine);
+                            
+                            var emCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
+                            
+                            // A blocker must be a Defender AND NOT be Stealth
+                            if (emIsDefender && !emCamo) {
+                                defenderBlockerExists = true;
+                                break;
+                            }
                         }
                     }
-                }
-                if (!enemyHasNonCamo) {
-                    defender = noone;
-                } else {
-                    return;
-                }
-            } else {
-                defender = target;
+                 }
+                 
+                 if (defenderBlockerExists) {
+                     // Percée (isPercee) allows bypassing Front Line/Taunt
+                     var allowBypass = (variable_instance_exists(attacker, "isPercee") && attacker.isPercee);
+                     if (!allowBypass) {
+                         show_debug_message("Must attack Defender minion (Taunt or Front Line)!");
+                         return;
+                     }
+                 }
             }
+            
+            defender = target;
         }
     }
 
@@ -87,6 +113,39 @@ tryAttack = function(target) {
     } else {
         // Résolution directe sans FX
         if (defender == noone) {
+            // Check Taunt/FrontLine for Direct Attack
+            var defenderBlockerExists = false;
+            if (instance_exists(fieldManagerEnemy)) {
+                var arrEnemy = fieldMonsterEnemy.cards;
+                for (var ie = 0; ie < array_length(arrEnemy); ie++) {
+                    var em = arrEnemy[ie];
+                    if (em != 0 && instance_exists(em)) {
+                        var emTaunt = (variable_instance_exists(em, "has_taunt") && em.has_taunt);
+                        var emFrontLine = (variable_instance_exists(em, "fieldPosition") && em.fieldPosition >= 0 && em.fieldPosition <= 3);
+                        var emIsDefender = (emTaunt || emFrontLine);
+                        
+                        var emCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
+                        
+                        // Stealth disables Taunt/Defender status for blocking
+                        if (emIsDefender && !emCamo) {
+                            defenderBlockerExists = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (defenderBlockerExists) {
+                // Percée logic for Direct Attack
+                var allowBypass = (variable_instance_exists(attacker, "isPercee") && attacker.isPercee);
+                var allowAlways = (variable_instance_exists(attacker, "canAttackDirectAlways") && attacker.canAttackDirectAlways);
+                
+                if (!allowBypass && !allowAlways) {
+                    show_debug_message("Direct Attack Blocked by Defender (Taunt or Front Line)");
+                    return;
+                }
+            }
+
             resolveAttackDirect(attacker);
         } else {
             resolveAttackMonster(attacker, defender);
@@ -98,28 +157,20 @@ tryAttack = function(target) {
 resolveAttackMonster = function(cardHero, cardEnemy) {
     // Début de résolution (debug supprimé)
     
-    // Phase guard
-    if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
+    // Phase guard (HS Main Phase or Legacy Attack Phase)
+    var is_tutorial = instance_exists(oTutorielManager);
+    if (!(instance_exists(game) && (game.phase[game.phase_current] == "Main" || game.phase[game.phase_current] == "Attack" || is_tutorial))) {
         return;
     }
     
-    // Trouver les instances LP
+    // Trouver les instances LP (optionnel en HS minion vs minion, mais gardons les refs)
     var LP_Hero_Instance = instance_find(oLP_Hero, 0);
     var LP_Enemy_Instance = instance_find(oLP_Enemy, 0);
     
-    if (LP_Hero_Instance == noone) {
-        return;
-    }
-    
-    if (LP_Enemy_Instance == noone) {
-        return;
-    }
-    
-    
-    // Révéler la carte ennemie si elle est face cachée
+    // Révéler la carte ennemie si elle est face cachée (HS n'a pas de face cachée, mais on garde pour compatibilité)
     if (cardEnemy != noone && instance_exists(cardEnemy) && variable_instance_exists(cardEnemy, "isFaceDown") && cardEnemy.isFaceDown) {
         cardEnemy.isFaceDown = false;
-        if (cardEnemy.orientation == "Defense") cardEnemy.orientation = "DefenseVisible";
+        cardEnemy.orientation = "Attack"; // Force Attack
         cardEnemy.image_index = 0;
         cardEnemy.image_angle = (cardEnemy.isHeroOwner ? 90 : 270);
     }
@@ -128,7 +179,7 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
     registerTriggerEvent(TRIGGER_ON_ATTACK, cardHero, { 
         attacker: cardHero, 
         defender: cardEnemy, 
-        defender_orientation: cardEnemy.orientation, 
+        defender_orientation: "Attack", 
         direct_attack: false 
     });
     
@@ -144,52 +195,26 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
         return;
     }
     
-    // Combat selon l'orientation de l'ennemi
-    if (cardEnemy != noone && instance_exists(cardEnemy) && cardEnemy.orientation == "Attack") {
-        var effHeroAtk = variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack;
-        var effEnemyAtk = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack;
-        var isPois = (variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner);
-        if (isPois) {
-            if (effHeroAtk > effEnemyAtk) {
-                var damage = effHeroAtk - effEnemyAtk;
-                LP_Enemy_Instance.nbLP -= damage;
-                spawnPoisonFX(cardEnemy, cardHero);
-                destroyCard(cardEnemy, cardHero);
-            } else if (effHeroAtk == effEnemyAtk) {
-                spawnPoisonFX(cardEnemy, cardHero);
-                destroyCard(cardHero, cardEnemy);
-                destroyCard(cardEnemy, cardHero);
-            } else {
-                var damage2 = effEnemyAtk - effHeroAtk;
-                LP_Hero_Instance.nbLP -= damage2;
-                spawnPoisonFX(cardEnemy, cardHero);
-                destroyCard(cardHero, cardEnemy);
-                destroyCard(cardEnemy, cardHero);
-            }
-        } else {
-            resolveAttackVsAttack(cardHero, cardEnemy, LP_Hero_Instance, LP_Enemy_Instance);
-        }
-    } else if (cardEnemy != noone && instance_exists(cardEnemy) && (cardEnemy.orientation == "Defense" || cardEnemy.orientation == "DefenseVisible")) {
-        var effHeroAtk2 = variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack;
-        var effEnemyDef = variable_struct_exists(cardEnemy, "effective_defense") ? cardEnemy.effective_defense : cardEnemy.defense;
-        var isPois2 = (variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner);
-        if (isPois2) {
-            if (effHeroAtk2 > effEnemyDef) {
-                spawnPoisonFX(cardEnemy, cardHero);
-                destroyCard(cardEnemy, cardHero);
-            } else if (effHeroAtk2 == effEnemyDef) {
-                spawnPoisonFX(cardEnemy, cardHero);
-                destroyCard(cardEnemy, cardHero);
-            } else {
-                var damage3 = effEnemyDef - effHeroAtk2;
-                LP_Hero_Instance.nbLP -= damage3;
-                spawnPoisonFX(cardEnemy, cardHero);
-                destroyCard(cardEnemy, cardHero);
-            }
-        } else {
-            resolveAttackVsDefense(cardHero, cardEnemy, LP_Hero_Instance, LP_Enemy_Instance);
-        }
+    // --- HEARTHSTONE COMBAT LOGIC ---
+    var effHeroAtk = variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack;
+    var effEnemyAtk = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack;
+    
+    // 1. Dégâts simultanés (Persistent Damage)
+    // On utilise damageCard qui gère current_hp -= amount et la destruction si <= 0
+    if (effHeroAtk > 0) damageCard(cardEnemy, effHeroAtk);
+    if (effEnemyAtk > 0) damageCard(cardHero, effEnemyAtk);
+    
+    // 2. Gestion du Poison (si dégâts > 0 et survivant)
+    if (instance_exists(cardEnemy) && effHeroAtk > 0 && variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner) {
+         spawnPoisonFX(cardEnemy, cardHero);
+         destroyCard(cardEnemy, cardHero);
     }
+    
+    if (instance_exists(cardHero) && effEnemyAtk > 0 && variable_struct_exists(cardEnemy, "isPoisoner") && cardEnemy.isPoisoner) {
+         spawnPoisonFX(cardHero, cardEnemy);
+         destroyCard(cardHero, cardEnemy);
+    }
+    // --------------------------------
     
     // Marquer l'attaque comme utilisée
     if (instance_exists(cardHero)) {
@@ -207,111 +232,9 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
     }
 }
 
-// Combat Attaque vs Attaque
-resolveAttackVsAttack = function(cardHero, cardEnemy, LP_Hero_Instance, LP_Enemy_Instance) {
-    var effHeroAtk = variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack;
-    var effEnemyAtk = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack;
-    
-    // Debug ATK Héros/ATK Ennemi supprimé
-    
-    if (effHeroAtk > effEnemyAtk) {
-        // Héros gagne - Ennemi détruit, dégâts aux LP ennemis
-        var damage = effHeroAtk - effEnemyAtk;
-        
-        LP_Enemy_Instance.nbLP -= damage;
-        
-        if (variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner) {
-            spawnPoisonFX(cardEnemy, cardHero);
-        }
-        destroyCard(cardEnemy, cardHero);
-        
-    } else if (effHeroAtk == effEnemyAtk) {
-        // Égalité
-        var isPoisoner = (variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner);
-        if (isPoisoner) {
-            // Empoisonneur: défenseur détruit par poison, attaquant survit
-            
-            spawnPoisonFX(cardEnemy, cardHero);
-            destroyCard(cardEnemy, cardHero);
-        } else {
-            // Cas normal: destruction mutuelle
-            
-            destroyCard(cardHero, cardEnemy);
-            destroyCard(cardEnemy, cardHero);
-        }
-        
-    } else {
-        // Héros perd - Héros détruit, dégâts aux LP du héros
-        var damage = effEnemyAtk - effHeroAtk;
-        
-        LP_Hero_Instance.nbLP -= damage;
-        
-        destroyCard(cardHero, cardEnemy);
-        if (variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner) {
-            spawnPoisonFX(cardEnemy, cardHero);
-            destroyCard(cardEnemy, cardHero);
-        }
-    }
 
-    // Déclencher l'événement post-attaque même si le défenseur a été détruit
-    if (instance_exists(cardHero)) {
-        var defExists1 = instance_exists(cardEnemy);
-        registerTriggerEvent(TRIGGER_AFTER_ATTACK, cardHero, {
-            attacker: cardHero,
-            defender: defExists1 ? cardEnemy : noone,
-            target: defExists1 ? cardEnemy : noone,
-            defender_orientation: (defExists1 && variable_instance_exists(cardEnemy, "orientation")) ? cardEnemy.orientation : "unknown",
-            direct_attack: false
-        });
-    }
-}
+// Legacy functions (resolveAttackVsAttack, resolveAttackVsDefense) removed for Hearthstone combat style.
 
-// Combat Attaque vs Défense
-resolveAttackVsDefense = function(cardHero, cardEnemy, LP_Hero_Instance, LP_Enemy_Instance) {
-    var effHeroAtk = variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack;
-    var effEnemyDef = variable_struct_exists(cardEnemy, "effective_defense") ? cardEnemy.effective_defense : cardEnemy.defense;
-    
-    // Debug ATK/DEF supprimé
-    
-    if (effHeroAtk > effEnemyDef) {
-        // Héros gagne - Ennemi détruit, pas de dégâts aux LP
-        
-        destroyCard(cardEnemy, cardHero);
-        
-    } else if (effHeroAtk == effEnemyDef) {
-        // Égalité - Pas de destruction (sauf poison)
-        
-        if (variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner) {
-            spawnPoisonFX(cardEnemy, cardHero);
-            destroyCard(cardEnemy, cardHero);
-        }
-        
-    } else {
-        // Héros perd - Dégâts aux LP du héros
-        var damage = effEnemyDef - effHeroAtk;
-        
-        LP_Hero_Instance.nbLP -= damage;
-        
-        
-        // Poison si applicable
-        if (variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner) {
-            spawnPoisonFX(cardEnemy, cardHero);
-            destroyCard(cardEnemy, cardHero);
-        }
-    }
-
-    // Déclencher l'événement post-attaque même si le défenseur a été détruit
-    if (instance_exists(cardHero)) {
-        var defExists2 = instance_exists(cardEnemy);
-        registerTriggerEvent(TRIGGER_AFTER_ATTACK, cardHero, {
-            attacker: cardHero,
-            defender: defExists2 ? cardEnemy : noone,
-            target: defExists2 ? cardEnemy : noone,
-            defender_orientation: (defExists2 && variable_instance_exists(cardEnemy, "orientation")) ? cardEnemy.orientation : "unknown",
-            direct_attack: false
-        });
-    }
-}
 
 
 
@@ -442,35 +365,25 @@ initiateAttackDirectEnemy = function(cardEnemy) {
 resolveAttackMonsterEnemy = function(attacker, defender) {
     if (attacker == noone || !instance_exists(attacker)) return;
     
-    // Note: On ne vérifie PLUS le nombre d'attaques ici car initiateAttackMonsterEnemy
-    // l'a déjà incémenté AVANT l'animation.
-    // var _limitE = 1; if (variable_instance_exists(attacker, "isAmbidextrous") && attacker.isAmbidextrous) { _limitE = 2; }
-    // if (variable_instance_exists(attacker, "attacksUsedThisTurn") && attacker.attacksUsedThisTurn >= _limitE) { return; }
-    
-    if (!(instance_exists(game) && game.phase[game.phase_current] == "Attack")) {
-
+    // Phase guard (HS Main Phase or Legacy Attack Phase)
+    if (!(instance_exists(game) && (game.phase[game.phase_current] == "Main" || game.phase[game.phase_current] == "Attack"))) {
         return;
     }
     
     var LP_Hero_Instance = instance_find(oLP_Hero, 0);
     var LP_Enemy_Instance = instance_find(oLP_Enemy, 0);
-    if (LP_Hero_Instance == noone || LP_Enemy_Instance == noone) {
-        return;
-    }
     
-    show_debug_message("### resolveAttackMonsterEnemy: entry attacker=" + string(attacker) + " defender=" + string(defender));
-    
-    // Révéler le défenseur si face cachée
+    // Révéler le défenseur si face cachée (HS n'a pas de face cachée, mais on garde pour compatibilité)
     if (defender != noone && instance_exists(defender) && variable_instance_exists(defender, "isFaceDown") && defender.isFaceDown) {
         defender.isFaceDown = false;
-        if (defender.orientation == "Defense") defender.orientation = "DefenseVisible";
+        defender.orientation = "Attack"; // Force Attack
         defender.image_index = 0;
         defender.image_angle = (defender.isHeroOwner ? 90 : 270);
-        
     }
     
-    registerTriggerEvent(TRIGGER_ON_ATTACK, attacker, { attacker: attacker, defender: defender, defender_orientation: (defender != noone ? defender.orientation : "unknown"), direct_attack: false });
+    registerTriggerEvent(TRIGGER_ON_ATTACK, attacker, { attacker: attacker, defender: defender, defender_orientation: "Attack", direct_attack: false });
     activateSecretsOnAttack(attacker, defender);
+
     if (attacker == noone || !instance_exists(attacker) || defender == noone || !instance_exists(defender)) {
         if (instance_exists(attacker)) {
             attacker.attacksUsedThisTurn = (variable_instance_exists(attacker, "attacksUsedThisTurn") ? attacker.attacksUsedThisTurn : 0) + 1;
@@ -488,13 +401,11 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
             direct_attack: false
         });
     }
-    if (attacker == noone || !instance_exists(attacker)) {
+    
+    if (attacker == noone || !instance_exists(attacker) || defender == noone || !instance_exists(defender)) {
         return;
     }
     
-    if (defender == noone || !instance_exists(defender)) {
-        return;
-    }
     if (variable_instance_exists(defender, "isCamouflage") && defender.isCamouflage) {
         var heroHasNonCamo = false;
         var arrHero = fieldMonsterHero.cards;
@@ -511,88 +422,26 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
         return;
     }
     
-    if (defender != noone && instance_exists(defender) && defender.orientation == "Attack") {
-        var effEnemyAtk = variable_struct_exists(attacker, "effective_attack") ? attacker.effective_attack : attacker.attack;
-        var effHeroAtk  = variable_struct_exists(defender, "effective_attack") ? defender.effective_attack : defender.attack;
-        var isPoisE = (variable_struct_exists(attacker, "isPoisoner") && attacker.isPoisoner);
-        if (isPoisE) {
-            if (effEnemyAtk > effHeroAtk) {
-                var damage = effEnemyAtk - effHeroAtk;
-                LP_Hero_Instance.nbLP -= damage;
-                show_debug_message("### resolveAttackMonsterEnemy: vsAtk heroLP-=" + string(damage) + " now=" + string(LP_Hero_Instance.nbLP));
-                spawnPoisonFX(defender, attacker);
-                destroyCard(defender, attacker);
-            } else if (effEnemyAtk == effHeroAtk) {
-                spawnPoisonFX(defender, attacker);
-                destroyCard(attacker, defender);
-                destroyCard(defender, attacker);
-            } else {
-                var damage2 = effHeroAtk - effEnemyAtk;
-                LP_Enemy_Instance.nbLP -= damage2;
-                show_debug_message("### resolveAttackMonsterEnemy: vsAtk enemyLP-=" + string(damage2) + " now=" + string(LP_Enemy_Instance.nbLP));
-                spawnPoisonFX(defender, attacker);
-                destroyCard(attacker, defender);
-                destroyCard(defender, attacker);
-            }
-        } else {
-            if (effEnemyAtk > effHeroAtk) {
-                var damage = effEnemyAtk - effHeroAtk;
-                LP_Hero_Instance.nbLP -= damage;
-                show_debug_message("### resolveAttackMonsterEnemy: vsAtk heroLP-=" + string(damage) + " now=" + string(LP_Hero_Instance.nbLP));
-                destroyCard(defender, attacker);
-            } else if (effEnemyAtk == effHeroAtk) {
-                destroyCard(attacker, defender);
-                destroyCard(defender, attacker);
-            } else {
-                var damage = effHeroAtk - effEnemyAtk;
-                LP_Enemy_Instance.nbLP -= damage;
-                show_debug_message("### resolveAttackMonsterEnemy: vsAtk enemyLP-=" + string(damage) + " now=" + string(LP_Enemy_Instance.nbLP));
-                destroyCard(attacker, defender);
-            }
-        }
-    } else if (defender != noone && instance_exists(defender) && (defender.orientation == "Defense" || defender.orientation == "DefenseVisible")) {
-        var effEnemyAtk2 = variable_struct_exists(attacker, "effective_attack") ? attacker.effective_attack : attacker.attack;
-        var effHeroDef  = variable_struct_exists(defender, "effective_defense") ? defender.effective_defense : defender.defense;
-        var isPoisE2 = (variable_struct_exists(attacker, "isPoisoner") && attacker.isPoisoner);
-        if (isPoisE2) {
-            if (effEnemyAtk2 > effHeroDef) {
-                spawnPoisonFX(defender, attacker);
-                destroyCard(defender, attacker);
-            } else if (effEnemyAtk2 == effHeroDef) {
-                spawnPoisonFX(defender, attacker);
-                destroyCard(defender, attacker);
-            } else {
-                var damage3 = effHeroDef - effEnemyAtk2;
-                LP_Enemy_Instance.nbLP -= damage3;
-                show_debug_message("### resolveAttackMonsterEnemy: vsDef enemyLP-=" + string(damage3) + " now=" + string(LP_Enemy_Instance.nbLP));
-                spawnPoisonFX(defender, attacker);
-                destroyCard(defender, attacker);
-            }
-        } else {
-            var effEnemyAtk = effEnemyAtk2;
-            if (effEnemyAtk > effHeroDef) {
-                destroyCard(defender, attacker);
-            } else if (effEnemyAtk == effHeroDef) {
-                if (variable_struct_exists(attacker, "isPoisoner") && attacker.isPoisoner) {
-                    spawnPoisonFX(defender, attacker);
-                    destroyCard(defender, attacker);
-                }
-            } else {
-                var damage = effHeroDef - effEnemyAtk;
-                LP_Enemy_Instance.nbLP -= damage;
-                show_debug_message("### resolveAttackMonsterEnemy: vsDef enemyLP-=" + string(damage) + " now=" + string(LP_Enemy_Instance.nbLP));
-                if (variable_struct_exists(attacker, "isPoisoner") && attacker.isPoisoner) {
-                    spawnPoisonFX(defender, attacker);
-                    destroyCard(defender, attacker);
-                }
-            }
-        }
+    // --- HEARTHSTONE COMBAT LOGIC (Enemy vs Hero Monster) ---
+    var effAttackerAtk = variable_struct_exists(attacker, "effective_attack") ? attacker.effective_attack : attacker.attack;
+    var effDefenderAtk = variable_struct_exists(defender, "effective_attack") ? defender.effective_attack : defender.attack;
+    
+    // 1. Dégâts simultanés (Persistent Damage)
+    if (effAttackerAtk > 0) damageCard(defender, effAttackerAtk);
+    if (effDefenderAtk > 0) damageCard(attacker, effDefenderAtk);
+    
+    // 2. Gestion du Poison
+    if (instance_exists(defender) && effAttackerAtk > 0 && variable_struct_exists(attacker, "isPoisoner") && attacker.isPoisoner) {
+         spawnPoisonFX(defender, attacker);
+         destroyCard(defender, attacker);
     }
     
-    // Marquer l'attaque côté ennemi - DÉPLACÉ DANS initiateAttackMonsterEnemy
-    // (pour éviter double compte lors des animations)
-
-
+    if (instance_exists(attacker) && effDefenderAtk > 0 && variable_struct_exists(defender, "isPoisoner") && defender.isPoisoner) {
+         spawnPoisonFX(attacker, defender);
+         destroyCard(attacker, defender);
+    }
+    // --------------------------------------------------------
+    
     // Déclencher l'événement post-attaque côté ennemi avec la cible (défenseur héros)
     if (instance_exists(attacker)) {
         var defExists3 = instance_exists(defender);
@@ -600,7 +449,7 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
             attacker: attacker,
             defender: defExists3 ? defender : noone,
             target: defExists3 ? defender : noone,
-            defender_orientation: (defExists3 && variable_instance_exists(defender, "orientation")) ? defender.orientation : "unknown",
+            defender_orientation: "Attack",
             direct_attack: false
         });
     }
@@ -609,6 +458,11 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
 // Version pour l'ennemi (si nécessaire)
 resolveAttackDirectEnemy = function(cardEnemy) {
     if (cardEnemy == noone || !instance_exists(cardEnemy)) return;
+    
+    // Phase guard (HS Main Phase or Legacy Attack Phase)
+    if (!(instance_exists(game) && (game.phase[game.phase_current] == "Main" || game.phase[game.phase_current] == "Attack"))) {
+        return;
+    }
     
     // Note: On ne vérifie PLUS le nombre d'attaques ici car initiateAttackDirectEnemy
     // l'a déjà incémenté AVANT l'animation.

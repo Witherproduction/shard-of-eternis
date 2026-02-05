@@ -1,4 +1,4 @@
-// FX_Invocation - Create
+﻿// FX_Invocation - Create
 // Effet d'invocation: glissade vers le terrain depuis la main + post-effet circuit
 
 // Paramètres attendus via le spawner:
@@ -10,7 +10,7 @@
 // - owner_is_hero: booléen (true si héros)
 // - summon_mode: "Summon", "Set", "SpecialSummon"...
 // - card_type: "Monster" ou "Magic"
-// - desired_orientation (ennemi): "Defense" ou "Attack" (par défaut)
+// - desired_orientation (ennemi): "PV" ou "Attack" (par défaut)
 // - duration_ms (optionnel): durée du mouvement (ms)
 // - post_fx_duration_ms (optionnel): durée du circuit (ms)
 // - depth_override (optionnel)

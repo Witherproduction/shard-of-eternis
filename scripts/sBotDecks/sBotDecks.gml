@@ -1,4 +1,4 @@
-// === Script de stockage des decks des bots ===
+﻿// === Script de stockage des decks des bots ===
 // Ce script contient les fonctions utilitaires pour la création des decks bots.
 // Les données sont maintenant centralisées dans sStoryDeckManager.gml et les fichiers JSON.
 
@@ -70,7 +70,7 @@ function create_bot_deck_from_script(deck_id, bot_name) {
     // Note: Pour les decks préconstruits (Story), on évite généralement de modifier les cartes
     // sauf pour les génériques qui doivent être remplis.
     
-    var is_story_deck = (is_real(deck_id) && deck_id < 100) || (is_string(deck_id) && (deck_id == "Invasion_Geule_Roche" || deck_id == "Essaim_Abyssien" || deck_id == "Bandit_Grand_Chemin")); 
+    var is_story_deck = (is_real(deck_id) && deck_id < 100) || (is_string(deck_id) && (deck_id == "Invasion_Gueule_Roche" || deck_id == "Essaim_Abyssien" || deck_id == "Bandit_Grand_Chemin")); 
     var should_fill = true;
     
     // Si le deck a déjà >= 30 cartes, on suppose qu'il est complet (ex: James, Abyssien)
@@ -83,7 +83,7 @@ function create_bot_deck_from_script(deck_id, bot_name) {
     // On ne cap pas les copies si c'est un deck story pré-construit qui outrepasse les règles (ex: Abyssien)
     // Sauf si on veut forcer la règle. Ici on laisse tel quel pour les decks story précis.
     if (is_string(deck_id)) { 
-        // Si c'est un deck nommé string (ex: "Invasion_Geule_Roche"), on vérifie si c'est un des decks spéciaux
+        // Si c'est un deck nommé string (ex: "Invasion_Gueule_Roche"), on vérifie si c'est un des decks spéciaux
         if (deck_id == "Essaim_Abyssien") {
             max_copies = 10; // Exception pour l'Abyssien
         }
@@ -135,3 +135,4 @@ function get_bot_deck_profile(deck_id) {
     }
     return "";
 }
+

@@ -1,4 +1,4 @@
-// === Gestion des clics de souris (système global) ===
+﻿// === Gestion des clics de souris (système global) ===
 
 // Utilisation des coordonnées globales de la souris
 var mx = device_mouse_x_to_gui(0);
@@ -56,7 +56,7 @@ for (var i = 0; i < array_length(field_names); i++) {
     var field = field_positions[$ field_name];
     
     // Ignorer les champs non pertinents pour le type de carte
-    if (card_type == "Magic" && (field_name == "attack" || field_name == "defense" || field_name == "star" || field_name == "genre")) {
+    if (card_type == "Magic" && (field_name == "attack" || field_name == "PV" || field_name == "mana_cost" || field_name == "genre")) {
         continue;
     }
     

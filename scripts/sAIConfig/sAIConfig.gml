@@ -1,4 +1,4 @@
-// sAIConfig.gml — Profils d’archétypes et API de configuration des bots
+﻿// sAIConfig.gml — Profils d’archétypes et API de configuration des bots
 
 // Crée un profil vide avec toutes les clés communes initialisées à des valeurs neutres
 function AI_Profile_New() {
@@ -215,7 +215,7 @@ function AI_Config_GetBotProfile(bot_id) {
 
 // Helper: retourne le profil actif de l’ennemi
 function AI_Config_GetActiveProfile() {
-    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     return AI_Config_GetBotProfile(botID);
 };
 

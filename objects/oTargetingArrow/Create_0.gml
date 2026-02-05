@@ -1,5 +1,8 @@
 // Objet pour afficher une flèche de ciblage du monstre vers le curseur
 
+// Désactiver le sprite pour éviter de bloquer les clics de souris sur les cibles
+sprite_index = -1;
+
 // Référence vers la carte source (monstre attaquant)
 sourceCard = noone;
 
@@ -87,9 +90,7 @@ function drawArrow() {
         
         // Dessiner la ligne principale
         draw_set_color(lineColor);
-        for (var i = 0; i < lineWidth; i++) {
-            draw_line(startX + i - lineWidth/2, startY, lineEndX + i - lineWidth/2, lineEndY);
-        }
+        draw_line_width(startX, startY, lineEndX, lineEndY, lineWidth);
         
         // Dessiner la pointe de la flèche
         var arrowX1 = endX + lengthdir_x(-arrowSize, angle + 30);

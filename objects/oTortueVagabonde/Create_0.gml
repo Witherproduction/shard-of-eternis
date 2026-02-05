@@ -1,10 +1,8 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
-
-// Définit les stats spécifiques de ce monstre
+// Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
 name = "Tortue vagabonde"
-attack = 3;
-defense = 6;
-star = 1;
+attack = 1;
+PV = 6;
+mana_cost = 2;
 genre = "Bête"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -12,4 +10,7 @@ rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
 description = "Elle longe la lisière séparant les forêt à la recherche de ses enfants."
+
+event_inherited();  // Hérite des variables et comportement de oCardMonster
+
 

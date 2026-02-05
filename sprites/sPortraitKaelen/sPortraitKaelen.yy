@@ -26,7 +26,7 @@
   "origin":0,
   "parent":{
     "name":"heros",
-    "path":"folders/Sprites/portrait/heros.yy",
+    "path":"folders/Sprites/Histoire/portrait/heros.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

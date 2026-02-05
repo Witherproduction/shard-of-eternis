@@ -1,4 +1,21 @@
-// === oCardParent - Step Event ===
+﻿// === oCardParent - Step Event ===
+
+// --- STATS INITIALIZATION SYNC ---
+// Ensure max_hp/current_hp are correctly set if PV was assigned after Create event (e.g. in child Create)
+if (!variable_instance_exists(id, "stats_initialized")) {
+    if (variable_instance_exists(id, "PV") && PV > 0) {
+        // If max_hp is 0 (default) but PV is set, sync them
+        // This fixes the issue where child objects set 'PV' after parent Create event logic ran
+        if (!variable_instance_exists(id, "max_hp") || max_hp <= 0) {
+            max_hp = PV;
+            // Only reset current_hp if it's also 0 (to avoid healing damaged units if this runs late, though it shouldn't)
+            if (!variable_instance_exists(id, "current_hp") || current_hp <= 0) {
+                current_hp = max_hp;
+            }
+        }
+    }
+    stats_initialized = true;
+}
 
 if (variable_instance_exists(id, "position_anim_active") && position_anim_active) {
     // Lire vitesses/délai depuis globals si non définis
@@ -89,6 +106,42 @@ if (variable_instance_exists(id, "position_anim_active") && position_anim_active
             }
         }
     }
+}
+
+// --- COMBO CHECK (Spell Alert Logic) ---
+if (variable_instance_exists(id, "zone") && zone == "Hand") {
+    comboAnimTimer += 1;
+    if (comboCheckTimer > 0) {
+        comboCheckTimer--;
+    } else {
+        comboCheckTimer = 15; // Check every 15 frames (4 times per sec)
+        var newComboState = false;
+        
+        if (variable_instance_exists(id, "effects") && is_array(effects)) {
+            for (var i = 0; i < array_length(effects); i++) {
+                var eff = effects[i];
+                var condToCheck = "";
+                
+                if (variable_struct_exists(eff, "condition")) condToCheck = eff.condition;
+                else if (variable_struct_exists(eff, "bonus_condition")) condToCheck = eff.bonus_condition;
+                
+                if (condToCheck != "") {
+                    // Utilise checkCondition depuis sEffects (doit être accessible)
+                    if (script_exists(asset_get_index("checkCondition"))) {
+                        // Contexte minimal pour le check
+                        var ctx = { owner_is_hero: (variable_instance_exists(id, "isHeroOwner") ? isHeroOwner : true) };
+                        if (checkCondition(condToCheck, id, ctx)) {
+                            newComboState = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        isComboActive = newComboState;
+    }
+} else {
+    isComboActive = false;
 }
 
 // --- Détection de survol (sans interférer avec la sélection) ---

@@ -24,12 +24,14 @@ if (fm == noone || !instance_exists(fm)) {
 var posXY = fm.getPosLocation(type, fieldPosition);
 
 // Vérifie si un monstre a déjà été invoqué ce tour (autoriser si invocation spéciale)
+/* [HEARTHSTONE] Pas de limite
 if (type == "Monster" && game.hasSummonedThisTurn[0] && UIManager.selectedSummonOrSet != "SpecialSummon") {
     show_debug_message("Tu as déjà invoqué un monstre ce tour, impossible d'en invoquer un autre.");
     UIManager.stopIndicator();
     selectManager.selected = noone; // ou garder la sélection selon besoin
     return; // Stop la création de l'indicateur et la pose
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////
 // Méthodes
@@ -65,7 +67,7 @@ if(type == "Monster") {
     selectManager.selected = noone;
     // Ne pas compter l'invocation si c'est une invocation spéciale
     if (!wasSpecialSummon) {
-        game.hasSummonedThisTurn[0] = true; // Indique qu'un monstre a été invoqué ce tour
+        // game.hasSummonedThisTurn[0] = true; // [HEARTHSTONE] Pas de limite
     }
     UIManager.selectedSummonOrSet = ""; // Reset après invocation
 }
@@ -77,55 +79,11 @@ else {
     if (instance_exists(oSelectManager)) {
         var placed = selectManager.selected;
         var hasPending = (selectManager.pendingEffect != noone) && (selectManager.pendingEffectCard != noone) && (selectManager.pendingEffectCard == placed);
-        var isArtifact = (variable_instance_exists(placed, "genre") && placed.genre == "Artéfact");
-        var isDirect = (variable_instance_exists(placed, "genre") && placed.genre == "Direct");
+        var genre = variable_instance_exists(placed, "genre") ? placed.genre : "";
+        var isDirect = (genre == "Sort" || genre == "Direct");
         var isFaceDown = (variable_instance_exists(placed, "isFaceDown") && placed.isFaceDown);
-        // Ne pas exécuter automatiquement l'effet si l'Artéfact est face cachée
-        if (hasPending && isArtifact && !isFaceDown) {
-            var eff = selectManager.pendingEffect;
-            // Aura d'activation
-            requestFXAura(
-                placed.sprite_index,
-                placed.image_index,
-                placed.image_xscale,
-                placed.image_yscale,
-                placed.image_angle,
-                600,
-                18,
-                10,
-                1.50,
-                0.80,
-                placed.x,
-                placed.y
-            );
-            
-            // Phase 1.5: Command Pattern
-            var idx = selectManager.pendingEffectIndex;
-            if (idx != -1 && variable_instance_exists(placed, "instance_uid")) {
-                RequestGameAction(ACTION_ACTIVATE_EFFECT, {
-                    source_uid: placed.instance_uid,
-                    effect_index: idx
-                });
-                // On suppose que l'action va réussir et consommer/marquer l'effet
-            } else {
-                // Fallback
-                markEffectAsUsed(placed, eff);
-                executeEffect(placed, eff, {});
-            }
-            
-            // Nettoyage de l'état différé
-            selectManager.pendingEffect = noone;
-            selectManager.pendingEffectCard = noone;
-            selectManager.pendingEffectIndex = -1;
-        }
-        // Si l'effet est différé et la carte est posée face cachée, afficher le bouton Effet tout de suite
-        if (hasPending && isArtifact && isFaceDown) {
-            if (instance_exists(oUIManager)) {
-                UIManager.displayEffectButton(placed);
-            }
-            // On conserve pendingEffect pour que le clic puisse enchaîner après retournement
-        }
-        // Si l'effet est différé pour un sort Direct, exécuter immédiatement après la pose
+        
+        // Si l'effet est différé pour un sort Sort, exécuter immédiatement après la pose
         if (hasPending && isDirect) {
             var effd = selectManager.pendingEffect;
             // Aura d'activation
@@ -163,25 +121,6 @@ else {
             }
             
             // Nettoyage de l'état différé
-            selectManager.pendingEffect = noone;
-            selectManager.pendingEffectCard = noone;
-            selectManager.pendingEffectIndex = -1;
-        }
-        // Si un effet d'Artéfact a été différé et que la carte vient d'être posée face visible
-        if (selectManager.pendingEffect != noone && placed != noone && isArtifact && !isFaceDown) {
-            var __placed_card = placed;
-            var __effect = selectManager.pendingEffect;
-            // Exécuter l'effet (déjà marqué comme utilisé au clic du bouton)
-            // Phase 1.5: Command Pattern
-            var idxP = selectManager.pendingEffectIndex;
-            if (idxP != -1 && variable_instance_exists(__placed_card, "instance_uid")) {
-                RequestGameAction(ACTION_ACTIVATE_EFFECT, {
-                    source_uid: __placed_card.instance_uid,
-                    effect_index: idxP
-                });
-            } else {
-                executeEffect(__placed_card, __effect, {});
-            }
             selectManager.pendingEffect = noone;
             selectManager.pendingEffectCard = noone;
             selectManager.pendingEffectIndex = -1;

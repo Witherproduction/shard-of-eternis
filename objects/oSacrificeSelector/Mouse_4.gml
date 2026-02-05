@@ -15,18 +15,7 @@ with(oSummon) {
         break;
     }
 }
-with(oSet) {
-    if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
-        uiButtonClicked = true;
-        break;
-    }
-}
-with(oPositionButton) {
-    if (point_in_rectangle(mouse_x, mouse_y, x, y, x + sprite_width, y + sprite_height)) {
-        uiButtonClicked = true;
-        break;
-    }
-}
+// oSet, oPositionButton checks removed
 
 // Si un bouton UI est cliqué, ne pas traiter
 if(uiButtonClicked) return;

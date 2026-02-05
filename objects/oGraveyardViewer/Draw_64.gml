@@ -1,4 +1,4 @@
-// === Paramètres ===
+﻿// === Paramètres ===
 var columns = 4;              // Nombre de colonnes affichées (réduit de 5 à 4)
 var rows = 3;                 // Nombre de lignes affichées
 var spacing = 20;             // Espace horizontal/vertical entre les cartes
@@ -167,8 +167,8 @@ for (var i = 0; i < count; i++) {
                 var top  = tly + name_y1 * s + pad;
                 draw_text_transformed(left, top + 2, tx, sc, sc, 0);
             }
-            if (!is_magic && variable_struct_exists(cardData, "star")) {
-                var tx = string(cardData.star);
+            if (!is_magic && variable_struct_exists(cardData, "mana_cost")) {
+                var tx = string(cardData.mana_cost);
                 var rw = (star_x2 - star_x1) * s - pad * 2;
                 var rh = (star_y2 - star_y1) * s - pad * 2;
                 var sc = fit_line(tx, 20 * rel, rw, rh);
@@ -269,9 +269,9 @@ for (var i = 0; i < count; i++) {
                 draw_text_transformed(cx_a, cy_a, txa, sc_a, sc_a, 0);
             }
 
-            if (!is_magic && variable_struct_exists(cardData, "defense")) {
+            if (!is_magic && variable_struct_exists(cardData, "PV")) {
                 draw_set_color(c_black);
-                var txd = string(cardData.defense);
+                var txd = string(cardData.PV);
                 var rw_d = (def_x2 - def_x1) * s - pad * 2;
                 var rh_d = (def_y2 - def_y1) * s - pad * 2;
                 var base_line_h = string_height("Ag");
@@ -411,12 +411,12 @@ if (selectedCard != noone) {
 
     // Afficher le niveau si c'est un monstre
     if (variable_instance_exists(card, "type") && card.type == "Monster") {
-        if (variable_instance_exists(card, "star")) {
-            array_push(preview_lines, "Niveau : " + string(card.star));
+        if (variable_instance_exists(card, "mana_cost")) {
+            array_push(preview_lines, "Niveau : " + string(card.mana_cost));
         }
     }
 
-    // Afficher ATK et DEF sur la même ligne si c'est un monstre
+    // Afficher ATK et PV sur la même ligne si c'est un monstre
     if (variable_instance_exists(card, "type") && card.type == "Monster") {
         // N'affiche les stats que si la carte n'est pas face cachée ou si elle est possédée par le héros
         if (!card.isFaceDown || card.isHeroOwner) {
@@ -427,8 +427,8 @@ if (selectedCard != noone) {
                 preview_atk_str = "ATK : " + string(card.attack);
             }
 
-            if (variable_instance_exists(card, "defense")) {
-                preview_def_str = "DEF : " + string(card.defense);
+            if (variable_instance_exists(card, "PV")) {
+                preview_def_str = "PV : " + string(card.PV);
             }
 
             var preview_stats_line = preview_atk_str;
@@ -542,8 +542,8 @@ if (selectedCard != noone) {
             var top  = tly + name_y1 * s + pad;
             draw_text_transformed(left, top + 2, tx, sc, sc, 0);
         }
-        if (!is_magic && variable_instance_exists(card, "star")) {
-            var tx = string(card.star);
+        if (!is_magic && variable_instance_exists(card, "mana_cost")) {
+            var tx = string(card.mana_cost);
             var rw = (star_x2 - star_x1) * s - pad * 2;
             var rh = (star_y2 - star_y1) * s - pad * 2;
             var sc = fit_line(tx, 20 * rel, rw, rh);
@@ -642,9 +642,9 @@ if (selectedCard != noone) {
             var cyA   = round(topA  + max(0, (rhA - hscA) * 0.5));
             draw_text_transformed(cxA, cyA, txA, scA, scA, 0);
         }
-        if (!is_magic && variable_instance_exists(card, "defense")) {
+        if (!is_magic && variable_instance_exists(card, "PV")) {
             draw_set_color(c_black);
-            var txD = string(card.defense);
+            var txD = string(card.PV);
             var rwD = (def_x2 - def_x1) * s - pad * 2;
             var rhD = (def_y2 - def_y1) * s - pad * 2;
             var base_hD = string_height("Ag");
@@ -659,3 +659,4 @@ if (selectedCard != noone) {
         }
     }
 }
+

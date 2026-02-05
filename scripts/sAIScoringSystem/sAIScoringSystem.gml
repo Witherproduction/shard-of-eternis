@@ -1,4 +1,4 @@
-/// sAIScoringSystem.gml
+﻿/// sAIScoringSystem.gml
 /// Système central de scoring pour l'IA (Refonte 2025)
 
 // --- CONSTANTES DE PONDERATION (WEIGHTS) ---
@@ -19,7 +19,7 @@ function AI_Evaluate_BoardState() {
     var totalScore = 0;
     
     // Récupération du profil IA dynamique
-    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     var profile = AI_Config_GetBotProfile(botID);
 
     var p_board = (profile != undefined) ? (profile.board_presence_weight / 50.0) : 1.0;
@@ -132,7 +132,7 @@ function AI_GetCardScore(card) {
         buffRecompute(card);
     }
 
-    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     var profile = AI_Config_GetBotProfile(botID);
     var p_atk = (profile != undefined) ? (profile.attack_bias / 50.0) : 1.0;
     var p_def = (profile != undefined) ? (profile.defense_bias / 50.0) : 1.0;
@@ -141,11 +141,11 @@ function AI_GetCardScore(card) {
     
     // Récupération sécurisée des stats
     var atk = variable_instance_exists(card, "effective_attack") ? card.effective_attack : (variable_instance_exists(card, "attack") ? card.attack : 0);
-    var def = variable_instance_exists(card, "effective_defense") ? card.effective_defense : (variable_instance_exists(card, "defense") ? card.defense : 0);
+    var PV = variable_instance_exists(card, "effective_defense") ? card.effective_defense : (variable_instance_exists(card, "PV") ? card.PV : 0);
 
-    // Bonus ATK/DEF pondéré par le profil
+    // Bonus ATK/PV pondéré par le profil
     currentScoreVal += atk * SCORE_PER_ATK * p_atk;
-    currentScoreVal += def * SCORE_PER_DEF * p_def;
+    currentScoreVal += PV * SCORE_PER_DEF * p_def;
 
     // Bonus si position d'attaque (menace active)
     if (variable_instance_exists(card, "orientation") && card.orientation == "Attack") {
@@ -165,17 +165,17 @@ function AI_GetCardScore(card) {
 /// @description Estime la valeur d'une carte (monstre) avant qu'elle ne soit sur le terrain.
 function AI_GetCardScore_Predicted(card) {
     // Similaire à AI_GetCardScore mais lit les stats de base
-    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     var profile = AI_Config_GetBotProfile(botID);
     var p_atk = (profile != undefined) ? (profile.attack_bias / 50.0) : 1.0;
     var p_def = (profile != undefined) ? (profile.defense_bias / 50.0) : 1.0;
 
     var atk = (is_struct(card) && variable_struct_exists(card, "attack")) ? card.attack : (variable_instance_exists(card, "attack") ? card.attack : 0);
-    var def = (is_struct(card) && variable_struct_exists(card, "defense")) ? card.defense : (variable_instance_exists(card, "defense") ? card.defense : 0);
+    var PV = (is_struct(card) && variable_struct_exists(card, "PV")) ? card.PV : (variable_instance_exists(card, "PV") ? card.PV : 0);
     
     var currentScoreVal = SCORE_MONSTER_EXIST;
     currentScoreVal += atk * SCORE_PER_ATK * p_atk;
-    currentScoreVal += def * SCORE_PER_DEF * p_def;
+    currentScoreVal += PV * SCORE_PER_DEF * p_def;
     
     // Analyse board pour prédiction
     var strongestEnemyAtk = 0;
@@ -190,11 +190,22 @@ function AI_GetCardScore_Predicted(card) {
          }
     }
     
-    // Détermination orientation probable
-    var orientation = "Attack";
-    if (def > atk) orientation = "Defense";
-    if (atk > strongestEnemyAtk) orientation = "Attack"; // Control/Aggro
-
+    // Détermination orientation probable (Améliorée)
+    // On calcule le score pour les deux orientations et on garde le meilleur
+    // Cela évite de pénaliser les monstres à forte PV qui sont aussi de bons attaquants (ex: 3/6 vs 3/3)
+    
+    var scoreAttack = currentScoreVal + (200 * p_atk);
+    var scoreDefense = currentScoreVal + (200 * p_def);
+    
+    // Pénalités contextuelles
+    if (atk < strongestEnemyAtk) {
+        // Attaquer est risqué/suicidaire
+        scoreAttack -= 500; 
+    }
+    
+    // Si PV > ATK, on est naturellement bon en défense, mais ça ne doit pas interdire l'attaque
+    // Le bonus de stats est déjà inclus dans currentScoreVal
+    
     var hasFlip = false;
     var effects = (is_struct(card) && variable_struct_exists(card, "effects")) ? card.effects : ((variable_instance_exists(card, "effects")) ? card.effects : undefined);
     
@@ -209,10 +220,10 @@ function AI_GetCardScore_Predicted(card) {
     }
 
     if (hasFlip) {
-         currentScoreVal += 200 * p_def; // Bonus pour poser un monstre Flip
+         currentScoreVal += 200 * p_def; // Bonus pour poser un monstre Flip (Force PV)
     } else {
-         if (orientation == "Attack") currentScoreVal += 200 * p_atk; 
-         else currentScoreVal += 200 * p_def;
+         // On prend la meilleure configuration possible
+         currentScoreVal = max(scoreAttack, scoreDefense);
     }
     
     // Préférence spécifique : pour le bot utilisant le deck 2 (Essaim Abyssien),
@@ -234,3 +245,5 @@ function AI_GetCardScore_Predicted(card) {
     
     return currentScoreVal;
 }
+
+

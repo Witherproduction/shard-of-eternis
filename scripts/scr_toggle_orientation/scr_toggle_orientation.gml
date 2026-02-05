@@ -1,4 +1,4 @@
-function scr_toggle_orientation(card_instance) {
+﻿function scr_toggle_orientation(card_instance) {
     with (card_instance) {
         toggleOrientation = function() {
             if (orientationChangedThisTurn) {
@@ -6,7 +6,7 @@ function scr_toggle_orientation(card_instance) {
                 return; // On ne change pas deux fois
             }
 
-            if (orientation == "Defense") {
+            if (orientation == "PV") {
                 orientation = "Attack";
                 image_angle = 0;
                 image_index = 0;
@@ -30,3 +30,4 @@ function scr_toggle_orientation(card_instance) {
         }
     }
 }
+

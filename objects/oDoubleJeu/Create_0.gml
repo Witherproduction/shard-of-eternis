@@ -2,13 +2,14 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Double jeu"
-genre = "Direct"
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "rare"
 booster = "A la découverte du monde"
 is_player_card = true;
+mana_cost = 4;
 
-description = "Selectione un monstre adverse. Invoque une copie de ce monstre sur votre terrain. Il ne peut pas attaquer."
+description = "Choisissez un serviteur (Allié ou Ennemi). Invoquez-en une copie sur votre terrain (Ligne de front). Elle ne peut pas attaquer."
 effects = [
     {
         id: 1,
@@ -16,8 +17,9 @@ effects = [
         effect_type: EFFECT_SUMMON,
         summon_mode: "copy_target",
         scope: "single",
-        owner: "enemy",
+        owner: "both",
         target_zone: "field",
-        criteria: { type: "Monster" }
+        criteria: { type: "Monster" },
+        force_front_line: true
     }
 ]

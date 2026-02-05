@@ -2,9 +2,9 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Rôdeur des forêts"
-attack = 5;
-defense = 5;
-star = 2;
+attack = 4;
+PV = 5;
+mana_cost = 5;
 genre = "Bête"
 archetype = "Forêt des voleurs"
 booster = "A la découverte du monde"
@@ -19,7 +19,9 @@ effects = [
         effect_type: EFFECT_SUMMON,
         conditions: { summon_mode: "Summon" },
         summon_mode: "named",
-        object_name: "oJeuneLoup"
+        object_name: "oJeuneLoup",
+        placement_criteria: { relative_role: "adjacent" }
     }
 ]
+
 

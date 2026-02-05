@@ -1,12 +1,8 @@
 // Fonction pour déterminer le niveau de sacrifice requis basé sur le niveau d'étoile du monstre
-function getSacrificeLevel(star) {
-    switch(star) {
-        case 0: return 0; // Token - pas de sacrifice requis
-        case 1: return 0; // Inférieur - pas de sacrifice requis
-        case 2: return 1; // Intermédiaire - 1 sacrifice requis
-        case 3: return 2; // Supérieur - 2 sacrifices requis (peu importe le niveau)
-        default: return 0;
-    }
+function getSacrificeLevel(mana_cost) {
+    // SYSTÈME DE SACRIFICE DÉSACTIVÉ
+    // Tous les monstres peuvent être invoqués sans sacrifice, quel que soit leur niveau.
+    return 0; 
 }
 
 // Fonction pour effectuer les sacrifices (déplacer les cartes vers le cimetière)

@@ -87,7 +87,27 @@ if (selected_hero_index != -1) {
     var cx = panel_chap_x;
     var cy = panel_chap_y;
     
-    cy += 20;
+    // --- Bouton Talents ---
+    // On le place en haut du panel chapitre, avant la liste
+    var btn_t_h = 50;
+    btn_talent_rect = { 
+        x1: cx, 
+        y1: cy, 
+        x2: cx + panel_chap_w, 
+        y2: cy + btn_t_h 
+    };
+    
+    var btn_col = hover_talent_btn ? make_color_rgb(80, 60, 100) : make_color_rgb(60, 40, 80);
+    draw_set_color(btn_col);
+    draw_roundrect(btn_talent_rect.x1, btn_talent_rect.y1, btn_talent_rect.x2, btn_talent_rect.y2, false);
+    draw_set_color(c_fuchsia); // Couleur distinctive
+    draw_roundrect(btn_talent_rect.x1, btn_talent_rect.y1, btn_talent_rect.x2, btn_talent_rect.y2, true);
+    
+    draw_set_halign(fa_center);
+    draw_set_color(c_white);
+    draw_text((btn_talent_rect.x1 + btn_talent_rect.x2)/2, (btn_talent_rect.y1 + btn_talent_rect.y2)/2, "TALENTS DU HÉROS");
+    
+    cy += btn_t_h + 20;
     
     // Liste des Chapitres
     for (var i = 0; i < array_length(hero.chapters); i++) {

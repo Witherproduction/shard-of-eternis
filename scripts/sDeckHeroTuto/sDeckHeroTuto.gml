@@ -9,12 +9,13 @@ function get_hero_decks_tuto() {
             description: "Un deck équilibré pour apprendre les bases du duel.",
             cards: [
                 "oAraigneeForestiere", "oFeuillageProtecteur", "oGriffePredateur",
-                "oPeauRocRobuste", "oMaitrePasse", "oGobelinFurtif", "oMaitrePasse",
-                "oEnvahisseurGeuleRoche", "oGriffePredateur", "oCriMeute", "oFeuillageProtecteur",
+                "oPeauRocRobuste", "oGobelinFurtif", "oMaitrePasse", "oGobelinFurtif",
+                "oEnvahisseurGueuleRoche", "oGriffePredateur", "oCriMeute", "oFeuillageProtecteur",
                 "oAraigneeForestiere", "oAraigneeForestiere", "oPeauRocRobuste",
-                "oEnvahisseurGeuleRoche", "oGobelinFurtif", "oGriffePredateur",
-                "oCriMeute", "oFeuillageProtecteur"
+                "oEnvahisseurGueuleRoche", "oGobelinFurtif", "oGriffePredateur",
+                "oCriMeute", "oFeuillageProtecteur", "oLoupGuerreGueuleRoche"
             ]
         }
     ];
 }
+

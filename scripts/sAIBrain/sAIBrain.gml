@@ -10,7 +10,7 @@ function AI_SelectBestMove(moves) {
     var bestScore = -999999;
     
     // Récupération du profil IA
-    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Geule_Roche";
+    var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     var profile = AI_Config_GetBotProfile(botID);
     
     var p_summon = (profile != undefined) ? (profile.summon_weight / 50.0) : 1.0;
@@ -30,23 +30,72 @@ function AI_SelectBestMove(moves) {
         // --- HEURISTIQUES DE SCORING ---
         
         if (move.type == "summon") {
-            // Score = Valeur de la carte invoquée - Valeur des sacrifices
-            // On estime la valeur qu'aura la carte sur le terrain
+            // Score = Valeur de la carte invoquée
             var cardVal = AI_GetCardScore_Predicted(move.card);
             
-            var sacrificeCost = 0;
-            if (variable_struct_exists(move, "sacrifices")) {
-                for (var s = 0; s < array_length(move.sacrifices); s++) {
-                    // Le coût du sacrifice dépend de la tolérance (plus on tolère, moins c'est "cher")
-                    sacrificeCost += AI_GetCardScore(move.sacrifices[s]) * (1.0 / p_sac);
+            moveScoreVal = cardVal;
+            
+            // --- MANA CURVE OPTIMIZATION (Hearthstone Style) ---
+            var cost = variable_instance_exists(move.card, "mana_cost") ? move.card.mana_cost : 0;
+            var currentMana = (variable_global_exists("mana_enemy") ? global.mana_enemy : 0);
+            
+            // Bonus pour utilisation efficace du mana (Curving out)
+            if (currentMana > 0) {
+                if (cost == currentMana) {
+                    moveScoreVal += 500; // Perfect Mana usage
+                } else if (cost >= currentMana - 1) {
+                    moveScoreVal += 250; // Good usage
+                }
+                
+                // Penalize playing very low cost cards when high mana is available (unless they are combo pieces)
+                if (currentMana >= 5 && cost <= 2) {
+                    moveScoreVal -= 100; 
                 }
             }
-            
-            moveScoreVal = cardVal - sacrificeCost;
             
             // --- CHECK PRIORITY MONSTERS (From Profile Custom Rules) ---
             var customRules = variable_struct_exists(profile, "custom_rules") ? profile.custom_rules : undefined;
             if (customRules != undefined) {
+                // 0. Conditional Play Rule (e.g. Massacreur only if Loup present)
+                if (variable_struct_exists(customRules, "conditional_play")) {
+                    var cName = variable_instance_exists(move.card, "name") ? move.card.name : "";
+                    // Check Object Name as fallback
+                    var cObjName = object_get_name(move.card.object_index);
+                    
+                    var condRule = variable_struct_exists(customRules.conditional_play, cName) ? variable_struct_get(customRules.conditional_play, cName) : undefined;
+                    if (condRule == undefined) {
+                        condRule = variable_struct_exists(customRules.conditional_play, cObjName) ? variable_struct_get(customRules.conditional_play, cObjName) : undefined;
+                    }
+
+                    if (condRule != undefined) {
+                        if (variable_struct_exists(condRule, "requires_on_board")) {
+                            var reqCards = condRule.requires_on_board;
+                            var conditionMet = false;
+                            
+                            if (instance_exists(oFieldManagerEnemy)) {
+                                with (oCardParent) {
+                                    if (variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && location == "Board") {
+                                        var myName = variable_instance_exists(id, "name") ? name : "";
+                                        var myObjName = object_get_name(object_index);
+                                        
+                                        for (var r=0; r<array_length(reqCards); r++) {
+                                            if (string_pos(reqCards[r], myName) > 0 || string_pos(reqCards[r], myObjName) > 0) {
+                                                conditionMet = true;
+                                                break;
+                                            }
+                                        }
+                                        if (conditionMet) break;
+                                    }
+                                }
+                            }
+                            
+                            if (!conditionMet) {
+                                moveScoreVal = -9999; // FORBIDDEN MOVE
+                            }
+                        }
+                    }
+                }
+
                 // 1. Prioritize specific card names (e.g. Ruisselier, James, Morgane)
                 if (variable_struct_exists(customRules, "prioritize_card_name")) {
                     var pNames = customRules.prioritize_card_name;
@@ -167,6 +216,129 @@ function AI_SelectBestMove(moves) {
             // Si on est un bot "Control", on aime les pièges
             if (p_removal > 1.2) moveScoreVal += 20;
             
+        } else if (move.type == "use_hero_power") {
+            // Pouvoir Héroïque
+            moveScoreVal = 50; // Base score (Always good to use mana)
+            
+            // Custom Logic based on Power ID
+            var pid = variable_struct_exists(move.instance.powerData, "id") ? move.instance.powerData.id : "";
+            
+            // --- Custom Rule Check for Hero Power ---
+            var hpRule = (profile != undefined && variable_struct_exists(profile, "custom_rules") && variable_struct_exists(profile.custom_rules, "hero_power_rule")) ? profile.custom_rules.hero_power_rule : "";
+            
+            if (pid == "pillage") {
+                // Toujours bon d'avoir plus de cartes, surtout avec réduction de coût
+                // On vérifie juste si l'ennemi a des cartes
+                var enemyHandSize = 0;
+                
+                // Trouver la main du héros (Adversaire de l'IA)
+                var hHero = noone;
+                with(oHand) { if (isHeroOwner) hHero = id; }
+                
+                if (instance_exists(hHero)) {
+                     var hCards = hHero.cards;
+                     for(var i=0; i<array_length(hCards); i++) {
+                         if (hCards[i] != 0) enemyHandSize++;
+                     }
+                }
+                
+                if (enemyHandSize > 0) {
+                    moveScoreVal += 200; // PRIORITE ABSOLUE AU VOL (boosté de 40 à 200)
+                } else {
+                    moveScoreVal = -100; // Inutile si pas de cartes
+                }
+            } else if (pid == "protection_divine") {
+                // Reduce Attack of target by 1
+                if (variable_struct_exists(move, "target") && move.target != noone) {
+                     var targetAtk = variable_instance_exists(move.target, "attack") ? move.target.attack : 0;
+                     
+                     // Priority to high attack monsters (mitigation)
+                     if (targetAtk > 0) {
+                        moveScoreVal += 20 + (targetAtk * 10);
+                     } else {
+                        moveScoreVal = -100; // Useless on 0 ATK
+                     }
+                }
+            } else if (pid == "lancer_hache") {
+                // Deal 1 damage
+                if (variable_struct_exists(move, "target") && move.target != noone) {
+                    var target = move.target;
+                    var tName = object_get_name(target.object_index);
+                    
+                    if (tName == "oLP_Hero" || tName == "oLP_Parent") {
+                        // Face Damage
+                        if (hpRule == "finish_off_1hp") {
+                            // Only face if lethal or no minions to target?
+                            // User said: "uniquement sur un monstre adverse si il y exactement 1 PV"
+                            // Implies: never Face unless lethal? Or just restriction on monsters?
+                            // "Il utilise sont pouvoir heroique uniquement sur un monstre adverse si il y exactement 1 PV."
+                            // -> Doesn't explicitly forbid Face. But implies strict usage.
+                            // Let's assume Face is OK for Lethal, otherwise avoid Face if we follow strict interpretation.
+                            // But usually "only on monster if 1HP" means "if targeting monster, must be 1HP".
+                            // Let's keep Face as option but low prio unless lethal.
+                             var currentLP = variable_instance_exists(target, "nbLP") ? target.nbLP : (variable_instance_exists(target, "hp") ? target.hp : 50);
+                             if (currentLP <= 1) {
+                                moveScoreVal += 10000;
+                             } else {
+                                // If rule is strict, maybe we shouldn't ping face?
+                                // Let's allow ping face but low score.
+                                moveScoreVal += 10 * p_direct;
+                            }
+                        } else {
+                            moveScoreVal += 30 * p_direct;
+                            var currentLP = variable_instance_exists(target, "nbLP") ? target.nbLP : (variable_instance_exists(target, "hp") ? target.hp : 50);
+                            if (currentLP <= 1) {
+                                moveScoreVal += 10000; // WIN GAME
+                            }
+                        }
+                    } else {
+                        // Minion Damage
+                        var hp = variable_instance_exists(target, "current_hp") ? target.current_hp : 0;
+                        var atk = variable_instance_exists(target, "attack") ? target.attack : 0;
+                        
+                        if (hpRule == "finish_off_1hp") {
+                            if (hp == 1) {
+                                // EXCELLENT! Meets condition
+                                moveScoreVal += 200 + (atk * 10) * p_removal;
+                            } else {
+                                // FORBIDDEN by Rule
+                                moveScoreVal = -9999;
+                            }
+                        } else {
+                            if (hp <= 1) {
+                                // Kill! High value based on ATK of target
+                                moveScoreVal += 50 + (atk * 10) * p_removal;
+                            } else {
+                                // Chip damage. Good if setting up for trade, but less valuable
+                                moveScoreVal += 10 * p_removal;
+                            }
+                        }
+                    }
+                }
+            } else if (pid == "appel_profondeurs") {
+                 // Invoque un Coureur Abyssien (1/1)
+                 // Condition: Au moins 1 emplacement libre
+                 var freeSlots = 0;
+                 if (instance_exists(oFieldMonsterEnemy)) {
+                      var cards = oFieldMonsterEnemy.cards;
+                      for(var k=0; k<array_length(cards); k++) {
+                          if (cards[k] == 0) freeSlots++;
+                      }
+                 }
+                 
+                 if (freeSlots > 0) {
+                     moveScoreVal += 300; // Très bonne value pour 1 mana (Body + Synergie)
+                     moveScoreVal += 100 * p_summon; // Bonus selon profil invocation
+                 } else {
+                     moveScoreVal = -9999; // Impossible sans place
+                 }
+            }
+            
+            // Avoid using it if we have better plays (Summon/Removal)
+            // But if we have spare mana, it's great.
+            // Since we iterate all moves, if a Summon has score 100, we will do it first.
+            // If we have 2 mana left after Summon, we will come back here in next iteration (if oIA loop allows).
+            
         } else if (move.type == "activate" || move.type == "activate_effect") {
             // Magie - Scoring contextuel avancé
             var effectType = variable_struct_exists(move, "effect_type") ? move.effect_type : "unknown";
@@ -174,67 +346,103 @@ function AI_SelectBestMove(moves) {
             
             moveScoreVal = 0;
             
-            // 1. Scoring par type d'effet
+            // --- CUSTOM SPELL RULES (Added for Bot 2) ---
+            var spellRules = (profile != undefined && variable_struct_exists(profile, "custom_rules") && variable_struct_exists(profile.custom_rules, "spell_rules")) ? profile.custom_rules.spell_rules : undefined;
+            if (spellRules != undefined) {
+                 var cName = variable_instance_exists(move.card, "name") ? move.card.name : "";
+                 var cObj = object_get_name(move.card.object_index);
+                 var rule = undefined;
+                 
+                 if (variable_struct_exists(spellRules, cName)) rule = variable_struct_get(spellRules, cName);
+                 else if (variable_struct_exists(spellRules, cObj)) rule = variable_struct_get(spellRules, cObj);
+
+                 if (rule != undefined) {
+                     // 1. Marée Déferlante: Bounce Big Threat
+                     if (rule == "bounce_big_threat" && target != noone) {
+                         var tCost = variable_instance_exists(target, "mana_cost") ? target.mana_cost : 0;
+                         var tAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
+                         var tPV = variable_instance_exists(target, "PV") ? target.PV : 0;
+                         
+                         // Cible idéale : Coût élevé ou Stats élevées
+                         if (tCost >= 4 || tAtk >= 4 || tPV >= 5) {
+                             moveScoreVal += 800; 
+                         } else if (tCost <= 2) {
+                             moveScoreVal -= 200; // Gâchis sur petite cible (sauf si létal/urgence, mais ici règle stricte)
+                         }
+                     }
+                     
+                     // 2. Protection Marée: Buff if 3+ Abyssien
+                     else if (rule == "buff_if_3_abyssien") {
+                         var count = 0;
+                         if (instance_exists(oFieldMonsterEnemy)) {
+                             with(oCardParent) {
+                                 if (variable_instance_exists(id, "location") && location == "Board" && 
+                                     variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && 
+                                     variable_instance_exists(id, "name") && string_pos("Abyssien", name) > 0) {
+                                     count++;
+                                 }
+                             }
+                         }
+                         if (count >= 3) moveScoreVal += 800; // Huge Value
+                         else moveScoreVal -= 500; // Wait for better board
+                     }
+                     
+                     // 3. Hurlement Tribu: Sacrifier Coureur si 2+ alliés
+                     else if (rule == "sac_coureur_buff_2" && target != noone) {
+                         var tName = variable_instance_exists(target, "name") ? target.name : "";
+                         // On veut sacrifier un Coureur (token 1/1)
+                         if (string_pos("Coureur", tName) > 0) {
+                             // Compter les AUTRES alliés qui bénéficieront du buff
+                             var otherAllies = 0;
+                             if (instance_exists(oFieldMonsterEnemy)) {
+                                 var cards = oFieldMonsterEnemy.cards;
+                                 for(var k=0; k<array_length(cards); k++) {
+                                     if (cards[k] != 0 && instance_exists(cards[k]) && cards[k] != target) otherAllies++;
+                                 }
+                             }
+                             
+                             if (otherAllies >= 2) moveScoreVal += 800;
+                             else moveScoreVal -= 200; // Pas assez de cibles pour rentabiliser le sacrifice
+                         } else {
+                             moveScoreVal -= 1000; // Ne pas sacrifier autre chose (sauf urgence non gérée ici)
+                         }
+                     }
+                     
+                     // 4. Ferveur Marais: Summon if 3 slots
+                     else if (rule == "summon_if_3_slots") {
+                         var freeSlots = 0;
+                         if (instance_exists(oFieldMonsterEnemy)) {
+                              var cards = oFieldMonsterEnemy.cards;
+                              for(var k=0; k<array_length(cards); k++) {
+                                  if (cards[k] == 0) freeSlots++;
+                              }
+                         }
+                         
+                         if (freeSlots >= 3) moveScoreVal += 800; // Max Value
+                         else moveScoreVal -= 500; // Manque de place
+                     }
+                 }
+            }
             switch (effectType) {
+                case "search_deck":
+                    moveScoreVal = 100 * p_tutor;
+                    break;
+
+                case "pillage":
+                    // Voler des cartes (Hand ou Deck)
+                    // "Voler un maximum de carte a l'adversaire"
+                    moveScoreVal = 300 * p_manual; // Score de base très élevé
+                    
+                    // Si on peut voler, on le fait !
+                    // On pourrait vérifier s'il reste des cartes dans le deck/main adverse,
+                    // mais pour l'instant on suppose que c'est toujours bon sauf fin de partie.
+                    break;
+
                 case "draw_cards":
                     // Piocher est toujours bon, surtout si main vide
                     moveScoreVal = 100 * p_draw; 
                     break;
                 
-                case "continuous_placement":
-                    moveScoreVal = 150 * p_continuous; 
-
-                    // --- CUSTOM PROFILE RULES ---
-                    
-                    // 1. Max Copies Limit (e.g. for Abyssien Deck)
-                    var customRules = variable_struct_exists(profile, "custom_rules") ? profile.custom_rules : undefined;
-                    
-                    if (customRules != undefined && variable_struct_exists(customRules, "max_same_continuous")) {
-                        var maxC = customRules.max_same_continuous;
-                        var myObj = move.card.object_index;
-                        var currentCount = 0;
-                        
-                        // Count existing copies on AI board
-                        with (oCardParent) {
-                            if (object_index == myObj && variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && location == "Board") {
-                                currentCount++;
-                            }
-                        }
-                        
-                        if (currentCount >= maxC) {
-                            moveScoreVal = -1000; // Block placement if limit reached
-                        }
-                    }
-                    
-                    // 2. Synergy Boost (Generic) - replaces hardcoded Abyssien check
-                    if (moveScoreVal > 0 && variable_struct_exists(profile, "synergy_tag")) {
-                        var tag = profile.synergy_tag;
-                        var hasSynergyInHand = false;
-                        
-                        // Check if we have cards in hand that benefit from this setup
-                        if (instance_exists(oHandEnemy)) {
-                             var hCards = oHandEnemy.cards;
-                             var hLen = (is_array(hCards)) ? array_length(hCards) : ds_list_size(hCards);
-                             for (var h = 0; h < hLen; h++) {
-                                 var hCard = (is_array(hCards)) ? hCards[h] : ds_list_find_value(hCards, h);
-                                 if (hCard != noone && instance_exists(hCard)) {
-                                     var hName = (variable_instance_exists(hCard, "name") ? hCard.name : "");
-                                     if (string_pos(tag, hName) > 0) {
-                                         hasSynergyInHand = true;
-                                         break;
-                                     }
-                                 }
-                             }
-                        }
-                        
-                        if (hasSynergyInHand) {
-                            moveScoreVal += 2000; // High priority for synergy setup
-                        }
-                    }
-
-                    if (p_summon > 1.0) moveScoreVal += 10;
-                    break;
-                    
                 case "destroy_target":
                 case "banish_target":
                 case "return_to_hand":
@@ -351,17 +559,11 @@ function AI_SelectBestMove(moves) {
                 
                 // 2. Stealth Lethal Only (OTK Style)
                 if (variable_struct_exists(customRules, "stealth_lethal_only") && customRules.stealth_lethal_only) {
-                    // Check if attacker is stealthy (has Camouflage)
                     var isStealth = (variable_instance_exists(attacker, "isCamouflage") && attacker.isCamouflage) || (variable_instance_exists(attacker, "effects_text") && string_pos("Camouflage", attacker.effects_text) > 0);
                     
                     if (isStealth) {
-                        // Only attack if:
-                        // A. Lethal to Hero (Direct Attack)
-                        // B. Free Kill on Monster (Very favorable trade)
-                        
                         var isLethal = false;
                         var isFreeKill = false;
-                        
                         var dmg = variable_instance_exists(attacker, "effective_attack") ? attacker.effective_attack : attacker.attack;
                         
                         if (isDirect) {
@@ -370,181 +572,121 @@ function AI_SelectBestMove(moves) {
                             if (lpInst != noone) enemyLP = lpInst.nbLP;
                             if (dmg >= enemyLP) isLethal = true;
                         } else {
-                            // Monster Trade Analysis
-                            var targetPos = (variable_instance_exists(target, "orientation") && target.orientation == "Attack") ? "Attack" : "Defense";
-                            var enemyStats = (targetPos == "Attack") ? (variable_instance_exists(target, "effective_attack") ? target.effective_attack : target.attack) : (variable_instance_exists(target, "effective_defense") ? target.effective_defense : target.defense);
+                            var enemyAtk = variable_instance_exists(target, "effective_attack") ? target.effective_attack : target.attack;
+                            var enemyHP = variable_instance_exists(target, "current_hp") ? target.current_hp : (variable_instance_exists(target, "PV") ? target.PV : 0);
+                            var myHP = variable_instance_exists(attacker, "current_hp") ? attacker.current_hp : (variable_instance_exists(attacker, "PV") ? attacker.PV : 0);
                             
-                            // Free kill if we kill them AND take 0 damage (or survive with margin)
-                            // Here user said "seulement si il detruise l'adversaire". We interpret as "Kill without dying" or "Worth it".
-                            // But user also said "Wait for opportun moment".
-                            // Let's go with: Only attack monster if we kill it and survive.
-                            
-                            var myKill = (dmg > enemyStats) || (dmg == enemyStats && targetPos == "Attack");
-                            var iDie = false;
-                            
-                            if (targetPos == "Attack") {
-                                var enemyAtk = variable_instance_exists(target, "effective_attack") ? target.effective_attack : target.attack;
-                                if (enemyAtk >= dmg) iDie = true; // Simplified
-                            }
-                            
+                            var myKill = (dmg >= enemyHP);
+                            var iDie = (enemyAtk >= myHP);
                             if (myKill && !iDie) isFreeKill = true;
                         }
                         
                         if (!isLethal && !isFreeKill && !isDirect) {
-                            moveScoreVal = -500; // Prefer waiting
+                            moveScoreVal = -500; 
                             continue;
                         } else {
-                            moveScoreVal += 500; // Go for it!
+                            moveScoreVal += 500; 
                         }
                     }
                 }
             }
             
             if (isDirect) {
-                // Attaque directe = Pression sur les PV
-                
                 // FORCE RECOMPUTE
                 if (script_exists(asset_get_index("buffRecompute"))) {
                     buffRecompute(attacker);
                 }
                 
-                // Score = Dégâts * Multiplicateur
                 var dmg = variable_instance_exists(attacker, "effective_attack") ? attacker.effective_attack : attacker.attack;
                 moveScoreVal = dmg * 2 * p_direct; 
                 
-                // Bonus si létal (calcul approximatif)
+                // --- AGGRO / LETHAL LOGIC ---
                 var enemyLP = 0;
                 var lpInst = instance_find(oLP_Hero, 0);
                 if (lpInst != noone) enemyLP = lpInst.nbLP;
-                if (dmg >= enemyLP) moveScoreVal += 100000;
+                
+                // 1. LETHAL CHECK (Absolute Priority)
+                if (dmg >= enemyLP) {
+                    moveScoreVal += 1000000; // MUST DO
+                } else {
+                    // 2. AGGRO PRESSURE (Low HP -> Push Face)
+                    // If enemy has low HP (<15), increase face priority significantly
+                    if (enemyLP < 15) {
+                        moveScoreVal += (15 - enemyLP) * 50; 
+                    }
+                    
+                    // 3. TWO-TURN LETHAL SETUP
+                    // If enemy is within range of 2 attacks, push harder
+                    if (enemyLP <= dmg * 2) {
+                        moveScoreVal += 500;
+                    }
+                }
                 
             } else {
                 // Combat contre monstre
                 moveScoreVal = 0;
                 var targetVal = AI_GetCardScore(target);
                 
-                // FORCE RECOMPUTE: Ensure stats are up-to-date (fixes stale buffs/base stats)
+                // FORCE RECOMPUTE
                 if (script_exists(asset_get_index("buffRecompute"))) {
                     buffRecompute(attacker);
                     buffRecompute(target);
                 }
 
-                // Récupération des stats effectives (incluant boosts)
                 var myAtk = variable_instance_exists(attacker, "effective_attack") ? attacker.effective_attack : attacker.attack;
+                var enemyAtk = variable_instance_exists(target, "effective_attack") ? target.effective_attack : target.attack;
+                var enemyHP = variable_instance_exists(target, "current_hp") ? target.current_hp : (variable_instance_exists(target, "PV") ? target.PV : 0);
+                var myHP = variable_instance_exists(attacker, "current_hp") ? attacker.current_hp : (variable_instance_exists(attacker, "PV") ? attacker.PV : 0);
                 
-                var isFaceDown = (variable_instance_exists(target, "isFaceDown") && target.isFaceDown);
+                // SIMULATION COMBAT SIMULTANE
+                var enemyDies = (myAtk >= enemyHP);
+                var iDie = (enemyAtk >= myHP);
                 
-                // Si la cible est face cachée, l'IA ne connait pas ses stats
-                if (isFaceDown) {
-                    // Stratégie incertaine (Risque vs Récompense)
-                    // On suppose que c'est de la Défense
+                // Poison Logic
+                var myHasPoison = (variable_instance_exists(attacker, "effects_text") && string_pos("Poison", attacker.effects_text) > 0);
+                var enemyHasPoison = (variable_instance_exists(target, "effects_text") && string_pos("Poison", target.effects_text) > 0);
+                if (myHasPoison) enemyDies = true;
+                if (enemyHasPoison) iDie = true;
+                
+                // --- SMART TRADE SCORING ---
+                
+                if (enemyDies) {
+                    // Base Reward: We removed a threat
+                    moveScoreVal += (targetVal + 100) * p_removal; 
                     
-                    moveScoreVal = 30 * p_risk; // Envie de base de révéler/détruire modifiée par le risque
-                    
-                    // On préfère attaquer avec une ATK élevée pour minimiser le risque de prendre des dégâts sur une grosse DEF
-                    if (myAtk >= 1800) {
-                        moveScoreVal += 80; // Très sûr
-                    } else if (myAtk >= 1400) {
-                        moveScoreVal += 40 * p_risk; // Raisonnable (plus envie si risque élevé)
-                    } else if (myAtk < 1000) {
-                        moveScoreVal -= 60 / p_risk; // Trop risqué (pénalité réduite si tolérance au risque élevée)
+                    // VALUE TRADE: Did we trade up? (Low value unit kills High value unit)
+                    if (iDie) {
+                        var valueDiff = targetVal - attackerVal;
+                        if (valueDiff > 0) {
+                            moveScoreVal += valueDiff * 2; // Great trade!
+                        } else {
+                            moveScoreVal -= abs(valueDiff); // Bad trade (we lost more value)
+                        }
+                    } else {
+                        // FREE KILL: We killed them and survived
+                        moveScoreVal += 500 + (targetVal * 0.5); // Huge bonus
+                        
+                        // Check if we are left with very low HP (vulnerable to ping)
+                        var remainingHP = myHP - enemyAtk;
+                        if (remainingHP == 1) moveScoreVal -= 50; // Slight penalty if left at 1 HP
                     }
-                    
-                    // Bonus si on a Poison (potentiel kill gratuit)
-                    if (variable_instance_exists(attacker, "isPoisoner") && attacker.isPoisoner) {
-                        moveScoreVal += 50;
-                    }
-                    
                 } else {
-                    // Cible VISIBLE : Calculs exacts
-                    var enemyAtk = variable_instance_exists(target, "effective_attack") ? target.effective_attack : target.attack;
-                    var enemyDef = variable_instance_exists(target, "effective_defense") ? target.effective_defense : target.defense;
-
-                
-                // --- Prise en compte des Boosts "au moment de l'attaque" ---
-                // Certains effets s'activent uniquement lors de l'attaque (ex: "Gagne +500 ATK si attaque")
-                // Il faut scanner les effets de la carte attaquante
-                if (variable_instance_exists(attacker, "effects")) {
-                    // Logique simplifiée : si on détecte un mot-clé de boost conditionnel, on l'ajoute virtuellement
-                    // TODO: Idéalement, parser les effets. Ici on fait une estimation si des flags existent ou par convention
-                }
-                
-                // --- Prise en compte de l'effet POISON ---
-                // Si l'attaquant a Poison, il tue n'importe quoi (sauf immunité)
-                // ATTENTION: Selon règles utilisateur, Poison ne s'active QUE lors de l'attaque.
-                // Donc si l'ennemi a Poison mais qu'il DÉFEND, l'effet ne s'applique pas.
-                
-                var myHasPoison = false;
-                var enemyHasPoison = false; // Reste false car Poison ne proc pas en défense
-                
-                // Vérification Poison Attaquant (Actif)
-                if (variable_instance_exists(attacker, "effects_text") && string_pos("Poison", attacker.effects_text) > 0) myHasPoison = true;
-                
-                // Vérification Poison Défenseur (Inactif en défense selon règle)
-                // if (variable_instance_exists(target, "effects_text") && string_pos("Poison", target.effects_text) > 0) enemyHasPoison = true; 
-                
-                // Note : Le poison s'applique APRÈS le calcul des dégâts, mais garantit la mort.
-                
-                var targetPos = (variable_instance_exists(target, "orientation") && target.orientation == "Attack") ? "Attack" : "Defense";
-                
-                // Simulation simplifiée du combat
-                var iSurvive = true;
-                var enemyDies = false;
-                
-                if (targetPos == "Attack") {
-                    if (myAtk > enemyAtk) {
-                        enemyDies = true;
-                        iSurvive = true;
-                    } else if (myAtk == enemyAtk) {
-                        enemyDies = true;
-                        iSurvive = false; // Suicide mutuel
-                        // Pénalité pour éviter le suicide systématique en cas d'égalité
-                        // Modulée par la tolérance au risque (p_risk autour de 1.0)
-                        // Si p_risk est bas (prudent), on pénalise plus. Si haut (tête brulée), on pénalise moins.
-                        var tradePenalty = 300 * (2.0 - p_risk);
-                        moveScoreVal -= max(50, tradePenalty); 
+                    // We didn't kill them.
+                    // Generally bad unless we are setting up a kill or have no choice (Taunt)
+                    moveScoreVal -= 100; 
+                    
+                    // Penalty for damage taken
+                    if (iDie) {
+                        moveScoreVal -= attackerVal; // We threw away our unit
                     } else {
-                        enemyDies = false;
-                        iSurvive = false; // Suicide inutile
-                    }
-                } else { // Defense
-                    if (myAtk > enemyDef) {
-                        enemyDies = true;
-                        iSurvive = true;
-                    } else if (myAtk == enemyDef) {
-                        enemyDies = false;
-                        iSurvive = true;
-                    } else {
-                        enemyDies = false;
-                        iSurvive = true; // On survit généralement en tapant une def trop haute (sauf règle spéciale)
-                        // PÉNALITÉ SIGNIFICATIVE : On prend des dégâts LP pour rien.
-                        // On doit éviter ça sauf si c'est la seule façon de gagner (ce qui n'arrive pas ici)
-                        moveScoreVal -= 500; 
+                        var dmgTaken = enemyAtk;
+                        moveScoreVal -= (dmgTaken * 2);
                     }
                 }
                 
-                // Application de la logique POISON
-                if (myHasPoison && !enemyDies) {
-                    // Le poison tue la cible même si l'attaque a échoué en dégâts (sauf si pas de dégâts infligés ? Dépend des règles)
-                    // Règle classique : Si on inflige des dégâts de combat > 0 ou si c'est "Toucher mortel".
-                    // Supposons "Toucher mortel" (Deathtouch) : Toujours mortel si combat a lieu.
-                    enemyDies = true;
-                    // Bonus massif au score car on élimine une menace peu importe ses stats
-                    moveScoreVal += 500; 
-                }
-                
-                if (enemyHasPoison && iSurvive) {
-                    // Si l'ennemi a poison, je meurs même si j'ai gagné le combat
-                    iSurvive = false;
-                    moveScoreVal -= attackerVal; // Pénalité car je perds mon monstre
-                }
-                
-                if (enemyDies) moveScoreVal += (targetVal + 100) * p_removal; // Bonus pour kill pondéré par removal_weight
-                if (!iSurvive) moveScoreVal -= attackerVal;
-                
-                // On évite les attaques suicides sauf si trade très favorable
+                // On évite les attaques suicides inutiles (sauf si Taunt nous oblige, mais le scoring filtrera)
+                var iSurvive = !iDie;
                 if (!iSurvive && !enemyDies) moveScoreVal = -999999;
-                }
             }
         }
 
@@ -585,161 +727,57 @@ function AI_ExecuteMove(move) {
         }
         
         // Invocation
-        var slotIndex = -1;
-        if (instance_exists(oFieldManagerEnemy)) {
-             slotIndex = oFieldManagerEnemy.getCardPositionAvailableIA(card);
+        var posInfo = -1;
+
+        // [TUTORIAL PATCH] Support pour le placement forcé
+        if (variable_struct_exists(move, "force_slot")) {
+             var forcedSlot = move.force_slot;
+             if (instance_exists(oFieldManagerEnemy)) {
+                 var loc = oFieldManagerEnemy.getPosLocation(card.type, forcedSlot);
+                 if (is_array(loc) && array_length(loc) >= 2) {
+                     posInfo = [loc[0], loc[1], forcedSlot];
+                 }
+             }
+        }
+
+        if (posInfo == -1 && instance_exists(oFieldManagerEnemy)) {
+             posInfo = oFieldManagerEnemy.getCardPositionAvailableIA(card);
         }
         
-        if (slotIndex != -1) {
+        if (is_array(posInfo)) {
             if (instance_exists(oHandEnemy)) {
-                // Déterminer l'orientation optimale
-                var atk = variable_instance_exists(card, "attack") ? card.attack : 0;
-                var def = variable_instance_exists(card, "defense") ? card.defense : 0;
-                
-                // Analyse du terrain adverse pour la prise de décision (Control)
-                var strongestEnemyAtk = 0;
-                var enemyCount = 0;
-                if (instance_exists(oFieldMonsterHero)) {
-                    var enemies = oFieldMonsterHero.cards;
-                    for (var e = 0; e < array_length(enemies); e++) {
-                        var enemy = enemies[e];
-                        if (enemy != 0 && instance_exists(enemy)) {
-                             // FORCE RECOMPUTE for accurate threat assessment
-                             if (script_exists(asset_get_index("buffRecompute"))) {
-                                 buffRecompute(enemy);
-                             }
-                             
-                             // On prend l'attaque visible (effective) des monstres adverses
-                             var eAtk = variable_instance_exists(enemy, "effective_attack") ? enemy.effective_attack : (variable_instance_exists(enemy, "attack") ? enemy.attack : 0);
-                             if (eAtk > strongestEnemyAtk) strongestEnemyAtk = eAtk;
-                             enemyCount++;
-                        }
-                    }
+                // HEARTHSTONE MODE: Toujours en attaque
+                var payloadSummon = {
+                    card: card,
+                    xy: posInfo,
+                    summon_mode: "Summon"
+                };
+                if (variable_instance_exists(card, "instance_uid")) {
+                    payloadSummon.card_uid = card.instance_uid;
                 }
-
-                var orientation = "Attack";
-                
-                if (variable_struct_exists(move, "force_orientation")) {
-                    orientation = move.force_orientation;
-                } else {
-                    var profile = AI_Config_GetActiveProfile();
-                    var riskTolerance = (variable_struct_exists(profile, "risk_tolerance")) ? profile.risk_tolerance : 50;
-
-                    // 1. Logique de base : Stats
-                    if (def > atk) orientation = "Defense";
-                    
-                    // 2. Opportunisme : Si on dépasse la menace adverse, on attaque (même si DEF > ATK)
-                    // Cela signifie qu'on "contrôle" le terrain ou qu'on peut le reprendre.
-                    if (atk > strongestEnemyAtk) {
-                        orientation = "Attack";
-                    }
-                    
-                    // 3. Champ libre : Si aucun ennemi, on attaque pour la pression (sauf si ATK très faible)
-                    if (enemyCount == 0 && atk > 500) {
-                        orientation = "Attack";
-                    }
-                    
-                    // 4. Prudence : Si on est dominé par l'ennemi (ATK < MaxEnnemi)
-                    if (atk < strongestEnemyAtk) {
-                        orientation = "Defense";
-                        
-                        // EXCEPTIONS AGRESSIVES
-                        
-                        // 1. Camouflage : Si on est intouchable, on reste en attaque pour menacer
-                        if (variable_instance_exists(card, "isCamouflage") && card.isCamouflage) {
-                            orientation = "Attack";
-                        }
-                        // 2. Agressivité : Si le bot prend des risques (Risk > 65), il ignore la prudence
-                        // MAIS seulement si l'écart n'est pas suicidaire (ATK doit être au moins 80% de la menace ou écart < 2)
-                        else if (riskTolerance >= 65) {
-                             if (atk >= strongestEnemyAtk * 0.80 || (strongestEnemyAtk - atk) <= 1) {
-                                orientation = "Attack";
-                             }
-                        }
-                    }
-                    // Cas d'égalité : Si on peut tanker, on le fait. Sinon on reste en Attaque pour dissuader.
-                    else if (atk == strongestEnemyAtk && def > strongestEnemyAtk) {
-                        orientation = "Defense";
-                        
-                        if (variable_instance_exists(card, "isCamouflage") && card.isCamouflage) {
-                            orientation = "Attack";
-                        }
-                    }
-                    
-                    // DEBUG: Trace summon decision
-                    var cName = variable_instance_exists(card, "name") ? card.name : "Unknown";
-                    show_debug_message("AI SUMMON DECISION: Card=" + cName + " Atk=" + string(atk) + " Def=" + string(def) + " StrongestEnemy=" + string(strongestEnemyAtk) + " Risk=" + string(riskTolerance) + " -> " + orientation);
-                    
-                    if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
-                        for(var i=0; i<array_length(card.effects); i++) {
-                            var ef = card.effects[i];
-                            if (variable_struct_exists(ef, "trigger") && ef.trigger == "flip") {
-                                orientation = "Defense";
-                                break;
-                            }
-                        }
-                    }
-                    // --- CUSTOM RULE: Force Attack Abyssien Condition ---
-                    var customRules = variable_struct_exists(profile, "custom_rules") ? profile.custom_rules : undefined;
-                    if (customRules != undefined && variable_struct_exists(customRules, "force_attack_abyssien_condition") && customRules.force_attack_abyssien_condition) {
-                         var nStr = variable_instance_exists(card, "name") ? card.name : "";
-                         if (is_string(nStr) && string_pos("Abyssien", nStr) > 0) {
-                             var conditionMet = false;
-                             
-                             // 1. Check for Ruisselier on board
-                             if (instance_exists(oFieldMonsterEnemy)) {
-                                 var mm = oFieldMonsterEnemy.cards;
-                                 for (var j = 0; j < array_length(mm); j++) {
-                                     var c2 = mm[j];
-                                     if (c2 != 0 && instance_exists(c2)) {
-                                         var cName = variable_instance_exists(c2, "name") ? c2.name : "";
-                                         if (string_pos("Ruisselier", cName) > 0) {
-                                             conditionMet = true;
-                                             break;
-                                         }
-                                     }
-                                 }
-                             }
-                             
-                             // 2. Check for Continuous Magic (at least 1)
-                             if (!conditionMet && instance_exists(oFieldMagicTrapEnemy)) {
-                                 var mt = oFieldMagicTrapEnemy.cards;
-                                 for (var i = 0; i < array_length(mt); i++) {
-                                     var c = mt[i];
-                                     if (c != 0 && instance_exists(c)) {
-                                         var genre = variable_instance_exists(c, "genre") ? c.genre : "";
-                                         if (genre == "Continue" || genre == "Continu" || genre == "Terrain" || genre == "Field") {
-                                             conditionMet = true;
-                                             break;
-                                         }
-                                     }
-                                 }
-                             }
-                             
-                             if (conditionMet) {
-                                 orientation = "Attack";
-                             }
-                         }
-                    }
-                    else if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id == 2) {
-                        var nStr = "";
-                        if (variable_instance_exists(card, "name")) {
-                            nStr = card.name;
-                        }
-                        if (is_string(nStr) && string_pos("Abyssien", nStr) > 0) {
-                            if (AI_HasAbyssienSynergyOnField()) {
-                                orientation = "Attack";
-                            }
-                        }
-                    }
+                if (variable_struct_exists(move, "effect_target")) {
+                    payloadSummon.target = move.effect_target;
                 }
                 
-                var effectTarget = variable_struct_exists(move, "effect_target") ? move.effect_target : noone;
-                oHandEnemy.summon(card, slotIndex, orientation, effectTarget);
+                // Utiliser RequestGameAction pour consommer le mana et appliquer le mal d'invocation
+                if (instance_exists(card)) {
+                    card.isHeroOwner = false;
+                }
+                RequestGameAction(ACTION_SUMMON, payloadSummon);
                 return true;
             }
         }
         
+    } else if (move.type == "use_hero_power") {
+        if (instance_exists(move.instance)) {
+            var target = variable_struct_exists(move, "target") ? move.target : noone;
+            with (move.instance) {
+                activate(target);
+            }
+            return true;
+        }
+        return false;
+
     } else if (move.type == "activate" || move.type == "activate_effect") {
         var card = move.card;
         var effectIndex = variable_struct_exists(move, "effect_index") ? move.effect_index : -1;
@@ -749,15 +787,27 @@ function AI_ExecuteMove(move) {
         var isOnField = (variable_instance_exists(card, "zone") && (card.zone == "Field" || card.zone == "FieldSelected"));
         
         if (!isOnField) {
-            var slotIndex = -1;
+            var posInfo = -1;
             if (instance_exists(oFieldManagerEnemy)) {
-                 slotIndex = oFieldManagerEnemy.getCardPositionAvailableIA(card); 
+                 posInfo = oFieldManagerEnemy.getCardPositionAvailableIA(card); 
             }
             
-            if (slotIndex != -1 && instance_exists(oHandEnemy)) {
-                oHandEnemy.summon(card, slotIndex);
-                // Note: oHandEnemy.summon gère l'ajout au manager et l'animation.
-                // Pour une magie Continue sans effet actif, c'est tout ce qu'il y a à faire.
+            if (is_array(posInfo) && instance_exists(oHandEnemy)) {
+                // Utiliser RequestGameAction pour consommer le mana (comme pour une invocation)
+                var payloadSummon = {
+                    card: card,
+                    xy: posInfo,
+                    summon_mode: "Summon"
+                };
+                if (variable_instance_exists(card, "instance_uid")) {
+                    payloadSummon.card_uid = card.instance_uid;
+                }
+                if (instance_exists(card)) {
+                    card.isHeroOwner = false;
+                }
+                RequestGameAction(ACTION_SUMMON, payloadSummon);
+                // Note: L'effet sera exécuté via la suite du script si nécessaire, 
+                // mais pour une Magie Normale, le summon déclenche souvent l'effet via oHand.summon -> executeEffect
             } else {
                 return false; // Pas de slot disponible
             }
@@ -809,7 +859,8 @@ function AI_ExecuteMove(move) {
                 var resolved = executeEffect(card, effect, context);
                 
                 if (resolved) {
-                     var isDirect = (variable_instance_exists(card, "genre") && card.genre == "Direct");
+                     var genre = (variable_instance_exists(card, "genre") ? card.genre : "");
+                     var isDirect = (genre == "Sort" || genre == "Direct");
                      if (isDirect && !is_undefined(consumeSpellIfNeeded)) {
                          consumeSpellIfNeeded(card, effect);
                      }
@@ -832,14 +883,14 @@ function AI_ExecuteMove(move) {
         var card = move.card;
         // Poser une carte (Secret) face cachée
         
-        var slotIndex = -1;
+        var posInfo = -1;
         if (instance_exists(oFieldManagerEnemy)) {
-             slotIndex = oFieldManagerEnemy.getCardPositionAvailableIA(card); 
+             posInfo = oFieldManagerEnemy.getCardPositionAvailableIA(card); 
         }
         
-        if (slotIndex != -1 && instance_exists(oHandEnemy)) {
+        if (is_array(posInfo) && instance_exists(oHandEnemy)) {
             // oHand.summon gère automatiquement le mode "Set" si le genre est Secret
-            if (!oHandEnemy.summon(card, slotIndex)) return false;
+            if (!oHandEnemy.summon(card, posInfo)) return false;
             return true;
         }
 
@@ -927,3 +978,5 @@ function AI_HasAbyssienSynergyOnField() {
     }
     return false;
 }
+
+

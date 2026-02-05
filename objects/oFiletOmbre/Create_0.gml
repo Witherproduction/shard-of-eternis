@@ -2,6 +2,7 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Filet de l'ombre"
+mana_cost = 1;
 genre = "Secret"
 archetype = "Forêt des voleurs"
 rarity = "rare"
@@ -18,7 +19,7 @@ effects = [
         scope: "single",
         target_source: "attacker",
         block_attack: true,
-        block_position: true,
+        // block_position: true, // Removed
         duration_turns: 1
     }
 ]

@@ -8,17 +8,16 @@ rarity = "epique"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "S'active lorsque votre adverse invoque un monstre. Copie une carte de la main adverse et l'ajoute à votre main."
+description = "Secret : Quand un serviteur ennemi est invoqué, le renvoie dans la main et augmente son coût de (2).";
+mana_cost = 2;
+
 effects = [
     {
         id: 1,
         // Secret: s'active sur l'invocation d'un monstre adverse
         secret_activation: { on_summon: true },
-        effect_type: EFFECT_PILLAGE,
-        operation: "copy",
-        source_zone: "Hand",
-        destination: "Hand",
-        random_select: true,
-        value: 1
+        effect_type: EFFECT_RETURN_TO_HAND,
+        target_source: "summoned",
+        cost_increase: 2
     }
-]
+];

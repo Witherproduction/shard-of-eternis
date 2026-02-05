@@ -2,13 +2,14 @@ event_inherited();  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Frénésie sauvage"
-genre = "Direct"
+mana_cost = 2;
+genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Donne Ambidextrie à une Bête allié."
+description = "Confère +1 ATK et Ambidextrie à une Bête allié."
 effects = [
     {
         id: 1,
@@ -18,6 +19,7 @@ effects = [
         owner: "ally",
         target_zone: "field",
         criteria: { type: "Monster", genre: "Bête" },
+        atk: 1,
         grant_ambidextrous: true
     }
 ]

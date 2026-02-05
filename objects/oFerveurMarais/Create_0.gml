@@ -1,25 +1,27 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
 
-// Définit les stats spécifiques de ce sort
-name = "Ferveur du marais"
-genre = "Continue"
-archetype = "Forêt des voleurs"
-rarity = "rare"
-booster = "A la découverte du monde"
+name = "Ferveur du marais";
+genre = "Sort";
+archetype = "Forêt des voleurs";
+rarity = "rare";
+booster = "A la découverte du monde";
 is_player_card = true;
 
-description = "Lorsqu'un Abyssien est invoqué, invoque un 'coureur Abyssien'."
+description = "Invoque 3 Coureurs Abyssiens (1/1) sur des emplacements aléatoires.";
+mana_cost = 3;
+
 effects = [
     {
         id: 1,
-        trigger: TRIGGER_ON_MONSTER_SUMMON,
-        effect_type: EFFECT_SUMMON,
-        summon_mode: "named",
-        object_name: "oCoureurAbyssien",
-        conditions: {
-            source_owner: "ally",
-            source_name_contains: "Abyssien",
-            source_object_not: "oCoureurAbyssien"
-        }
+        trigger: TRIGGER_MAIN_PHASE,
+        effect_type: EFFECT_GENERIC_FLOW,
+        flow: [
+            { effect_type: EFFECT_SUMMON, summon_mode: "named", object_name: "oCoureurAbyssien", placement_criteria: { role: "random" } },
+            { effect_type: EFFECT_TEMPO, frames: 10 },
+            { effect_type: EFFECT_SUMMON, summon_mode: "named", object_name: "oCoureurAbyssien", placement_criteria: { role: "random" } },
+            { effect_type: EFFECT_TEMPO, frames: 10 },
+            { effect_type: EFFECT_SUMMON, summon_mode: "named", object_name: "oCoureurAbyssien", placement_criteria: { role: "random" } }
+        ]
     }
-]
+];
+

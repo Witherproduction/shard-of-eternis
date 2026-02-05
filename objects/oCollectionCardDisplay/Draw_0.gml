@@ -37,7 +37,7 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             }
             
             draw_set_alpha(1);
-            draw_set_color(c_white);
+            draw_set_color(c_black);
         }
     }
     
@@ -74,7 +74,7 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 draw_triangle(verts[0][0], verts[0][1], verts[t][0], verts[t][1], verts[t+1][0], verts[t+1][1], false);
             }
 
-            draw_set_color(c_white);
+            draw_set_color(c_black);
     }
 
     // --- Rectangles de validation des champs (coords = coin haut-gauche puis coin bas-droite, à scale 1.0) ---
@@ -86,25 +86,18 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         var tlx = display_x - cw * 0.5;
         var tly = display_y - ch * 0.5;
 
-        // Coordonnées de base (scale 1.0), chaque champ: (x1,y1) = haut-gauche, (x2,y2) = bas-droite
-        // Remplacez les *_x2/*_y2 par vos valeurs exactes si différentes des tailles par défaut.
-        // Coordonnées exactes fournies (haut-gauche -> bas-droite) à l'échelle 1.0
-        // name
-        var name_x1 = 24,  name_y1 = 16;  var name_x2 = 387, name_y2 = 59;
-        // star
-        var star_x1 = 388, star_y1 = 16;  var star_x2 = 438, star_y2 = 60;
-        // genre: mêmes dimensions que archetype et collé à sa gauche
-        // archetype: x1=228, y1=369, x2=422, y2=419 -> w=194, h=50
-        // décalé de 5 px à gauche pour laisser une marge avec archetype
-        var genre_x1 = 29, genre_y1 = 394; var genre_x2 = 223, genre_y2 = 419;
-        // archetype
-        var arch_x1  = 228, arch_y1  = 394; var arch_x2  = 422, arch_y2  = 419;
-        // description
-        var desc_x1  = 23,  desc_y1  = 438; var desc_x2  = 421, desc_y2  = 592;
+        // Utilisation des coordonnées globales
+        var layout = global.card_layout;
+        var name_x1 = layout.name.x1,  name_y1 = layout.name.y1;  var name_x2 = layout.name.x2, name_y2 = layout.name.y2;
+        var star_x1 = layout.mana.x1, star_y1 = layout.mana.y1;  var star_x2 = layout.mana.x2, star_y2 = layout.mana.y2;
+        var genre_x1 = layout.genre.x1, genre_y1 = layout.genre.y1; var genre_x2 = layout.genre.x2, genre_y2 = layout.genre.y2;
+        var arch_x1  = layout.archetype.x1, arch_y1  = layout.archetype.y1; var arch_x2  = layout.archetype.x2, arch_y2  = layout.archetype.y2;
+        // Description
+        var desc_x1  = layout.description.x1, desc_y1  = layout.description.y1; var desc_x2  = layout.description.x2, desc_y2  = layout.description.y2;
         // ATK
-        var atk_x1   = 303, atk_y1   = 594; var atk_x2   = 348, atk_y2   = 609;
-        // DEF
-        var def_x1   = 383, def_y1   = 594; var def_x2   = 421, def_y2   = 608;
+        var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2;
+        // PV
+        var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2;
 
         // Utilisation directe des x2/y2 fournis pour tous les champs
         // (les tailles par défaut sont supprimées pour éviter d'écraser vos coordonnées)
@@ -112,35 +105,47 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         // Dessin des rectangles (haut-gauche -> bas-droite), avec mise à l'échelle et offset carte
         // Masqués par défaut; activer via global.show_green_frames
         if (variable_global_exists("show_green_frames") && global.show_green_frames) {
-            draw_set_color(c_lime);
-            draw_set_alpha(1);
-            // name
-            draw_rectangle(tlx + name_x1 * s, tly + name_y1 * s, tlx + name_x2 * s, tly + name_y2 * s, false);
-            // star
-            draw_rectangle(tlx + star_x1 * s, tly + star_y1 * s, tlx + star_x2 * s, tly + star_y2 * s, false);
-            // genre
-            draw_rectangle(tlx + genre_x1 * s, tly + genre_y1 * s, tlx + genre_x2 * s, tly + genre_y2 * s, false);
-            // archetype
-            draw_rectangle(tlx + arch_x1 * s, tly + arch_y1 * s, tlx + arch_x2 * s, tly + arch_y2 * s, false);
-            // description
-            draw_rectangle(tlx + desc_x1 * s, tly + desc_y1 * s, tlx + desc_x2 * s, tly + desc_y2 * s, false);
-            // ATK
-            draw_rectangle(tlx + atk_x1 * s, tly + atk_y1 * s, tlx + atk_x2 * s, tly + atk_y2 * s, false);
-            // DEF
-            draw_rectangle(tlx + def_x1 * s, tly + def_y1 * s, tlx + def_x2 * s, tly + def_y2 * s, false);
-            draw_set_color(c_white);
+            var active_field = (variable_global_exists("debug_selected_field")) ? global.debug_selected_field : "";
+            
+            var draw_debug_rect = function(f_name, x1, y1, x2, y2, tlx, tly, s, active_f) {
+                if (f_name == active_f) {
+                    draw_set_color(c_red); // Champ actif en ROUGE
+                    draw_set_alpha(0.6);   // Semi-transparent pour voir le texte dessous
+                } else {
+                    draw_set_color(c_lime); // Autres en VERT
+                    draw_set_alpha(0.3);    // Plus transparent
+                }
+                
+                // Dessiner le fond
+                draw_rectangle(tlx + x1 * s, tly + y1 * s, tlx + x2 * s, tly + y2 * s, false);
+                
+                // Dessiner le contour
+                draw_set_alpha(1);
+                draw_rectangle(tlx + x1 * s, tly + y1 * s, tlx + x2 * s, tly + y2 * s, true);
+            };
+            
+            draw_debug_rect("name", name_x1, name_y1, name_x2, name_y2, tlx, tly, s, active_field);
+            draw_debug_rect("mana", star_x1, star_y1, star_x2, star_y2, tlx, tly, s, active_field);
+            draw_debug_rect("genre", genre_x1, genre_y1, genre_x2, genre_y2, tlx, tly, s, active_field);
+            draw_debug_rect("archetype", arch_x1, arch_y1, arch_x2, arch_y2, tlx, tly, s, active_field);
+            draw_debug_rect("description", desc_x1, desc_y1, desc_x2, desc_y2, tlx, tly, s, active_field);
+            draw_debug_rect("atk", atk_x1, atk_y1, atk_x2, atk_y2, tlx, tly, s, active_field);
+            draw_debug_rect("hp", def_x1, def_y1, def_x2, def_y2, tlx, tly, s, active_field);
+            
+            draw_set_color(c_black);
         }
     }
 
     // --- Texte auto-ajusté dans les zones ---
     {
         var s = display_scale;
+        var rel = s / 0.6;
         var spr = selectedCard.sprite_index;
         var cw = sprite_get_width(spr) * s;
         var ch = sprite_get_height(spr) * s;
         var tlx = display_x - cw * 0.5;
         var tly = display_y - ch * 0.5;
-        // Détection carte magique pour masquer coût et ATK/DEF
+        // Détection carte magique pour masquer coût et ATK/PV
     var is_magic = object_is_ancestor(selectedCard.object_index, oCardMagic) || (variable_instance_exists(selectedCard, "type") && string_lower(string(selectedCard.type)) == "magic");
 
         // Utiliser la police de carte
@@ -193,21 +198,52 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_text_transformed(left, top + 2, tx, scale, scale, 0);
         }
 
-        // --- STAR (coût) ---
-        if (!is_magic && variable_instance_exists(selectedCard, "star")) {
-            var tx = string(selectedCard.star);
-            var rw = (star_x2 - star_x1) * s - pad * 2;
-            var rh = (star_y2 - star_y1) * s - pad * 2;
-            var scale = fit_line(tx, 20, rw, rh);
-            scale = round(scale * 20) / 20;
-            var left = tlx + star_x1 * s + pad;
-            var top  = tly + star_y1 * s + pad;
-            var wsc  = string_width(tx) * scale;
-            var cx   = left + max(0, (rw - wsc) * 0.5);
-            cx = round(cx);
-            top = round(top);
-            draw_text_transformed(cx, top + 2, tx, scale, scale, 0);
-        }
+        // --- MANA COST DISPLAY (Top Right) ---
+    // Replacing mana_cost Logic with Duel Room Circle Style
+    var display_cost = 0;
+    if (variable_instance_exists(selectedCard, "mana_cost")) display_cost = selectedCard.mana_cost;
+    
+    // Fallback: If mana_cost is 0 but mana_cost is set
+    if (display_cost == 0 && variable_instance_exists(selectedCard, "mana_cost") && selectedCard.mana_cost > 0) {
+        display_cost = selectedCard.mana_cost;
+    }
+    
+    if (variable_instance_exists(selectedCard, "mana_cost") || (variable_instance_exists(selectedCard, "mana_cost") && selectedCard.mana_cost > 0)) {
+        var tx = string(display_cost);
+        // Define Mana position (Top Right) - Updated to match card design
+        var mana_x1 = layout.mana.x1; var mana_y1 = layout.mana.y1;
+        var mana_x2 = layout.mana.x2; var mana_y2 = layout.mana.y2;
+        
+        // Draw Blue Circle Background - REMOVED per user request
+        // var circle_x = tlx + (mana_x1 + (mana_x2-mana_x1)/2) * s;
+        // var circle_y = tly + (mana_y1 + (mana_y2-mana_y1)/2) * s;
+        
+        // draw_set_color(c_aqua);
+        // draw_circle(circle_x, circle_y, 18 * s, false);
+        // draw_set_color(c_black); // Border
+        // draw_circle(circle_x, circle_y, 18 * s, true);
+        
+        draw_set_color(c_black); // Text Color
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        
+        var rw = (mana_x2 - mana_x1) * s;
+        var rh = (mana_y2 - mana_y1) * s;
+        var center_x = tlx + (mana_x1 + (mana_x2-mana_x1)/2) * s;
+        var center_y = tly + (mana_y1 + (mana_y2-mana_y1)/2) * s;
+        center_x = round(center_x);
+        center_y = round(center_y);
+        
+        // Use larger font scale for Mana
+        var sc = fit_line(tx, 22 * rel, rw, rh);
+        sc = round(sc * 20) / 20;
+        
+        draw_text_transformed(center_x, center_y, tx, sc, sc, 0);
+        
+        // Reset Align
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+    }
 
         // --- GENRE ---
         if (variable_instance_exists(selectedCard, "genre")) {
@@ -268,54 +304,114 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_text_ext_transformed(left, top + 2, tx, base_h, w_eff, sc, sc, 0);
         }
 
-        // --- ATK ---
-        if (!is_magic && variable_instance_exists(selectedCard, "attack")) {
-            draw_set_color(c_black);
-            var tx = string(selectedCard.attack);
-            var rw = (atk_x2 - atk_x1) * s - pad * 2;
-            var rh = (atk_y2 - atk_y1) * s - pad * 2;
-            var base_line_h = string_height("Ag");
-            var scale = (base_line_h > 0) ? 12 / base_line_h : 1;
-            scale = round(scale * 20) / 20;
-            var left = tlx + atk_x1 * s + pad;
-            var top  = tly + atk_y1 * s + pad - 2;
-            var wsc  = string_width(tx) * scale;
-            var hsc  = base_line_h * scale;
-            var cx   = left + max(0, (rw - wsc) * 0.5);
-            var cy   = top  + max(0, (rh - hsc) * 0.5);
-            left = round(left);
-            top  = round(top);
-            cx   = round(cx);
-            cy   = round(cy);
-            draw_text_transformed(cx, cy, tx, scale, scale, 0);
-        }
+        // ATK/HP overlay (Hearthstone Style)
+        if (!is_magic) {
+            // New Positions (Using Global Layout)
+            // ATK: Bottom Left (Yellow)
+            var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2; 
+            // HP: Bottom Right (Red/Green/White)
+            var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2; 
+            
+            draw_set_halign(fa_center);
+            draw_set_valign(fa_middle);
 
-        // --- DEF ---
-        if (!is_magic && variable_instance_exists(selectedCard, "defense")) {
+            // --- ATTACK ---
+            if (variable_instance_exists(selectedCard, "attack")) {
+                var valA = selectedCard.attack;
+                var colA = c_black;
+                // Note: effective_attack might not exist in collection, check if needed
+                if (variable_instance_exists(selectedCard, "effective_attack")) {
+                    valA = selectedCard.effective_attack;
+                    // SAFETY FALLBACK: If effective is 0 but base is > 0, use base
+                    if (valA == 0 && selectedCard.attack > 0) valA = selectedCard.attack;
+                    
+                    if (valA > selectedCard.attack) colA = c_lime; // Buffed
+                    else if (valA < selectedCard.attack) colA = c_red; // Debuffed
+                }
+                var txA = string(valA);
+                
+                // Draw Yellow Circle Background for Attack
+                var circleA_x = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s;
+                var circleA_y = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s;
+                circleA_x = round(circleA_x);
+                circleA_y = round(circleA_y);
+                
+                // Draw Yellow Circle Background for Attack REMOVED
+                /*
+                draw_set_color(c_yellow);
+                draw_circle(circleA_x, circleA_y, 22 * s, false);
+                */
+                
+                // Text Color forced to BLACK
+                draw_set_color(c_black);
+                
+                var scA = 1.2 * rel; // Bigger font
+                
+                draw_text_transformed(circleA_x, circleA_y, txA, scA, scA, 0);
+            }
+
+            // --- HP ---
+            var hpVal = 0;
+            var hpMax = 0;
+            
+            // Logic for HP determination (Collection fallback)
+            if (variable_instance_exists(selectedCard, "current_hp")) {
+                hpVal = selectedCard.current_hp;
+                hpMax = (variable_instance_exists(selectedCard, "max_hp") ? selectedCard.max_hp : hpVal);
+            } else if (variable_instance_exists(selectedCard, "PV")) {
+                hpVal = selectedCard.PV;
+                hpMax = hpVal;
+            }
+
+            if (hpVal >= 0 || variable_instance_exists(selectedCard, "PV")) {
+                // Use effective stats if available
+                if (variable_instance_exists(selectedCard, "effective_defense") && variable_instance_exists(selectedCard, "PV")) {
+                    // Safety check: ignore effective_defense if 0
+                    if (selectedCard.effective_defense > 0) {
+                        var bonusHP = selectedCard.effective_defense - selectedCard.PV;
+                        hpVal = hpVal + bonusHP;
+                        hpMax = selectedCard.effective_defense;
+                    }
+                }
+
+                // Color Logic - REMOVED for text color (kept for reference if needed later)
+                var hpColor = c_black;
+                if (hpVal < hpMax) hpColor = c_red;
+                else if (hpVal > hpMax) hpColor = c_lime;
+                
+                var txD = string(hpVal);
+                
+                // Draw Blood Drop / Circle Background for HP REMOVED
+                var circleD_x = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
+                var circleD_y = tly + (def_y1 + (def_y2-def_y1)/2) * s;
+                circleD_x = round(circleD_x);
+                circleD_y = round(circleD_y);
+                
+                // Background (Dark Red/Black) REMOVED
+                /*
+                draw_set_color(make_color_rgb(50, 0, 0));
+                draw_circle(circleD_x, circleD_y, 22 * s, false);
+                draw_set_color(c_red); // Border
+                draw_circle(circleD_x, circleD_y, 22 * s, true);
+                */
+                
+                // Text Color forced to BLACK
+                draw_set_color(c_black);
+                
+                var scD = 1.2 * rel;
+                draw_text_transformed(circleD_x, circleD_y, txD, scD, scD, 0);
+            }
+            
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_top);
             draw_set_color(c_black);
-            var tx = string(selectedCard.defense);
-            var rw = (def_x2 - def_x1) * s - pad * 2;
-            var rh = (def_y2 - def_y1) * s - pad * 2;
-            var base_line_h = string_height("Ag");
-            var scale = (base_line_h > 0) ? 12 / base_line_h : 1;
-            scale = round(scale * 20) / 20;
-            var left = tlx + def_x1 * s + pad;
-            var top  = tly + def_y1 * s + pad - 2;
-            var wsc  = string_width(tx) * scale;
-            var hsc  = base_line_h * scale;
-            var cx   = left + max(0, (rw - wsc) * 0.5);
-            var cy   = top  + max(0, (rh - hsc) * 0.5);
-            left = round(left);
-            top  = round(top);
-            cx   = round(cx);
-            cy   = round(cy);
-            draw_text_transformed(cx, cy, tx, scale, scale, 0);
         }
     }
 
     // --- Texte du viewer désactivé temporairement ---
-    // Ancien panneau d’informations (nom, rareté, ATK/DEF, description) supprimé
+    // Ancien panneau d’informations (nom, rareté, ATK/PV, description) supprimé
     // pour repartir étape par étape.
 
     // Bloc 2 (description simplifiée) désactivé
 }
+

@@ -1,4 +1,4 @@
-/// Utilitaires d’agrégation de buffs pour éviter les écrasements
+﻿/// Utilitaires d’agrégation de buffs pour éviter les écrasements
 
 function buffEnsure(target) {
     if (target == noone || !instance_exists(target)) return false;
@@ -9,7 +9,7 @@ function buffEnsure(target) {
         target.effective_attack = target.attack;
     }
     if (!variable_instance_exists(target, "effective_defense")) {
-        target.effective_defense = target.defense;
+        target.effective_defense = target.PV;
     }
     return true;
 }
@@ -24,7 +24,7 @@ function buffSetContribution(target, source_key, atk_delta, def_delta) {
             idxFound = i; break;
         }
     }
-    var entry = { key: source_key, atk: atk_delta, def: def_delta };
+    var entry = { key: source_key, atk: atk_delta, PV: def_delta };
     if (idxFound >= 0) {
         target.buff_contribs[idxFound] = entry;
     } else {
@@ -56,7 +56,7 @@ function buffRecompute(target) {
         var c = target.buff_contribs[i];
         if (is_struct(c)) {
             var a = variable_struct_exists(c, "atk") ? c.atk : 0;
-            var d = variable_struct_exists(c, "def") ? c.def : 0;
+            var d = variable_struct_exists(c, "PV") ? c.PV : 0;
             totalAtk += a;
             totalDef += d;
         }
@@ -66,6 +66,6 @@ function buffRecompute(target) {
     var tempDef = variable_instance_exists(target, "temp_defense") ? target.temp_defense : 0;
     
     target.effective_attack = max(0, target.attack + totalAtk + tempAtk);
-    target.effective_defense = max(0, target.defense + totalDef + tempDef);
+    target.effective_defense = max(0, target.PV + totalDef + tempDef);
     return true;
 }
