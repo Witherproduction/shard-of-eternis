@@ -4,6 +4,10 @@ function sMagicSecret() {
 
 function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
     if (!instance_exists(attacker)) return noone;
+    
+    // Reset global block flag
+    global.combat_attack_blocked = false;
+    
     var attackerIsHero = variable_instance_exists(attacker, "isHeroOwner") ? attacker.isHeroOwner : true;
     var defendingIsHero = !attackerIsHero;
     var effAtk = variable_instance_exists(attacker, "effective_attack") ? attacker.effective_attack : (variable_instance_exists(attacker, "attack") ? attacker.attack : 0);
@@ -52,6 +56,12 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
                 chosenEffect = e; break;
             }
             if (chosenEffect == noone) continue;
+            
+            // Check if secret blocks the attack
+            if (variable_struct_exists(chosenEffect, "block_attack") && chosenEffect.block_attack) {
+                global.combat_attack_blocked = true;
+                show_debug_message("### Secret: Attack blocked by " + string(variable_instance_exists(self, "name") ? self.name : "Secret"));
+            }
             
             // Clé de déduplication: le nom canonique de la carte
             var cardName = variable_instance_exists(self, "name") ? self.name : object_get_name(object_index);
@@ -121,7 +131,26 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
                         redirectDefender = ctx.summoned;
                     }
                 }
-                destroyCard(id);
+                
+                // Remove from active list to update overlay counter
+                var _idx = ds_list_find_index(secretList, id);
+                show_debug_message("### SecretDebug: Attempting removal. ID=" + string(id) + " Index=" + string(_idx) + " ListSizeBefore=" + string(ds_list_size(secretList)));
+                if (_idx != -1) {
+                    ds_list_delete(secretList, _idx);
+                    size--;
+                    k--;
+                    show_debug_message("### SecretDebug: Removed successfully. ListSizeAfter=" + string(ds_list_size(secretList)));
+                } else {
+                    show_debug_message("### SecretDebug: ID not found in list!");
+                }
+                
+                // Delay destruction if FX are active (e.g. procedural spikes)
+                if (variable_global_exists("combat_fx_count") && global.combat_fx_count > 0) {
+                     var destroyer = instance_create_depth(x, y, 0, oDelayedSecretDestroyer);
+                     destroyer.target_card = id;
+                } else {
+                     destroyCard(id);
+                }
             }
         }
     }
@@ -132,6 +161,10 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
 // Activation des Secrets sur toute attaque (non-directe ou directe via on_attack)
 function activateSecretsOnAttack(attacker, defender) {
     if (!instance_exists(attacker)) return;
+    
+    // Reset global block flag
+    global.combat_attack_blocked = false;
+    
     var attackerIsHero = variable_instance_exists(attacker, "isHeroOwner") ? attacker.isHeroOwner : true;
     var defendingIsHero = !attackerIsHero;
     var effAtk = variable_instance_exists(attacker, "effective_attack") ? attacker.effective_attack : (variable_instance_exists(attacker, "attack") ? attacker.attack : 0);
@@ -162,6 +195,12 @@ function activateSecretsOnAttack(attacker, defender) {
                 chosenEffect = e; break;
             }
             if (chosenEffect == noone) continue;
+
+            // Check if secret blocks the attack
+            if (variable_struct_exists(chosenEffect, "block_attack") && chosenEffect.block_attack) {
+                global.combat_attack_blocked = true;
+                show_debug_message("### Secret: Attack blocked by " + string(variable_instance_exists(self, "name") ? self.name : "Secret"));
+            }
 
             var cardName = variable_instance_exists(self, "name") ? self.name : object_get_name(object_index);
             var alreadyActivated = false;
@@ -219,6 +258,19 @@ function activateSecretsOnAttack(attacker, defender) {
                  RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
             } else {
                 executeEffect(self, chosenEffect, ctx);
+                
+                // Remove from active list to update overlay counter
+                 var _idx = ds_list_find_index(secretList, id);
+                 show_debug_message("### SecretDebug (Summon): Attempting removal. ID=" + string(id) + " Index=" + string(_idx) + " ListSizeBefore=" + string(ds_list_size(secretList)));
+                 if (_idx != -1) {
+                     ds_list_delete(secretList, _idx);
+                     size--;
+                     k--;
+                     show_debug_message("### SecretDebug (Summon): Removed successfully. ListSizeAfter=" + string(ds_list_size(secretList)));
+                 } else {
+                     show_debug_message("### SecretDebug (Summon): ID not found in list!");
+                 }
+                
                 destroyCard(id);
             }
         }
@@ -304,6 +356,19 @@ function activateSecretsOnMonsterSummon(summoned) {
             } else {
                 var ok = executeEffect(self, chosenEffect, ctx);
                 show_debug_message("### Secrets: effet exécuté=" + string(ok) + "; destruction");
+                
+                // Remove from active list to update overlay counter
+                 var _idx = ds_list_find_index(secretList, id);
+                 show_debug_message("### SecretDebug (Attack): Attempting removal. ID=" + string(id) + " Index=" + string(_idx) + " ListSizeBefore=" + string(ds_list_size(secretList)));
+                 if (_idx != -1) {
+                     ds_list_delete(secretList, _idx);
+                     size--;
+                     k--;
+                     show_debug_message("### SecretDebug (Attack): Removed successfully. ListSizeAfter=" + string(ds_list_size(secretList)));
+                 } else {
+                     show_debug_message("### SecretDebug (Attack): ID not found in list!");
+                 }
+                
                 destroyCard(id);
             }
         }

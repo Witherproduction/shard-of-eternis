@@ -11,7 +11,9 @@ booster = "A la découverte du monde"
 rarity = "commun"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+projectile_rotate = false; // L'animation de l'effet ne doit pas tourner
 description = "Eveil : Inflige 1 dégât à un serviteur adverse."
+element = "Nature";
 effects = [
     {
         id: 1,

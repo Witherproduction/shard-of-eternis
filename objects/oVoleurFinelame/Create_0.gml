@@ -13,10 +13,13 @@ lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
 
 // Mécaniques spéciales
-isCamouflage = true;
 isPercee = true;
 
 description = "Camouflage. Percée (Peut ignorer la ligne de front pour attaquer le Héros ou l'arrière-garde)."
-effects = []
-
-
+effects = [
+    {
+        id: 1,
+        trigger: TRIGGER_ENTER_FIELD,
+        effect_type: EFFECT_CAMOUFLAGE
+    }
+]

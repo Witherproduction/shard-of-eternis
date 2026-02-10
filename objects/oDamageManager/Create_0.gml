@@ -72,7 +72,7 @@ tryAttack = function(target) {
                         var em = arrEnemy[ie];
                         if (em != 0 && instance_exists(em)) {
                             var emTaunt = (variable_instance_exists(em, "has_taunt") && em.has_taunt);
-                            var emFrontLine = (variable_instance_exists(em, "fieldPosition") && em.fieldPosition >= 0 && em.fieldPosition <= 4);
+                            var emFrontLine = (variable_instance_exists(em, "fieldPosition") && em.fieldPosition >= 0 && em.fieldPosition <= 3);
                             var emIsDefender = (emTaunt || emFrontLine);
                             
                             var emCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
@@ -185,6 +185,16 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
     
     // Activer les secrets
     activateSecretsOnAttack(cardHero, cardEnemy);
+    
+    if (variable_global_exists("combat_attack_blocked") && global.combat_attack_blocked) {
+        show_debug_message("### resolveAttackMonster: Attack blocked by secret");
+        if (instance_exists(cardHero)) {
+            cardHero.attacksUsedThisTurn = (variable_instance_exists(cardHero, "attacksUsedThisTurn") ? cardHero.attacksUsedThisTurn : 0) + 1;
+            cardHero.lastTurnAttack = game.nbTurn;
+            if (instance_exists(oSelectManager)) { selectManager.unSelect(cardHero); }
+        }
+        return;
+    }
 
     if (cardHero == noone || !instance_exists(cardHero) || cardEnemy == noone || !instance_exists(cardEnemy)) {
         if (instance_exists(cardHero)) {
@@ -196,21 +206,28 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
     }
     
     // --- HEARTHSTONE COMBAT LOGIC ---
-    var effHeroAtk = variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack;
-    var effEnemyAtk = variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack;
+    // Correction: Use variable_instance_exists for instances to ensure correct property retrieval
+    var effHeroAtk = (variable_instance_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack);
+    var effEnemyAtk = (variable_instance_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : cardEnemy.attack);
     
+    show_debug_message("### resolveAttackMonster: Hero=" + string(cardHero) + " Atk=" + string(effHeroAtk) + " Enemy=" + string(cardEnemy));
+
     // 1. Dégâts simultanés (Persistent Damage)
     // On utilise damageCard qui gère current_hp -= amount et la destruction si <= 0
     if (effHeroAtk > 0) damageCard(cardEnemy, effHeroAtk);
     if (effEnemyAtk > 0) damageCard(cardHero, effEnemyAtk);
     
     // 2. Gestion du Poison (si dégâts > 0 et survivant)
-    if (instance_exists(cardEnemy) && effHeroAtk > 0 && variable_struct_exists(cardHero, "isPoisoner") && cardHero.isPoisoner) {
+    var heroIsPoisoner = (variable_instance_exists(cardHero, "isPoisoner") && cardHero.isPoisoner);
+    if (instance_exists(cardEnemy) && effHeroAtk > 0 && heroIsPoisoner) {
+         show_debug_message("### Poison Triggered by Hero");
          spawnPoisonFX(cardEnemy, cardHero);
          destroyCard(cardEnemy, cardHero);
     }
     
-    if (instance_exists(cardHero) && effEnemyAtk > 0 && variable_struct_exists(cardEnemy, "isPoisoner") && cardEnemy.isPoisoner) {
+    var enemyIsPoisoner = (variable_instance_exists(cardEnemy, "isPoisoner") && cardEnemy.isPoisoner);
+    if (instance_exists(cardHero) && effEnemyAtk > 0 && enemyIsPoisoner) {
+         show_debug_message("### Poison Triggered by Enemy");
          spawnPoisonFX(cardHero, cardEnemy);
          destroyCard(cardHero, cardEnemy);
     }
@@ -257,6 +274,16 @@ resolveAttackDirect = function(cardHero) {
         if (res != noone && instance_exists(res)) redirectedDefender = res;
     }
     
+    if (variable_global_exists("combat_attack_blocked") && global.combat_attack_blocked) {
+        show_debug_message("### resolveAttackDirect: Attack blocked by secret");
+        if (instance_exists(cardHero)) {
+            cardHero.attacksUsedThisTurn = (variable_instance_exists(cardHero, "attacksUsedThisTurn") ? cardHero.attacksUsedThisTurn : 0) + 1;
+            cardHero.lastTurnAttack = game.nbTurn;
+            if (instance_exists(oSelectManager)) { selectManager.unSelect(cardHero); }
+        }
+        return;
+    }
+    
     if (global.combat_redirect_defender != noone && instance_exists(global.combat_redirect_defender)) {
         redirectedDefender = global.combat_redirect_defender;
     }
@@ -272,7 +299,7 @@ resolveAttackDirect = function(cardHero) {
         return;
     }
     
-    var damage = variable_struct_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack;
+    var damage = (variable_instance_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack);
     LP_Enemy_Instance.nbLP -= damage;
     
     
@@ -383,6 +410,15 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
     
     registerTriggerEvent(TRIGGER_ON_ATTACK, attacker, { attacker: attacker, defender: defender, defender_orientation: "Attack", direct_attack: false });
     activateSecretsOnAttack(attacker, defender);
+    
+    if (variable_global_exists("combat_attack_blocked") && global.combat_attack_blocked) {
+        show_debug_message("### resolveAttackMonsterEnemy: Attack blocked by secret");
+        if (instance_exists(attacker)) {
+            attacker.attacksUsedThisTurn = (variable_instance_exists(attacker, "attacksUsedThisTurn") ? attacker.attacksUsedThisTurn : 0) + 1;
+            attacker.lastTurnAttack = game.nbTurn;
+        }
+        return;
+    }
 
     if (attacker == noone || !instance_exists(attacker) || defender == noone || !instance_exists(defender)) {
         if (instance_exists(attacker)) {
@@ -475,6 +511,16 @@ resolveAttackDirectEnemy = function(cardEnemy) {
     if (!is_undefined(activateSecretsOnDirectAttack)) {
         redirectedDefender = activateSecretsOnDirectAttack(cardEnemy);
     }
+    
+    if (variable_global_exists("combat_attack_blocked") && global.combat_attack_blocked) {
+        show_debug_message("### resolveAttackDirectEnemy: Attack blocked by secret");
+        if (instance_exists(cardEnemy)) {
+            cardEnemy.attacksUsedThisTurn = (variable_instance_exists(cardEnemy, "attacksUsedThisTurn") ? cardEnemy.attacksUsedThisTurn : 0) + 1;
+            cardEnemy.lastTurnAttack = game.nbTurn;
+        }
+        return;
+    }
+    
     show_debug_message("### resolveAttackDirectEnemy: entry attacker=" + string(cardEnemy) + " redirected=" + string(instance_exists(redirectedDefender)));
     // Si un Secret a redirigé l’attaque vers une invocation, résoudre comme une attaque vs monstre
     if (redirectedDefender != noone && instance_exists(redirectedDefender)) {

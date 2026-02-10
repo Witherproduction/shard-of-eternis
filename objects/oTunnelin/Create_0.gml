@@ -11,7 +11,7 @@ booster = "A la découverte du monde"
 rarity = "commun"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque une copie de ce serviteur."
+description = "Eveil : Invoque une copie de ce serviteur à ses cotés."
 effects = [
     {
         id: 1,

@@ -21,13 +21,13 @@ effects = [
         criteria: { type: "Monster", name_contains: "Abyssien" },
         
         // Effet secondaire déclenché APRES la destruction réussie
-        secondary_effect: {
+        flow_next: {
             effect_type: EFFECT_BUFF,
             scope: "all",
             owner: "ally",
             target_zone: "field",
-            // Le monstre sacrifié est exclu automatiquement s'il est détruit, 
-            // mais on peut ajouter une sécurité si nécessaire
+            // Le monstre sacrifié est exclu automatiquement s'il est détruit
+            ignore_context_stats: true,
             atk: 2,
             PV: 2
         }

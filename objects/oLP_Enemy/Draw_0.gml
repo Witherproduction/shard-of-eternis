@@ -22,6 +22,6 @@ if (variable_global_exists("activeSecretsEnemy") && ds_exists(global.activeSecre
         draw_set_valign(fa_middle);
         draw_set_color(c_white);
         // Texte dans la partie basse
-        draw_text(secret_x, secret_y + 12, string(cnt));
+        draw_text_transformed(secret_x, secret_y + 12, string(cnt), 0.6, 0.6, 0);
     }
 }

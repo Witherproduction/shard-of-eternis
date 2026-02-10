@@ -9,7 +9,7 @@ booster = "A la découverte du monde"
 is_player_card = true;
 mana_cost = 4;
 
-description = "Choisissez un serviteur (Allié ou Ennemi). Invoquez-en une copie sur votre terrain (Ligne de front). Elle ne peut pas attaquer."
+description = "Choisissez un serviteur. Invoquez-en une copie sur votre terrain (Ligne de front). Elle ne peut pas attaquer."
 effects = [
     {
         id: 1,

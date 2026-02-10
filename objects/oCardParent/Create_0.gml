@@ -24,6 +24,8 @@ if (!variable_instance_exists(id, "has_charge")) has_charge = false;
 // ----------------------------------------------
 
 // --- BUFF SYSTEM INITIALIZATION ---
+if (!variable_instance_exists(id, "original_attack")) original_attack = attack; // Stats d'origine (immuables pour comparaison couleur)
+if (!variable_instance_exists(id, "original_PV")) original_PV = PV;           // Stats d'origine (immuables pour comparaison couleur)
 if (!variable_instance_exists(id, "effective_attack")) effective_attack = attack;
 if (!variable_instance_exists(id, "effective_defense")) effective_defense = PV;
 if (!variable_instance_exists(id, "buff_contribs")) buff_contribs = [];
@@ -38,9 +40,14 @@ isTargetableForFloraison = false;
 isComboActive = false; // Indicateur visuel pour Combo/Condition remplie
 comboCheckTimer = 0;   // Timer pour ne pas vérifier à chaque frame
 comboAnimTimer = 0;    // Timer pour l'animation visuelle
+ambidextrousAnimTimer = 0; // Timer pour l'effet visuel Ambidextrie
 
 if (!variable_global_exists("nextCardInstanceUID")) global.nextCardInstanceUID = 1;
 if (!variable_instance_exists(id, "instance_uid")) {
     instance_uid = global.nextCardInstanceUID;
     global.nextCardInstanceUID += 1;
 }
+
+// --- VISUAL EFFECTS ---
+if (!variable_instance_exists(id, "poison_bubbles")) poison_bubbles = [];
+if (!variable_instance_exists(id, "poison_spawn_timer")) poison_spawn_timer = 0;

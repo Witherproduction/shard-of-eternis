@@ -92,6 +92,60 @@ remove = function() {
     }
 }
 
+// Met à jour la visibilité du bouton d'attaque directe
+updateDirectAttackButtonVisibility = function() {
+    if (attackDirectInstance == noone) return;
+
+    // Par défaut, caché
+    attackDirectInstance.image_alpha = 0;
+
+    // Conditions de base
+    if (!attackMode || selected == noone || !instance_exists(selected)) {
+        // show_debug_message("### updateDirectAttackButtonVisibility: Conditions de base non remplies");
+        return;
+    }
+    
+    var card = selected;
+
+    // Vérifier si c'est le tour du joueur
+    var isOnline = (variable_global_exists("NET_MODE") && global.NET_MODE != "offline");
+    var isLocalTurn = false;
+    if (isOnline) {
+        if (instance_exists(oGame)) {
+            isLocalTurn = oGame.is_local_turn;
+        }
+    } else {
+        isLocalTurn = (game.player_current == 0);
+    }
+    
+    if (!isLocalTurn) return;
+
+    // Vérifie s'il existe un défenseur valide (non camouflé) côté ennemi
+    var enemyHasMonsters = false;
+    var enemyMonsterField = fieldManagerEnemy.getField("Monster");
+    for (var i = 0; i < array_length(enemyMonsterField.cards); i++) {
+        var em = enemyMonsterField.cards[i];
+        if (em != 0 && instance_exists(em)) {
+            var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
+            if (!isCamo) { enemyHasMonsters = true; break; }
+        }
+    }
+
+    // Percée logic for UI: Allow direct attack if card has isPercee or canAttackDirectAlways
+    var allowDirect = !enemyHasMonsters;
+    if (variable_instance_exists(card, "isPercee") && card.isPercee) allowDirect = true;
+    if (variable_instance_exists(card, "canAttackDirectAlways") && card.canAttackDirectAlways) allowDirect = true;
+
+    if (allowDirect) {
+        attackDirectInstance.x = attackDirectX;
+        attackDirectInstance.y = attackDirectY;
+        attackDirectInstance.image_alpha = 0; // bouton transparent (demande utilisateur)
+        show_debug_message("### updateDirectAttackButtonVisibility: Bouton actif mais transparent");
+    } else {
+        show_debug_message("### updateDirectAttackButtonVisibility: Bouton caché (monstres présents et pas de percée)");
+    }
+}
+
 // Tente de sélectionner une carte
 trySelect = function(card) {
     // Blocage global si le menu d'action est ouvert
@@ -246,34 +300,8 @@ trySelect = function(card) {
                 // Affiche le bouton d'attaque via UIManager (sécurisé côté UIManager)
                 UIManager.displayAttackButton(card);
 
-                // Vérifie s'il existe un défenseur valide (non camouflé) côté ennemi
-                var enemyHasMonsters = false;
-                var enemyMonsterField = fieldManagerEnemy.getField("Monster");
-                for (var i = 0; i < array_length(enemyMonsterField.cards); i++) {
-                    var em = enemyMonsterField.cards[i];
-                    if (em != 0 && instance_exists(em)) {
-                        var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
-                        if (!isCamo) { enemyHasMonsters = true; break; }
-                    }
-                }
-
-                show_debug_message("### L'adversaire a des monstres: " + string(enemyHasMonsters));
-                
-                // Percée logic for UI: Allow direct attack if card has isPercee or canAttackDirectAlways
-                var allowDirect = !enemyHasMonsters;
-                if (variable_instance_exists(card, "isPercee") && card.isPercee) allowDirect = true;
-                if (variable_instance_exists(card, "canAttackDirectAlways") && card.canAttackDirectAlways) allowDirect = true;
-                
-                // Le bouton d'attaque directe est visible si aucune cible valide n'existe (tous camouflés ou aucun) OU si Percée
-                if(allowDirect && attackMode && attackDirectInstance != noone) {
-                    attackDirectInstance.x = attackDirectX;
-                    attackDirectInstance.y = attackDirectY;
-                    attackDirectInstance.image_alpha = 1; // bouton visible
-                    show_debug_message("### Bouton d'attaque directe affiché (mode attaque activé)");
-                } else if (attackDirectInstance != noone) {
-                    attackDirectInstance.image_alpha = 0; // bouton caché
-                    show_debug_message("### Bouton d'attaque directe caché (pas en mode attaque ou monstres présents)");
-                }
+                // Mise à jour de la visibilité du bouton d'attaque directe
+                updateDirectAttackButtonVisibility();
 
                 // Créer la flèche de ciblage si le mode attaque est activé
                 if(attackMode) {

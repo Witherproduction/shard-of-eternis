@@ -36,6 +36,17 @@ function summonToken(card, effect, context) {
     token.attackModeActivated = false;
     token.visible = false;
 
+    // --- HEARTHSTONE SUMMONING SICKNESS ---
+    if (token.type == "Monster") {
+        var hasCharge = variable_instance_exists(token, "has_charge") && token.has_charge;
+        if (hasCharge) {
+            token.attacksUsedThisTurn = 0;
+        } else {
+            token.attacksUsedThisTurn = 99; 
+        }
+    }
+    // --------------------------------------
+
     var start_x_ss = 220;
     var start_y_ss = room_height * 0.5;
     var ghost_idx = 0;
@@ -265,6 +276,18 @@ function specialSummonSelf(card, effect, context) {
         var pos = context.position;
         var handInst = ownerIsHero ? handHero : handEnemy;
         var ok = handInst.summon(card, [pos[0], pos[1], pos[2]]);
+        
+        // --- HEARTHSTONE SUMMONING SICKNESS ---
+        if (ok && instance_exists(card) && card.type == "Monster") {
+            var hasCharge = variable_instance_exists(card, "has_charge") && card.has_charge;
+            if (hasCharge) {
+                card.attacksUsedThisTurn = 0;
+            } else {
+                card.attacksUsedThisTurn = 99; 
+            }
+        }
+        // --------------------------------------
+
         // Nettoyage UI s'il s'agit du joueur
         if (ownerIsHero) {
             if (instance_exists(selectManager)) selectManager.unSelectAll();
@@ -289,6 +312,18 @@ function specialSummonSelf(card, effect, context) {
         UIManager.selectedSummonOrSet = "SpecialSummon";
         var handInstA = ownerIsHero ? handHero : handEnemy;
         var okA = handInstA.summon(card, [slotA.x, slotA.y, slotA.pos]);
+        
+        // --- HEARTHSTONE SUMMONING SICKNESS ---
+        if (okA && instance_exists(card) && card.type == "Monster") {
+            var hasCharge = variable_instance_exists(card, "has_charge") && card.has_charge;
+            if (hasCharge) {
+                card.attacksUsedThisTurn = 0;
+            } else {
+                card.attacksUsedThisTurn = 99; 
+            }
+        }
+        // --------------------------------------
+
         UIManager.selectedSummonOrSet = "";
         if (okA) {
             var ctxA = { summon_mode: "SpecialSummon", owner_is_hero: ownerIsHero };
@@ -307,6 +342,18 @@ function specialSummonSelf(card, effect, context) {
         if (slot == noone) { show_debug_message("### specialSummonSelf: Aucun slot libre pour l'IA"); return false; }
         UIManager.selectedSummonOrSet = "SpecialSummon";
         var ok2 = handEnemy.summon(card, [slot.x, slot.y, slot.pos]);
+        
+        // --- HEARTHSTONE SUMMONING SICKNESS ---
+        if (ok2 && instance_exists(card) && card.type == "Monster") {
+            var hasCharge = variable_instance_exists(card, "has_charge") && card.has_charge;
+            if (hasCharge) {
+                card.attacksUsedThisTurn = 0;
+            } else {
+                card.attacksUsedThisTurn = 99; 
+            }
+        }
+        // --------------------------------------
+
         UIManager.selectedSummonOrSet = "";
         if (ok2) {
             var ctx2 = { summon_mode: "SpecialSummon", owner_is_hero: false };
@@ -380,6 +427,18 @@ function specialSummonSourceFromHandByCriteria(card, effect, context) {
     var handInst = ownerIsHero ? handHero : handEnemy;
     UIManager.selectedSummonOrSet = "SpecialSummon";
     var ok = handInst.summon(src, [slot.x, slot.y, slot.pos]);
+    
+    // --- HEARTHSTONE SUMMONING SICKNESS ---
+    if (ok && instance_exists(src) && variable_instance_exists(src, "type") && src.type == "Monster") {
+        var hasCharge = variable_instance_exists(src, "has_charge") && src.has_charge;
+        if (hasCharge) {
+            src.attacksUsedThisTurn = 0;
+        } else {
+            src.attacksUsedThisTurn = 99; 
+        }
+    }
+    // --------------------------------------
+
     UIManager.selectedSummonOrSet = "";
     return ok;
 }

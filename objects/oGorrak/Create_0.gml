@@ -11,7 +11,7 @@ booster = "A la découverte du monde"
 rarity = "legendaire"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque 2 'Skarl Chétif'. Crépuscule : Inflige 2 dégats à votre adversaire pour chaque Humanoïde allié sur le terrain."
+description = "Eveil : Invoque 2 'Skarl Chétif' sur la ligne de front. n\Crépuscule : Inflige 2 dégats à votre adversaire pour chaque Humanoïde allié sur le terrain."
 element = "physique"
 
 effects = [

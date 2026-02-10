@@ -37,6 +37,18 @@ function consumeSpellIfNeeded(card, effect) {
     var handInst = ownerIsHero ? handHero : handEnemy;
     var fm = ownerIsHero ? fieldManagerHero : fieldManagerEnemy;
 
+    // Si c'est un secret, le retirer de la liste des secrets actifs pour mettre à jour l'overlay
+    if (isSecret) {
+        var secretList = ownerIsHero ? global.activeSecretsHero : global.activeSecretsEnemy;
+        if (variable_global_exists("activeSecretsHero") && ds_exists(secretList, ds_type_list)) {
+            var idxSecret = ds_list_find_index(secretList, card);
+            if (idxSecret != -1) {
+                ds_list_delete(secretList, idxSecret);
+                show_debug_message("### consumeSpellIfNeeded: Secret removed from active list (id=" + string(card) + ")");
+            }
+        }
+    }
+
     // Retirer de la main si présent
     if (instance_exists(handInst)) {
         var idx = ds_list_find_index(handInst.cards, card);

@@ -195,36 +195,42 @@ if (variable_instance_exists(self, "selected")) {
 
         // ATK
         var atkVal = (variable_instance_exists(card, "attack")) ? card.attack : 0;
-        // Cercle jaune
+        var origA = (variable_instance_exists(card, "original_attack")) ? card.original_attack : atkVal;
+        var colA = c_lime; // Always Green per user request
+        
         var cx_a = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s;
         var cy_a = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s;
-        /*
-        draw_set_color(c_yellow);
-        draw_circle(cx_a, cy_a, 22 * s, false);
-        draw_set_color(c_black);
-        draw_circle(cx_a, cy_a, 22 * s, true); // Bordure
-        */
         
         var sc_atk = 1.2 * rel;
+        // Outline
+        var o_dist = 2 * rel;
         draw_set_color(c_black);
+        draw_text_transformed(round(cx_a - o_dist), round(cy_a), string(atkVal), sc_atk, sc_atk, 0);
+        draw_text_transformed(round(cx_a + o_dist), round(cy_a), string(atkVal), sc_atk, sc_atk, 0);
+        draw_text_transformed(round(cx_a), round(cy_a - o_dist), string(atkVal), sc_atk, sc_atk, 0);
+        draw_text_transformed(round(cx_a), round(cy_a + o_dist), string(atkVal), sc_atk, sc_atk, 0);
+        
+        draw_set_color(colA);
         draw_text_transformed(round(cx_a), round(cy_a), string(atkVal), sc_atk, sc_atk, 0);
 
         // HP
         var hpVal = (variable_instance_exists(card, "current_hp")) ? card.current_hp : ((variable_instance_exists(card, "PV")) ? card.PV : 0);
         var hpMax = (variable_instance_exists(card, "max_hp")) ? card.max_hp : hpVal;
-        var hpColor = (hpVal < hpMax) ? c_red : ((hpVal > hpMax) ? c_lime : c_black);
+        var origPV = (variable_instance_exists(card, "original_PV")) ? card.original_PV : hpMax;
         
-        // Cercle rouge (ou couleur selon état)
+        var hpColor = c_lime; // Always Green per user request
+        
         var cx_h = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
         var cy_h = tly + (def_y1 + (def_y2-def_y1)/2) * s;
-        /*
-        draw_set_color(c_red); // Fond rouge standard
-        draw_circle(cx_h, cy_h, 22 * s, false);
-        draw_set_color(c_black);
-        draw_circle(cx_h, cy_h, 22 * s, true); // Bordure
-        */
         
-        draw_set_color(c_black); // Texte en noir
+        var o_dist = 2 * rel;
+        draw_set_color(c_black);
+        draw_text_transformed(round(cx_h - o_dist), round(cy_h), string(hpVal), sc_atk, sc_atk, 0);
+        draw_text_transformed(round(cx_h + o_dist), round(cy_h), string(hpVal), sc_atk, sc_atk, 0);
+        draw_text_transformed(round(cx_h), round(cy_h - o_dist), string(hpVal), sc_atk, sc_atk, 0);
+        draw_text_transformed(round(cx_h), round(cy_h + o_dist), string(hpVal), sc_atk, sc_atk, 0);
+        
+        draw_set_color(hpColor);
         draw_text_transformed(round(cx_h), round(cy_h), string(hpVal), sc_atk, sc_atk, 0);
         
         draw_set_halign(fa_left);
@@ -443,8 +449,10 @@ if (variable_instance_exists(self, "selected")) {
 
         // ATK
         if (!is_magic && variable_instance_exists(card, "attack")) {
-            draw_set_color(c_black);
-            var tx = string(card.attack);
+            var atkVal = card.attack;
+            var origA = (variable_instance_exists(card, "original_attack")) ? card.original_attack : atkVal;
+            var colA = c_lime; // Always Green per user request
+            var tx = string(atkVal);
             
             // Centered alignment
             draw_set_halign(fa_center);
@@ -457,6 +465,15 @@ if (variable_instance_exists(self, "selected")) {
             cx = round(cx);
             cy = round(cy);
             
+            // Outline
+            var o_dist = 2 * rel;
+            draw_set_color(c_black);
+            draw_text_transformed(cx - o_dist, cy, tx, scale_tx, scale_tx, 0);
+            draw_text_transformed(cx + o_dist, cy, tx, scale_tx, scale_tx, 0);
+            draw_text_transformed(cx, cy - o_dist, tx, scale_tx, scale_tx, 0);
+            draw_text_transformed(cx, cy + o_dist, tx, scale_tx, scale_tx, 0);
+            
+            draw_set_color(colA);
             draw_text_transformed(cx, cy, tx, scale_tx, scale_tx, 0);
             
             // Reset alignment
@@ -466,8 +483,12 @@ if (variable_instance_exists(self, "selected")) {
 
         // PV
         if (!is_magic && variable_instance_exists(card, "PV")) {
-            draw_set_color(c_black);
-            var tx = string(card.PV);
+            var hpVal = (variable_instance_exists(card, "current_hp")) ? card.current_hp : card.PV;
+            var hpMax = (variable_instance_exists(card, "max_hp")) ? card.max_hp : hpVal;
+            var origPV = (variable_instance_exists(card, "original_PV")) ? card.original_PV : hpMax;
+            
+            var hpColor = c_lime; // Always Green per user request
+            var tx = string(hpVal);
             
             // Centered alignment
             draw_set_halign(fa_center);
@@ -480,6 +501,15 @@ if (variable_instance_exists(self, "selected")) {
             cx = round(cx);
             cy = round(cy);
             
+            // Outline
+            var o_dist = 2 * rel;
+            draw_set_color(c_black);
+            draw_text_transformed(cx - o_dist, cy, tx, scale_tx, scale_tx, 0);
+            draw_text_transformed(cx + o_dist, cy, tx, scale_tx, scale_tx, 0);
+            draw_text_transformed(cx, cy - o_dist, tx, scale_tx, scale_tx, 0);
+            draw_text_transformed(cx, cy + o_dist, tx, scale_tx, scale_tx, 0);
+            
+            draw_set_color(hpColor);
             draw_text_transformed(cx, cy, tx, scale_tx, scale_tx, 0);
             
             // Reset alignment

@@ -155,47 +155,149 @@ if (spr != -1) {
     }
 
     // ==========================
-    // Bloc Plein écran (case à cocher)
+    // Bloc Mode d'affichage (Dropdown)
     // ==========================
-    var fs_pad = 8;
-    var fs_top = track_y + 50; // placer sous le slider volume
-    var fs_label_x_loc = content_x1 + slider_margin_h + slider_shift_x;
-    var fs_label_y_loc = fs_top;
-    var fs_check_size = 18;
-    var fs_check_x1_loc = fs_label_x_loc + 150;
-    var fs_check_y1_loc = fs_label_y_loc - fs_check_size * 0.5;
-    var fs_check_x2_loc = fs_check_x1_loc + fs_check_size;
-    var fs_check_y2_loc = fs_check_y1_loc + fs_check_size;
+    var dm_pad = 8;
+    var dm_top = track_y + 50; // sous le slider volume
+    
+    // Mise à jour positions (au cas où x/y changent)
+    var dm_label_x_loc = content_x1 + slider_margin_h + slider_shift_x;
+    var dm_label_y_loc = dm_top;
+    
+    var dm_dropdown_w = 160;
+    var dm_dropdown_h = 25;
+    
+    var dm_dropdown_x1_loc = dm_label_x_loc + 120;
+    var dm_dropdown_y1_loc = dm_top - dm_dropdown_h * 0.5;
+    var dm_dropdown_x2_loc = dm_dropdown_x1_loc + dm_dropdown_w;
+    var dm_dropdown_y2_loc = dm_dropdown_y1_loc + dm_dropdown_h;
 
     // Conserver pour Draw
-    fs_label_x = fs_label_x_loc;
-    fs_label_y = fs_label_y_loc;
-    fs_check_x1 = fs_check_x1_loc;
-    fs_check_y1 = fs_check_y1_loc;
-    fs_check_x2 = fs_check_x2_loc;
-    fs_check_y2 = fs_check_y2_loc;
-    fs_box_x1 = fs_label_x - fs_pad;
-    fs_box_y1 = fs_check_y1 - fs_pad;
-    fs_box_x2 = fs_check_x2 + fs_pad;
-    fs_box_y2 = fs_check_y2 + fs_pad;
+    display_mode_label_x = dm_label_x_loc;
+    display_mode_label_y = dm_label_y_loc;
+    display_mode_dropdown_x1 = dm_dropdown_x1_loc;
+    display_mode_dropdown_y1 = dm_dropdown_y1_loc;
+    display_mode_dropdown_x2 = dm_dropdown_x2_loc;
+    display_mode_dropdown_y2 = dm_dropdown_y2_loc;
+    
+    display_mode_box_x1 = dm_label_x_loc - dm_pad;
+    display_mode_box_y1 = dm_dropdown_y1_loc - dm_pad;
+    display_mode_box_x2 = dm_dropdown_x2_loc + dm_pad;
+    display_mode_box_y2 = dm_dropdown_y2_loc + dm_pad;
 
-    // Interaction: clic sur la case à cocher (ou n'importe où dans l'encadré)
-    if (mouse_check_button_pressed(mb_left)) {
-        var over_check = point_in_rectangle(mouse_x, mouse_y, fs_check_x1, fs_check_y1, fs_check_x2, fs_check_y2);
-        var over_box   = point_in_rectangle(mouse_x, mouse_y, fs_box_x1, fs_box_y1, fs_box_x2, fs_box_y2);
-        if (over_check || over_box) {
-            fs_enabled = !fs_enabled;
-            window_set_fullscreen(fs_enabled);
-            // Si on passe en mode fenêtré, définir une taille raisonnable et centrer
-            if (!fs_enabled) {
-                var ww = max(800, min(display_get_width(), 1280));
-                var wh = max(600, min(display_get_height(), 720));
-                window_set_size(ww, wh);
-                window_center();
+    // Géométrie de la liste déroulante Mode
+    var dm_item_h = 22;
+    var dm_list_h = array_length(display_mode_list) * dm_item_h;
+    var dm_list_x1 = dm_dropdown_x1_loc;
+    var dm_list_y1 = dm_dropdown_y2_loc;
+    var dm_list_x2 = dm_dropdown_x2_loc;
+    var dm_list_y2 = dm_list_y1 + dm_list_h;
+
+    // Gestion différée du redimensionnement
+    if (resize_delay_frames > 0) {
+        resize_delay_frames--;
+        if (resize_delay_frames == 0) {
+            // Appliquer la taille cible (calculée au moment du changement)
+            window_set_size(resize_target_w, resize_target_h);
+            
+            if (surface_exists(application_surface)) {
+                surface_resize(application_surface, resize_target_w, resize_target_h);
             }
-            ini_open("options.ini");
-            ini_write_real("display", "fullscreen", fs_enabled ? 1 : 0);
-            ini_close();
+            
+            // Centrage manuel + Sécurité barre des tâches (Uniquement pertinent si fenêtré)
+            if (display_mode == 0) { // Fenêtré
+                var disp_w = display_get_width();
+                var disp_h = display_get_height();
+                var target_x = (disp_w - resize_target_w) / 2;
+                var target_y = (disp_h - resize_target_h) / 2;
+                var safety_margin = 60;
+                
+                if (target_y + resize_target_h > disp_h - safety_margin) {
+                    target_y = max(0, disp_h - resize_target_h - safety_margin);
+                }
+                window_set_position(target_x, target_y);
+            } else if (display_mode == 2) { // Sans bordure
+                // Positionner en 0,0
+                window_set_position(0, 0);
+            }
+        }
+    }
+
+    // Interaction Dropdown Mode
+    if (mouse_check_button_pressed(mb_left)) {
+        // Clic sur le dropdown principal
+        var over_dm_dropdown = point_in_rectangle(mouse_x, mouse_y, dm_dropdown_x1_loc, dm_dropdown_y1_loc, dm_dropdown_x2_loc, dm_dropdown_y2_loc);
+        
+        if (over_dm_dropdown) {
+            display_mode_dropdown_open = !display_mode_dropdown_open;
+            // Fermer l'autre dropdown si ouvert
+            resolution_dropdown_open = false; 
+        } else if (display_mode_dropdown_open) {
+            // Clic dans la liste ?
+            var over_dm_list = point_in_rectangle(mouse_x, mouse_y, dm_list_x1, dm_list_y1, dm_list_x2, dm_list_y2);
+            if (over_dm_list) {
+                var clicked_index = floor((mouse_y - dm_list_y1) / dm_item_h);
+                if (clicked_index >= 0 && clicked_index < array_length(display_mode_list)) {
+                    display_mode = clicked_index;
+                    display_mode_dropdown_open = false;
+                    
+                    // === APPLICATION DU MODE ===
+                    if (display_mode == 1) { 
+                        // Plein écran
+                        window_set_fullscreen(true);
+                        window_set_showborder(true); // reset default
+                        ini_open("options.ini");
+                        ini_write_real("display", "fullscreen", 1);
+                        ini_close();
+                    } 
+                    else if (display_mode == 2) { 
+                        // Sans bordure
+                        window_set_fullscreen(false);
+                        window_set_showborder(false);
+                        
+                        // Redimensionner à la taille de l'écran avec délai pour sûreté
+                        resize_target_w = display_get_width();
+                        resize_target_h = display_get_height();
+                        resize_delay_frames = 2;
+                        
+                        ini_open("options.ini");
+                        ini_write_real("display", "fullscreen", 2);
+                        ini_close();
+                    } 
+                    else { 
+                        // Fenêtré (Mode 0)
+                        window_set_fullscreen(false);
+                        window_set_showborder(true);
+                        
+                        // Appliquer la résolution sélectionnée
+                        if (resolution_selected >= 0 && resolution_selected < array_length(resolution_list)) {
+                            var res_str = resolution_list[resolution_selected];
+                            var x_pos = string_pos("x", res_str);
+                            if (x_pos > 0) {
+                                resize_target_w = real(string_copy(res_str, 1, x_pos - 1));
+                                resize_target_h = real(string_copy(res_str, x_pos + 1, string_length(res_str) - x_pos));
+                                resize_delay_frames = 2;
+                            }
+                        }
+                        
+                        ini_open("options.ini");
+                        ini_write_real("display", "fullscreen", 0);
+                        ini_close();
+                    }
+                }
+            } else {
+                // Clic ailleurs -> fermer
+                display_mode_dropdown_open = false;
+            }
+        }
+    }
+
+    // Survol liste Mode
+    display_mode_hover_index = -1;
+    if (display_mode_dropdown_open) {
+        var over_dm_list = point_in_rectangle(mouse_x, mouse_y, dm_list_x1, dm_list_y1, dm_list_x2, dm_list_y2);
+        if (over_dm_list) {
+            display_mode_hover_index = floor((mouse_y - dm_list_y1) / dm_item_h);
         }
     }
 
@@ -203,7 +305,7 @@ if (spr != -1) {
     // Menu déroulant Résolution
     // ==========================
     var res_pad = 8;
-    var res_top = fs_box_y2 + 30; // placer sous le bloc plein écran
+    var res_top = display_mode_box_y2 + 30; // placer sous le bloc Mode
     var res_label_x_loc = content_x1 + slider_margin_h + slider_shift_x;
     var res_label_y_loc = res_top;
     var res_dropdown_w = 200;
@@ -259,9 +361,11 @@ if (spr != -1) {
                         var new_h = real(string_copy(res_str, x_pos + 1, string_length(res_str) - x_pos));
                         
                         // Appliquer la résolution seulement si on n'est pas en plein écran
-                        if (!fs_enabled) {
-                            window_set_size(new_w, new_h);
-                            window_center();
+                        if (display_mode == 0) { // Fenêtré
+                            // Utiliser le système différé pour bénéficier de la sécurité barre des tâches
+                            resize_target_w = new_w;
+                            resize_target_h = new_h;
+                            resize_delay_frames = 2;
                         }
                         
                         // Persister dans options.ini

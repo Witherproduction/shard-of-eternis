@@ -1,5 +1,3 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
-
 // Définit les stats spécifiques de ce monstre
 name = "Morgane la venimeuse"
 attack = 1;
@@ -11,20 +9,21 @@ booster = "A la découverte du monde"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+isPoisoner = true; // Force l'activation du poison
 description = "Camouflage et poison."
 effects = [
     {
-        id: 1,
-        trigger: TRIGGER_PASSIVE,
-        effect_type: EFFECT_STEALTH,
-        conditions: {}
-    },
+            id: 1,
+            trigger: TRIGGER_ENTER_FIELD,
+            effect_type: EFFECT_CAMOUFLAGE,
+            conditions: {}
+        },
     {
         id: 2,
-        trigger: TRIGGER_ON_ATTACK,
+        trigger: TRIGGER_ENTER_FIELD,
         effect_type: EFFECT_POISON,
         conditions: {}
     }
 ]
 
-
+event_inherited();  // Hérite des variables et comportement de oCardMonster

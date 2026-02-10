@@ -40,8 +40,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"degat feu",
-    "path":"folders/Sprites/animation/degat feu.yy",
+    "name":"dégats",
+    "path":"folders/Sprites/animation/dégats.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

@@ -672,8 +672,23 @@ function AI_SelectBestMove(moves) {
                     }
                 } else {
                     // We didn't kill them.
-                    // Generally bad unless we are setting up a kill or have no choice (Taunt)
-                    moveScoreVal -= 100; 
+                    
+                    // --- ATTRITION LOGIC (FIX FOR TANK PASSIVITY) ---
+                    // Is the target a blocker? (Taunt or Frontline 0-3)
+                    var isBlocker = (variable_instance_exists(target, "has_taunt") && target.has_taunt) 
+                                    || (variable_instance_exists(target, "fieldPosition") && target.fieldPosition <= 3);
+
+                    if (isBlocker) {
+                        // C'est un obstacle, il faut taper dedans !
+                        // Bonus pour chaque point de dégât infligé (préparation du terrain pour les autres)
+                        moveScoreVal += (myAtk * 20); 
+                        
+                        // Si l'IA ne prend presque pas de dégâts en retour (ex: Tortue a 1 ATQ), on encourage encore plus
+                        if (enemyAtk <= 1) moveScoreVal += 50;
+                    } else {
+                        // Cible non prioritaire qu'on ne tue pas : on garde la pénalité
+                        moveScoreVal -= 100; 
+                    }
                     
                     // Penalty for damage taken
                     if (iDie) {
@@ -686,7 +701,24 @@ function AI_SelectBestMove(moves) {
                 
                 // On évite les attaques suicides inutiles (sauf si Taunt nous oblige, mais le scoring filtrera)
                 var iSurvive = !iDie;
-                if (!iSurvive && !enemyDies) moveScoreVal = -999999;
+                if (!iSurvive && !enemyDies) {
+                    // Si on meurt sans tuer l'ennemi
+                    
+                    // Exception: Si c'est un Taunt/Bloqueur qu'on doit affaiblir
+                     var isBlocker = (variable_instance_exists(target, "has_taunt") && target.has_taunt) 
+                                    || (variable_instance_exists(target, "fieldPosition") && target.fieldPosition <= 3);
+                                    
+                    if (isBlocker) {
+                         // On accepte le sacrifice SEULEMENT si on fait des dégâts significatifs ou si c'est nécessaire
+                         if (myAtk >= 2) {
+                             moveScoreVal = -50; // Pénalité légère au lieu de -999999
+                         } else {
+                             moveScoreVal = -200; // Inutile de se suicider pour 1 dégât
+                         }
+                    } else {
+                        moveScoreVal = -999999;
+                    }
+                }
             }
         }
 

@@ -1,7 +1,87 @@
 // === oCardParent - Draw Event ===
 
+// --- AMBIDEXTROUS VISUAL (Doppelgänger / Mirage Statique) ---
+if (variable_instance_exists(id, "isAmbidextrous") && isAmbidextrous && variable_instance_exists(id, "zone") && zone == "Field") {
+    // Configuration
+    var _ghost_off_x = 15; // Décalage fixe X (vers la droite)
+    var _ghost_off_y = -8; // Décalage fixe Y (plus haut)
+    var _ghost_alpha = 0.5; // Semi-transparent
+    var _ghost_col = c_white; // Couleurs naturelles
+    
+    if (sprite_exists(sprite_index)) {
+        // Single Static Ghost (Le "Double" naturel semi-transparent)
+        draw_sprite_ext(sprite_index, image_index, x + _ghost_off_x, y + _ghost_off_y, image_xscale, image_yscale, image_angle, _ghost_col, _ghost_alpha);
+    }
+}
+// ----------------------------------------------------
+
 // Dessiner la carte à sa position
-draw_sprite_ext(sprite_index, image_index, x, y, image_xscale, image_yscale, image_angle, image_blend, image_alpha);
+if (sprite_exists(sprite_index)) {
+    draw_sprite_ext(sprite_index, image_index, x, y, image_xscale, image_yscale, image_angle, image_blend, image_alpha);
+} else {
+    // Fallback pour éviter le crash si le sprite est invalide (-1)
+    var _spr_fallback = asset_get_index("sCarteBack");
+    if (sprite_exists(_spr_fallback)) {
+        draw_sprite_ext(_spr_fallback, image_index, x, y, image_xscale, image_yscale, image_angle, image_blend, image_alpha);
+    }
+}
+
+// --- POISON BUBBLES DRAW ---
+if (variable_instance_exists(id, "poison_bubbles") && array_length(poison_bubbles) > 0) {
+    var _c_poison = make_color_rgb(60, 200, 80); // Toxic Green
+    draw_set_color(_c_poison);
+    
+    // Pre-calculate rotation math (dcos/dsin take degrees)
+    var _cos = dcos(image_angle);
+    var _sin = dsin(image_angle);
+    
+    for (var i = 0; i < array_length(poison_bubbles); i++) {
+        var b = poison_bubbles[i];
+        
+        // Rotate offsets: x' = x*cos - y*sin, y' = x*sin + y*cos
+        // Note: standard rotation formula 
+        // GML angles: 0 is right, 90 is up (or down depending on y-axis, usually down in 2D)
+        // Actually simpler to use lengthdir functions or just manual rotation
+        // Manual rotation for standard Cartesian:
+        // x_rot = x * cos(a) - y * sin(a)
+        // y_rot = x * sin(a) + y * cos(a)
+        // Since y is down, positive angle is usually counter-clockwise (in math) but GML is counter-clockwise too.
+        
+        var _rot_x = x + (b.off_x * _cos + b.off_y * _sin);
+        var _rot_y = y + (-b.off_x * _sin + b.off_y * _cos); // Adjusted for GML rotation quirks if needed, but let's stick to standard 2D rotation matrix for now
+        
+        // Actually, let's use the same math as the hover detection for consistency
+        // var ca = cos(image_angle * pi / 180); var sa = sin(image_angle * pi / 180);
+        // x_new = cx + lx*ca - ly*sa;
+        // y_new = cy + lx*sa + ly*ca;
+        
+        var _ca = dcos(image_angle); // cos
+        var _sa = -dsin(image_angle); // sin (GML dsin returns positive for 90, but y is inverted... wait)
+        // Let's rely on lengthdir for safety if unsure, but matrix is faster.
+        // Let's use the formula from hover check:
+        // ca = cos(rad), sa = sin(rad)
+        // x = cx + lx*ca - ly*sa
+        // y = cy + lx*sa + ly*ca
+        
+        var _rad = degtorad(image_angle);
+        var _ca_r = cos(_rad);
+        var _sa_r = sin(_rad);
+        
+        _rot_x = x + b.off_x * _ca_r - b.off_y * _sa_r;
+        _rot_y = y + b.off_x * _sa_r + b.off_y * _ca_r;
+        
+        draw_set_alpha(b.alpha * 0.8); // Slight transparency max
+        draw_circle(_rot_x, _rot_y, b.r, false);
+        
+        // Optional: Highlight
+        draw_set_alpha(b.alpha * 0.4);
+        draw_set_color(c_white);
+        draw_circle(_rot_x - b.r*0.3, _rot_y - b.r*0.3, b.r*0.3, false);
+        draw_set_color(_c_poison);
+    }
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+}
 
 // --- COMBO / SPELL ALERT VISUAL (WoW Proc Style) ---
 if (variable_instance_exists(id, "isComboActive") && isComboActive) {
@@ -20,12 +100,6 @@ if (variable_instance_exists(id, "isComboActive") && isComboActive) {
     
     gpu_set_blendmode(bm_add); // Mode additif pour l'effet lumineux
     
-    // Effet "Arc" gauche
-    draw_sprite_ext(sCardBack, 0, x - cardW/2, y, 0.2 * glowScale, 0.8 * image_yscale, 0, glowCol, glowAlpha * 0.5);
-    
-    // Effet "Arc" droit
-    draw_sprite_ext(sCardBack, 0, x + cardW/2, y, 0.2 * glowScale, 0.8 * image_yscale, 0, glowCol, glowAlpha * 0.5);
-    
     // Particules simples (cercles qui montent)
     var pTime = (comboAnimTimer % 60) / 60;
     var pY = y + cardH/2 - (cardH * pTime);
@@ -43,29 +117,62 @@ if (variable_instance_exists(id, "isComboActive") && isComboActive) {
 var hasTaunt = (variable_instance_exists(self, "has_taunt") && has_taunt);
 var isStealth = (variable_instance_exists(self, "isCamouflage") && isCamouflage);
 
-if (hasTaunt) {
-    // Draw Shield Border (Grey Thick Border)
-    var taunt_col = make_color_rgb(100, 100, 100);
-    draw_set_color(taunt_col);
-    var border_w = 3;
-    var w = sprite_get_width(sprite_index) * image_xscale;
-    var h = sprite_get_height(sprite_index) * image_yscale;
-    
-    // Simple rectangle border for now (Shield shape would be better but requires sprite)
-    for(var i=0; i<border_w; i++) {
-        draw_rectangle(x - w/2 - i, y - h/2 - i, x + w/2 + i, y + h/2 + i, true);
+    if (hasTaunt) {
+        // Draw Shield Border (Grey Thick Border)
+        var taunt_col = make_color_rgb(100, 100, 100);
+        draw_set_color(taunt_col);
+        var border_w = 3;
+        var w = 0, h = 0;
+        if (sprite_exists(sprite_index)) {
+             w = sprite_get_width(sprite_index) * image_xscale;
+             h = sprite_get_height(sprite_index) * image_yscale;
+        } else {
+             var _spr_fb = asset_get_index("sCarteBack");
+             if (sprite_exists(_spr_fb)) {
+                 w = sprite_get_width(_spr_fb) * image_xscale;
+                 h = sprite_get_height(_spr_fb) * image_yscale;
+             }
+        }
+        
+        // Simple rectangle border for now (Shield shape would be better but requires sprite)
+        for(var i=0; i<border_w; i++) {
+            draw_rectangle(x - w/2 - i, y - h/2 - i, x + w/2 + i, y + h/2 + i, true);
+        }
+        draw_set_color(c_white);
     }
-    draw_set_color(c_white);
-}
-
-if (isStealth) {
-    // Draw Stealth Fog / Alpha Overlay
-    draw_set_alpha(0.3);
-    draw_set_color(c_black);
-    draw_circle(x, y, (sprite_get_width(sprite_index) * image_xscale) * 0.4, false);
-    draw_set_alpha(1);
-    draw_set_color(c_white);
-}
+    
+    if (isStealth) {
+        // Draw Stealth Fog / Alpha Overlay
+        var overlaySpr = asset_get_index("sCamouflageOverlay");
+        
+        // Determine reference sprite for dimensions (Card itself or Back)
+        var refSpr = sprite_index;
+        if (!sprite_exists(refSpr)) refSpr = asset_get_index("sCarteBack");
+        
+        if (sprite_exists(overlaySpr) && sprite_exists(refSpr)) {
+            // Calculate scale to match card dimensions exactly
+            var s_x = (sprite_get_width(refSpr) / sprite_get_width(overlaySpr)) * image_xscale;
+            var s_y = (sprite_get_height(refSpr) / sprite_get_height(overlaySpr)) * image_yscale;
+            
+            draw_sprite_ext(overlaySpr, 0, x, y, s_x, s_y, image_angle, c_white, 0.6);
+        } else {
+            // Fallback (Old Circle)
+            draw_set_alpha(0.6);
+            draw_set_color(c_black);
+            var radius = 20;
+            if (sprite_exists(sprite_index)) {
+                radius = (sprite_get_width(sprite_index) * image_xscale) * 0.4;
+            } else {
+                var _spr_fb = asset_get_index("sCarteBack");
+                 if (sprite_exists(_spr_fb)) {
+                     radius = (sprite_get_width(_spr_fb) * image_xscale) * 0.4;
+                 }
+            }
+            draw_circle(x, y, radius, false);
+            draw_set_alpha(1);
+            draw_set_color(c_white);
+        }
+    }
 // --------------------------------------------------
 
 
@@ -81,8 +188,17 @@ if (room == rCollection && variable_instance_exists(self, "rarity")) {
         
         // Bordure épaisse pour les petites cartes
         var border_thickness = 4;
-        var card_w = sprite_get_width(sprite_index) * image_xscale;
-        var card_h = sprite_get_height(sprite_index) * image_yscale;
+        var card_w = 0, card_h = 0;
+        if (sprite_exists(sprite_index)) {
+             card_w = sprite_get_width(sprite_index) * image_xscale;
+             card_h = sprite_get_height(sprite_index) * image_yscale;
+        } else {
+             var _spr_fb = asset_get_index("sCarteBack");
+             if (sprite_exists(_spr_fb)) {
+                 card_w = sprite_get_width(_spr_fb) * image_xscale;
+                 card_h = sprite_get_height(_spr_fb) * image_yscale;
+             }
+        }
         
         for (var i = 1; i <= border_thickness; i++) {
             draw_rectangle(x - card_w/2 - i, y - card_h/2 - i, 
@@ -100,8 +216,20 @@ if (room == rCollection && zone == "Collection") {
     
     if (is_card_favorite(card_id)) {
         // Position de l'étoile en haut à gauche de la petite carte
-        var star_x = x - (sprite_get_width(sprite_index) * image_xscale)/2 + 8;
-        var star_y = y - (sprite_get_height(sprite_index) * image_yscale)/2 + 8;
+        var _sw = 0, _sh = 0;
+        if (sprite_exists(sprite_index)) {
+             _sw = sprite_get_width(sprite_index);
+             _sh = sprite_get_height(sprite_index);
+        } else {
+             var _spr_fb = asset_get_index("sCarteBack");
+             if (sprite_exists(_spr_fb)) {
+                 _sw = sprite_get_width(_spr_fb);
+                 _sh = sprite_get_height(_spr_fb);
+             }
+        }
+        
+        var star_x = x - (_sw * image_xscale)/2 + 8;
+        var star_y = y - (_sh * image_yscale)/2 + 8;
         var star_size = 8;
         
         // Dessiner l'étoile jaune (même méthode que le bouton)
@@ -174,8 +302,17 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
     if (can_show) {
         var spr = sprite_index;
         var s = image_xscale;
-        var cw = sprite_get_width(spr) * s;
-        var ch = sprite_get_height(spr) * s;
+        var cw = 0, ch = 0;
+        if (sprite_exists(spr)) {
+            cw = sprite_get_width(spr) * s;
+            ch = sprite_get_height(spr) * s;
+        } else {
+             var _spr_fb = asset_get_index("sCarteBack");
+             if (sprite_exists(_spr_fb)) {
+                 cw = sprite_get_width(_spr_fb) * s;
+                 ch = sprite_get_height(_spr_fb) * s;
+             }
+        }
         var tlx = x - cw * 0.5;
         var tly = y - ch * 0.5;
         // Utilisation des coordonnées globales
@@ -373,38 +510,31 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             // --- ATTACK ---
             if (variable_instance_exists(self, "attack")) {
                 var valA = attack;
-                var colA = c_black;
+                var colA = c_lime; // Always Green per user request
                 if (variable_instance_exists(self, "effective_attack")) {
                     valA = effective_attack;
                     // SAFETY FALLBACK: If effective is 0 but base is > 0, use base
                     if (valA == 0 && attack > 0) valA = attack;
-                    
-                    if (valA > attack) colA = c_lime; // Buffed
-                    else if (valA < attack) colA = c_red; // Debuffed
                 }
                 var txA = string(valA);
                 
-                // Draw Yellow Circle Background for Attack REMOVED
                 var circleA_x = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s;
                 var circleA_y = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s;
                 circleA_x = round(circleA_x);
                 circleA_y = round(circleA_y);
-                /*
-                draw_set_color(c_yellow);
-                draw_circle(circleA_x, circleA_y, 22 * s, false);
-                */
-                
-                draw_set_color(colA); // Text Color
-                /*
-                // Border is usually black, but let's keep it simple or split
-                draw_set_color(c_black); 
-                draw_circle(circleA_x, circleA_y, 22 * s, true);
-                */
                 
                 // Font Size
                 var scA = 1.2 * rel; // Bigger font
                 
-                draw_set_color(c_black); // Force BLACK
+                // Draw Outline (Black)
+                var o_dist = 2 * rel;
+                draw_set_color(c_black);
+                draw_text_transformed(circleA_x - o_dist, circleA_y, txA, scA, scA, angle_draw);
+                draw_text_transformed(circleA_x + o_dist, circleA_y, txA, scA, scA, angle_draw);
+                draw_text_transformed(circleA_x, circleA_y - o_dist, txA, scA, scA, angle_draw);
+                draw_text_transformed(circleA_x, circleA_y + o_dist, txA, scA, scA, angle_draw);
+                
+                draw_set_color(colA); // Text Color
                 draw_text_transformed(circleA_x, circleA_y, txA, scA, scA, angle_draw);
             }
 
@@ -434,31 +564,28 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
                     }
                 }
 
-                // Color Logic (kept for reference but unused for text)
-                var hpColor = c_black;
-                if (hpVal < hpMax) hpColor = c_red;
-                else if (hpVal > hpMax) hpColor = c_lime;
+                // Color Logic
+                var hpColor = c_lime; // Always Green per user request
                 
                 var txD = string(hpVal);
                 
-                // Draw Blood Drop / Circle Background for HP REMOVED
                 var circleD_x = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
                 var circleD_y = tly + (def_y1 + (def_y2-def_y1)/2) * s;
                 circleD_x = round(circleD_x);
                 circleD_y = round(circleD_y);
                 
-                // Background (Dark Red/Black) REMOVED
-                /*
-                draw_set_color(make_color_rgb(50, 0, 0));
-                draw_circle(circleD_x, circleD_y, 22 * s, false);
-                draw_set_color(c_red); // Border
-                draw_circle(circleD_x, circleD_y, 22 * s, true);
-                */
-                
-                // Text Color forced to BLACK
-                draw_set_color(c_black);
-                
                 var scD = 1.2 * rel;
+                
+                // Draw Outline (Black)
+                var o_dist = 2 * rel;
+                draw_set_color(c_black);
+                draw_text_transformed(circleD_x - o_dist, circleD_y, txD, scD, scD, angle_draw);
+                draw_text_transformed(circleD_x + o_dist, circleD_y, txD, scD, scD, angle_draw);
+                draw_text_transformed(circleD_x, circleD_y - o_dist, txD, scD, scD, angle_draw);
+                draw_text_transformed(circleD_x, circleD_y + o_dist, txD, scD, scD, angle_draw);
+                
+                // Text Color
+                draw_set_color(hpColor);
                 draw_text_transformed(circleD_x, circleD_y, txD, scD, scD, angle_draw);
             }
             

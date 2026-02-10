@@ -1,4 +1,4 @@
-﻿// === Paramètres ===
+// === Paramètres ===
 var columns = 4;              // Nombre de colonnes affichées (réduit de 5 à 4)
 var rows = 3;                 // Nombre de lignes affichées
 var spacing = 20;             // Espace horizontal/vertical entre les cartes
@@ -254,7 +254,6 @@ for (var i = 0; i < count; i++) {
             }
 
             if (!is_magic && variable_struct_exists(cardData, "attack")) {
-                draw_set_color(c_black);
                 var txa = string(cardData.attack);
                 var rw_a = (atk_x2 - atk_x1) * s - pad * 2;
                 var rh_a = (atk_y2 - atk_y1) * s - pad * 2;
@@ -266,11 +265,21 @@ for (var i = 0; i < count; i++) {
                 var hsc_a  = base_line_h * sc_a;
                 var cx_a   = round(left_a + max(0, (rw_a - wsc_a) * 0.5));
                 var cy_a   = round(top_a  + max(0, (rh_a - hsc_a) * 0.5));
+                
+                // Outline (Black)
+                var o_dist = 2 * rel;
+                draw_set_color(c_black);
+                draw_text_transformed(cx_a - o_dist, cy_a, txa, sc_a, sc_a, 0);
+                draw_text_transformed(cx_a + o_dist, cy_a, txa, sc_a, sc_a, 0);
+                draw_text_transformed(cx_a, cy_a - o_dist, txa, sc_a, sc_a, 0);
+                draw_text_transformed(cx_a, cy_a + o_dist, txa, sc_a, sc_a, 0);
+                
+                // Text (Green)
+                draw_set_color(c_lime);
                 draw_text_transformed(cx_a, cy_a, txa, sc_a, sc_a, 0);
             }
 
             if (!is_magic && variable_struct_exists(cardData, "PV")) {
-                draw_set_color(c_black);
                 var txd = string(cardData.PV);
                 var rw_d = (def_x2 - def_x1) * s - pad * 2;
                 var rh_d = (def_y2 - def_y1) * s - pad * 2;
@@ -282,6 +291,17 @@ for (var i = 0; i < count; i++) {
                 var hsc_d  = base_line_h * sc_d;
                 var cx_d   = round(left_d + max(0, (rw_d - wsc_d) * 0.5));
                 var cy_d   = round(top_d  + max(0, (rh_d - hsc_d) * 0.5));
+                
+                // Outline (Black)
+                var o_dist = 2 * rel;
+                draw_set_color(c_black);
+                draw_text_transformed(cx_d - o_dist, cy_d, txd, sc_d, sc_d, 0);
+                draw_text_transformed(cx_d + o_dist, cy_d, txd, sc_d, sc_d, 0);
+                draw_text_transformed(cx_d, cy_d - o_dist, txd, sc_d, sc_d, 0);
+                draw_text_transformed(cx_d, cy_d + o_dist, txd, sc_d, sc_d, 0);
+                
+                // Text (Green)
+                draw_set_color(c_lime);
                 draw_text_transformed(cx_d, cy_d, txd, sc_d, sc_d, 0);
             }
         }

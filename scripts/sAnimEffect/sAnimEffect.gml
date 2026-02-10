@@ -12,10 +12,10 @@ function animEffectRequestProjectile(element, srcCard, amount, targetIsHero) {
     var dstx = room_width * 0.85;
     var dsty = room_height * 0.15;
     if (!targetIsHero) {
-        var btn = instance_find(oAttackDirectEnemy, 0);
-        if (btn != noone) { dstx = btn.x; dsty = btn.y; }
+        var lpE = instance_find(oLP_Enemy, 0);
+        if (lpE != noone) { dstx = lpE.x; dsty = lpE.y; }
         else {
-            var lpE = instance_find(oLP_Enemy, 0); if (lpE != noone) { dstx = lpE.x; dsty = lpE.y; }
+            var btn = instance_find(oAttackDirectEnemy, 0); if (btn != noone) { dstx = btn.x; dsty = btn.y; }
         }
     } else {
         var lpH = instance_find(oLP_Hero, 0); if (lpH != noone) { dstx = lpH.x; dsty = lpH.y; }
@@ -23,14 +23,19 @@ function animEffectRequestProjectile(element, srcCard, amount, targetIsHero) {
     var dur = clamp(700 + amount * 80, 700, 1600);
     var size = clamp(6 + amount * 1.5, 6, 18);
     var is_physique = (string_lower(element) == "physique");
+    var is_shadow = (string_lower(element) == "ombre");
+
     if (is_physique) { dur = clamp(450 + amount * 40, 350, 1000); }
-    var sprProj = asset_get_index(is_physique ? "sEpee" : "sBouleDeFeu");
-    var sprExpl = asset_get_index(is_physique ? "sBlessure" : "sExplosionFeu");
+    
+    var sprProj = asset_get_index(is_physique ? "sEpee" : (is_shadow ? "sBouleOmbre" : "sBouleDeFeu"));
+    var sprExpl = asset_get_index(is_physique ? "sBlessure" : (is_shadow ? "sExplosionFeu" : "sExplosionFeu")); // Use Fire explosion for Shadow for now, or change if needed
+    
     var projFrames = (sprProj != -1) ? sprite_get_number(sprProj) : 0;
     var explFrames = (sprExpl != -1) ? sprite_get_number(sprExpl) : 0;
     var expl_fps = 16;
     var expl_per_frame_ms = 1000 / expl_fps;
     var expl_duration_ms = (explFrames > 0) ? expl_per_frame_ms * explFrames : 1000;
+    
     var sndLaunch = is_physique ? asset_get_index("SwordDraw") : asset_get_index("FireBallLaunch");
     var sndImpact = is_physique ? asset_get_index("SwordHit") : asset_get_index("FireBallImpact");
     var sndTravel = is_physique ? -1 : asset_get_index("FireBallTravel");
@@ -86,21 +91,34 @@ function animEffectRequestProjectile(element, srcCard, amount, targetIsHero) {
     array_push(global.anim_fx_list, fx);
 }
 
-function animEffectRequestProjectileTarget(element, srcCard, targetInstance, amount) {
+function animEffectRequestProjectileTarget(element, srcCard, targetInstance, amount, onHitCallback) {
     // Utilisation du nouveau système FX_Effect (Objet) pour une meilleure fiabilité
-    if (room != rDuel) return;
-    if (srcCard == noone || !instance_exists(srcCard)) return;
-    if (targetInstance == noone || !instance_exists(targetInstance)) return;
+    if (room != rDuel) {
+        if (!is_undefined(onHitCallback)) onHitCallback();
+        return;
+    }
+    if (srcCard == noone || !instance_exists(srcCard)) {
+        if (!is_undefined(onHitCallback)) onHitCallback();
+        return;
+    }
+    if (targetInstance == noone || !instance_exists(targetInstance)) {
+        if (!is_undefined(onHitCallback)) onHitCallback();
+        return;
+    }
 
     var srcx = srcCard.x; var srcy = srcCard.y;
     var dstx = targetInstance.x;
     var dsty = targetInstance.y;
 
     // Calcul de la durée (pour déterminer la vitesse)
-    var dur_ms = clamp(700 + amount * 80, 700, 1600);
-    var is_physique = (string_lower(element) == "physique");
-    if (is_physique) { dur_ms = clamp(450 + amount * 40, 350, 1000); }
+    // FIXE : On utilise maintenant une durée fixe de 900ms pour l'animation de projectile, 
+    // quelle que soit la quantité de dégâts, comme demandé par l'utilisateur.
+    var dur_ms = 900; 
     
+    var is_physique = (string_lower(element) == "physique");
+    var is_shadow = (string_lower(element) == "ombre");
+    var is_nature = (string_lower(element) == "nature");
+
     // Calcul de la vitesse (pixels par step)
     // Vitesse = Distance / (Duration_ms / 1000 * 60)
     var dist = point_distance(srcx, srcy, dstx, dsty);
@@ -108,10 +126,60 @@ function animEffectRequestProjectileTarget(element, srcCard, targetInstance, amo
     var spd = (frames > 0) ? (dist / frames) : 25;
     
     // Choix du sprite et sons
-    var sprProj = asset_get_index(is_physique ? "sEpee" : "sBouleDeFeu");
+    var sprProj = asset_get_index(is_physique ? "sEpee" : (is_shadow ? "sBouleOmbre" : (is_nature ? "sBouleTerre" : "sBouleDeFeu")));
+    
+    // Détection si c'est une version combinée (Boule Ombre OU Boule de Feu OU Boule Terre)
+    var spr_name = (sprProj != -1) ? sprite_get_name(sprProj) : "";
+    var is_combined_anim = (spr_name == "sBouleOmbre" || spr_name == "sBouleDeFeu" || spr_name == "sBouleTerre");
+    
+    var proj_range = undefined;
+    var expl_range = undefined;
+    
+    if (is_combined_anim) {
+        // Les deux sprites partagent la même structure : 0-18 vol, 19-34 explosion
+        // sBouleTerre : 16 frames projectile (0-15), 16 frames explosion (16-31)
+        if (spr_name == "sBouleTerre") {
+            proj_range = [0, 15];
+            expl_range = [16, 31];
+        } else {
+            proj_range = [0, 18];
+            if (spr_name == "sBouleDeFeu") {
+                expl_range = [19, 33]; // sBouleDeFeu a 34 frames (0-33)
+            } else {
+                expl_range = [19, 34]; // sBouleOmbre a 35 frames (0-34)
+            }
+        }
+    }
+    
+    // Explosion setup
+    var sprExpl = noone;
+    
+    if (is_combined_anim) {
+        sprExpl = sprProj; // Utilise le même sprite pour l'explosion
+    } else {
+        // Tentative de trouver une explosion valide pour les autres (Physique, etc.)
+        sprExpl = asset_get_index("sExplosionFeu");
+        if (sprExpl == -1) sprExpl = asset_get_index("sBlessure"); 
+        if (sprExpl == -1) sprExpl = asset_get_index("sBouleDeFeu");
+        
+        if (is_physique) {
+            sprExpl = asset_get_index("sBlessure");
+        }
+    }
+
+    if (sprProj == -1) {
+        show_debug_message("DEBUG sAnimEffect: Sprite not found for " + string(element) + ". Fallback to sBouleDeFeu.");
+        sprProj = asset_get_index("sBouleDeFeu");
+    } else {
+        show_debug_message("DEBUG sAnimEffect: Sprite found: " + sprite_get_name(sprProj));
+    }
+
     var sndLaunch = is_physique ? asset_get_index("SwordDraw") : asset_get_index("FireBallLaunch");
     var sndImpact = is_physique ? asset_get_index("SwordHit") : asset_get_index("FireBallImpact");
     
+    // Jouer le son de lancement
+    if (sndLaunch != -1) audio_play_sound(sndLaunch, 0, false);
+
     // Création de l'effet visuel
     var fx = instance_create_layer(srcx, srcy, "UI", FX_Effect);
     if (fx != noone) {
@@ -119,22 +187,63 @@ function animEffectRequestProjectileTarget(element, srcCard, targetInstance, amo
         fx.move_speed = spd;
         fx.target_inst = targetInstance;
         fx.spriteGhost = sprProj;
+        fx.callback = is_undefined(onHitCallback) ? noone : onHitCallback;
+        fx.spr_explosion = sprExpl;
+        
+        // Paramètres temporels
+        fx.projectile_duration = dur_ms;
+        fx.start_time = current_time; // Requis pour le mouvement temporel
+        
+        // Configuration spécifique pour l'explosion sBlessure (Physique)
+        // L'utilisateur veut que l'explosion reste visible 1000ms.
+        // Comme sBlessure n'a qu'une frame, on utilise une durée explicite au lieu de image_speed
+        if (sprite_get_name(sprExpl) == "sBlessure") {
+             fx.explosion_duration = 1000;
+        }
+
+        // Ranges pour animation combinée
+        if (!is_undefined(proj_range)) fx.projectile_range = proj_range;
+        if (!is_undefined(expl_range)) fx.explosion_range = expl_range;
         
         // Configuration manuelle car le Create Event a déjà tourné avec mode="halo"
         fx.sprite_index = sprProj;
-        fx.depth = -20000;
-        fx.depth_override = -20000;
+        fx.image_xscale = 1;
+        fx.image_yscale = 1;
+        fx.image_alpha = 1;
+        fx.visible = true;
+        
+        fx.depth = -25000;
+        fx.depth_override = -25000;
         fx.snd_impact = sndImpact;
         
+        // Propager l'option de rotation si définie sur la carte source
+        if (variable_instance_exists(srcCard, "projectile_rotate")) {
+            fx.projectile_rotate = srcCard.projectile_rotate;
+        } else {
+            // Par défaut, pas de rotation sur soi-même (pour éviter que la boule de feu tourne)
+            fx.projectile_rotate = false; 
+        }
+
         // Jouer le son de lancement maintenant
         if (sndLaunch != -1) {
             audio_play_sound(sndLaunch, 0, false);
         }
         
-        // Configuration spécifique pour le physique (rotation)
+        // Configuration spécifique pour le physique (Arc + Rotation lente)
         if (is_physique) {
-            fx.image_angle = 0; 
+            fx.projectile_rotate = true;
+            fx.projectile_rotate_speed = 0.25; // Tourbillonement lent
+            fx.projectile_arc_height = 120;    // Trajectoire en arc de cercle
         }
+        
+        // Configuration spécifique pour l'ombre (Pas de rotation, alignement directionnel)
+        if (is_shadow) {
+            fx.image_angle = 0;
+            fx.projectile_rotate = false;
+        }
+    } else {
+         // Fallback si échec création FX
+         if (!is_undefined(onHitCallback)) onHitCallback();
     }
 }
 

@@ -92,10 +92,13 @@ function get_bot_decks_chap1() {
                     force_attack_abyssien_condition: true, // Si Magie Continue ou Ruisselier présent -> Attaque
                     
                     // Placement
+                    placement_strategy: "tank_front_dps_back",
                     placement_priority: {
                         "oRuisselierAbyssien": "back",
                         "oCoureurAbyssien": "front",
-                        "oFourrageurAbyssien": "front"
+                        "oFourrageurAbyssien": "front",
+                        "oTortueVagabonde": "front",
+                        "oVieilOurs": "front"
                     },
                     
                     // Règles de Sorts

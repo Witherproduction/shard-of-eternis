@@ -9,6 +9,7 @@ is_player_card = true;
 
 description = "Inflige 2 dégâts à un serviteur ennemi et l'Entrave.";
 mana_cost = 2;
+element = "Ombre";
 
 effects = [
     {
@@ -16,6 +17,8 @@ effects = [
         trigger: TRIGGER_MAIN_PHASE,
         effect_type: EFFECT_DAMAGE_TARGET,
         damage: 2,
+        element: "Ombre",
+        select_mode: "target",
         scope: "single",
         target_zone: "field",
         owner: "enemy",

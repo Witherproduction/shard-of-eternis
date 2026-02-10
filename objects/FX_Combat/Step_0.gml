@@ -270,18 +270,30 @@ else if (phase == "secret_reveal") {
 else if (phase == "secret_effect") {
     // Attendre la fin de l'aura d'effet, puis exécuter l'activation des Secrets et gérer éventuelle redirection
     if (secret_effect_done) {
-        var redirectedDefender = noone;
-        global.combat_redirect_defender = noone;
+        // Exécuter la logique d'activation UNE SEULE FOIS
+        if (!variable_instance_exists(self, "secret_logic_executed")) {
+            secret_logic_executed = true;
+            secret_redirected_defender = noone;
+            global.combat_redirect_defender = noone;
 
-        if (!is_undefined(activateSecretsOnDirectAttack)) {
-            // Passer la carte secrète révélée pour activation ciblée même si elle n'est plus face cachée
-            var res = activateSecretsOnDirectAttack(attacker, secret_card);
-            if (res != noone && instance_exists(res)) redirectedDefender = res;
+            if (!is_undefined(activateSecretsOnDirectAttack)) {
+                // Passer la carte secrète révélée pour activation ciblée même si elle n'est plus face cachée
+                var res = activateSecretsOnDirectAttack(attacker, secret_card);
+                if (res != noone && instance_exists(res)) secret_redirected_defender = res;
+            }
+
+            if (global.combat_redirect_defender != noone && instance_exists(global.combat_redirect_defender)) {
+                secret_redirected_defender = global.combat_redirect_defender;
+            }
         }
 
-        if (global.combat_redirect_defender != noone && instance_exists(global.combat_redirect_defender)) {
-            redirectedDefender = global.combat_redirect_defender;
+        // Attendre que les FX procéduraux (ex: Aoe_terre) soient terminés
+        if (variable_global_exists("combat_fx_count") && global.combat_fx_count > 0) {
+            // On attend...
+            exit;
         }
+
+        var redirectedDefender = secret_redirected_defender;
 
         if (redirectedDefender != noone && instance_exists(redirectedDefender)) {
             // Basculer en mode vsMonster et repartir sur une approche vers le défenseur invoqué

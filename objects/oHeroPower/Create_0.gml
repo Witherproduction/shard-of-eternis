@@ -119,7 +119,7 @@ applyLancerHache = function(target) {
               if (variable_instance_exists(target, "nbLP")) {
                  target.nbLP -= 1;
                  // Animation dégât (si dispo)
-                  if (object_is_ancestor(target.object_index, oLP_Parent) || variable_instance_exists(target, "visual_damage")) {
+                  if (variable_instance_exists(target, "visual_damage")) {
                       // target.visual_damage(1); // Hypothétique
                   }
               } else if (variable_instance_exists(target, "hp")) {

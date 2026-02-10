@@ -107,6 +107,29 @@ function damageCard(card, amount) {
     if (card == noone) return false;
     registerTriggerEvent(TRIGGER_ON_DAMAGE, card, { damage: amount, source: card });
     
+    // Support for LP Objects (Hero/Enemy)
+    if (variable_instance_exists(card, "nbLP")) {
+        var oldLP = card.nbLP;
+        card.nbLP = max(0, card.nbLP - amount);
+        var newLP = card.nbLP;
+        
+        var ownerIsHero = (card.object_index == oLP_Hero); // Determine owner based on object type
+        if (variable_instance_exists(card, "isHeroOwner")) ownerIsHero = card.isHeroOwner;
+        
+        registerTriggerEvent(TRIGGER_ON_LP_CHANGE, noone, {
+            old_lp: oldLP,
+            new_lp: newLP,
+            change: -amount,
+            owner_is_hero: ownerIsHero
+        });
+        
+        if (newLP <= 0) {
+             // Handle Victory/Defeat if needed, usually handled by Game Manager check
+             show_debug_message("### Victory/Defeat via damageCard on LP Object");
+        }
+        return true;
+    }
+    
     // Support for both Structs and Instances
     var has_current_hp = variable_struct_exists(card, "current_hp");
     if (!has_current_hp && instance_exists(card)) has_current_hp = variable_instance_exists(card, "current_hp");
@@ -328,7 +351,29 @@ function spawnPoisonFX(target, source) {
 // === Effets de zone ===
 function damageAllMonsters(amount, effect) {
     var targets = getTargetsByFilter(effect);
-    for (var i = 0; i < array_length(targets); i++) { damageCard(targets[i], amount); }
+    
+    // Check for Visual FX request
+    var fx_type = variable_struct_exists(effect, "visual_fx") ? effect.visual_fx : "";
+    var elem = variable_struct_exists(effect, "element") ? string_lower(effect.element) : "";
+    
+    if (fx_type == "Aoe_terre" || elem == "aoe_nature") {
+        for (var i = 0; i < array_length(targets); i++) {
+            var tgt = targets[i];
+            
+            // Create the FX
+            var fx = instance_create_depth(tgt.x, tgt.y, -9000, oFX_AoeTerre);
+            fx.target = tgt;
+            fx.damage_amount = amount;
+            
+            // Define callback for damage application (triggered by FX)
+            fx.callback = method({t: tgt, a: amount}, function() {
+                if (instance_exists(t)) damageCard(t, a);
+            });
+        }
+    } else {
+        // Default instant behavior
+        for (var i = 0; i < array_length(targets); i++) { damageCard(targets[i], amount); }
+    }
     return true;
 }
 

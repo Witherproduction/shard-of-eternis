@@ -6,6 +6,26 @@ if (room != rDuel) {
 
 if (global.isGraveyardViewerOpen) exit;
 
+// === Gestion Ciblage Effet (Magie) ===
+// Permet de cibler le héros ennemi via ce bouton lors de l'utilisation d'un sort
+if (instance_exists(oSelectManager) && oSelectManager.targetingEffect) {
+    show_debug_message("### oAttackDirectEnemy: Clic détecté en mode ciblage d'effet");
+    var effectId = oSelectManager.targetingEffectId;
+    if (effectId != noone) {
+        var lpEnemy = instance_find(oLP_Enemy, 0);
+        if (lpEnemy != noone) {
+            show_debug_message("### oAttackDirectEnemy: Redirection vers oLP_Enemy pour ciblage");
+            effectId.onTargetSelected(lpEnemy);
+            
+            // Désactiver le ciblage (sécurité, normalement géré par onTargetSelected)
+            oSelectManager.targetingEffect = false;
+            oSelectManager.targetingEffectId = noone;
+            oSelectManager.remove();
+            return;
+        }
+    }
+}
+
 // Vérifier si on est en mode attaque avec une carte sélectionnée
 if (selectManager.attackMode && selectManager.selected != noone) {
     var card = selectManager.selected;
@@ -63,6 +83,8 @@ if (selectManager.attackMode && selectManager.selected != noone) {
         }
         
         var allowThrough = (variable_struct_exists(card, "canAttackDirectAlways") && card.canAttackDirectAlways);
+        if (variable_instance_exists(card, "isPercee") && card.isPercee) allowThrough = true;
+        
         if (enemyHasMonsters && allowThrough) enemyHasMonsters = false;
         
         if(!enemyHasMonsters) {

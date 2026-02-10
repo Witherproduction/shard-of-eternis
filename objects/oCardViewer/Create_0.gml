@@ -347,6 +347,7 @@ function displayFilteredCards() {
             if (variable_struct_exists(card, "sprite")) {
                 sprIndex = asset_get_index(card.sprite);
             }
+
             if (sprIndex != -1) {
                 cardInstance.sprite_index = sprIndex;
             } else {

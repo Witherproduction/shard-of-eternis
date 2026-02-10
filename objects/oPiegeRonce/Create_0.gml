@@ -10,6 +10,7 @@ is_player_card = true;
 mana_cost = 2;
 
 description = "Secret : Quand un ennemi vous attaque, inflige 2 dégâts à tous les serviteurs adverses."
+element = "Nature";
 effects = [
     {
         id: 1,
@@ -17,6 +18,8 @@ effects = [
         effect_type: EFFECT_DAMAGE_ALL,
         value: 2,
         owner: "enemy",
-        scope: "all"
+        scope: "all",
+        monster_type: "Monster",
+        element: "Aoe_Nature"
     }
 ];

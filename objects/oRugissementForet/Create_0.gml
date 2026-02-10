@@ -8,7 +8,7 @@ rarity = "commun"
 booster = "A la découverte du monde"
 is_player_card = true;
 
-description = "Donne +2 PV à toutes les Bêtes.";
+description = "Donne +2 PV à toutes vos Bêtes.";
 mana_cost = 2;
 effects = [
     {
@@ -16,7 +16,7 @@ effects = [
         trigger: TRIGGER_MAIN_PHASE,
         effect_type: EFFECT_BUFF,
         scope: "all",
-        owner: "both",
+        owner: "ally",
         target_zone: "field",
         criteria: { type: "Monster", genre: "Bête" },
         atk: 0,

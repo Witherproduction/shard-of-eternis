@@ -112,7 +112,8 @@ function isTargetingRequired(effect) {
         etype == EFFECT_BANISH_TARGET ||
         etype == EFFECT_DAMAGE_TARGET ||
         etype == EFFECT_HEAL_TARGET ||
-        etype == EFFECT_PURGE) {
+        etype == EFFECT_PURGE ||
+        (etype == EFFECT_SUMMON && variable_struct_exists(effect, "summon_mode") && string_lower(effect.summon_mode) == "copy_target")) {
         return true;
     }
     
@@ -181,6 +182,15 @@ function executeEffect(card, effect, context = {}) {
     if (!variable_struct_exists(effect, "effect_type")) {
         show_debug_message("Erreur : Effet sans type défini");
         return false;
+    }
+
+    // Vérification des conditions de trigger (Unified Trigger System)
+    // Cela permet de bloquer l'exécution si les prérequis (ex: min_genre_count) ne sont pas satisfaits
+    // même si l'effet est exécuté manuellement via oHand
+    if (script_exists(asset_get_index("checkTriggerConditions"))) {
+        if (!checkTriggerConditions(card, effect, context)) {
+            return false;
+        }
     }
     
     // Vérification de condition d'exécution (ex: Combo)
@@ -257,10 +267,13 @@ function executeEffect(card, effect, context = {}) {
                        || effectType == EFFECT_DAMAGE_TARGET
                        || effectType == EFFECT_RETURN_TO_HAND
                        || effectType == EFFECT_EQUIP_SELECT_TARGET
+                       || (effectType == EFFECT_SUMMON && string_lower(variable_struct_exists(effect, "summon_mode") ? effect.summon_mode : "") == "copy_target")
                        || (effectType == EFFECT_BUFF && scope_for_target == "single")
                        || (effectType == EFFECT_ENTRAVE && scope_for_target == "single")
                        || (effectType == EFFECT_POINTS && string_lower(variable_struct_exists(effect, "scope") ? effect.scope : "lp") == "card" && string_lower(variable_struct_exists(effect, "select_mode") ? effect.select_mode : "filter") == "target")
-                      );
+                       || effectType == EFFECT_PURGE
+                       );
+    
     if (!((effectType == EFFECT_BUFF) && (scope_for_target == "single") && !variable_struct_exists(effect, "owner") && !variable_struct_exists(effect, "criteria")) && needsTarget && target == noone) {
         // Activation manuelle uniquement (phase principale ou effet rapide) et uniquement côté Héros (jamais IA)
         var isManualActivation = (!variable_struct_exists(effect, "trigger")
@@ -269,6 +282,7 @@ function executeEffect(card, effect, context = {}) {
                                   || effect.trigger == TRIGGER_ON_SUMMON);
         var ownerIsHero_ctx = (variable_struct_exists(context, "owner_is_hero")) ? context.owner_is_hero
                               : ((card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true);
+        
         if (isManualActivation && ownerIsHero_ctx && instance_exists(selectManager)) {
             var hasValidTarget = true;
             if (effectType == EFFECT_BUFF) {
@@ -308,11 +322,53 @@ function executeEffect(card, effect, context = {}) {
                         }
                     }
                 }
-            } else if (effectType == EFFECT_DESTROY_TARGET || effectType == EFFECT_BANISH_TARGET || effectType == EFFECT_RETURN_TO_HAND || effectType == EFFECT_DAMAGE_TARGET) {
+            } else if (effectType == EFFECT_DESTROY_TARGET || effectType == EFFECT_BANISH_TARGET || effectType == EFFECT_RETURN_TO_HAND || effectType == EFFECT_DAMAGE_TARGET || effectType == EFFECT_PURGE || (effectType == EFFECT_SUMMON && string_lower(variable_struct_exists(effect, "summon_mode") ? effect.summon_mode : "") == "copy_target")) {
                 hasValidTarget = false;
-                if (script_exists(getTargetsByFilter)) {
+                // Utiliser la fonction centralisée qui a été corrigée pour gérer correctement "both" et copy_target
+                if (script_exists(asset_get_index("hasValidTargetForEffect"))) {
+                    hasValidTarget = hasValidTargetForEffect(card, effect);
+                } else if (script_exists(getTargetsByFilter)) {
                     var arrT = getTargetsByFilter(effect);
                     hasValidTarget = (is_array(arrT) && array_length(arrT) > 0);
+                }
+                
+                // Failsafe pour EFFECT_PURGE: si le filtre standard échoue mais qu'il y a des cibles potentielles, on force l'activation
+                if (effectType == EFFECT_PURGE && !hasValidTarget) {
+                    var ownerF = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "enemy";
+                    
+                    // 1. Vérifier les ennemis (si owner est enemy ou both)
+                    if ((ownerF == "enemy" || ownerF == "both") && instance_exists(oFieldManagerEnemy)) {
+                         var fM = oFieldManagerEnemy.getField("Monster");
+                         if (fM != noone && variable_struct_exists(fM, "cards")) {
+                             var cardsE = fM.cards;
+                             for (var k = 0; k < array_length(cardsE); k++) {
+                                 var cE = cardsE[k];
+                                 if (cE != 0 && instance_exists(cE)) {
+                                     // Ignorer camouflage si c'est un ennemi
+                                     if (variable_instance_exists(cE, "isCamouflage") && cE.isCamouflage) continue;
+                                     hasValidTarget = true;
+                                     show_debug_message("### DEBUG PURGE: Forced hasValidTarget=true via failsafe (Enemy)");
+                                     break;
+                                 }
+                             }
+                         }
+                    }
+                    
+                    // 2. Vérifier les alliés (si owner est ally ou both)
+                    if (!hasValidTarget && (ownerF == "ally" || ownerF == "both") && instance_exists(oFieldManagerHero)) {
+                         var fM_H = oFieldManagerHero.getField("Monster");
+                         if (fM_H != noone && variable_struct_exists(fM_H, "cards")) {
+                             var cardsH = fM_H.cards;
+                             for (var k = 0; k < array_length(cardsH); k++) {
+                                 var cH = cardsH[k];
+                                 if (cH != 0 && instance_exists(cH)) {
+                                     hasValidTarget = true;
+                                     show_debug_message("### DEBUG PURGE: Forced hasValidTarget=true via failsafe (Ally)");
+                                     break;
+                                 }
+                             }
+                         }
+                    }
                 }
             } else if (effectType == EFFECT_ENTRAVE) {
                 hasValidTarget = false;
@@ -336,7 +392,8 @@ function executeEffect(card, effect, context = {}) {
             effect.onTargetSelected = function(cardTarget) {
                 var eff = (instance_exists(selectManager)) ? selectManager.targetingEffectId : noone;
                 var src = (is_struct(eff) && variable_struct_exists(eff, "source_card")) ? eff.source_card : noone;
-                if (cardTarget != noone && instance_exists(cardTarget) && (cardTarget.zone == "Field" || cardTarget.zone == "FieldSelected")) {
+                var zTarget = (cardTarget != noone && instance_exists(cardTarget) && variable_instance_exists(cardTarget, "zone")) ? cardTarget.zone : "";
+                if (cardTarget != noone && instance_exists(cardTarget) && (zTarget == "Field" || zTarget == "FieldSelected")) {
                     var okSel = true;
                     if (is_struct(eff)) {
                         if (variable_struct_exists(eff, "criteria")) {
@@ -645,11 +702,12 @@ function executeEffect(card, effect, context = {}) {
             var mode = variable_struct_exists(effect, "mode") ? string_lower(effect.mode) : "add";
             var ownerSideB = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "ally";
             var srcHeroB = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
-            var agg = (effect.trigger == TRIGGER_CONTINUOUS) || (variable_struct_exists(effect, "aggregate") && effect.aggregate);
+            var agg = (variable_struct_exists(effect, "trigger") && effect.trigger == TRIGGER_CONTINUOUS) || (variable_struct_exists(effect, "aggregate") && effect.aggregate);
             var atkVal = 0;
             var defVal = 0;
-            if (variable_struct_exists(context, "atk_value")) atkVal = context.atk_value; else if (variable_struct_exists(effect, "atk")) atkVal = effect.atk; else atkVal = value;
-            if (variable_struct_exists(context, "def_value")) defVal = context.def_value; else if (variable_struct_exists(effect, "PV")) defVal = effect.PV; else defVal = value;
+            var ignoreCtx = variable_struct_exists(effect, "ignore_context_stats") ? effect.ignore_context_stats : false;
+            if (!ignoreCtx && variable_struct_exists(context, "atk_value")) atkVal = context.atk_value; else if (variable_struct_exists(effect, "atk")) atkVal = effect.atk; else atkVal = value;
+            if (!ignoreCtx && variable_struct_exists(context, "def_value")) defVal = context.def_value; else if (variable_struct_exists(effect, "PV")) defVal = effect.PV; else defVal = value;
 
             // Gestion du bonus conditionnel (ex: Combo)
             if (variable_struct_exists(effect, "bonus_condition") && checkCondition(effect.bonus_condition, card, context)) {
@@ -897,7 +955,7 @@ function executeEffect(card, effect, context = {}) {
                 return true;
             }
             if (aggP) {
-                var srcId = (srcCard != noone && instance_exists(srcCard) && variable_instance_exists(srcCard, "id")) ? srcCard.id : -1;
+                var srcId = (srcCard != noone && instance_exists(srcCard)) ? srcCard.id : -1;
                 var srcKeyB = "effect:" + string(eff.effect_type) + ":" + string(srcId) + ":" + string(variable_struct_exists(eff, "id") ? eff.id : -1);
                 if (scopeP == "equip") { srcKeyB = "equip:" + string(srcId); }
                 else if (scopeP == "aura") { srcKeyB = "aura:" + string(srcId); }
@@ -937,16 +995,85 @@ function executeEffect(card, effect, context = {}) {
         };
 
 
-            if (scope == "single") {
+            if (scope == "single" || scope == "self") {
                 var tgt;
-                if (target != noone) {
+                if (scope == "self") {
+                    tgt = card;
+                } else if (target != noone) {
                     tgt = target;
                 } else {
                     var excludeSelfC = (variable_struct_exists(effect, "criteria") && variable_struct_exists(effect.criteria, "exclude_self")) ? effect.criteria.exclude_self : false;
                     tgt = excludeSelfC ? noone : card;
                 }
                 if (tgt == noone) { return false; }
-                return applyTo(tgt, effect, ownerSideB, srcHeroB, agg, scope, mode, atkVal, defVal, card);
+
+                // [Pre-Check Conditions Logic]
+                // Certains effets (ex: Combo) nécessitent de vérifier la condition AVANT l'application du buff
+                // car le buff lui-même pourrait valider la condition (auto-validation indésirable).
+                var flowPreResults = [];
+                var hasFlowArray = (variable_struct_exists(effect, "flow") && is_array(effect.flow));
+                var hasFlowStruct = (variable_struct_exists(effect, "flow") && is_struct(effect.flow));
+                
+                if (hasFlowArray) {
+                    var Lpre = array_length(effect.flow);
+                    flowPreResults = array_create(Lpre, undefined);
+                    for (var kpre = 0; kpre < Lpre; kpre++) {
+                        var stepPre = effect.flow[kpre];
+                        if (is_struct(stepPre) && variable_struct_exists(stepPre, "condition") && variable_struct_exists(stepPre, "check_condition_before") && stepPre.check_condition_before) {
+                             var owner_flag_pre = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
+                             if (script_exists(asset_get_index("checkCondition"))) {
+                                 flowPreResults[kpre] = checkCondition(stepPre.condition, card, { owner_is_hero: owner_flag_pre });
+                             }
+                        }
+                    }
+                } else if (hasFlowStruct) {
+                    flowPreResults = array_create(1, undefined);
+                    var stepPre = effect.flow;
+                    if (is_struct(stepPre) && variable_struct_exists(stepPre, "condition") && variable_struct_exists(stepPre, "check_condition_before") && stepPre.check_condition_before) {
+                         var owner_flag_pre = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
+                         if (script_exists(asset_get_index("checkCondition"))) {
+                             flowPreResults[0] = checkCondition(stepPre.condition, card, { owner_is_hero: owner_flag_pre });
+                         }
+                    }
+                }
+                // [End Pre-Check]
+
+                var resBuff = applyTo(tgt, effect, ownerSideB, srcHeroB, agg, scope, mode, atkVal, defVal, card);
+                if (resBuff) {
+                    var owner_flag = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner"))
+                                     ? card.isHeroOwner
+                                     : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+                    var ctxb = { from_buff: true, owner_is_hero: owner_flag };
+                    if (hasFlowArray) {
+                        var Lb = array_length(effect.flow);
+                        for (var kb = 0; kb < Lb; kb++) {
+                             var stepB = effect.flow[kb];
+                             if (is_struct(stepB) && variable_struct_exists(stepB, "effect_type")) {
+                                 var condMet = true;
+                                 // Check pre-calculated result
+                                 if (kb < array_length(flowPreResults) && !is_undefined(flowPreResults[kb])) {
+                                     condMet = flowPreResults[kb];
+                                 } else if (variable_struct_exists(stepB, "condition") && script_exists(asset_get_index("checkCondition"))) {
+                                     if (!checkCondition(stepB.condition, card, ctxb)) condMet = false;
+                                 }
+                                 if (condMet) executeEffect(card, stepB, ctxb);
+                             }
+                        }
+                    } else if (hasFlowStruct) {
+                         var stepB = effect.flow;
+                         var condMet = true;
+                         // Check pre-calculated result
+                         if (array_length(flowPreResults) > 0 && !is_undefined(flowPreResults[0])) {
+                             condMet = flowPreResults[0];
+                         } else if (variable_struct_exists(stepB, "condition") && script_exists(asset_get_index("checkCondition"))) {
+                             if (!checkCondition(stepB.condition, card, ctxb)) condMet = false;
+                         }
+                         if (condMet) executeEffect(card, stepB, ctxb);
+                    } else if (variable_struct_exists(effect, "flow_next") && is_struct(effect.flow_next)) {
+                        executeEffect(card, effect.flow_next, ctxb);
+                    }
+                }
+                return resBuff;
             } else if (scope == "equip") {
                 var tEquip = (variable_instance_exists(card, "equipped_target")) ? card.equipped_target : noone;
                 return applyTo(tEquip, effect, ownerSideB, srcHeroB, agg, scope, mode, atkVal, defVal, card);
@@ -1130,6 +1257,30 @@ function executeEffect(card, effect, context = {}) {
                 return res;
             }
             break;
+
+        case EFFECT_PURGE:
+            // Implémentation de la Purge (Silence)
+            if (target == noone && variable_struct_exists(effect, "select_mode") && effect.select_mode == "random") {
+                if (script_exists(getTargetsByFilter)) {
+                    var candidates = getTargetsByFilter(effect);
+                    if (is_array(candidates) && array_length(candidates) > 0) {
+                        var rndIdx = irandom(array_length(candidates) - 1);
+                        target = candidates[rndIdx];
+                    }
+                }
+            }
+            
+            if (target != noone && instance_exists(target)) {
+                if (script_exists(asset_get_index("purgeUnit"))) {
+                    var okP = purgeUnit(target);
+                    if (okP) {
+                        // Feedback visuel optionnel
+                        show_debug_message("### Unit Purged: " + string(target.id));
+                        return true;
+                    }
+                }
+            }
+            return false;
         case EFFECT_REVEAL_HAND:
         {
             if (card == noone || !instance_exists(card)) return false;
@@ -1199,6 +1350,16 @@ function executeEffect(card, effect, context = {}) {
         // (Effet composite Floraison supprimé — utiliser EFFECT_DESTROY via flow)
             
         // Effets de zone
+        case EFFECT_DAMAGE_ALL:
+        {
+            var val_dmg = variable_struct_exists(effect, "value") ? effect.value : 0;
+            return damageAllMonsters(val_dmg, effect);
+        }
+        case EFFECT_HEAL_ALL:
+        {
+            var val_heal = variable_struct_exists(effect, "value") ? effect.value : 0;
+            return healAllMonsters(val_heal, effect);
+        }
         case EFFECT_DESTROY_ALL:
             return destroyAllMonsters(effect);
             
@@ -1416,8 +1577,6 @@ function executeEffect(card, effect, context = {}) {
         }
         case EFFECT_NEGATE_EFFECT:
             return negateEffect(target);
-        case EFFECT_PURGE:
-            return purgeUnit(target);
 
 
 
@@ -1488,18 +1647,18 @@ function executeEffect(card, effect, context = {}) {
             var srcHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
             var crit = variable_struct_exists(effect, "criteria") ? effect.criteria : {};
             var srcKey = "aura:" + string(card.id);
-            var applyProtect = function(tgt) {
+            var applyProtect = function(tgt, _key) {
                 if (tgt == noone || !instance_exists(tgt)) return false;
                 if (!variable_instance_exists(tgt, "protection_sources")) tgt.protection_sources = [];
                 var hasKey = false;
-                for (var i = 0; i < array_length(tgt.protection_sources); i++) { if (string(tgt.protection_sources[i]) == srcKey) { hasKey = true; break; } }
-                if (!hasKey) { array_push(tgt.protection_sources, srcKey); }
+                for (var i = 0; i < array_length(tgt.protection_sources); i++) { if (string(tgt.protection_sources[i]) == _key) { hasKey = true; break; } }
+                if (!hasKey) { array_push(tgt.protection_sources, _key); }
                 tgt.protection_from_destroy = true;
                 return true;
             };
             if (scope == "single") {
                 var tgt = (variable_struct_exists(context, "target") && instance_exists(context.target)) ? context.target : card;
-                return applyProtect(tgt);
+                return applyProtect(tgt, srcKey);
             } else if (scope == "aura" || scope == "all") {
                 var applied = false;
                 var heroArr = fieldMonsterHero.cards;
@@ -1519,7 +1678,7 @@ function executeEffect(card, effect, context = {}) {
                             if (!okOwnH) { continue; }
                             var okCritH = true;
                             if (script_exists(_cardMatchesCriteria) && is_struct(crit)) { okCritH = _cardMatchesCriteria(ch, crit); }
-                            if (okCritH) { if (applyProtect(ch)) applied = true; }
+                            if (okCritH) { if (applyProtect(ch, srcKey)) applied = true; }
                         }
                     }
                 }
@@ -1540,7 +1699,7 @@ function executeEffect(card, effect, context = {}) {
                             if (!okOwnE) { continue; }
                             var okCritE = true;
                             if (script_exists(_cardMatchesCriteria) && is_struct(crit)) { okCritE = _cardMatchesCriteria(ce, crit); }
-                            if (okCritE) { if (applyProtect(ce)) applied = true; }
+                            if (okCritE) { if (applyProtect(ce, srcKey)) applied = true; }
                         }
                     }
                 }
@@ -1555,7 +1714,23 @@ function executeEffect(card, effect, context = {}) {
         
         case EFFECT_ENTRAVE:
         {
-            return sEntrave(card, effect, context);
+            var res = sEntrave(card, effect, context);
+            if (res) {
+                if (variable_struct_exists(effect, "flow") && is_array(effect.flow)) {
+                    var L = array_length(effect.flow);
+                    for (var i = 0; i < L; i++) {
+                        var step = effect.flow[i];
+                        if (is_struct(step) && variable_struct_exists(step, "effect_type")) {
+                            executeEffect(card, step, context);
+                        }
+                    }
+                } else if (variable_struct_exists(effect, "flow") && is_struct(effect.flow)) {
+                    executeEffect(card, effect.flow, context);
+                } else if (variable_struct_exists(effect, "flow_next") && is_struct(effect.flow_next)) {
+                    executeEffect(card, effect.flow_next, context);
+                }
+            }
+            return res;
         }
         case EFFECT_ILLUSION:
         {

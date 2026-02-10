@@ -8,6 +8,26 @@ if (room != rDuel) {
 
 if (global.isGraveyardViewerOpen) exit;
 
+// === Gestion Ciblage Effet (Magie) ===
+if (instance_exists(oSelectManager) && oSelectManager.targetingEffect) {
+    show_debug_message("### oLP_Enemy: Clic détecté en mode ciblage d'effet");
+    var effectId = oSelectManager.targetingEffectId;
+    if (effectId != noone) {
+        // On autorise le ciblage du héros adverse
+        // (Idéalement, on devrait vérifier si l'effet l'autorise, mais pour l'instant on suppose que oui si le joueur clique)
+        // TODO: Ajouter une vérification des critères si nécessaire
+        
+        show_debug_message("### oLP_Enemy: Sélection comme cible d'effet");
+        effectId.onTargetSelected(id);
+        
+        // Désactiver le ciblage (géré dans onTargetSelected normalement, mais sécurité)
+        oSelectManager.targetingEffect = false;
+        oSelectManager.targetingEffectId = noone;
+        oSelectManager.remove();
+        return;
+    }
+}
+
 // Vérifier si on est en mode attaque avec une carte sélectionnée
 // IMPORTANT: L'attaque directe n'est possible QUE si le mode attaque a été activé via le bouton
 if (selectManager.attackMode && selectManager.selected != noone) {

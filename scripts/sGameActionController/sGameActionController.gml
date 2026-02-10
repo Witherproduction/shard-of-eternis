@@ -649,8 +649,26 @@ function _execute_ActivateEffect(payload) {
         if (script_exists(asset_get_index("markEffectAsUsed"))) {
             markEffectAsUsed(card, effect);
         }
+        
+        // FIX: Cache properties before potential destruction
+        var isSecret = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "secret");
+        var ownerIsHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+        
         if (script_exists(asset_get_index("consumeSpellIfNeeded"))) {
             consumeSpellIfNeeded(card, effect);
+        }
+        
+        // FIX: Always ensure secret is removed from active list after activation
+        // This handles cases where consumeSpellIfNeeded is deferred (animation) or fails to update list
+        if (isSecret) {
+             var secretList = ownerIsHero ? global.activeSecretsHero : global.activeSecretsEnemy;
+             if (variable_global_exists("activeSecretsHero") && ds_exists(secretList, ds_type_list)) {
+                 var idx = ds_list_find_index(secretList, card);
+                 if (idx != -1) {
+                     ds_list_delete(secretList, idx);
+                     show_debug_message("### _execute_ActivateEffect: Forced removal of secret from list (Fix). ID=" + string(card));
+                 }
+             }
         }
         
         // Phase 1.5: Support Redirection Attaque (Secrets)

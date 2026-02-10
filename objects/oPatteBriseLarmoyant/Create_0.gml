@@ -11,32 +11,26 @@ booster = "A la découverte du monde"
 rarity = "epique"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+isHeroOwner = true; // Nécessaire pour le système de triggers
 description = "Gagne +2 ATK durant le tour adverse."
 effects = [
     {
         id: 1,
         trigger: TRIGGER_START_TURN,
         effect_type: EFFECT_BUFF,
-        scope: "single",
+        scope: "self",
         aggregate: true,
         atk: 2,
         PV: 0,
-        conditions: { opponent_turn: true }
+        conditions: { opponent_turn: true },
+        show_aura: false
     },
     {
         id: 2,
-        trigger: TRIGGER_ENTER_FIELD,
-        effect_type: EFFECT_BUFF,
-        scope: "single",
-        aggregate: true,
-        atk: 2,
-        PV: 0,
-        conditions: { opponent_turn: true }
-    },
-    {
-        id: 99,
         trigger: TRIGGER_END_TURN,
         effect_type: EFFECT_AURA_CLEANUP_SOURCE,
-        conditions: { opponent_turn: true }
+        scope: "self",
+        conditions: { opponent_turn: true },
+        show_aura: false
     }
 ]

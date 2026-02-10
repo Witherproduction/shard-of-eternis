@@ -364,7 +364,7 @@ function AI_AddEffectMoves(card, moves, context) {
             var checkTargets = hasFilter;
             
             // Types nécessitant impérativement une cible (même sans filtre explicite = field par défaut)
-            var mustCheck = (effectType == "destroy_target" || effectType == "banish_target" || effectType == "return_to_hand" || effectType == "equip_select_target" || (effectType == "buff" && scope == "single") || effectType == "damage_target" || effectType == "heal_target" || effectType == "entrave" || effectType == "pillage" || effectType == "camouflage" || effectType == "deck_reorder_top3" || (effectType == "summon" && variable_struct_exists(effect, "summon_mode") && effect.summon_mode == "copy_target"));
+            var mustCheck = (effectType == "destroy_target" || effectType == "banish_target" || effectType == "return_to_hand" || effectType == "equip_select_target" || (effectType == "buff" && scope == "single") || effectType == "damage_target" || effectType == "heal_target" || effectType == "entrave" || effectType == "pillage" || effectType == "camouflage" || effectType == "deck_reorder_top3" || effectType == "purge" || (effectType == "summon" && variable_struct_exists(effect, "summon_mode") && effect.summon_mode == "copy_target"));
             if (mustCheck) checkTargets = true;
 
             if (checkTargets && !is_undefined(asset_get_index("getTargetsByFilter"))) {
@@ -413,7 +413,7 @@ function AI_AddEffectMoves(card, moves, context) {
         // On vérifie si c'est un type d'effet qui DOIT cibler.
         if (needsTarget && array_length(potentialTargets) == 0) {
              var etype = effectType;
-             var mustTarget = (etype == "destroy_target" || etype == "banish_target" || etype == "return_to_hand" || etype == "equip_select_target" || (etype == "buff" && scope == "single") || etype == "damage_target" || etype == "heal_target" || etype == "entrave" || etype == "pillage" || etype == "camouflage" || etype == "deck_reorder_top3" || (etype == "summon" && variable_struct_exists(effect, "summon_mode") && effect.summon_mode == "copy_target"));
+             var mustTarget = (etype == "destroy_target" || etype == "banish_target" || etype == "return_to_hand" || etype == "equip_select_target" || (etype == "buff" && scope == "single") || etype == "damage_target" || etype == "heal_target" || etype == "entrave" || etype == "pillage" || etype == "camouflage" || etype == "deck_reorder_top3" || etype == "purge" || (etype == "summon" && variable_struct_exists(effect, "summon_mode") && effect.summon_mode == "copy_target"));
              
              if (mustTarget) {
                  k++;

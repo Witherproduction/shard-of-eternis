@@ -8,7 +8,7 @@ archetype = "Forêt des voleurs"
 rarity = "commun"
 booster = "A la découverte du monde"
 is_player_card = true;
-element = "physique"
+element = "Nature"
 
 description = "Inflige 2 dégats à votre adversaire pour chaque Bête que vous contrôlez."
 effects = [

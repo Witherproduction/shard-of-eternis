@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"degat physique",
-    "path":"folders/Sprites/animation/degat physique.yy",
+    "name":"dégats",
+    "path":"folders/Sprites/animation/dégats.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

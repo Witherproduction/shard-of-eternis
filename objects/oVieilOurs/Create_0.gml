@@ -11,7 +11,7 @@ booster = "A la découverte du monde"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Gagne +2 ATK lorsqu'il combat un monstre sur la ligne de front."
+description = "Ce monstre gagne temporairement +2 ATK lorsqu'il combat un monstre sur la ligne de front."
 effects = [
     {
         id: 1,

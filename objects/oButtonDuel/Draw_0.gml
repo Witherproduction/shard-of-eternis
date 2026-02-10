@@ -12,11 +12,13 @@ draw_sprite_stretched(sButton, 0, draw_x, draw_y, button_width, button_height);
 draw_set_color(make_color_rgb(80, 50, 20));
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
-draw_text(x + 2, y + 2, "Duel");
+draw_set_font(fontStep);
+var text_scale = 0.5;
+draw_text_transformed(x + 2, y + 2, "Duel", text_scale, text_scale, 0);
 
 // Dessiner le texte "Duel" centré en crème dorée
 draw_set_color(make_color_rgb(230, 200, 120));
-draw_text(x, y, "Duel");
+draw_text_transformed(x, y, "Duel", text_scale, text_scale, 0);
 
 // Remettre les alignements par défaut
 draw_set_halign(fa_left);

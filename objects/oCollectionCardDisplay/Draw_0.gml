@@ -318,15 +318,12 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             // --- ATTACK ---
             if (variable_instance_exists(selectedCard, "attack")) {
                 var valA = selectedCard.attack;
-                var colA = c_black;
+                var colA = c_lime; // Always Green per user request
                 // Note: effective_attack might not exist in collection, check if needed
                 if (variable_instance_exists(selectedCard, "effective_attack")) {
                     valA = selectedCard.effective_attack;
                     // SAFETY FALLBACK: If effective is 0 but base is > 0, use base
                     if (valA == 0 && selectedCard.attack > 0) valA = selectedCard.attack;
-                    
-                    if (valA > selectedCard.attack) colA = c_lime; // Buffed
-                    else if (valA < selectedCard.attack) colA = c_red; // Debuffed
                 }
                 var txA = string(valA);
                 
@@ -336,17 +333,18 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 circleA_x = round(circleA_x);
                 circleA_y = round(circleA_y);
                 
-                // Draw Yellow Circle Background for Attack REMOVED
-                /*
-                draw_set_color(c_yellow);
-                draw_circle(circleA_x, circleA_y, 22 * s, false);
-                */
-                
-                // Text Color forced to BLACK
-                draw_set_color(c_black);
-                
                 var scA = 1.2 * rel; // Bigger font
+
+                // Draw Outline (Black)
+                var o_dist = 2 * rel;
+                draw_set_color(c_black);
+                draw_text_transformed(circleA_x - o_dist, circleA_y, txA, scA, scA, 0);
+                draw_text_transformed(circleA_x + o_dist, circleA_y, txA, scA, scA, 0);
+                draw_text_transformed(circleA_x, circleA_y - o_dist, txA, scA, scA, 0);
+                draw_text_transformed(circleA_x, circleA_y + o_dist, txA, scA, scA, 0);
                 
+                // Text Color
+                draw_set_color(colA);
                 draw_text_transformed(circleA_x, circleA_y, txA, scA, scA, 0);
             }
 
@@ -374,10 +372,8 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                     }
                 }
 
-                // Color Logic - REMOVED for text color (kept for reference if needed later)
-                var hpColor = c_black;
-                if (hpVal < hpMax) hpColor = c_red;
-                else if (hpVal > hpMax) hpColor = c_lime;
+                // Color Logic
+                var hpColor = c_lime; // Always Green per user request
                 
                 var txD = string(hpVal);
                 
@@ -387,18 +383,18 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 circleD_x = round(circleD_x);
                 circleD_y = round(circleD_y);
                 
-                // Background (Dark Red/Black) REMOVED
-                /*
-                draw_set_color(make_color_rgb(50, 0, 0));
-                draw_circle(circleD_x, circleD_y, 22 * s, false);
-                draw_set_color(c_red); // Border
-                draw_circle(circleD_x, circleD_y, 22 * s, true);
-                */
-                
-                // Text Color forced to BLACK
-                draw_set_color(c_black);
-                
                 var scD = 1.2 * rel;
+                
+                // Draw Outline (Black)
+                var o_dist = 2 * rel;
+                draw_set_color(c_black);
+                draw_text_transformed(circleD_x - o_dist, circleD_y, txD, scD, scD, 0);
+                draw_text_transformed(circleD_x + o_dist, circleD_y, txD, scD, scD, 0);
+                draw_text_transformed(circleD_x, circleD_y - o_dist, txD, scD, scD, 0);
+                draw_text_transformed(circleD_x, circleD_y + o_dist, txD, scD, scD, 0);
+                
+                // Text Color
+                draw_set_color(hpColor);
                 draw_text_transformed(circleD_x, circleD_y, txD, scD, scD, 0);
             }
             

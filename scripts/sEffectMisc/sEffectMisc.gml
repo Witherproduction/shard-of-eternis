@@ -21,8 +21,32 @@ function returnToHand(card) {
     if (instance_exists(fm) && variable_instance_exists(card, "fieldPosition")) { fm.remove(card); }
     var h = noone; with (oHand) { if (variable_instance_exists(self, "isHeroOwner") && (isHeroOwner == card.isHeroOwner)) { h = id; break; } }
     if (h == noone) return false;
+    
+    // Capture state before move
+    var _sx = card.x;
+    var _sy = card.y;
+    var _spr = card.sprite_index;
+    var _img = card.image_index;
+    var _scale = card.image_xscale;
+    
     h.addCard(card);
     card.zone = "Hand";
+    
+    // Create Visual Effect
+    var fx = instance_create_layer(_sx, _sy, "UI", oFX_ReturnToHand);
+    if (fx != noone) {
+        fx.card_instance = card;
+        fx.spriteGhost = _spr;
+        fx.imageGhost = _img;
+        fx.start_x = _sx;
+        fx.start_y = _sy;
+        fx.start_scale = _scale;
+        fx.depth = -9999; // Ensure on top
+    }
+    
+    // Hide card immediately (will be revealed by FX when done)
+    card.visible = false;
+    
     registerTriggerEvent(TRIGGER_ENTER_HAND, card, { owner_is_hero: (variable_instance_exists(card, "isHeroOwner") ? card.isHeroOwner : true) });
     return true;
 }
@@ -100,6 +124,37 @@ function getTargetsByFilter(effect) {
         }
         if (isValidTarget) { array_push(targets, self); }
     }
+    
+    // Ajout: Vérification des Héros/Avatar comme cibles potentielles (si zone field incluse)
+    var checkField = (targetZone == "all" || targetZone == "field" || targetZone == "fieldselected");
+    if (zoneIsArray) {
+        checkField = false;
+        for (var z = 0; z < array_length(zonesArr); z++) {
+            if (zonesArr[z] == "field" || zonesArr[z] == "fieldselected") { checkField = true; break; }
+        }
+    }
+
+    if (checkField && !hasMonsterType) {
+        var checkHero = (ownerFilter == "both" || ownerFilter == "hero");
+        var checkEnemy = (ownerFilter == "both" || ownerFilter == "enemy");
+        
+        if (checkHero && instance_exists(oLP_Hero)) {
+             var validH = true;
+             if (criteria != noone && !_cardMatchesCriteria(oLP_Hero, criteria)) validH = false;
+             if (validH) array_push(targets, oLP_Hero);
+        }
+        if (checkEnemy && instance_exists(oLP_Enemy)) {
+             var validE = true;
+             if (criteria != noone && !_cardMatchesCriteria(oLP_Enemy, criteria)) validE = false;
+             if (validE) {
+                 array_push(targets, oLP_Enemy);
+                 // AJOUT: Inclure le bouton d'attaque directe comme cible valide (redirigé vers oLP_Enemy au clic)
+                 var btn = instance_find(oAttackDirectEnemy, 0);
+                 if (btn != noone) array_push(targets, btn);
+             }
+        }
+    }
+
     {
         var addGY = false;
         if (zoneIsArray) {
@@ -173,6 +228,9 @@ function hasValidTargetForEffect(card, effect) {
                         || (etype == EFFECT_ENTRAVE && scope_lower == "single")
                         || (etype == EFFECT_CAMOUFLAGE && scope_lower == "single")
                         || (etype == EFFECT_POINTS && string_lower(variable_struct_exists(effect, "scope") ? effect.scope : "lp") == "card" && string_lower(variable_struct_exists(effect, "select_mode") ? effect.select_mode : "filter") == "target")
+                        || etype == EFFECT_PURGE
+                        || etype == EFFECT_DAMAGE_TARGET
+                        || etype == EFFECT_HEAL_TARGET
                        );
 
     // Cas non-ciblé: certains effets ont tout de même des prérequis bloquants
@@ -199,6 +257,46 @@ function hasValidTargetForEffect(card, effect) {
 
     // Cas général: déléguer au validateur unifié
     if (etype != EFFECT_EQUIP_SELECT_TARGET) {
+        // Fix pour Double Jeu (EFFECT_SUMMON + copy_target): Validation explicite pour éviter les problèmes de filtre
+        if (etype == EFFECT_SUMMON && string_lower(variable_struct_exists(effect, "summon_mode") ? effect.summon_mode : "") == "copy_target") {
+            var ownerFilter = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "both";
+            var criteria = variable_struct_exists(effect, "criteria") ? effect.criteria : noone;
+            var foundCopy = false;
+            
+            // Déterminer le propriétaire de la carte source pour les comparaisons d'allégeance
+            var sourceOwnerIsHero = true;
+            if (instance_exists(card)) {
+                if (variable_instance_exists(card, "isHeroOwner")) sourceOwnerIsHero = card.isHeroOwner;
+            }
+            
+            with (oCardMonster) {
+                if (!instance_exists(self)) continue;
+                var z = variable_instance_exists(self, "zone") ? string_lower(zone) : "";
+                if (z != "field" && z != "fieldselected") continue;
+                
+                // Vérification Allégeance
+                if (ownerFilter != "both") {
+                    var targetIsHero = variable_instance_exists(self, "isHeroOwner") ? self.isHeroOwner : undefined;
+                    if (!is_undefined(targetIsHero)) {
+                        if (ownerFilter == "ally" || ownerFilter == "hero") {
+                            if (targetIsHero != sourceOwnerIsHero) continue;
+                        } else if (ownerFilter == "enemy") {
+                            if (targetIsHero == sourceOwnerIsHero) continue;
+                        }
+                    }
+                }
+                
+                // Vérification Critères
+                if (criteria != noone && script_exists(asset_get_index("_cardMatchesCriteria"))) {
+                    if (!_cardMatchesCriteria(self, criteria)) continue;
+                }
+                
+                foundCopy = true;
+                break;
+            }
+            return foundCopy;
+        }
+
         return isEffectActivatable(card, effect);
     }
 
@@ -381,7 +479,17 @@ function purgeUnit(targetUnit) {
     if (variable_instance_exists(targetUnit, "protection_from_destroy")) targetUnit.protection_from_destroy = false;
     
     // 4. Retirer les buffs temporaires (Optionnel, mais logique pour un Silence complet)
-    // Pour l'instant on ne reset pas les stats de base, juste les effets
+    // On nettoie les contributions de buffs et les stats temporaires
+    if (variable_instance_exists(targetUnit, "buff_contribs")) {
+        targetUnit.buff_contribs = [];
+    }
+    if (variable_instance_exists(targetUnit, "temp_attack")) targetUnit.temp_attack = 0;
+    if (variable_instance_exists(targetUnit, "temp_defense")) targetUnit.temp_defense = 0;
+    
+    // 5. Recalculer les stats (reviendra aux stats de base)
+    if (script_exists(asset_get_index("buffRecompute"))) {
+        buffRecompute(targetUnit);
+    }
     
     return true;
 }
@@ -518,7 +626,18 @@ function applyDestroyRandomAlliedMonsterByGenreOnField(card, effect) {
     with (oCardMonster) {
         if (instance_exists(self) && variable_instance_exists(self, "zone") && (zone == "Field" || zone == "FieldSelected")) {
             var sameSide = (variable_instance_exists(self, "isHeroOwner") ? (self.isHeroOwner == ownerIsHero) : false);
-            if (sameSide && variable_instance_exists(self, "genre") && string_lower(self.genre) == string_lower(genreWanted)) {
+            
+            var g1 = variable_instance_exists(self, "genre") ? string_lower(self.genre) : "";
+            g1 = string_replace_all(g1, "ê", "e");
+            g1 = string_replace_all(g1, "é", "e");
+            g1 = string_replace_all(g1, "è", "e");
+            
+            var g2 = string_lower(genreWanted);
+            g2 = string_replace_all(g2, "ê", "e");
+            g2 = string_replace_all(g2, "é", "e");
+            g2 = string_replace_all(g2, "è", "e");
+            
+            if (sameSide && g1 == g2) {
                 array_push(candidates, id);
             }
         }

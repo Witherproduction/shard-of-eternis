@@ -22,9 +22,10 @@ effects = [
         id: 2,
         trigger: TRIGGER_ON_SUMMON,
         effect_type: EFFECT_PURGE,
-        owner: "enemy",
+        owner: "both",
         target_zone: "Field",
         target_types: ["Monster"],
+        select_mode: "target",
         random_select: false,
         conditions: { summon_mode: "Summon" }
     }

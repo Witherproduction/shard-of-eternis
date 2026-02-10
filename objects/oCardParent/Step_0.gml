@@ -1,17 +1,37 @@
-﻿// === oCardParent - Step Event ===
+// === oCardParent - Step Event ===
+
+// Update Ambidextrous Timer
+if (variable_instance_exists(id, "isAmbidextrous") && isAmbidextrous) {
+    ambidextrousAnimTimer++;
+}
 
 // --- STATS INITIALIZATION SYNC ---
 // Ensure max_hp/current_hp are correctly set if PV was assigned after Create event (e.g. in child Create)
 if (!variable_instance_exists(id, "stats_initialized")) {
+    // 1. HP/PV Sync (Monsters only)
     if (variable_instance_exists(id, "PV") && PV > 0) {
-        // If max_hp is 0 (default) but PV is set, sync them
-        // This fixes the issue where child objects set 'PV' after parent Create event logic ran
         if (!variable_instance_exists(id, "max_hp") || max_hp <= 0) {
             max_hp = PV;
-            // Only reset current_hp if it's also 0 (to avoid healing damaged units if this runs late, though it shouldn't)
             if (!variable_instance_exists(id, "current_hp") || current_hp <= 0) {
                 current_hp = max_hp;
             }
+        }
+    }
+
+    // 2. Effective Stats Sync (Attack/Defense)
+    // Ensures stats are correct even if assigned after Create event (e.g. in Child object)
+    var has_buffs = (variable_instance_exists(id, "buff_contribs") && is_array(buff_contribs) && array_length(buff_contribs) > 0);
+    
+    if (has_buffs) {
+        if (script_exists(asset_get_index("buffRecompute"))) {
+            buffRecompute(id);
+        }
+    } else {
+        if (variable_instance_exists(id, "effective_defense") && variable_instance_exists(id, "PV")) {
+            effective_defense = PV;
+        }
+        if (variable_instance_exists(id, "effective_attack") && variable_instance_exists(id, "attack")) {
+            effective_attack = attack;
         }
     }
     stats_initialized = true;
@@ -120,22 +140,41 @@ if (variable_instance_exists(id, "zone") && zone == "Hand") {
         if (variable_instance_exists(id, "effects") && is_array(effects)) {
             for (var i = 0; i < array_length(effects); i++) {
                 var eff = effects[i];
-                var condToCheck = "";
+                var conditionsList = [];
                 
-                if (variable_struct_exists(eff, "condition")) condToCheck = eff.condition;
-                else if (variable_struct_exists(eff, "bonus_condition")) condToCheck = eff.bonus_condition;
+                if (variable_struct_exists(eff, "condition")) array_push(conditionsList, eff.condition);
+                if (variable_struct_exists(eff, "bonus_condition")) array_push(conditionsList, eff.bonus_condition);
                 
-                if (condToCheck != "") {
+                // Check in flow
+                if (variable_struct_exists(eff, "flow")) {
+                    if (is_array(eff.flow)) {
+                        for (var k = 0; k < array_length(eff.flow); k++) {
+                            var step = eff.flow[k];
+                            if (is_struct(step) && variable_struct_exists(step, "condition")) {
+                                array_push(conditionsList, step.condition);
+                            }
+                        }
+                    } else if (is_struct(eff.flow)) {
+                        if (variable_struct_exists(eff.flow, "condition")) {
+                            array_push(conditionsList, eff.flow.condition);
+                        }
+                    }
+                }
+
+                if (array_length(conditionsList) > 0) {
                     // Utilise checkCondition depuis sEffects (doit être accessible)
                     if (script_exists(asset_get_index("checkCondition"))) {
                         // Contexte minimal pour le check
                         var ctx = { owner_is_hero: (variable_instance_exists(id, "isHeroOwner") ? isHeroOwner : true) };
-                        if (checkCondition(condToCheck, id, ctx)) {
-                            newComboState = true;
-                            break;
+                        for (var c = 0; c < array_length(conditionsList); c++) {
+                            if (checkCondition(conditionsList[c], id, ctx)) {
+                                newComboState = true;
+                                break;
+                            }
                         }
                     }
                 }
+                if (newComboState) break;
             }
         }
         isComboActive = newComboState;
@@ -178,4 +217,68 @@ if (variable_instance_exists(id, "position_anim_active") && position_anim_active
         var bottom_b = max(max(y1,y2), max(y3,y4));
         isHovered = (mouse_x >= left_b && mouse_x <= right_b && mouse_y >= top_b && mouse_y <= bottom_b);
     }
+}
+
+// --- POISON BUBBLE VISUALS ---
+if (variable_instance_exists(id, "isPoisoner") && isPoisoner && variable_instance_exists(id, "zone") && (zone == "Field" || zone == "FieldSelected")) {
+    // Spawn new bubbles
+    poison_spawn_timer++;
+    if (poison_spawn_timer > 10) { // Spawn every ~10 frames
+        poison_spawn_timer = 0;
+        var bubble_count = irandom_range(1, 2);
+        
+        var card_w = 0;
+        var card_h = 0;
+        if (sprite_exists(sprite_index)) {
+             card_w = sprite_get_width(sprite_index) * image_xscale;
+             card_h = sprite_get_height(sprite_index) * image_yscale;
+        } else {
+             // Fallback dimensions
+             card_w = 100 * image_xscale;
+             card_h = 140 * image_yscale;
+        }
+
+        repeat(bubble_count) {
+            var _r = random_range(2, 6);
+            var _life = irandom_range(40, 80);
+            var _off_x = random_range(-card_w * 0.4, card_w * 0.4);
+            var _off_y = random_range(-card_h * 0.4, card_h * 0.4);
+            
+            array_push(poison_bubbles, {
+                off_x: _off_x,
+                off_y: _off_y,
+                r: 0, // Start small
+                target_r: _r,
+                alpha: 0,
+                life: _life,
+                max_life: _life,
+                speed_y: random_range(0.2, 0.5)
+            });
+        }
+    }
+    
+    // Update existing bubbles
+    for (var i = array_length(poison_bubbles) - 1; i >= 0; i--) {
+        var b = poison_bubbles[i];
+        b.life--;
+        b.off_y -= b.speed_y; // Float up
+        
+        // Growth and Fade logic
+        var progress = 1 - (b.life / b.max_life);
+        if (progress < 0.2) {
+            b.alpha = progress / 0.2; // Fade in
+            b.r = lerp(0, b.target_r, progress / 0.2);
+        } else if (progress > 0.8) {
+            b.alpha = (1 - progress) / 0.2; // Fade out
+        } else {
+            b.alpha = 1;
+        }
+        
+        if (b.life <= 0) {
+            array_delete(poison_bubbles, i, 1);
+        }
+    }
+} else {
+    // Clear bubbles if no longer poisoner or not on field
+    if (array_length(poison_bubbles) > 0) poison_bubbles = [];
 }

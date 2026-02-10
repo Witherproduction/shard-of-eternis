@@ -11,13 +11,19 @@ is_player_card = true;
 description = "Combo : camouflage\nInflige 2 dégâts. Si vous contrôlez un serviteur avec Camouflage, inflige 4 dégâts à la place."
 mana_cost = 1;
 
+// L'élément détermine l'animation (ex: "Ombre" pour sBouleOmbre)
+element = "Ombre";
+
 effects = [
     {
         id: 1,
         trigger: TRIGGER_MAIN_PHASE,
         effect_type: EFFECT_DAMAGE_TARGET,
         value: 2,
-        criteria: { type: "Monster" },
+        // criteria: { type: "Monster" }, // Supprimé pour permettre de cibler le héros adverse
+        scope: "field", 
+        select_mode: "target", // Indispensable pour utiliser context.target et déclencher l'animation ciblée
+        element: "Ombre", // Ajout explicite pour l'animation
         owner: "enemy",
         bonus_condition: "control_camouflaged",
         bonus_value: 4,

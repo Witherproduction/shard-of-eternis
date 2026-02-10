@@ -280,6 +280,18 @@ function specialSummonNamed(card, effect, context) {
 
     cardToSummon.fieldPosition = pos;
     fieldMgr.add(cardToSummon);
+    
+    // --- HEARTHSTONE SUMMONING SICKNESS ---
+    if (instance_exists(cardToSummon) && variable_instance_exists(cardToSummon, "type") && cardToSummon.type == "Monster") {
+        var hasCharge = variable_instance_exists(cardToSummon, "has_charge") && cardToSummon.has_charge;
+        if (hasCharge) {
+            cardToSummon.attacksUsedThisTurn = 0;
+        } else {
+            cardToSummon.attacksUsedThisTurn = 99; 
+        }
+    }
+    // --------------------------------------
+
     cardToSummon.zone = "Field";
     cardToSummon.depth = 0;
     cardToSummon.visible = false;

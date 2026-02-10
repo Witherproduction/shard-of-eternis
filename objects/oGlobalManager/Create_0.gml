@@ -39,31 +39,82 @@ if (!variable_global_exists("options_loaded") || !global.options_loaded) {
     global.volume_percent = clamp(_ini_vol, 0, 100);
     audio_master_gain(global.volume_percent / 100);
 
-    // Plein écran
+    // Définir la taille de l'interface utilisateur (GUI) pour garantir une échelle constante
+    display_set_gui_size(1920, 1080);
+
+    // Mode d'affichage (0=Fenêtré, 1=Plein écran, 2=Sans bordure)
     ini_open("options.ini");
     var _fs_default = window_get_fullscreen() ? 1 : 0;
-    var _ini_fs = ini_read_real("display", "fullscreen", _fs_default);
-    ini_close();
-    var _fs_enabled = (_ini_fs >= 0.5);
-    window_set_fullscreen(_fs_enabled);
-
-    // Résolution (appliquée uniquement en mode fenêtré)
-    ini_open("options.ini");
+    var _display_mode = ini_read_real("display", "fullscreen", _fs_default);
+    // Résolution
     var _current_w = window_get_width();
     var _current_h = window_get_height();
     var _default_res = string(_current_w) + "x" + string(_current_h);
     var _res_str = ini_read_string("display", "resolution", _default_res);
     ini_close();
 
-    if (!_fs_enabled) {
-        var _xpos = string_pos("x", _res_str);
-        if (_xpos > 0) {
-            var _new_w = real(string_copy(_res_str, 1, _xpos - 1));
-            var _new_h = real(string_copy(_res_str, _xpos + 1, string_length(_res_str) - _xpos));
-            window_set_size(_new_w, _new_h);
-            window_center();
+    show_debug_message("### [oGlobalManager] LOADED SETTINGS: Mode=" + string(_display_mode) + ", Res=" + _res_str);
+
+    // Fonction locale pour appliquer les paramètres
+    var _apply_graphics = method({_mode: _display_mode, _res: _res_str}, function() {
+        show_debug_message("### [oGlobalManager] APPLYING GRAPHICS SETTINGS (Direct)...");
+        var _d_mode = clamp(_mode, 0, 2);
+        
+        // Log de diagnostic
+        var _monitor_w = display_get_width();
+        var _monitor_h = display_get_height();
+        show_debug_message("### Monitor Size: " + string(_monitor_w) + "x" + string(_monitor_h));
+
+        if (_d_mode == 1) {
+            // === PLEIN ÉCRAN ===
+            if (!window_get_fullscreen()) {
+                window_set_fullscreen(true);
+            }
+            window_set_showborder(true);
+        } 
+        else if (_d_mode == 2) {
+            // === SANS BORDURE (BORDERLESS) ===
+            if (window_get_fullscreen()) {
+                window_set_fullscreen(false);
+            }
+            window_set_showborder(false);
+            window_set_rectangle(0, 0, _monitor_w, _monitor_h);
+            
+            if (surface_exists(application_surface)) {
+                surface_resize(application_surface, _monitor_w, _monitor_h);
+            }
+        } 
+        else {
+            // === FENÊTRÉ CLASSIQUE ===
+            if (window_get_fullscreen()) {
+                window_set_fullscreen(false);
+            }
+            window_set_showborder(true);
+            
+            var _target_w = 1280;
+            var _target_h = 720;
+            
+            var _xpos = string_pos("x", _res);
+            if (_xpos > 0) {
+                _target_w = real(string_copy(_res, 1, _xpos - 1));
+                _target_h = real(string_copy(_res, _xpos + 1, string_length(_res) - _xpos));
+            }
+            
+            window_set_size(_target_w, _target_h);
+            
+            if (surface_exists(application_surface)) {
+                surface_resize(application_surface, _target_w, _target_h);
+            }
         }
-    }
+    });
+    
+    // Application initiale immédiate
+    _apply_graphics();
+
+    // Configuration pour le forçage dans le Step
+    force_settings_frames = 60; // Forcer pendant 1 seconde (60 frames)
+    target_display_mode = _display_mode;
+    target_res_str = _res_str;
 
     global.options_loaded = true;
     show_debug_message("### Options chargées et progression initialisée");

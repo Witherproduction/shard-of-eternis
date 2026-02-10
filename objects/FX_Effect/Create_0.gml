@@ -11,6 +11,11 @@
 if (!variable_instance_exists(self, "mode")) mode = "halo";
 
 // === MODE PROJECTILE ===
+// Initialisation commune pour éviter crash si mode défini après Create
+reached = false;
+projectile_rotate = true;
+callback = noone;
+
 if (mode == "projectile") {
     if (!variable_instance_exists(self, "move_speed")) move_speed = 25;
     if (!variable_instance_exists(self, "target_inst")) target_inst = noone;
@@ -19,7 +24,7 @@ if (mode == "projectile") {
     // Initialisation
     start_x = x;
     start_y = y;
-    reached = false;
+    start_time = current_time;
     
     // Profondeur
     if (variable_instance_exists(self, "depth_override")) {
@@ -35,6 +40,16 @@ if (mode == "projectile") {
     image_speed = 1;
     
     // Pas besoin du reste de l'initialisation Halo
+    return;
+}
+
+if (mode == "one_shot") {
+    image_speed = 1;
+    if (variable_instance_exists(self, "depth_override")) {
+        depth = depth_override;
+    } else {
+        depth = -100000;
+    }
     return;
 }
 

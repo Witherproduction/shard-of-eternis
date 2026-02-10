@@ -76,17 +76,34 @@ if (spr != -1) {
     vol_label_y  = y - 62;
 }
 
-// ==== Plein écran (persistant) ====
+// ==== Mode d'affichage (persistant) ====
+// 0 = Fenêtré, 1 = Plein écran, 2 = Sans bordure
+display_mode_list = ["Fenêtré", "Plein écran", "Sans bordure"];
+display_mode_dropdown_open = false;
+display_mode_hover_index = -1;
+
 // Charger l'état depuis options.ini (section display)
 ini_open("options.ini");
-var _fs_default = window_get_fullscreen() ? 1 : 0; // se caler sur l'état réel
-var _ini_fs = ini_read_real("display", "fullscreen", _fs_default);
+// Par défaut 1 (Plein écran) si pas défini
+var _ini_fs = ini_read_real("display", "fullscreen", 1);
 ini_close();
-fs_enabled = (_ini_fs >= 0.5);
-// Appliquer immédiatement
-window_set_fullscreen(fs_enabled);
 
-// Initialiser la géométrie du bloc plein écran pour le premier frame Draw
+display_mode = clamp(_ini_fs, 0, 2);
+
+// Appliquer immédiatement
+if (display_mode == 1) {
+    window_set_fullscreen(true);
+    window_set_showborder(true);
+} else if (display_mode == 2) {
+    window_set_fullscreen(false);
+    window_set_showborder(false);
+    window_set_rectangle(0, 0, display_get_width(), display_get_height());
+} else {
+    window_set_fullscreen(false);
+    window_set_showborder(true);
+}
+
+// Initialiser la géométrie du bloc Mode d'affichage
 var spr2 = asset_get_index("sFond");
 if (spr2 != -1) {
     var sx2 = image_xscale;
@@ -101,34 +118,44 @@ if (spr2 != -1) {
     var content_y1_2 = y - oy2 * sy2 + bboxT2 * sy2;
     var content_x2_2 = x - ox2 * sx2 + bboxR2 * sx2;
     var content_y2_2 = y - oy2 * sy2 + bboxB2 * sy2;
-    var content_w_2 = content_x2_2 - content_x1_2;
 
     var slider_margin_h = 40;
     var slider_shift_x = 100;
-    var fs_top = vol_track_y + 50; // sous le slider volume
-    fs_label_x = content_x1_2 + slider_margin_h + slider_shift_x;
-    fs_label_y = fs_top;
-    var fs_check_size = 18;
-    fs_check_x1 = fs_label_x + 150;
-    fs_check_y1 = fs_label_y - fs_check_size * 0.5;
-    fs_check_x2 = fs_check_x1 + fs_check_size;
-    fs_check_y2 = fs_check_y1 + fs_check_size;
-    var fs_pad = 8;
-    fs_box_x1 = fs_label_x - fs_pad;
-    fs_box_y1 = fs_check_y1 - fs_pad;
-    fs_box_x2 = fs_check_x2 + fs_pad;
-    fs_box_y2 = fs_check_y2 + fs_pad;
+    
+    // Positionnement sous le slider volume
+    var dm_top = vol_track_y + 50; 
+    
+    // Libellé
+    display_mode_label_x = content_x1_2 + slider_margin_h + slider_shift_x;
+    display_mode_label_y = dm_top;
+    
+    // Menu déroulant (remplace la case à cocher)
+    var dm_dropdown_w = 160;
+    var dm_dropdown_h = 25;
+    
+    display_mode_dropdown_x1 = display_mode_label_x + 120;
+    display_mode_dropdown_y1 = dm_top - dm_dropdown_h * 0.5;
+    display_mode_dropdown_x2 = display_mode_dropdown_x1 + dm_dropdown_w;
+    display_mode_dropdown_y2 = display_mode_dropdown_y1 + dm_dropdown_h;
+    
+    // Encadré global
+    var dm_pad = 8;
+    display_mode_box_x1 = display_mode_label_x - dm_pad;
+    display_mode_box_y1 = display_mode_dropdown_y1 - dm_pad;
+    display_mode_box_x2 = display_mode_dropdown_x2 + dm_pad;
+    display_mode_box_y2 = display_mode_dropdown_y2 + dm_pad;
 } else {
-    fs_label_x = x - 100;
-    fs_label_y = y + 20;
-    fs_check_x1 = fs_label_x + 150;
-    fs_check_y1 = fs_label_y - 9;
-    fs_check_x2 = fs_check_x1 + 18;
-    fs_check_y2 = fs_check_y1 + 18;
-    fs_box_x1 = fs_label_x - 8;
-    fs_box_y1 = fs_check_y1 - 8;
-    fs_box_x2 = fs_check_x2 + 8;
-    fs_box_y2 = fs_check_y2 + 8;
+    // Fallback sans sprite
+    display_mode_label_x = x - 100;
+    display_mode_label_y = y + 20;
+    display_mode_dropdown_x1 = display_mode_label_x + 150;
+    display_mode_dropdown_y1 = display_mode_label_y - 12;
+    display_mode_dropdown_x2 = display_mode_dropdown_x1 + 150;
+    display_mode_dropdown_y2 = display_mode_dropdown_y1 + 25;
+    display_mode_box_x1 = display_mode_label_x - 8;
+    display_mode_box_y1 = display_mode_dropdown_y1 - 8;
+    display_mode_box_x2 = display_mode_dropdown_x2 + 8;
+    display_mode_box_y2 = display_mode_dropdown_y2 + 8;
 }
 
 // ==== Menu déroulant résolution ====
@@ -189,7 +216,7 @@ if (spr3 != -1) {
 
     var slider_margin_h = 40;
     var slider_shift_x = 100;
-    var res_top = fs_box_y2 + 30; // sous le bloc plein écran
+    var res_top = display_mode_box_y2 + 30; // sous le bloc mode affichage
     res_label_x = content_x1_3 + slider_margin_h + slider_shift_x;
     res_label_y = res_top;
     var res_dropdown_w = 200;
@@ -241,3 +268,8 @@ confirm_no_x1 = 0;
 confirm_no_y1 = 0;
 confirm_no_x2 = 0;
 confirm_no_y2 = 0;
+
+// Variables pour la gestion différée du redimensionnement (pour éviter les race conditions avec window_set_fullscreen)
+resize_delay_frames = -1;
+resize_target_w = 0;
+resize_target_h = 0;

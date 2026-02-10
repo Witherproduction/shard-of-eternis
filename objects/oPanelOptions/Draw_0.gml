@@ -208,53 +208,58 @@ if (spr != -1) {
     draw_text_transformed(knob_x + 12, knob_y, string(vol_value), ui_text_scale, ui_text_scale, 0);
 
     // ==========================
-    // Encadré Plein écran + case à cocher
+    // Bloc Mode d'affichage (Dropdown)
     // ==========================
-    var fs_label_x_loc = fs_label_x;
-    var fs_label_y_loc = fs_label_y;
-    var fs_check_x1_loc = fs_check_x1;
-    var fs_check_y1_loc = fs_check_y1;
-    var fs_check_x2_loc = fs_check_x2;
-    var fs_check_y2_loc = fs_check_y2;
-    var fs_box_x1_loc = fs_box_x1;
-    var fs_box_y1_loc = fs_box_y1;
-    var fs_box_x2_loc = fs_box_x2;
-    var fs_box_y2_loc = fs_box_y2;
+    var dm_label_x_loc = display_mode_label_x;
+    var dm_label_y_loc = display_mode_label_y;
+    var dm_dropdown_x1_loc = display_mode_dropdown_x1;
+    var dm_dropdown_y1_loc = display_mode_dropdown_y1;
+    var dm_dropdown_x2_loc = display_mode_dropdown_x2;
+    var dm_dropdown_y2_loc = display_mode_dropdown_y2;
+    
+    var dm_box_x1_loc = display_mode_box_x1;
+    var dm_box_y1_loc = display_mode_box_y1;
+    var dm_box_x2_loc = display_mode_box_x2;
+    var dm_box_y2_loc = display_mode_box_y2;
 
-    // Adapter la hauteur de l'encadré à la taille du texte
-    var fs_label_h = string_height("Plein écran") * ui_text_scale;
-    var fs_label_top = fs_label_y_loc - fs_label_h * 0.5;
-    var fs_label_bottom = fs_label_y_loc + fs_label_h * 0.5;
-    var fs_pad_draw = 8;
-    var fs_box_y1_draw = min(fs_label_top, fs_check_y1_loc) - fs_pad_draw;
-    var fs_box_y2_draw = max(fs_label_bottom, fs_check_y2_loc) + fs_pad_draw;
-
-    // Fond et bordure (style identique au bouton Retour et Volume)
+    // Fond et bordure du bloc
     draw_set_alpha(0.95);
     draw_set_color(make_color_rgb(40, 40, 40));
-    draw_roundrect(fs_box_x1_loc, fs_box_y1_draw, fs_box_x2_loc, fs_box_y2_draw, false);
+    draw_roundrect(dm_box_x1_loc, dm_box_y1_loc, dm_box_x2_loc, dm_box_y2_loc, false);
     draw_set_alpha(1);
     draw_set_color(make_color_rgb(220, 200, 120));
-    draw_roundrect(fs_box_x1_loc, fs_box_y1_draw, fs_box_x2_loc, fs_box_y2_draw, true);
+    draw_roundrect(dm_box_x1_loc, dm_box_y1_loc, dm_box_x2_loc, dm_box_y2_loc, true);
 
     // Libellé
     draw_set_color(c_white);
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
-    draw_text_transformed(fs_label_x_loc, fs_label_y_loc, "Plein écran", ui_text_scale, ui_text_scale, 0);
+    draw_text_transformed(dm_label_x_loc, dm_label_y_loc, "Mode", ui_text_scale, ui_text_scale, 0);
 
-    // Case à cocher
-    draw_set_color(c_white);
-    draw_roundrect(fs_check_x1_loc, fs_check_y1_loc, fs_check_x2_loc, fs_check_y2_loc, false);
+    // Menu déroulant
+    draw_set_color(make_color_rgb(60, 60, 60));
+    draw_roundrect(dm_dropdown_x1_loc, dm_dropdown_y1_loc, dm_dropdown_x2_loc, dm_dropdown_y2_loc, false);
     draw_set_color(make_color_rgb(220, 200, 120));
-    draw_roundrect(fs_check_x1_loc, fs_check_y1_loc, fs_check_x2_loc, fs_check_y2_loc, true);
-    if (fs_enabled) {
-        draw_set_color(make_color_rgb(220, 200, 120));
-        var cx = (fs_check_x1_loc + fs_check_x2_loc) * 0.5;
-        var cy = (fs_check_y1_loc + fs_check_y2_loc) * 0.5;
-        draw_line(fs_check_x1_loc + 4, cy, cx - 2, fs_check_y2_loc - 4);
-        draw_line(cx - 2, fs_check_y2_loc - 4, fs_check_x2_loc - 4, fs_check_y1_loc + 4);
+    draw_roundrect(dm_dropdown_x1_loc, dm_dropdown_y1_loc, dm_dropdown_x2_loc, dm_dropdown_y2_loc, true);
+
+    // Texte sélectionné
+    draw_set_color(c_white);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_middle);
+    var dm_text = (display_mode >= 0 && display_mode < array_length(display_mode_list)) ? display_mode_list[display_mode] : "Inconnu";
+    draw_text_transformed(dm_dropdown_x1_loc + 8, (dm_dropdown_y1_loc + dm_dropdown_y2_loc) * 0.5, dm_text, ui_text_scale, ui_text_scale, 0);
+
+    // Flèche
+    draw_set_color(c_white);
+    var arrow_x = dm_dropdown_x2_loc - 15;
+    var arrow_y = (dm_dropdown_y1_loc + dm_dropdown_y2_loc) * 0.5;
+    if (display_mode_dropdown_open) {
+        draw_triangle(arrow_x - 4, arrow_y + 2, arrow_x + 4, arrow_y + 2, arrow_x, arrow_y - 3, false);
+    } else {
+        draw_triangle(arrow_x - 4, arrow_y - 2, arrow_x + 4, arrow_y - 2, arrow_x, arrow_y + 3, false);
     }
+    
+    // Liste déroulante (si ouverte) - Dessinée en overlay à la fin du script
 
     // ==========================
     // Menu déroulant Résolution
@@ -466,6 +471,64 @@ if (spr != -1) {
             draw_text_transformed((no_x1 + no_x2) * 0.5, (no_y1 + no_y2) * 0.5, "Non", ui_text_scale, ui_text_scale, 0);
             draw_set_halign(fa_left);
             draw_set_valign(fa_top);
+        }
+    }
+
+    // ==========================
+    // Overlay Liste Dropdown Mode (Dessiné à la fin pour être au-dessus de tout)
+    // ==========================
+    if (display_mode_dropdown_open) {
+        var dm_item_h = 22;
+        var dm_list_h = array_length(display_mode_list) * dm_item_h;
+        
+        var dm_list_x1_draw = display_mode_dropdown_x1;
+        var dm_list_y1_draw = display_mode_dropdown_y2;
+        var dm_list_x2_draw = display_mode_dropdown_x2;
+        var dm_list_y2_draw = dm_list_y1_draw + dm_list_h;
+        
+        // Fond de la liste
+        draw_set_alpha(0.95);
+        draw_set_color(make_color_rgb(50, 50, 50));
+        draw_roundrect(dm_list_x1_draw, dm_list_y1_draw, dm_list_x2_draw, dm_list_y2_draw, false);
+        draw_set_alpha(1);
+        draw_set_color(make_color_rgb(220, 200, 120));
+        draw_roundrect(dm_list_x1_draw, dm_list_y1_draw, dm_list_x2_draw, dm_list_y2_draw, true);
+        
+        // Éléments de la liste
+        for (var i = 0; i < array_length(display_mode_list); i++) {
+            var item_y1 = dm_list_y1_draw + i * dm_item_h;
+            var item_y2 = item_y1 + dm_item_h;
+            var item_center_y = (item_y1 + item_y2) * 0.5;
+            
+            // Surlignage si survolé
+            if (display_mode_hover_index == i) {
+                draw_set_alpha(0.3);
+                draw_set_color(make_color_rgb(220, 200, 120));
+                draw_roundrect(dm_list_x1_draw + 2, item_y1 + 1, dm_list_x2_draw - 2, item_y2 - 1, false);
+                draw_set_alpha(1);
+            }
+            
+            // Surlignage si sélectionné
+            if (display_mode == i) {
+                draw_set_alpha(0.5);
+                draw_set_color(make_color_rgb(120, 200, 120));
+                draw_roundrect(dm_list_x1_draw + 2, item_y1 + 1, dm_list_x2_draw - 2, item_y2 - 1, false);
+                draw_set_alpha(1);
+            }
+            
+            // Texte
+            draw_set_color(c_white);
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_middle);
+            draw_text_transformed(dm_list_x1_draw + 8, item_center_y, display_mode_list[i], ui_text_scale, ui_text_scale, 0);
+            
+            // Ligne de séparation
+            if (i < array_length(display_mode_list) - 1) {
+                draw_set_alpha(0.3);
+                draw_set_color(make_color_rgb(220, 200, 120));
+                draw_line(dm_list_x1_draw + 4, item_y2, dm_list_x2_draw - 4, item_y2);
+                draw_set_alpha(1);
+            }
         }
     }
 }

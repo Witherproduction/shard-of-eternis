@@ -498,8 +498,8 @@ function checkTriggerConditions(card, effect, context) {
                 if (trig == TRIGGER_MAIN_PHASE) {
                     if (!instance_exists(game)) { return false; }
                     var currentPhase = game.phase[game.phase_current];
-                    // Par défaut, les effets TRIGGER_MAIN_PHASE ne sont disponibles qu'en phase "Summon"
-                    if (currentPhase != "Summon") { return false; }
+                    // Par défaut, les effets TRIGGER_MAIN_PHASE ne sont disponibles qu'en phase "Main"
+                    if (currentPhase != "Main") { return false; }
                 }
             }
         }
@@ -524,23 +524,36 @@ function checkTriggerConditions(card, effect, context) {
         // Vérifier un minimum de cartes d'un genre sur le terrain (ex: au moins 2 Bêtes)
         if (variable_struct_exists(conditions, "min_genre_count_on_field")) {
             var cfg = conditions.min_genre_count_on_field;
-            var gn2 = variable_struct_exists(cfg, "genre") ? string(cfg.genre) : "";
+            
+            // Normalize genre target (lower case + remove common accents)
+            var gn2 = variable_struct_exists(cfg, "genre") ? string_lower(string(cfg.genre)) : "";
+            gn2 = string_replace_all(gn2, "ê", "e");
+            gn2 = string_replace_all(gn2, "é", "e");
+            gn2 = string_replace_all(gn2, "è", "e");
+
             var ownStr = variable_struct_exists(cfg, "owner") ? string_lower(cfg.owner) : "ally";
             var req = variable_struct_exists(cfg, "count") ? max(1, cfg.count) : 1;
             var cardOwnerIsHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
             var targetIsHero = (ownStr == "ally") ? cardOwnerIsHero : !cardOwnerIsHero;
             var arrX = targetIsHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards;
             var cntX = 0;
+            
             for (var ix = 0; ix < array_length(arrX); ix++) {
                 var cx = arrX[ix];
                 if (cx != 0 && instance_exists(cx)) {
                     var zX = variable_instance_exists(cx, "zone") ? string_lower(cx.zone) : "";
                     if (zX == "field" || zX == "fieldselected") {
-                        var gX = variable_instance_exists(cx, "genre") ? string(cx.genre) : "";
+                        var gX = variable_instance_exists(cx, "genre") ? string_lower(string(cx.genre)) : "";
+                        // Normalize card genre too
+                        gX = string_replace_all(gX, "ê", "e");
+                        gX = string_replace_all(gX, "é", "e");
+                        gX = string_replace_all(gX, "è", "e");
+                        
                         if (gX == gn2) { cntX += 1; }
                     }
                 }
             }
+            
             if (cntX < req) { return false; }
         }
 
@@ -767,8 +780,9 @@ function activateTrigger(card, triggerType, context = {}) {
         if (!instance_exists(card)) { break; }
 
         var effect = card.effects[i];
-
         
+        // Ignorer les effets annulés/purgés (Silence)
+        if (variable_struct_exists(effect, "negated") && effect.negated) { continue; }
 
         if (variable_struct_exists(effect, "trigger") && effect.trigger == triggerType) {
             var effectTypeStr = variable_struct_exists(effect, "effect_type") ? string(effect.effect_type) : "unknown";
@@ -808,12 +822,9 @@ function activateTrigger(card, triggerType, context = {}) {
 
                 }
 
-                // Option d'effet pour forcer l'aura
-
-                if (variable_struct_exists(effect, "show_aura") && effect.show_aura) {
-
-                    allowAura = true;
-
+                // Option d'effet pour contrôler l'aura (forcer ou supprimer)
+                if (variable_struct_exists(effect, "show_aura")) {
+                    allowAura = effect.show_aura;
                 }
 
                 
@@ -1063,12 +1074,19 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
         global.end_turn_ptr = 0;
         global.end_turn_processing = true;
         global.end_turn_waiting = false;
-        var fm = activeIsHero3 ? fieldMonsterHero : fieldMonsterEnemy;
-        var fsp = activeIsHero3 ? fieldMagicTrapHero : fieldMagicTrapEnemy;
-        if (instance_exists(fm)) {
-            for (var i0 = 0; i0 < array_length(fm.cards); i0++) {
-                var c0 = fm.cards[i0];
+        
+        // Define Active and Inactive fields
+        var fmActive = activeIsHero3 ? fieldMonsterHero : fieldMonsterEnemy;
+        var fspActive = activeIsHero3 ? fieldMagicTrapHero : fieldMagicTrapEnemy;
+        var fmInactive = activeIsHero3 ? fieldMonsterEnemy : fieldMonsterHero;
+        var fspInactive = activeIsHero3 ? fieldMagicTrapEnemy : fieldMagicTrapHero;
+
+        // 1. Process Active Player's Monsters (Entrave decrement + Triggers)
+        if (instance_exists(fmActive)) {
+            for (var i0 = 0; i0 < array_length(fmActive.cards); i0++) {
+                var c0 = fmActive.cards[i0];
                 if (c0 != 0 && instance_exists(c0)) {
+                    // Entrave decrement (only for active player at end of their turn)
                     if (variable_instance_exists(c0, "entrave_turns_remaining") && c0.entrave_turns_remaining > 0) {
                         c0.entrave_turns_remaining -= 1;
                         if (c0.entrave_turns_remaining <= 0) {
@@ -1076,6 +1094,7 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
                             if (variable_instance_exists(c0, "entrave_block_position")) c0.entrave_block_position = false;
                         }
                     }
+                    // Check triggers
                     if (variable_instance_exists(c0, "effects") && is_array(c0.effects)) {
                         for (var e0 = 0; e0 < array_length(c0.effects); e0++) {
                             var eff0 = c0.effects[e0];
@@ -1087,15 +1106,52 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
                 }
             }
         }
-        if (instance_exists(fsp)) {
-            for (var j0 = 0; j0 < array_length(fsp.cards); j0++) {
-                var s0 = fsp.cards[j0];
+        
+        // 2. Process Inactive Player's Monsters (Triggers ONLY)
+        if (instance_exists(fmInactive)) {
+            for (var i1 = 0; i1 < array_length(fmInactive.cards); i1++) {
+                var c1 = fmInactive.cards[i1];
+                if (c1 != 0 && instance_exists(c1)) {
+                    // NO Entrave decrement for inactive player
+                    if (variable_instance_exists(c1, "effects") && is_array(c1.effects)) {
+                        for (var e1 = 0; e1 < array_length(c1.effects); e1++) {
+                            var eff1 = c1.effects[e1];
+                            if (is_struct(eff1) && variable_struct_exists(eff1, "trigger") && eff1.trigger == TRIGGER_END_TURN) {
+                                if (checkTriggerConditions(c1, eff1, context)) { array_push(global.end_turn_queue, { card: c1, effect: eff1 }); }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Process Active Player's Spells/Traps
+        if (instance_exists(fspActive)) {
+            for (var j0 = 0; j0 < array_length(fspActive.cards); j0++) {
+                var s0 = fspActive.cards[j0];
                 if (s0 != 0 && instance_exists(s0)) {
                     if (variable_instance_exists(s0, "effects") && is_array(s0.effects)) {
                         for (var f0 = 0; f0 < array_length(s0.effects); f0++) {
                             var se0 = s0.effects[f0];
                             if (is_struct(se0) && variable_struct_exists(se0, "trigger") && se0.trigger == TRIGGER_END_TURN) {
                                 if (checkTriggerConditions(s0, se0, context)) { array_push(global.end_turn_queue, { card: s0, effect: se0 }); }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 4. Process Inactive Player's Spells/Traps
+        if (instance_exists(fspInactive)) {
+            for (var j1 = 0; j1 < array_length(fspInactive.cards); j1++) {
+                var s1 = fspInactive.cards[j1];
+                if (s1 != 0 && instance_exists(s1)) {
+                    if (variable_instance_exists(s1, "effects") && is_array(s1.effects)) {
+                        for (var f1 = 0; f1 < array_length(s1.effects); f1++) {
+                            var se1 = s1.effects[f1];
+                            if (is_struct(se1) && variable_struct_exists(se1, "trigger") && se1.trigger == TRIGGER_END_TURN) {
+                                if (checkTriggerConditions(s1, se1, context)) { array_push(global.end_turn_queue, { card: s1, effect: se1 }); }
                             }
                         }
                     }
@@ -1137,11 +1193,6 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
         if (zone == "Field") {
             // Gating: Only owner’s cards receive START/END turn triggers
             if (triggerType == TRIGGER_START_TURN || triggerType == TRIGGER_END_TURN) {
-                var localIdx = (instance_exists(game) && variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
-                var activeIsHero = instance_exists(game) ? (game.player_current == localIdx) : true;
-                if (variable_instance_exists(self, "isHeroOwner") && self.isHeroOwner != activeIsHero) {
-                    continue;
-                }
                 if (triggerType == TRIGGER_END_TURN) {
                     if (variable_instance_exists(self, "entrave_turns_remaining") && self.entrave_turns_remaining > 0) {
                         self.entrave_turns_remaining -= 1;
@@ -1173,11 +1224,6 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
         if (zone == "Field" && (isContinuousByType || isContinuousByGenre || isArtifact2)) {
             // Gating: seulement cartes du joueur actif et face visible
             if (triggerType == TRIGGER_START_TURN || triggerType == TRIGGER_END_TURN) {
-                var localIdx2 = (instance_exists(game) && variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
-                var activeIsHero2 = instance_exists(game) ? (game.player_current == localIdx2) : true;
-                if (variable_instance_exists(self, "isHeroOwner") && self.isHeroOwner != activeIsHero2) {
-                    continue;
-                }
                 if (variable_instance_exists(self, "isFaceDown") && self.isFaceDown) {
                     continue;
                 }

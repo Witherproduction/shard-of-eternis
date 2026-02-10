@@ -46,4 +46,11 @@ if (parentCard != "" && selectManager.attackMode == false) {
     
     // Créer la flèche de ciblage
     selectManager.createTargetingArrow(parentCard);
+
+    // Mettre à jour la visibilité du bouton d'attaque directe
+    selectManager.updateDirectAttackButtonVisibility();
+    
+    show_debug_message("### oAttack.Click: Mode attaque activé avec succès pour " + string(parentCard));
+} else {
+    show_debug_message("### oAttack.Click: Ignoré. parentCard=" + string(parentCard) + " attackMode=" + string(selectManager.attackMode));
 }

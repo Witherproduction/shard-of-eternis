@@ -28,23 +28,34 @@ load_hero_decks_from_file();
     global.volume_percent = clamp(_ini_vol, 0, 100);
     audio_master_gain(global.volume_percent / 100);
 
-    // Plein écran
+    // Plein écran / Fenêtré / Sans bordure
     ini_open("options.ini");
     var _fs_default = window_get_fullscreen() ? 1 : 0;
-    var _ini_fs = ini_read_real("display", "fullscreen", _fs_default);
-    ini_close();
-    var _fs_enabled = (_ini_fs >= 0.5);
-    window_set_fullscreen(_fs_enabled);
-
-    // Résolution (appliquée uniquement en mode fenêtré)
-    ini_open("options.ini");
+    var _display_mode = ini_read_real("display", "fullscreen", _fs_default);
+    
+    // Résolution
     var _current_w = window_get_width();
     var _current_h = window_get_height();
     var _default_res = string(_current_w) + "x" + string(_current_h);
     var _res_str = ini_read_string("display", "resolution", _default_res);
     ini_close();
 
-    if (!_fs_enabled) {
+    _display_mode = clamp(_display_mode, 0, 2);
+
+    if (_display_mode == 1) {
+        // Plein écran
+        window_set_fullscreen(true);
+        window_set_showborder(true);
+    } else if (_display_mode == 2) {
+        // Sans bordure
+        window_set_fullscreen(false);
+        window_set_showborder(false);
+        window_set_rectangle(0, 0, display_get_width(), display_get_height());
+    } else {
+        // Fenêtré (Mode 0)
+        window_set_fullscreen(false);
+        window_set_showborder(true);
+        
         var _xpos = string_pos("x", _res_str);
         if (_xpos > 0) {
             var _new_w = real(string_copy(_res_str, 1, _xpos - 1));

@@ -17,8 +17,18 @@ function sEffectPoints(card, effect, context) {
     // [Start] Logic for use_highest_attack_of_genre (Alpha Strike)
     if (variable_struct_exists(effect, "use_highest_attack_of_genre")) {
         var genreT = effect.use_highest_attack_of_genre;
+        
+        // Normalize target genre
+        var genreTargetNorm = string_lower(string(genreT));
+        genreTargetNorm = string_replace_all(genreTargetNorm, "ê", "e");
+        genreTargetNorm = string_replace_all(genreTargetNorm, "é", "e");
+        genreTargetNorm = string_replace_all(genreTargetNorm, "è", "e");
+        
         var checkHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
-        var ownerS = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "ally";
+        
+        // Prioritize explicit source owner, otherwise fallback to target owner (legacy behavior)
+        var ownerS = variable_struct_exists(effect, "highest_attack_source_owner") ? string_lower(effect.highest_attack_source_owner) : (variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "ally");
+        
         var lookAtHero = (ownerS == "ally") ? checkHero : !checkHero;
         var mgr = lookAtHero ? (instance_exists(oFieldManagerHero) ? oFieldManagerHero : noone) : (instance_exists(oFieldManagerEnemy) ? oFieldManagerEnemy : noone);
         
@@ -29,8 +39,12 @@ function sEffectPoints(card, effect, context) {
                 for (var im = 0; im < array_length(fM.cards); im++) {
                     var cm = fM.cards[im];
                     if (cm != 0 && instance_exists(cm)) {
-                         var g = variable_instance_exists(cm, "genre") ? cm.genre : "";
-                         if (g == genreT) {
+                         var g = variable_instance_exists(cm, "genre") ? string_lower(string(cm.genre)) : "";
+                         g = string_replace_all(g, "ê", "e");
+                         g = string_replace_all(g, "é", "e");
+                         g = string_replace_all(g, "è", "e");
+
+                         if (g == genreTargetNorm) {
                              var at = variable_instance_exists(cm, "attack") ? cm.attack : 0;
                              if (variable_instance_exists(cm, "effective_attack")) at = cm.effective_attack;
                              if (at > highest) highest = at;
@@ -119,8 +133,29 @@ function sEffectPoints(card, effect, context) {
         if (ownerSide == "ally") { tgtHero = srcHero; }
         else if (ownerSide == "enemy") { tgtHero = !srcHero; }
         if (op == "damage") {
-            var elem = (card != noone && instance_exists(card) && variable_instance_exists(card, "element")) ? string_lower(card.element) : "neutre";
-            if (!is_undefined(animEffectRequestProjectile)) animEffectRequestProjectile(elem, card, val, tgtHero);
+            var elem = "neutre";
+            if (variable_struct_exists(effect, "element")) elem = string_lower(effect.element);
+            else if (card != noone && instance_exists(card) && variable_instance_exists(card, "element")) elem = string_lower(card.element);
+            
+            // Resolve target instance for FX
+            var targetInstance = noone;
+            if (tgtHero) { // Hero or Ally
+                 targetInstance = instance_find(oLP_Hero, 0);
+            } else { // Enemy
+                 targetInstance = instance_find(oLP_Enemy, 0);
+            }
+            
+            // Define callback to apply damage at impact
+            var damageCallback = method({targetIsHero: tgtHero, value: val}, function() {
+                if (!is_undefined(loseLPFor)) { loseLPFor(targetIsHero, value); }
+            });
+
+            if (!is_undefined(animEffectRequestProjectileTarget) && targetInstance != noone) {
+                animEffectRequestProjectileTarget(elem, card, targetInstance, val, damageCallback);
+            } else {
+                // Fallback: apply damage immediately
+                damageCallback();
+            }
             return true;
         }
         else { return gainLPFor(tgtHero, val); }
@@ -135,9 +170,23 @@ function sEffectPoints(card, effect, context) {
         }
         if (targetLocal != noone) {
             if (op == "damage") { 
-                var elem = (card != noone && instance_exists(card) && variable_instance_exists(card, "element")) ? string_lower(card.element) : "neutre";
-                if (!is_undefined(animEffectRequestProjectileTarget)) { animEffectRequestProjectileTarget(elem, card, targetLocal, val); }
-                return damageCard(targetLocal, val); 
+                var elem = "neutre";
+                if (variable_struct_exists(effect, "element")) elem = string_lower(effect.element);
+                else if (card != noone && instance_exists(card) && variable_instance_exists(card, "element")) elem = string_lower(card.element);
+                
+                // Définition du callback pour appliquer les dégâts à l'impact
+                var damageCallback = method({target: targetLocal, value: val}, function() {
+                    if (target != noone && instance_exists(target)) {
+                         damageCard(target, value);
+                    }
+                });
+
+                if (!is_undefined(animEffectRequestProjectileTarget)) { 
+                    animEffectRequestProjectileTarget(elem, card, targetLocal, val, damageCallback); 
+                } else {
+                    damageCard(targetLocal, val);
+                }
+                return true; // Retourne true car l'effet est initié (visuellement ou immédiatement)
             } else { return healCard(targetLocal, val); }
         } else {
             var effOwner = ownerSide;
