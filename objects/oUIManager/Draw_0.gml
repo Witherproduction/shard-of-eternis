@@ -1,4 +1,4 @@
-﻿exit;
+exit;
 var n = array_length(deckReorderCards);
 if (n <= 0) exit;
 draw_set_alpha(0.6);
@@ -70,6 +70,12 @@ for (var j = 0; j < n; j++) {
     }
     if (variable_instance_exists(c, "genre")) {
         var txg = string(c.genre);
+        if (variable_instance_exists(c, "race") && string_length(c.race) > 0) {
+            var split = string_split(txg, " - ");
+            if (array_length(split) > 0) {
+                txg = split[0];
+            }
+        }
         var marg = 7;
         var rwg = (genre_x2 - genre_x1) * s - pad * 2 - marg * 2;
         var rhg = (genre_y2 - genre_y1) * s - pad * 2;
@@ -77,8 +83,8 @@ for (var j = 0; j < n; j++) {
         var gx = tlx + genre_x1 * s + pad + marg; var gy = tly + genre_y1 * s + pad; gx = round(gx); gy = round(gy);
         draw_text_transformed(gx, gy + 2, txg, scg, scg, 0);
     }
-    if (variable_instance_exists(c, "archetype")) {
-        var txa = string(c.archetype);
+    if (variable_instance_exists(c, "race")) {
+        var txa = string(c.race);
         var mara = 7;
         var rwa = (arch_x2 - arch_x1) * s - pad * 2 - mara * 2;
         var rha = (arch_y2 - arch_y1) * s - pad * 2;

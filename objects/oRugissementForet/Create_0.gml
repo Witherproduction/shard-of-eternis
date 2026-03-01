@@ -1,15 +1,14 @@
-event_inherited();
-race = "Nature";  // Hérite des variables et comportement de oCardMagic
+﻿event_inherited();
+race = "Nature";  // HÃ©rite des variables et comportement de oCardMagic
 
-// Définit les stats spécifiques de ce sort
-name = "Rugissement de la forêt"
+// DÃ©finit les stats spÃ©cifiques de ce sort
+name = "Rugissement de la forÃªt"
 genre = "Sort"
-archetype = "Forêt des voleurs"
 rarity = "commun"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Donne +2 PV à toutes vos Bêtes.";
+description = "Donne +2 PV Ã  toutes vos BÃªtes.";
 mana_cost = 2;
 effects = [
     {
@@ -19,7 +18,7 @@ effects = [
         scope: "all",
         owner: "ally",
         target_zone: "field",
-        criteria: { type: "Monster", genre: "Bête" },
+        criteria: { type: "Monster", genre: "BÃªte" },
         atk: 0,
         PV: 2
     }

@@ -1,15 +1,14 @@
-event_inherited();
+﻿event_inherited();
 race = "Nature";
 
-name = "Griffe du prédateur";
+name = "Griffe du prÃ©dateur";
 genre = "Sort";
-archetype = "Forêt des voleurs";
 rarity = "commune";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "Donne +2/+1 à une Bête alliée.";
-mana_cost = 1; // Coût estimé (était Artéfact)
+description = "Donne +2/+1 Ã  une BÃªte alliÃ©e.";
+mana_cost = 1; // CoÃ»t estimÃ© (Ã©tait ArtÃ©fact)
 
 effects = [
     {
@@ -19,7 +18,7 @@ effects = [
         scope: "single",
         target_zone: "field",
         ally_only: true, // Important pour le ciblage
-        criteria: { type: "Monster", genre: "Bête" },
+        criteria: { type: "Monster", genre: "BÃªte" },
         atk: 2,
         PV: 1
     }

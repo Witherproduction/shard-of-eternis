@@ -180,6 +180,13 @@ for (var i = 0; i < count; i++) {
             }
             if (variable_struct_exists(cardData, "genre")) {
                 var tx = string(cardData.genre);
+                // Si la race est incluse dans le genre (format "Genre - Race"), on la retire pour l'affichage propre
+                if (variable_struct_exists(cardData, "race") && string_length(cardData.race) > 0) {
+                    var split = string_split(tx, " - ");
+                    if (array_length(split) > 0) {
+                        tx = split[0];
+                    }
+                }
                 var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
                 var rh = (genre_y2 - genre_y1) * s - pad * 2;
                 var sc = fit_line(tx, 16 * rel, rw, rh);
@@ -187,8 +194,8 @@ for (var i = 0; i < count; i++) {
                 var top_g  = tly + genre_y1 * s + pad;
                 draw_text_transformed(left_g, top_g + 0, tx, sc, sc, 0);
             }
-            if (variable_struct_exists(cardData, "archetype")) {
-                var tx = string(cardData.archetype);
+            if (variable_struct_exists(cardData, "race")) {
+                var tx = string(cardData.race);
                 var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
                 var rh = (arch_y2 - arch_y1) * s - pad * 2;
                 var sc = fit_line(tx, 16 * rel, rw, rh);
@@ -575,6 +582,13 @@ if (selectedCard != noone) {
         }
         if (variable_instance_exists(card, "genre")) {
             var tx = string(card.genre);
+            // Si la race est incluse dans le genre (format "Genre - Race"), on la retire pour l'affichage propre
+            if (variable_instance_exists(card, "race") && string_length(card.race) > 0) {
+                var split = string_split(tx, " - ");
+                if (array_length(split) > 0) {
+                    tx = split[0];
+                }
+            }
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
             var sc = fit_line(tx, 16 * rel, rw, rh);
@@ -582,8 +596,8 @@ if (selectedCard != noone) {
             var top_g  = tly + genre_y1 * s + pad;
             draw_text_transformed(left_g, top_g + 0, tx, sc, sc, 0);
         }
-        if (variable_instance_exists(card, "archetype")) {
-            var tx = string(card.archetype);
+        if (variable_instance_exists(card, "race")) {
+            var tx = string(card.race);
             var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
             var rh = (arch_y2 - arch_y1) * s - pad * 2;
             var sc = fit_line(tx, 16 * rel, rw, rh);

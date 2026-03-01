@@ -11,7 +11,7 @@ if (!variable_instance_exists(id, "booster")) booster = "";
 // Champs additionnels pour l'affichage dynamique
 if (!variable_instance_exists(id, "genre")) genre = "";
 if (!variable_instance_exists(id, "race")) race = "";
-if (!variable_instance_exists(id, "archetype")) archetype = "";
+
 // Coût/ATK/PV alternatifs si utilisés ailleurs
 if (!variable_instance_exists(id, "atk")) atk = attack; // miroir
 if (!variable_instance_exists(id, "cost")) cost = mana_cost; // miroir

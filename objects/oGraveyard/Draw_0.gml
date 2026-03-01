@@ -1,4 +1,4 @@
-﻿// Affiche uniquement la dernière carte du cimetière, si elle existe
+// Affiche uniquement la dernière carte du cimetière, si elle existe
 if (array_length(cards) > 0) {
     var lastCardData = cards[array_length(cards) - 1];
     
@@ -71,6 +71,12 @@ if (array_length(cards) > 0) {
         }
         if (variable_struct_exists(lastCardData, "genre")) {
             var tx = string(lastCardData.genre);
+            if (variable_struct_exists(lastCardData, "race") && string_length(string(lastCardData.race)) > 0) {
+                var split = string_split(tx, " - ");
+                if (array_length(split) > 0) {
+                    tx = split[0];
+                }
+            }
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
             var sc = fit_line(tx, 16 * rel, rw, rh);
@@ -78,8 +84,8 @@ if (array_length(cards) > 0) {
             var top_g  = tly + genre_y1 * s + pad;
             draw_text_transformed(left_g, top_g + 0, tx, sc, sc, 0);
         }
-        if (variable_struct_exists(lastCardData, "archetype")) {
-            var tx = string(lastCardData.archetype);
+        if (variable_struct_exists(lastCardData, "race")) {
+            var tx = string(lastCardData.race);
             var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
             var rh = (arch_y2 - arch_y1) * s - pad * 2;
             var sc = fit_line(tx, 16 * rel, rw, rh);

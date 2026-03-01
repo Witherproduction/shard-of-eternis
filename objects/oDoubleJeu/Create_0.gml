@@ -1,10 +1,9 @@
-event_inherited();
-race = "Ombre";  // Hérite des variables et comportement de oCardMagic
+﻿event_inherited();
+race = "Ombre";  // HÃ©rite des variables et comportement de oCardMagic
 
-// Définit les stats spécifiques de ce sort
+// DÃ©finit les stats spÃ©cifiques de ce sort
 name = "Double jeu"
 genre = "Sort"
-archetype = "Forêt des voleurs"
 rarity = "rare"
 booster = "Retour des Archontes"
 is_player_card = true;

@@ -1,16 +1,17 @@
-// Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
-name = "Araignée forestière"
+﻿// DÃ©finit les stats spÃ©cifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
+name = "AraignÃ©e forestiÃ¨re"
 attack = 2;
 PV = 1;
 mana_cost = 1;
-genre = "Bête"
-race = "Araignée";tags = ["Bête", "Araignée"];archetype = "Forêt des voleurs"
+genre = "BÃªte"
+race = "AraignÃ©e";tags = ["BÃªte", "AraignÃ©e"];
 booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
-is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "A peine sortie de l'oeuf qu'elle est déja venimeuse"
+is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
+description = "A peine sortie de l'oeuf qu'elle est dÃ©ja venimeuse"
 
-event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
+
 
 

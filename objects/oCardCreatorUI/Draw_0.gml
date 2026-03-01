@@ -35,7 +35,7 @@ if (show_card_list) {
     // Chemin sélection: Booster > Archétype
     draw_set_color(c_yellow);
     draw_set_halign(fa_left);
-    var breadcrumb = "Booster: " + (booster_selected == "" ? "(aucun)" : booster_selected) + "  >  Archétype: " + list_archetype_filter;
+    var breadcrumb = "Booster: " + (booster_selected == "" ? "(aucun)" : booster_selected) + "  >  Race: " + list_archetype_filter;
     draw_text(list_x + 5, list_y - 5, breadcrumb);
     
     // Boutons de scroll
@@ -156,7 +156,7 @@ for (var i = 0; i < array_length(field_names); i++) {
     var field = field_positions[$ field_name];
     
     // Afficher seulement les champs pertinents selon le type
-    if (card_type == "Magic" && (field_name == "attack" || field_name == "PV" || field_name == "genre")) {
+    if (card_type == "Magic" && (field_name == "attack" || field_name == "PV")) {
         continue;
     }
     
@@ -420,7 +420,7 @@ if (show_archetype_list) {
     // Titre
     draw_set_color(c_yellow);
     draw_set_halign(fa_center);
-    draw_text(arch_x + arch_width/2, arch_y - 30, "SÉLECTIONNE UN ARCHÉTYPE");
+    draw_text(arch_x + arch_width/2, arch_y - 30, "SÉLECTIONNE UNE RACE");
     draw_set_halign(fa_left);
 
     // Boutons de scroll
@@ -464,7 +464,7 @@ if (show_archetype_list) {
     if (array_length(archetype_list) == 0) {
         draw_set_color(c_yellow);
         draw_set_halign(fa_center);
-        draw_text(arch_x + arch_width/2, arch_y + 30, "Aucun archétype disponible");
+        draw_text(arch_x + arch_width/2, arch_y + 30, "Aucune race disponible");
         draw_set_halign(fa_left);
     }
 }

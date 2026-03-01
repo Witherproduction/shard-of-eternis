@@ -1,15 +1,15 @@
-event_inherited();
+﻿event_inherited();
 
 
 name = "Anneau du voleur";
 genre = "Sort";
 race = "Ombre";
-tags = ["Pillage", "Ombre", "Sort"];archetype = "Forêt des voleurs";
+tags = ["Pillage", "Ombre", "Sort"];
 rarity = "epique";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "Vole une carte aléatoire du deck de votre adversaire et l'ajoute à votre main.";
+description = "Vole une carte alÃ©atoire du deck de votre adversaire et l'ajoute Ã  votre main.";
 mana_cost = 2;
 
 effects = [
@@ -24,3 +24,4 @@ effects = [
         value: 1
     }
 ];
+

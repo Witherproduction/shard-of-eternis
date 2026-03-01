@@ -1,14 +1,13 @@
-event_inherited();
+﻿event_inherited();
 race = "Ombre";
 
 name = "Dague du filou";
 genre = "Sort";
-archetype = "Forêt des voleurs";
 rarity = "commun";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "Donne +1 ATK. Combo (Camouflage) : Donne +3 ATK à la place.";
+description = "Donne +1 ATK. Combo (Camouflage) : Donne +3 ATK Ã  la place.";
 mana_cost = 1;
 
 effects = [

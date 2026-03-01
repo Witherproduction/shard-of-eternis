@@ -1,17 +1,16 @@
-event_inherited();
-race = "Ours";  // Hérite des variables et comportement de oCardMonster
+﻿event_inherited();
+race = "Ours";  // HÃ©rite des variables et comportement de oCardMonster
 
-// Définit les stats spécifiques de ce monstre
+// DÃ©finit les stats spÃ©cifiques de ce monstre
 name = "Viel ours"
 attack = 2;
 PV = 4;
 mana_cost = 3;
-genre = "Bête"
-archetype = "Forêt des voleurs"
+genre = "BÃªte"
 booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
-is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
 description = "Ce monstre gagne temporairement +2 ATK lorsqu'il combat un monstre sur la ligne de front."
 effects = [
     {
@@ -31,4 +30,4 @@ effects = [
     }
 ]
 
-tags = ["Bête", "Ours"];
+tags = ["BÃªte", "Ours"];

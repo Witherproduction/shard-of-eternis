@@ -170,6 +170,13 @@ if (variable_instance_exists(self, "selected")) {
     // --- GENRE ---
     if (variable_instance_exists(card, "genre") && string_length(string_trim(card.genre)) > 0) {
         var tx_g = string(card.genre);
+        // Si la race est incluse dans le genre (format "Genre - Race"), on la retire pour l'affichage propre
+        if (variable_instance_exists(card, "race") && string_length(card.race) > 0) {
+            var split = string_split(tx_g, " - ");
+            if (array_length(split) > 0) {
+                tx_g = split[0];
+            }
+        }
         var rw_g = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
         var rh_g = (genre_y2 - genre_y1) * s - pad * 2;
         var sc_g = fit_line(tx_g, 16 * rel, rw_g, rh_g);
@@ -177,9 +184,9 @@ if (variable_instance_exists(self, "selected")) {
         draw_text_transformed(round(tlx + genre_x1 * s + pad + mar), round(tly + genre_y1 * s + pad + 2), tx_g, sc_g, sc_g, 0);
     }
 
-    // --- ARCHETYPE ---
-    if (variable_instance_exists(card, "archetype") && string_length(string_trim(card.archetype)) > 0) {
-        var tx_a = string(card.archetype);
+    // --- RACE (formerly ARCHETYPE) ---
+    if (variable_instance_exists(card, "race") && string_length(string_trim(card.race)) > 0) {
+        var tx_a = string(card.race);
         var rw_a = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
         var rh_a = (arch_y2 - arch_y1) * s - pad * 2;
         var sc_a = fit_line(tx_a, 16 * rel, rw_a, rh_a);
@@ -391,12 +398,7 @@ if (variable_instance_exists(self, "selected")) {
         // GENRE
         if (variable_instance_exists(card, "genre")) {
             var tx = string(card.genre);
-            // Include Race
-            if (variable_instance_exists(card, "race") && string_length(string(card.race)) > 0 && string_lower(string(card.race)) != "inconnu" && string_lower(string(card.race)) != "neutre") {
-                if (string_length(tx) > 0) tx += " - " + string(card.race);
-                else tx = string(card.race);
-            }
-
+            
             var mar = 7;
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
@@ -409,9 +411,9 @@ if (variable_instance_exists(self, "selected")) {
             draw_text_transformed(gx, gy + 2, tx, scale_tx, scale_tx, 0);
         }
 
-        // ARCHETYPE
-        if (variable_instance_exists(card, "archetype")) {
-            var tx = string(card.archetype);
+        // RACE (formerly ARCHETYPE location)
+        if (variable_instance_exists(card, "race")) {
+            var tx = string(card.race);
             var mar = 7;
             var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
             var rh = (arch_y2 - arch_y1) * s - pad * 2;

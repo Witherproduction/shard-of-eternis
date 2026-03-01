@@ -473,12 +473,7 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
         }
         if (variable_instance_exists(self, "genre")) {
             var tx = string(genre);
-            // Include Race if available
-            if (variable_instance_exists(self, "race") && string_length(string(race)) > 0 && string_lower(string(race)) != "inconnu" && string_lower(string(race)) != "neutre") {
-                if (string_length(tx) > 0) tx += " - " + string(race);
-                else tx = string(race);
-            }
-
+            
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
             var sc = fit_line(tx, 16 * rel, rw, rh);
@@ -489,8 +484,8 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             top_g  = round(top_g);
             draw_text_transformed(left_g, top_g + 2, tx, sc, sc, angle_draw);
         }
-        if (variable_instance_exists(self, "archetype")) {
-            var tx = string(archetype);
+        if (variable_instance_exists(self, "race")) {
+            var tx = string(race);
             var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
             var rh = (arch_y2 - arch_y1) * s - pad * 2;
             var sc = fit_line(tx, 16 * rel, rw, rh);

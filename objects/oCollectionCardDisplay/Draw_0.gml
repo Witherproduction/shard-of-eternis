@@ -254,12 +254,14 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
 
         if (variable_instance_exists(selectedCard, "genre")) {
             var tx = string(selectedCard.genre);
-            // Include Race
-            if (variable_instance_exists(selectedCard, "race") && string_length(string(selectedCard.race)) > 0 && string_lower(string(selectedCard.race)) != "inconnu" && string_lower(string(selectedCard.race)) != "neutre") {
-                if (string_length(tx) > 0) tx += " - " + string(selectedCard.race);
-                else tx = string(selectedCard.race);
+            // Si la race est incluse dans le genre (format "Genre - Race"), on la retire pour l'affichage propre
+            if (variable_instance_exists(selectedCard, "race") && string_length(selectedCard.race) > 0) {
+                var split = string_split(tx, " - ");
+                if (array_length(split) > 0) {
+                    tx = split[0];
+                }
             }
-
+            
             var mar = 7;
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
@@ -272,8 +274,8 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_text_transformed(gx, gy + 2, tx, scale, scale, 0);
         }
 
-        if (variable_instance_exists(selectedCard, "archetype")) {
-            var tx = string(selectedCard.archetype);
+        if (variable_instance_exists(selectedCard, "race")) {
+            var tx = string(selectedCard.race);
             var mar = 7;
             var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
             var rh = (arch_y2 - arch_y1) * s - pad * 2;

@@ -1,17 +1,17 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
+﻿event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
 
-// Définit les stats spécifiques de ce monstre
+// DÃ©finit les stats spÃ©cifiques de ce monstre
 name = "Catherine Fumerol"
 attack = 3;
 PV = 2;
 mana_cost = 3;
-genre = "Humanoïde"
-race = "Humain";tags = ["Humain", "Humanoïde", "Crepuscule"];archetype = "Forêt des voleurs"
+genre = "HumanoÃ¯de"
+race = "Humain";tags = ["Humain", "HumanoÃ¯de", "Crepuscule"];
 booster = "Retour des Archontes"
 rarity = "legendaire"
 lastTurnAttack = 0;
-is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Crepuscule : Inflige 3 dégats à votre adversaire."
+is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
+description = "Crepuscule : Inflige 3 dÃ©gats Ã  votre adversaire."
 element = "feu"
 
 effects = [
@@ -25,4 +25,5 @@ effects = [
         value: 3
     }
 ]
+
 

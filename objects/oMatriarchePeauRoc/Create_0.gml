@@ -1,16 +1,15 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
+﻿event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
 
-// Définit les stats spécifiques de ce monstre
+// DÃ©finit les stats spÃ©cifiques de ce monstre
 name = "Matriarche peau-de-roc"
 attack = 5;
 PV = 6;
 mana_cost = 6;
-genre = "Bête"
-archetype = "Forêt des voleurs"
+genre = "BÃªte"
 booster = "Retour des Archontes"
 rarity = "legendaire"
 lastTurnAttack = 0;
-is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
 description = "Eveil : Invoque 2 'sanglier peau-de-roc' sur la ligne de front."
 effects = [
     {
@@ -34,4 +33,4 @@ effects = [
 ]
 
 race = "Sanglier";
-tags = ["Bête", "Sanglier", "Eveil"];
+tags = ["BÃªte", "Sanglier", "Eveil"];

@@ -1,16 +1,15 @@
-event_inherited();
-race = "Nature";  // Hérite des variables et comportement de oCardMagic
+﻿event_inherited();
+race = "Nature";  // HÃ©rite des variables et comportement de oCardMagic
 
-// Définit les stats spécifiques de ce sort
+// DÃ©finit les stats spÃ©cifiques de ce sort
 name = "Cri de la meute"
 mana_cost = 2;
 genre = "Sort"
-archetype = "Forêt des voleurs"
 rarity = "commun"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Vos Bêtes gagnent +1/+1."
+description = "Vos BÃªtes gagnent +1/+1."
 effects = [
     {
         id: 1,
@@ -19,9 +18,9 @@ effects = [
         scope: "all",
         owner: "ally",
         target_zone: "field",
-        criteria: { type: "Monster", genre: "Bête" },
+        criteria: { type: "Monster", genre: "BÃªte" },
         atk: 1,
         PV: 1
     }
 ]
-tags = ["Nature", "Bête"];
+tags = ["Nature", "BÃªte"];

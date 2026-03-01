@@ -1,14 +1,13 @@
-event_inherited();
+﻿event_inherited();
 race = "Eau";
 
-name = "Coquillage des marées";
+name = "Coquillage des marÃ©es";
 genre = "Sort";
-archetype = "Forêt des voleurs";
 rarity = "rare";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "Donne +2 PV à tous vos serviteurs.";
+description = "Donne +2 PV Ã  tous vos serviteurs.";
 mana_cost = 2;
 
 effects = [

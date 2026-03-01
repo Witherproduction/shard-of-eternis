@@ -1,17 +1,17 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
+﻿event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
 
-// Définit les stats spécifiques de ce monstre
+// DÃ©finit les stats spÃ©cifiques de ce monstre
 name = "Gorrak"
 attack = 7;
 PV = 7;
 mana_cost = 8;
-genre = "Humanoïde"
-race = "Skarl";tags = ["Humanoïde", "Skarl", "Eveil", "Crepuscule"];archetype = "Forêt des voleurs"
+genre = "HumanoÃ¯de"
+race = "Skarl";tags = ["HumanoÃ¯de", "Skarl", "Eveil", "Crepuscule"];
 booster = "Retour des Archontes"
 rarity = "legendaire"
 lastTurnAttack = 0;
-is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque 2 'Skarl Chétif' sur la ligne de front. n\Crépuscule : Inflige 2 dégats à votre adversaire pour chaque Humanoïde allié sur le terrain."
+is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
+description = "Eveil : Invoque 2 'Skarl ChÃ©tif' sur la ligne de front. n\CrÃ©puscule : Inflige 2 dÃ©gats Ã  votre adversaire pour chaque HumanoÃ¯de alliÃ© sur le terrain."
 element = "physique"
 
 effects = [
@@ -42,9 +42,10 @@ effects = [
         owner: "enemy",
         value_per_card: 2,
         target_zone: "field",
-        criteria: { type: "Monster", genre: "Humanoïde" },
+        criteria: { type: "Monster", genre: "HumanoÃ¯de" },
         count_owner: "ally",
-        label: "Crépuscule"
+        label: "CrÃ©puscule"
     }
 ]
+
 

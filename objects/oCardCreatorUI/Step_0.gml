@@ -306,7 +306,7 @@ if (mouse_check_button_pressed(mb_left)) {
                 show_booster_list = false;
                 show_archetype_list = true;
                 show_card_list = false;
-                show_status_message("Sélectionne un archétype");
+                show_status_message("Sélectionne une race");
                 exit; // éviter le double-traitement du clic dans la même frame
             }
         }
@@ -535,8 +535,10 @@ function auto_fill_fields_from_object(obj_name) {
         if (variable_instance_exists(inst, "genre")) {
             input_fields.genre = inst.genre;
         }
-        if (variable_instance_exists(inst, "archetype")) {
-            input_fields.archetype = inst.archetype;
+        if (variable_instance_exists(inst, "race")) {
+            input_fields.race = inst.race;
+        } else if (variable_instance_exists(inst, "archetype")) {
+            input_fields.race = inst.archetype;
         }
         if (variable_instance_exists(inst, "booster")) {
             input_fields.booster = inst.booster;
@@ -594,7 +596,7 @@ function load_archetype_list() {
         }
         if (!pass_booster) continue;
         
-        var arch = variable_struct_exists(c, "archetype") ? string(c.archetype) : "";
+        var arch = variable_struct_exists(c, "race") ? string(c.race) : (variable_struct_exists(c, "archetype") ? string(c.archetype) : "");
         arch = string_trim(arch);
         var key = string_lower(arch);
         if (key == "") {
@@ -691,8 +693,7 @@ function load_card_for_editing(card_id) {
     input_fields.PV = string(variable_struct_exists(card, "PV") ? card.PV : 0);
     input_fields.mana_cost = string(variable_struct_exists(card, "mana_cost") ? card.mana_cost : 0);
     input_fields.genre = string(variable_struct_exists(card, "genre") ? card.genre : "");
-    input_fields.race = string(variable_struct_exists(card, "race") ? card.race : "");
-    input_fields.archetype = string(variable_struct_exists(card, "archetype") ? card.archetype : "");
+    input_fields.race = string(variable_struct_exists(card, "race") ? card.race : (variable_struct_exists(card, "archetype") ? card.archetype : ""));
     input_fields.booster = string(variable_struct_exists(card, "booster") ? card.booster : "");
     var raw_tags = variable_struct_exists(card, "tags") ? card.tags : "";
     if (is_array(raw_tags)) {
@@ -747,14 +748,14 @@ function load_card_list() {
     for (var i = 0; i < array_length(all_cards); i++) {
         var c = all_cards[i];
         
-        // Filtre d'archétype
+        // Filtre d'archétype (Race)
         var pass_arch = true;
         if (list_archetype_filter != "Tous") {
-            var arch = variable_struct_exists(c, "archetype") ? c.archetype : "";
+            var r = variable_struct_exists(c, "race") ? c.race : (variable_struct_exists(c, "archetype") ? c.archetype : "");
             if (string_lower(list_archetype_filter) == "neutre") {
-                pass_arch = arch == "" || arch == undefined;
+                pass_arch = r == "" || r == undefined;
             } else {
-                pass_arch = string_lower(arch) == string_lower(list_archetype_filter);
+                pass_arch = string_lower(r) == string_lower(list_archetype_filter);
             }
         }
         if (!pass_arch) continue;
@@ -788,7 +789,6 @@ function reset_fields() {
     input_fields.mana_cost = "0";
     input_fields.genre = "";
     input_fields.race = "";
-    input_fields.archetype = "";
     input_fields.booster = "";
     input_fields.tags = "";
     input_fields.sprite = "";
@@ -808,7 +808,6 @@ function reset_fields_keep_type() {
     input_fields.mana_cost = "0";
     input_fields.genre = "";
     input_fields.race = "";
-    input_fields.archetype = "";
     input_fields.booster = "";
     input_fields.tags = "";
     input_fields.sprite = "";
@@ -830,7 +829,6 @@ function create_new_card() {
     var rarity = string(selected_rarity);
     var genre = string(input_fields.genre);
     var race = string(input_fields.race);
-    var archetype = string(input_fields.archetype);
     var booster = string(input_fields.booster);
     var raw_tags_str = string(input_fields.tags);
     var tags_array = [];
@@ -882,7 +880,6 @@ function create_new_card() {
         rarity: rarity,
         genre: genre,
         race: race,
-        archetype: archetype,
         booster: booster,
         tags: tags_array
     };

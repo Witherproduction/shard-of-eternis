@@ -1,17 +1,16 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
+﻿event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
 
-// Définit les stats spécifiques de ce monstre
+// DÃ©finit les stats spÃ©cifiques de ce monstre
 name = "Tarrinox"
 attack = 5;
 PV = 7;
 mana_cost = 6;
-genre = "Bête"
-archetype = "Forêt des voleurs"
+genre = "BÃªte"
 booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
-is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Donne +4/+4 aux Araignée forestière sur le terrain."
+is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
+description = "Eveil : Donne +4/+4 aux AraignÃ©e forestiÃ¨re sur le terrain."
 effects = [
     {
         id: 1,
@@ -28,5 +27,5 @@ effects = [
 ]
 
 
-race = "Araignée";
-tags = ["Bête", "Araignée", "Eveil"];
+race = "AraignÃ©e";
+tags = ["BÃªte", "AraignÃ©e", "Eveil"];

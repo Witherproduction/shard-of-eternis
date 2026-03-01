@@ -504,10 +504,10 @@ function checkTriggerConditions(card, effect, context) {
             }
         }
 
-        // Vérifier la présence d'un archétype sur le terrain du héros
-        if (variable_struct_exists(conditions, "has_archetype_on_field")) {
-            var arche = conditions.has_archetype_on_field;
-            if (!has_archetype_monster_on_field(true, arche)) {
+        // Vérifier la présence d'une race sur le terrain du héros
+        if (variable_struct_exists(conditions, "has_race_on_field")) {
+            var race_cond = conditions.has_race_on_field;
+            if (!has_race_monster_on_field(true, race_cond)) {
                 return false;
             }
         }

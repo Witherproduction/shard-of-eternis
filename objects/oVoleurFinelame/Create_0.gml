@@ -1,21 +1,20 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
+﻿event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
 
-// Définit les stats spécifiques de ce monstre
+// DÃ©finit les stats spÃ©cifiques de ce monstre
 name = "Voleur Finelame"
 attack = 3;
 PV = 2;
 mana_cost = 3;
-genre = "Humanoïde"
-archetype = "Forêt des voleurs"
+genre = "HumanoÃ¯de"
 booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
-is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
 
-// Mécaniques spéciales
+// MÃ©caniques spÃ©ciales
 isPercee = true;
 
-description = "Camouflage. Percée (Peut ignorer la ligne de front pour attaquer le Héros ou l'arrière-garde)."
+description = "Camouflage. PercÃ©e (Peut ignorer la ligne de front pour attaquer le HÃ©ros ou l'arriÃ¨re-garde)."
 effects = [
     {
         id: 1,
@@ -24,4 +23,4 @@ effects = [
     }
 ]
 race = "Humain";
-tags = ["Humanoïde", "Humain", "Camouflage", "Percee"];
+tags = ["HumanoÃ¯de", "Humain", "Camouflage", "Percee"];

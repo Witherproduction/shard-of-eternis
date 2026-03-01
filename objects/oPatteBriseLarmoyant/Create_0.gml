@@ -1,17 +1,16 @@
-event_inherited();  // Hérite des variables et comportement de oCardMonster
+﻿event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
 
-// Définit les stats spécifiques de ce monstre
-name = "Patte-brisé larmoyant"
+// DÃ©finit les stats spÃ©cifiques de ce monstre
+name = "Patte-brisÃ© larmoyant"
 attack = 1;
 PV = 5;
 mana_cost = 2;
-genre = "Bête"
-archetype = "Forêt des voleurs"
+genre = "BÃªte"
 booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
-is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-isHeroOwner = true; // Nécessaire pour le système de triggers
+is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
+isHeroOwner = true; // NÃ©cessaire pour le systÃ¨me de triggers
 description = "Gagne +2 ATK durant le tour adverse."
 effects = [
     {
@@ -35,4 +34,4 @@ effects = [
     }
 ]
 race = "Loup";
-tags = ["Bête", "Loup"];
+tags = ["BÃªte", "Loup"];
