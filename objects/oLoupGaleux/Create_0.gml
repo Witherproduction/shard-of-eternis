@@ -1,18 +1,18 @@
 ﻿event_inherited();
-race = "Loup";  // HÃ©rite des variables et comportement de oCardMonster
+race = "Loup";  // Hérite des variables et comportement de oCardMonster
 
-// DÃ©finit les stats spÃ©cifiques de ce monstre
+// Définit les stats spécifiques de ce monstre
 name = "Loup galeux"
 attack = 2;
 PV = 3;
 mana_cost = 2;
-genre = "BÃªte"
-tags = "BÃªte"
+genre = "Bête"
+tags = "Bête"
 booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
-is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
-description = "Gagne +3 ATK tant qu'il n'y a aucune autre bÃªte sur le terrain."
+is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+description = "Gagne +3 ATK tant qu'il n'y a aucune autre bête sur le terrain."
 effects = [
     {
         id: 1,
@@ -20,7 +20,7 @@ effects = [
         effect_type: EFFECT_BUFF,
         scope: "single",
         aggregate: true,
-        per_genre: "BÃªte",
+        per_genre: "Bête",
         per_zone: "field",
         per_owner: "both",
         exclude_self_in_per_count: true,
@@ -29,4 +29,4 @@ effects = [
         per_zero_bonus_atk: 3
     }
 ]
-tags = ["BÃªte", "Loup"];
+tags = ["Bête", "Loup"];

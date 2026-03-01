@@ -9,7 +9,7 @@ rarity = "epique";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "Vole une carte alÃ©atoire du deck de votre adversaire et l'ajoute Ã  votre main.";
+description = "Vole une carte aléatoire du deck de votre adversaire et l'ajoute à votre main.";
 mana_cost = 2;
 
 effects = [

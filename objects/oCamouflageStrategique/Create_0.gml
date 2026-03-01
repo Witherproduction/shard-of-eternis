@@ -1,8 +1,8 @@
 ﻿event_inherited();
 
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
-name = "Camouflage stratÃ©gique"
+// Définit les stats spécifiques de ce sort
+name = "Camouflage stratégique"
 mana_cost = 2;
 genre = "Sort"
 race = "Ombre";tags = ["Ombre", "Sort"];
@@ -10,7 +10,7 @@ rarity = "rare"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Donne +1/+2 Ã  un serviteur. S'il a Camouflage, il peut attaquer ce tour sans le perdre."
+description = "Donne +1/+2 à un serviteur. S'il a Camouflage, il peut attaquer ce tour sans le perdre."
 effects = [
     {
         id: 1,

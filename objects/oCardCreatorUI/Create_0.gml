@@ -128,25 +128,7 @@ buttons.load_card = {
     text: "Charger Carte"
 };
 
-// Nouveau bouton: Exporter la base vers le dossier de release
-buttons.export_db = {
-    x: ui_x + 700,
-    y: ui_y + ui_height - 100,
-    width: 180,
-    height: 45,
-    text: "Exporter la base"
-};
-
-// Nouveau bouton: Sauvegarder et Suivant
-buttons.save_and_next = {
-    x: ui_x + 900,
-    y: ui_y + ui_height - 100,
-    width: 180,
-    height: 45,
-    text: "Sauv. & Suivant"
-};
-
-// Positions des champs de saisie (espacement augmenté)
+// Position de l'aperçu (ajustée pour l'interface agrandie)
 field_positions = {};
 var field_x = ui_x + 80;
 var field_y = ui_y + 120;
@@ -176,23 +158,6 @@ preview_y = ui_y + 120;
 // Messages d'état
 status_message = "";
 status_timer = 0;
-
-// Variables pour l'interface de gestion des cartes
-show_card_list = false;
-card_list = [];
-card_list_scroll = 0;
-list_archetype_filter = "Tous";
-
-// Nouveau: sélection par booster
-show_booster_list = false;
-booster_list = [];
-booster_list_scroll = 0;
-booster_selected = "";
-show_archetype_list = false;
-archetype_list = [];
-archetype_list_scroll = 0;
-selected_card_for_action = "";
-card_list_buttons = {};
 
 // Mode d'édition
 editing_mode = false;

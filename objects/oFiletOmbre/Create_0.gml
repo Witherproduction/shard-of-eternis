@@ -1,7 +1,7 @@
 ﻿event_inherited();
-race = "Ombre";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
+// Définit les stats spécifiques de ce sort
 name = "Filet de l'ombre"
 mana_cost = 1;
 genre = "Secret"
@@ -13,7 +13,7 @@ description = "S'active lorsque votre adversaire attaque avec un monstre. Entrav
 effects = [
     {
         id: 1,
-        // Secret dÃ©clenchÃ© Ã  l'attaque
+        // Secret déclenché à l'attaque
         secret_activation: { on_attack: true },
         effect_type: EFFECT_ENTRAVE,
         scope: "single",

@@ -1,15 +1,15 @@
-﻿event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
+﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
 
-// DÃ©finit les stats spÃ©cifiques de ce monstre
-name = "RÃ´deur des forÃªts"
+// Définit les stats spécifiques de ce monstre
+name = "Rôdeur des forêts"
 attack = 4;
 PV = 5;
 mana_cost = 5;
-genre = "BÃªte"
+genre = "Bête"
 booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
-is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
+is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
 description = "Eveil : Invoque un 'jeune loup'."
 effects = [
     {
@@ -25,4 +25,4 @@ effects = [
 
 
 race = "Loup";
-tags = ["BÃªte", "Loup", "Eveil"];
+tags = ["Bête", "Loup", "Eveil"];

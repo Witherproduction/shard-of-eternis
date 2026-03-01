@@ -1,15 +1,15 @@
 ﻿event_inherited();
-race = "Ombre";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
-name = "Brume de la forÃªt"
+// Définit les stats spécifiques de ce sort
+name = "Brume de la forêt"
 genre = "Sort"
 race = "Ombre";tags = ["Ombre", "Sort", "Combo"];
 rarity = "epique"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "ConfÃ¨re +2 ATK et Camouflage Ã  un serviteur alliÃ©.\nCombo (Camouflage) : DÃ©truit un serviteur ennemi alÃ©atoire."
+description = "Confère +2 ATK et Camouflage à un serviteur allié.\nCombo (Camouflage) : Détruit un serviteur ennemi aléatoire."
 mana_cost = 2;
 
 effects = [

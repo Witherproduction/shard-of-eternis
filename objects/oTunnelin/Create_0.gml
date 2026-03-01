@@ -1,17 +1,17 @@
 ﻿event_inherited();
-race = "Tunnelin";  // HÃ©rite des variables et comportement de oCardMonster
+race = "Tunnelin";  // Hérite des variables et comportement de oCardMonster
 
-// DÃ©finit les stats spÃ©cifiques de ce monstre
+// Définit les stats spécifiques de ce monstre
 name = "Tunnelin"
 attack = 1;
 PV = 1;
 mana_cost = 1;
-genre = "HumanoÃ¯de"
+genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
-is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque une copie de ce serviteur Ã  ses cotÃ©s."
+is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+description = "Eveil : Invoque une copie de ce serviteur à ses cotés."
 effects = [
     {
         id: 1,
@@ -24,4 +24,4 @@ effects = [
     }
 ]
 
-tags = ["HumanoÃ¯de", "Tunnelin", "Eveil"];
+tags = ["Humanoïde", "Tunnelin", "Eveil"];

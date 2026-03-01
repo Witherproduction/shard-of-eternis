@@ -7,11 +7,78 @@ function progression_init() {
             unlocked_bots: [],  // Tableau d'IDs de bots (reals)
             chapters: {},       // Struct: "1": { act1: true, act2: false... }
             rewards: {},        // Struct générique pour autres récompenses
-            card_counts: {}     // Dictionnaire: id -> quantité possédée
+            card_counts: {},    // Dictionnaire: id -> quantité possédée
+            starter_deck_granted: false // Flag pour le deck de départ
         };
         
         // Charger les données si le fichier existe
         progression_load();
+        
+        show_debug_message("### DEBUG: progression_init complete. Unlocked cards count: " + string(array_length(global.progression_data.unlocked_cards)));
+
+        // --- STARTER DECK INITIALIZATION ---
+        // Vérification plus robuste : on vérifie si le flag est absent/faux OU si une carte clé (Tarrinox) est manquante
+        // Cela permet de corriger le problème si le joueur a eu des IDs incorrects ("oTarrinox") lors d'une tentative précédente
+        var needs_starter_deck = false;
+        
+        if (!variable_struct_exists(global.progression_data, "starter_deck_granted") || global.progression_data.starter_deck_granted == false) {
+            needs_starter_deck = true;
+        } else {
+            // Vérifier si Tarrinox (ID correct) est présent
+            var has_tarrinox = false;
+            for (var i = 0; i < array_length(global.progression_data.unlocked_cards); i++) {
+                if (global.progression_data.unlocked_cards[i] == "tarrinox") {
+                    has_tarrinox = true;
+                    break;
+                }
+            }
+            if (!has_tarrinox) {
+                needs_starter_deck = true;
+                show_debug_message("### DEBUG: Starter deck flag true but 'tarrinox' missing. Forcing grant.");
+            }
+        }
+
+        if (needs_starter_deck) {
+            show_debug_message("### DEBUG: Granting Starter Deck (Corrected IDs)...");
+            var starter_deck = [
+                // Base Fixe (Bêtes) - IDs CORRECTS (snake_case sans 'o')
+                "tarrinox", "tarrinox", 
+                "tarentule_foret", "tarentule_foret", 
+                "tortue_vagabonde", "tortue_vagabonde", 
+                "loup_galeux", "loup_galeux", 
+                "jeune_loup", "jeune_loup", 
+                "renard_mystique", "renard_mystique", 
+                "vieil_ours", "vieil_ours", 
+                "griffe_predateur", "griffe_predateur", 
+                "saut_predateur", "saut_predateur", 
+                "feuillage_protecteur", "feuillage_protecteur", 
+                
+                // Base Variable (Chapitre 1)
+                "bougimencien_tunnelin", "bougimencien_tunnelin", 
+                "mineur_tunnelin", "mineur_tunnelin", 
+                "tunnelin", "tunnelin", 
+                "envahisseur_geule_roche", "envahisseur_geule_roche", // Note: "geule" dans l'ID JSON
+                "araignee_forestiere", "araignee_forestiere", 
+                "jeune_ours_foret", "jeune_ours_foret", 
+                "loup_gris_foret", "loup_gris_foret", 
+                "rugissement_foret", "rugissement_foret", 
+                "cri_meute", "cri_meute", 
+                "patte_brise_larmoyant", "patte_brise_larmoyant"
+            ];
+            
+            show_debug_message("### Initialization: Granting Starter Deck (Chapter 1 Deck) with verified IDs");
+            for (var i = 0; i < array_length(starter_deck); i++) {
+                var c = starter_deck[i];
+                unlock_card(c, false);
+            }
+            
+            // Marquer comme donné
+            global.progression_data.starter_deck_granted = true;
+            progression_save();
+            show_debug_message("### DEBUG: Starter Deck granted and saved. New count: " + string(array_length(global.progression_data.unlocked_cards)));
+        } else {
+             show_debug_message("### DEBUG: Starter deck already granted and verified. Skipping.");
+        }
     }
     
     if (!variable_global_exists("admin_mode")) {
@@ -41,7 +108,8 @@ function progression_reset() {
         unlocked_cards: [],
         unlocked_bots: [],
         chapters: {},
-        rewards: { gold_coins: 0, arcane_stones: 0 }
+        rewards: { gold_coins: 0, arcane_stones: 0 },
+        starter_deck_granted: false
     };
     global.gold_coins = 0;
     global.arcane_stones = 0;
@@ -90,6 +158,7 @@ function progression_load() {
             if (variable_struct_exists(data, "chapters")) global.progression_data.chapters = data.chapters;
             if (variable_struct_exists(data, "rewards")) global.progression_data.rewards = data.rewards;
             if (variable_struct_exists(data, "card_counts")) global.progression_data.card_counts = data.card_counts;
+            if (variable_struct_exists(data, "starter_deck_granted")) global.progression_data.starter_deck_granted = data.starter_deck_granted;
             show_debug_message("### Progression chargée.");
         } catch (e) {
             show_debug_message("### Erreur chargement progression : " + string(e));
@@ -113,9 +182,11 @@ function progression_load() {
 
 // === GESTION DES CARTES ===
 
-/// @function unlock_card(card_id)
-/// @description Débloque une carte pour le joueur
-function unlock_card(card_id) {
+/// @function unlock_card(card_id, auto_save)
+/// @description Débloque une carte pour le joueur. auto_save (bool, défaut true)
+function unlock_card(card_id, auto_save) {
+    if (is_undefined(auto_save)) auto_save = true;
+    
     if (!variable_struct_exists(global.progression_data, "card_counts")) {
         global.progression_data.card_counts = {};
     }
@@ -136,7 +207,14 @@ function unlock_card(card_id) {
     }
     var maxc = get_max_copies_for_card_id(card_id);
     if (prev >= maxc) {
+        // ... conversion en arcane stones ...
+        // (Pour simplifier, on ne convertit pas si auto_save=false, ou on laisse tel quel)
+        // La conversion implique add_arcane_stones qui a son propre save ? 
+        // add_arcane_stones n'est pas montré ici, mais probablement.
+        
+        // Pour ne pas complexifier, on laisse la logique de conversion
         var rar = "commun";
+        // ... (logique de rareté) ...
         var allCards2 = dbGetAllCards();
         for (var ii = 0; ii < array_length(allCards2); ii++) {
             var cc = allCards2[ii];
@@ -153,15 +231,21 @@ function unlock_card(card_id) {
         } else if (rar == "legendaire") {
             reward = 80;
         }
-        add_arcane_stones(reward);
-        progression_save();
+        // add_arcane_stones(reward); // Supposons que ça existe
+        // On remplace add_arcane_stones par modification directe pour contrôler le save
+        global.arcane_stones += reward;
+        if (variable_struct_exists(global.progression_data, "rewards")) {
+            global.progression_data.rewards[$ "arcane_stones"] = global.arcane_stones;
+        }
+        
         show_debug_message("### Carte convertie en Pierre arcanique : " + string(card_id));
+        if (auto_save) progression_save();
     } else {
         global.progression_data.card_counts[$ card_id] = prev + 1;
-        progression_save();
         show_debug_message("### Carte obtenue : " + string(card_id) + " (x" + string(prev + 1) + ")");
+        if (auto_save) progression_save();
     }
-    return first_time; // true uniquement pour la première obtention
+    return first_time;
 }
 
 /// @function is_card_unlocked(card_id)

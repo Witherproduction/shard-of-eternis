@@ -1,7 +1,7 @@
 ﻿event_inherited();
-race = "Ombre";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
+// Définit les stats spécifiques de ce sort
 name = "Double jeu"
 genre = "Sort"
 rarity = "rare"

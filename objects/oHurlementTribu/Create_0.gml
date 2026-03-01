@@ -8,7 +8,7 @@ rarity = "commun";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "DÃ©truisez un Abyssien alliÃ© pour donner +2/+2 Ã  tous vos autres monstres.";
+description = "Détruisez un Abyssien allié pour donner +2/+2 à tous vos autres monstres.";
 
 effects = [
     {
@@ -20,13 +20,13 @@ effects = [
         owner: "ally",
         criteria: { type: "Monster", name_contains: "Abyssien" },
         
-        // Effet secondaire dÃ©clenchÃ© APRES la destruction rÃ©ussie
+        // Effet secondaire déclenché APRES la destruction réussie
         flow_next: {
             effect_type: EFFECT_BUFF,
             scope: "all",
             owner: "ally",
             target_zone: "field",
-            // Le monstre sacrifiÃ© est exclu automatiquement s'il est dÃ©truit
+            // Le monstre sacrifié est exclu automatiquement s'il est détruit
             ignore_context_stats: true,
             atk: 2,
             PV: 2

@@ -7,7 +7,7 @@ rarity = "rare";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "Invoque 3 Coureurs Abyssiens (1/1) sur des emplacements alÃ©atoires.";
+description = "Invoque 3 Coureurs Abyssiens (1/1) sur des emplacements aléatoires.";
 mana_cost = 3;
 
 effects = [

@@ -1,17 +1,17 @@
 ﻿event_inherited();
-race = "Tunnelin";  // HÃ©rite des variables et comportement de oCardMonster
+race = "Tunnelin";  // Hérite des variables et comportement de oCardMonster
 
-// DÃ©finit les stats spÃ©cifiques de ce monstre
+// Définit les stats spécifiques de ce monstre
 name = "Sous-chef Tunnelin"
 attack = 4;
 PV = 5;
 mana_cost = 5;
-genre = "HumanoÃ¯de"
+genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
-is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Donne +2 ATK Ã  tous vos serviteur sur le terrain"
+is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+description = "Eveil : Donne +2 ATK à tous vos serviteur sur le terrain"
 effects = [
     {
         id: 1,
@@ -25,4 +25,4 @@ effects = [
 ]
 
 
-tags = ["HumanoÃ¯de", "Tunnelin", "Eveil"];
+tags = ["Humanoïde", "Tunnelin", "Eveil"];

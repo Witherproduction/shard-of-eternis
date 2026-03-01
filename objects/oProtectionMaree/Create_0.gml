@@ -1,8 +1,8 @@
 ﻿event_inherited();
-race = "Eau";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Eau";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
-name = "Protection de la marÃ©e";
+// Définit les stats spécifiques de ce sort
+name = "Protection de la marée";
 genre = "Sort";
 rarity = "commun";
 booster = "Retour des Archontes";
@@ -10,7 +10,7 @@ is_player_card = true;
 
 mana_cost = 2;
 
-description = "Donne +2 PV Ã  tous les Abyssiens sur votre terrain.";
+description = "Donne +2 PV à tous les Abyssiens sur votre terrain.";
 
 effects = [
     {

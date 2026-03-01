@@ -397,7 +397,7 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             draw_debug_rect("name", name_x1, name_y1, name_x2, name_y2, tlx, tly, s, active_field);
             draw_debug_rect("mana", star_x1, star_y1, star_x2, star_y2, tlx, tly, s, active_field);
             draw_debug_rect("genre", genre_x1, genre_y1, genre_x2, genre_y2, tlx, tly, s, active_field);
-            draw_debug_rect("archetype", arch_x1, arch_y1, arch_x2, arch_y2, tlx, tly, s, active_field);
+            draw_debug_rect("race", arch_x1, arch_y1, arch_x2, arch_y2, tlx, tly, s, active_field);
             // Description frames hidden on small cards as text is hidden
             // draw_debug_rect("description", desc_x1, desc_y1, desc_x2, desc_y2, tlx, tly, s, active_field);
             // ATK/HP logic is further down, but we can draw frames here using layout vars
@@ -473,6 +473,13 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
         }
         if (variable_instance_exists(self, "genre")) {
             var tx = string(genre);
+            // Si la race est incluse dans le genre (format "Genre - Race"), on la retire pour l'affichage propre
+            if (variable_instance_exists(self, "race") && string_length(race) > 0) {
+                var split = string_split(tx, " - ");
+                if (array_length(split) > 0) {
+                    tx = split[0];
+                }
+            }
             
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;

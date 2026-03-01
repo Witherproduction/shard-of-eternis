@@ -1,14 +1,14 @@
 ﻿event_inherited();
-race = "Eau";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Eau";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
-name = "MarÃ©e dÃ©ferlante"
+// Définit les stats spécifiques de ce sort
+name = "Marée déferlante"
 genre = "Sort"
 rarity = "commun"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Renvoyez un serviteur adverse dans la main de son propriÃ©taire."
+description = "Renvoyez un serviteur adverse dans la main de son propriétaire."
 mana_cost = 2;
 
 effects = [

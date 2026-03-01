@@ -1,8 +1,8 @@
 ﻿event_inherited();
-race = "Nature";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
-name = "PiÃ¨ge du voleur"
+// Définit les stats spécifiques de ce sort
+name = "Piège du voleur"
 genre = "Secret"
 rarity = "rare"
 booster = "Retour des Archontes"

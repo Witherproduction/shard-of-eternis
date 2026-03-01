@@ -7,7 +7,7 @@ rarity = "rare";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "Inflige 2 dÃ©gÃ¢ts Ã  un serviteur ennemi et l'Entrave.";
+description = "Inflige 2 dégâts à un serviteur ennemi et l'Entrave.";
 mana_cost = 2;
 element = "Ombre";
 

@@ -1,17 +1,17 @@
 ﻿event_inherited();
-race = "Tunnelin";  // HÃ©rite des variables et comportement de oCardMonster
+race = "Tunnelin";  // Hérite des variables et comportement de oCardMonster
 
-// DÃ©finit les stats spÃ©cifiques de ce monstre
-name = "GÃ©omancien Tunnelin"
+// Définit les stats spécifiques de ce monstre
+name = "Géomancien Tunnelin"
 attack = 2;
 PV = 2;
 mana_cost = 4;
-genre = "HumanoÃ¯de"
-tags = ["HumanoÃ¯de", "Tunnelin", "Eveil", "Entrave"];
+genre = "Humanoïde"
+tags = ["Humanoïde", "Tunnelin", "Eveil", "Entrave"];
 booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
-is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
+is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
 
 description = "Eveil : Entrave tous les serviteurs adverses"
 effects = [

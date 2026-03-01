@@ -1,14 +1,14 @@
 ﻿event_inherited();
-race = "Ombre";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
+// Définit les stats spécifiques de ce sort
 name = "Distraction"
 genre = "Secret"
 rarity = "epique"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Secret : Quand un serviteur ennemi est invoquÃ©, le renvoie dans la main et augmente son coÃ»t de (2).";
+description = "Secret : Quand un serviteur ennemi est invoqué, le renvoie dans la main et augmente son coût de (2).";
 mana_cost = 2;
 
 effects = [

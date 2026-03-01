@@ -1,7 +1,7 @@
 ﻿event_inherited();
-race = "Ombre";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
+// Définit les stats spécifiques de ce sort
 name = "Brume trompeuse"
 mana_cost = 5;
 genre = "Sort"
@@ -10,7 +10,7 @@ rarity = "legendaire"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "DÃ©truit tous les serviteurs qui n'ont pas Camouflage."
+description = "Détruit tous les serviteurs qui n'ont pas Camouflage."
 effects = [
     {
         id: 1,

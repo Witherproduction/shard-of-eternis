@@ -1,7 +1,7 @@
 ﻿event_inherited();
-race = "Ombre";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
+// Définit les stats spécifiques de ce sort
 name = "Cape d'ombre"
 mana_cost = 2;
 genre = "Sort"
@@ -9,7 +9,7 @@ rarity = "epique"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Donne +2/+2 et Camouflage Ã  un serviteur."
+description = "Donne +2/+2 et Camouflage à un serviteur."
 effects = [
     {
         id: 1,

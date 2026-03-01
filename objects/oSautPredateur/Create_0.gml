@@ -1,14 +1,14 @@
 ﻿event_inherited();
-race = "Nature";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
-name = "Saut du prÃ©dateur"
+// Définit les stats spécifiques de ce sort
+name = "Saut du prédateur"
 genre = "Sort"
 rarity = "commun"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Inflige des dÃ©gÃ¢ts Ã©gaux Ã  l'Attaque de votre BÃªte la plus puissante Ã  un serviteur adverse.";
+description = "Inflige des dégâts égaux à l'Attaque de votre Bête la plus puissante à un serviteur adverse.";
 mana_cost = 2;
 element = "Nature";
 effects = [
@@ -18,14 +18,14 @@ effects = [
         effect_type: EFFECT_DAMAGE_TARGET,
         conditions: {
             min_genre_count_on_field: {
-                genre: "BÃªte",
+                genre: "Bête",
                 owner: "ally",
                 count: 1
             }
         },
         scope: "single",
         select_mode: "target",
-        use_highest_attack_of_genre: "BÃªte",
+        use_highest_attack_of_genre: "Bête",
         highest_attack_source_owner: "ally",
         target_zone: "field",
         owner: "enemy",

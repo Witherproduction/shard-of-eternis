@@ -1,16 +1,16 @@
-﻿event_inherited();  // HÃ©rite des variables et comportement de oCardMonster
+﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
 
-// DÃ©finit les stats spÃ©cifiques de ce monstre
-name = "Tarentule des forÃªts"
+// Définit les stats spécifiques de ce monstre
+name = "Tarentule des forêts"
 attack = 4;
 PV = 4;
 mana_cost = 4;
-genre = "BÃªte"
+genre = "Bête"
 booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
-is_player_card = true; // DÃ©finit explicitement cette carte comme appartenant au joueur
-description = "BrisÃ© : Invoque 2 'AraignÃ©e forestiÃ¨re'."
+is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
+description = "Brisé : Invoque 2 'Araignée forestière'."
 effects = [
     {
         id: 1,
@@ -31,5 +31,5 @@ effects = [
 ]
 
 
-race = "AraignÃ©e";
-tags = ["BÃªte", "AraignÃ©e", "BrisÃ©"];
+race = "Araignée";
+tags = ["Bête", "Araignée", "Brisé"];

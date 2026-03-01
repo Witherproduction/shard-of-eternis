@@ -7,7 +7,7 @@ rarity = "commun";
 booster = "Retour des Archontes";
 is_player_card = true;
 
-description = "Donne +1 ATK. Combo (Camouflage) : Donne +3 ATK Ã  la place.";
+description = "Donne +1 ATK. Combo (Camouflage) : Donne +3 ATK à la place.";
 mana_cost = 1;
 
 effects = [

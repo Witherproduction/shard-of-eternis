@@ -1,7 +1,7 @@
 ﻿event_inherited();
-race = "Nature";  // HÃ©rite des variables et comportement de oCardMagic
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
-// DÃ©finit les stats spÃ©cifiques de ce sort
+// Définit les stats spécifiques de ce sort
 name = "Chasse en meute"
 mana_cost = 3;
 genre = "Sort"
@@ -10,7 +10,7 @@ booster = "Retour des Archontes"
 is_player_card = true;
 element = "Nature"
 
-description = "Inflige 2 dÃ©gats Ã  votre adversaire pour chaque BÃªte que vous contrÃ´lez."
+description = "Inflige 2 dégats à votre adversaire pour chaque Bête que vous contrôlez."
 effects = [
     {
         id: 1,
@@ -22,7 +22,7 @@ effects = [
         value_per_card: 2,
         count_owner: "ally",
         target_zone: "field",
-        criteria: { type: "Monster", genre: "BÃªte" }
+        criteria: { type: "Monster", genre: "Bête" }
     }
 ]
 tags = ["Nature", "Sort"];
