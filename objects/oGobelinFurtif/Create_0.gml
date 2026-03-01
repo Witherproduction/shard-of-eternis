@@ -1,8 +1,8 @@
-﻿// Définit les stats spécifiques de ce monstre
+// Définit les stats spécifiques de ce monstre
 name = "Gobelin Furtif"
-attack = 3;
-PV = 2;
-mana_cost = 2;
+attack = 5;
+PV = 3;
+mana_cost = 4;
 genre = "Humanoïde"
 tags = ["Humanoïde", "Gobelin", "Camouflage"];
 booster = "Retour des Archontes"

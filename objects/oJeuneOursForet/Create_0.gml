@@ -1,11 +1,11 @@
-﻿event_inherited();
+event_inherited();
 race = "Ours";  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Jeune ours des forêts"
-attack = 2;
-PV = 3;
-mana_cost = 2;
+attack = 5;
+PV = 6;
+mana_cost = 5;
 genre = "Bête"
 tags = "Bête"
 booster = "Retour des Archontes"

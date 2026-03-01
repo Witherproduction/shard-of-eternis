@@ -1,10 +1,10 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Lieutenant de Gorrak"
-attack = 6;
-PV = 4;
-mana_cost = 5;
+attack = 8;
+PV = 6;
+mana_cost = 7;
 genre = "Humanoïde"
 race = "Skarl";tags = ["Humanoïde", "Skarl"];
 booster = "Retour des Archontes"

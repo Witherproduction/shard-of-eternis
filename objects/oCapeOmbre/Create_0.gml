@@ -1,15 +1,15 @@
-﻿event_inherited();
+event_inherited();
 race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Cape d'ombre"
-mana_cost = 2;
+mana_cost = 4;
 genre = "Sort"
 rarity = "epique"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Donne +2/+2 et Camouflage à un serviteur."
+description = "Donne +4/+4 et Camouflage à un serviteur."
 effects = [
     {
         id: 1,
@@ -19,8 +19,8 @@ effects = [
         owner: "ally",
         target_zone: "field",
         criteria: { type: "Monster" },
-        atk: 2,
-        PV: 2,
+        atk: 4,
+        PV: 4,
         grant_camouflage: true
     }
 ]

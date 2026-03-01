@@ -1,0 +1,742 @@
+﻿[
+    {
+        "Name":  "Coureur Abyssien",
+        "ID":  "coureur_abyssien",
+        "Cost":  0,
+        "Type":  "Monster",
+        "Attack":  1.0,
+        "PV":  1.0,
+        "Desc":  "Une crÃ©ature violente qui aime vivre en groupe prÃ¨s des milieux aquatique",
+        "Race":  "Abyssien"
+    },
+    {
+        "Name":  "AraignÃ©e forestiÃ¨re",
+        "ID":  "araignee_forestiere",
+        "Cost":  1,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  1.0,
+        "Desc":  "A peine sortie de l\u0027oeuf qu\u0027elle est dÃ©ja venimeuse",
+        "Race":  "AraignÃ©e"
+    },
+    {
+        "Name":  "Attaque furtive",
+        "ID":  "attaque_furtive",
+        "Cost":  1,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Inflige 2 dÃ©gÃ¢ts. Combo(Camouflage) : Inflige 4 dÃ©gÃ¢ts Ã  la place.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Dague du filou",
+        "ID":  "dague_filou",
+        "Cost":  1,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Donne +1 ATK. Combo ( Camouflage) : Donne +3 ATK Ã  la place.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Espionnage",
+        "ID":  "espionnage",
+        "Cost":  1,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Devoile 3 carte du deck adverse. Choississez une carte Ã  placer sur le dessus du deck.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Filet de l\u0027ombre",
+        "ID":  "filet_ombre",
+        "Cost":  1,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "S\u0027active lorsque votre adversaire attaque avec un monstre. Entrave l\u0027attaquant.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Griffe du prÃ©dateur",
+        "ID":  "griffe_predateur",
+        "Cost":  1,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Donne ++2/+1 Ã  une BÃªte alliÃ©e.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Jeune loup",
+        "ID":  "jeune_loup",
+        "Cost":  1,
+        "Type":  "Monster",
+        "Attack":  1.0,
+        "PV":  2.0,
+        "Desc":  "Gagne +1 ATK pour chaque autre Jeune loup sur le terrain.",
+        "Race":  "Loup"
+    },
+    {
+        "Name":  "Main furtive",
+        "ID":  "main_furtive",
+        "Cost":  1,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Copie une carte de la main de votre adversaire et l\u0027ajoute Ã  votre main.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Manipulation du butin",
+        "ID":  "manipulation_butin",
+        "Cost":  1,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Echange une carte alÃ©atoire de votre main avec une carte alÃ©atoire de la main adverse.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Skarl chÃ©tif",
+        "ID":  "skarl_chetif",
+        "Cost":  1,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  1.0,
+        "Desc":  "Il Ã©tait le plus faible de la portÃ©e mais ca ne l\u0027empÃªche pas d\u0027Ãªtre dangereux.",
+        "Race":  "Skarl"
+    },
+    {
+        "Name":  "Tunnelin",
+        "ID":  "tunnelin",
+        "Cost":  1,
+        "Type":  "Monster",
+        "Attack":  1.0,
+        "PV":  1.0,
+        "Desc":  "Eveil : Invoque une copie de ce serviteur.",
+        "Race":  "Tunnelin"
+    },
+    {
+        "Name":  "Anneau du voleur",
+        "ID":  "anneau_voleur",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Vole une carte alÃ©atoire du deck de votre adversaire et l\u0027ajoute Ã  votre main.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Bandit",
+        "ID":  "bandit",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  3.0,
+        "Desc":  "Un apprenti voleur qui s\u0027entraÃ®ne encore.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Bougimencien Tunnelin",
+        "ID":  "bougimencien_tunnelin",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  1.0,
+        "Desc":  "Eveil :Entrave un serviteur adverse.",
+        "Race":  "Tunnelin"
+    },
+    {
+        "Name":  "Brume de la forÃªt",
+        "ID":  "brume_foret",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "ConfÃ¨re +2 ATK et Camouflage Ã  un serviteur alliÃ©. Combo (Camouflage) : DÃ©truit un serviteur ennemi alÃ©atoire.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Camouflage stratÃ©gique",
+        "ID":  "camouflage_strategique",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Donne +1/+2 Ã  un serviteur. S\u0027il a Camouflage, il peut attaquerce tour sans le perdre.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Cape d\u0027ombre",
+        "ID":  "cape_ombre",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Donne +2/+2 et Camouflage Ã  un serviteur.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Coquillage des marÃ©es",
+        "ID":  "coquillage_maree",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Donne +2 Pv Ã  tous vos serviteurs.",
+        "Race":  "Eau"
+    },
+    {
+        "Name":  "Cri de la meute",
+        "ID":  "cri_meute",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Vos BÃªtes gagnent +1/+1.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Distraction",
+        "ID":  "distraction",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Secret : Quand un serviteur ennemi est invoquÃ©, le renvoie dans la main et augmente son coÃ»t de (2).",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Feuillage protecteur",
+        "ID":  "feuillage_protecteur",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "secret : Lorsqu\u0027un de vos monstres doit Ãªtre dÃ©truit par votre adversaire, lui confere Illusion.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Fourrageur Abyssien",
+        "ID":  "fourrageur_abyssien",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  1.0,
+        "Desc":  "Eveil : Invoque un \u0027Courreur Abyssien\u0027.",
+        "Race":  "Abyssien"
+    },
+    {
+        "Name":  "FrÃ©nÃ©sie sauvage",
+        "ID":  "frenesie_sauvage",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "ConfÃ¨re +1 ATK et Ambidextrie Ã  une BÃªte alliÃ©.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Gobelin furtif",
+        "ID":  "gobelin_furtif",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  2.0,
+        "Desc":  "Camouflage",
+        "Race":  "Gobelin"
+    },
+    {
+        "Name":  "Hurlement de la tribu",
+        "ID":  "hurlement_tribu",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "DÃ©truisez un Abyssien alliÃ© pour donner +2/+2 Ã  tous vos autres serviteurs.",
+        "Race":  "Eau"
+    },
+    {
+        "Name":  "Jeune ours des forÃªts",
+        "ID":  "jeune_ours_foret",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  3.0,
+        "Desc":  "Un jeune ours qui protegera sa taniÃ¨re coÃ»te que coÃ»te.",
+        "Race":  "Ours"
+    },
+    {
+        "Name":  "Loup galeux",
+        "ID":  "loup_galeux",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  3.0,
+        "Desc":  "Gagne +3 ATK tant qu\u0027il n\u0027y a aucune autre bÃªte sur le terrain.",
+        "Race":  "Loup"
+    },
+    {
+        "Name":  "MarÃ©e dÃ©ferlante",
+        "ID":  "maree_deferlante",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Renvoyez un serviteur adverse dans la main de son propriÃ©taire.",
+        "Race":  "Eau"
+    },
+    {
+        "Name":  "Mineur Tunnelin",
+        "ID":  "mineur_tunnelin",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  2.0,
+        "Desc":  "Eveil : Inflige 1 dÃ©gÃ¢ts Ã  un serviteur adverse.",
+        "Race":  "Tunnelin"
+    },
+    {
+        "Name":  "Morgane la venimeuse",
+        "ID":  "morgane_venimeuse",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  1.0,
+        "PV":  3.0,
+        "Desc":  "Camouflage et poison.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Patte-brisÃ© larmoyant",
+        "ID":  "patte_brise_larmoyant",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  1.0,
+        "PV":  5.0,
+        "Desc":  "Gagne +2 ATK pendant le tour adverse uniquement.",
+        "Race":  "Loup"
+    },
+    {
+        "Name":  "PiÃ¨ge de ronce",
+        "ID":  "piege_ronce",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Secret : Quand un ennemi vous attaque, Inflige 2 dÃ©gats Ã  tous les adversaires.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "PiÃ¨ge du voleur",
+        "ID":  "piege_voleur",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Secret : Lorsque votre adversaire invoque un serviteur, l\u0027entrave et rÃ©duit son ATK de 2.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Protection de la marÃ©e",
+        "ID":  "protection_maree",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Donne +2 PV Ã  tous les Abyssiens sur votre terrain.",
+        "Race":  "Eau"
+    },
+    {
+        "Name":  "Renard mystique",
+        "ID":  "renard_mystique",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  2.0,
+        "Desc":  "Illusion",
+        "Race":  "Renard"
+    },
+    {
+        "Name":  "Rugissement de la forÃªt",
+        "ID":  "rugissement_foret",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Donne +2 PV Ã  toutes les BÃªtes.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Ruisselier Abyssien",
+        "ID":  "ruisselier_abyssien",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  3.0,
+        "Desc":  "Chaque fois que vous invoquez un Abyssien, gagne +1ATK",
+        "Race":  "Abyssien"
+    },
+    {
+        "Name":  "Sanglier Peau-de-Roc",
+        "ID":  "sanglier_peau_roc",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  3.0,
+        "Desc":  "Il vivent en famille autour des fermes pour voler les rÃ©coltes.",
+        "Race":  "Sanglier"
+    },
+    {
+        "Name":  "Saut du prÃ©dateur",
+        "ID":  "saut_predateur",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Inflige des dÃ©gÃ¢ts Ã©gaux Ã  l\u0027attaque de votre BÃªte la plus puissante Ã  serviteur adverse.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Sorcier voleur",
+        "ID":  "sorcier_voleur",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  2.0,
+        "Desc":  "Eveil : Vole un sort du deck adverse.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Sournoiserie",
+        "ID":  "sournoiserie",
+        "Cost":  2,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Inflige 2 dÃ©gÃ¢ts Ã  un serviteur ennemi et l\u0027entrave.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Tortue vagabonde",
+        "ID":  "tortue_vagabonde",
+        "Cost":  2,
+        "Type":  "Monster",
+        "Attack":  1.0,
+        "PV":  6.0,
+        "Desc":  "Elle longe la lisiÃ¨re sÃ©parant les forÃªt Ã  la recherche de ses enfants.",
+        "Race":  "Tortue"
+    },
+    {
+        "Name":  "Catherine Fumerol",
+        "ID":  "catherine_fumerol",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  2.0,
+        "Desc":  "Crepuscule : Inflige 3 dÃ©gÃ¢ts Ã  votre adversaire.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Chasse en meute",
+        "ID":  "chasse_meute",
+        "Cost":  3,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Inflige 2 dÃ©gats Ã  votre adversaire pour chaque BÃªte que vous contrÃ´lez.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Estafette Skarl",
+        "ID":  "estafette_skarl",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  4.0,
+        "PV":  2.0,
+        "Desc":  "Ambidextrie",
+        "Race":  "Skarl"
+    },
+    {
+        "Name":  "Ferveur du marais",
+        "ID":  "ferveur_marais",
+        "Cost":  3,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Invoque 3 Coureurs Abyssiens.",
+        "Race":  "Eau"
+    },
+    {
+        "Name":  "James la CalamitÃ©",
+        "ID":  "james_calamite",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  3.0,
+        "Desc":  "Camouflage. CrÃ©puscule : Pille une carte du deck adverse",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Loup de guerre Gueule-Roche",
+        "ID":  "loup_guerre_geule_roche",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  4.0,
+        "Desc":  "Provocation.",
+        "Race":  "BÃªte"
+    },
+    {
+        "Name":  "Loup gris des forÃªts",
+        "ID":  "loup_gris_foret",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  4.0,
+        "Desc":  "Ils vivent et chasse en meute. Si vous en croisez un, courrez aussi loin que vous pourrez car la meute n\u0027est pas loin.",
+        "Race":  "Loup"
+    },
+    {
+        "Name":  "Portefaix",
+        "ID":  "portefaix",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  3.0,
+        "Desc":  "Camouflage. Eveil : Purge un serviteur adverse.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "RÃ´deur Abyssien",
+        "ID":  "rodeur_abyssien",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  3.0,
+        "Desc":  "Camouflage. Aube : Ajoute un \u0027Abyssien\u0027 de votre cimetiÃ¨re ou deck Ã  votre main.",
+        "Race":  "Abyssien"
+    },
+    {
+        "Name":  "Racine envahissante",
+        "ID":  "racine_envahissante",
+        "Cost":  3,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Entrave tous les serviteurs adverses.",
+        "Race":  "Nature"
+    },
+    {
+        "Name":  "Viel ours",
+        "ID":  "vieil_ours",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  4.0,
+        "Desc":  "Gagne +2 ATK lorsqu\u0027il combat un monstre sur la ligne de front.",
+        "Race":  "Ours"
+    },
+    {
+        "Name":  "Voleur Finelame",
+        "ID":  "voleur_finelame",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  2.0,
+        "Desc":  "Camouflage et PercÃ©e.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Yvan le Costaud",
+        "ID":  "yvan_costaud",
+        "Cost":  3,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  5.0,
+        "Desc":  "Tant que cette carte est sur le terrain, \u0027Catherine Fumerol\u0027 ne peut pas Ãªtre dÃ©truit",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Bandit guerrier",
+        "ID":  "bandit_guerrier",
+        "Cost":  4,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  2.0,
+        "Desc":  "Eveil : Invoque un bandit Ã  ses cotÃ©s.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Double jeu",
+        "ID":  "double_jeu",
+        "Cost":  4,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "Choisissez un serviteur. Invoquez-en une copie sur votre ligne de front. Il ne peut pas attaquer.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "GÃ©omancien Tunnelin",
+        "ID":  "geomancien_tunnelin",
+        "Cost":  4,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  2.0,
+        "Desc":  "Eveil : Entrave tout les serviteurs adverses.",
+        "Race":  "Tunnelin"
+    },
+    {
+        "Name":  "MaÃ®tre des passes",
+        "ID":  "maitre_passe",
+        "Cost":  4,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  4.0,
+        "Desc":  "CrÃ©puscule : Invoque un HumanoÃ¯de de coÃ»t 2 ou moins depuis votre main.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Peau-de-roc robuste",
+        "ID":  "peau_roc_robuste",
+        "Cost":  4,
+        "Type":  "Monster",
+        "Attack":  2.0,
+        "PV":  5.0,
+        "Desc":  "Charge",
+        "Race":  "Sanglier"
+    },
+    {
+        "Name":  "Tarentule des forÃªts",
+        "ID":  "tarentule_foret",
+        "Cost":  4,
+        "Type":  "Monster",
+        "Attack":  4.0,
+        "PV":  4.0,
+        "Desc":  "BrisÃ© : Invoque 2 \u0027AraignÃ©e forestiÃ¨re\u0027.",
+        "Race":  "AraignÃ©e"
+    },
+    {
+        "Name":  "VideGousset",
+        "ID":  "vide_gousset",
+        "Cost":  4,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  4.0,
+        "Desc":  "Camouflage. Eveil : Pille une carte du deck adverse.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Brume trompeuse",
+        "ID":  "brume_trompeuse",
+        "Cost":  5,
+        "Type":  "Magic",
+        "Attack":  0.0,
+        "PV":  0.0,
+        "Desc":  "DÃ©truit tous les serviteurs qui n\u0027ont pas Camouflage.",
+        "Race":  "Ombre"
+    },
+    {
+        "Name":  "Envahisseur Geule-Roche",
+        "ID":  "envahisseur_geule_roche",
+        "Cost":  5,
+        "Type":  "Monster",
+        "Attack":  4.0,
+        "PV":  5.0,
+        "Desc":  "Eveil : Ajoute un Loup de guerre Geule-Roche",
+        "Race":  "Orc"
+    },
+    {
+        "Name":  "Lieutenant de Gorrak",
+        "ID":  "lieutenant_gorrak",
+        "Cost":  5,
+        "Type":  "Monster",
+        "Attack":  6.0,
+        "PV":  4.0,
+        "Desc":  "Quand Gorrak n\u0027est pas dans le coin, c\u0027est lui qui s\u0027occupe du clan. Du moins... il essaye.",
+        "Race":  "Skarl"
+    },
+    {
+        "Name":  "RÃ´deur des forÃªts",
+        "ID":  "rodeur_foret",
+        "Cost":  5,
+        "Type":  "Monster",
+        "Attack":  4.0,
+        "PV":  5.0,
+        "Desc":  "Eveil : Invoque un \u0027jeune loup\u0027.",
+        "Race":  "Loup"
+    },
+    {
+        "Name":  "Sous-chef Tunnelin",
+        "ID":  "sous_chef_tunnelin",
+        "Cost":  5,
+        "Type":  "Monster",
+        "Attack":  4.0,
+        "PV":  5.0,
+        "Desc":  "Eveil : Donne +2 ATK Ã  tous vos serviteur sur le terrain.",
+        "Race":  "Tunnelin"
+    },
+    {
+        "Name":  "FrÃ¨re de Gorrak",
+        "ID":  "frere_gorrak",
+        "Cost":  6,
+        "Type":  "Monster",
+        "Attack":  3.0,
+        "PV":  6.0,
+        "Desc":  "Eveil : RÃ©duit de 2 l\u0027ATK de tous les monstre adverse.",
+        "Race":  "Skarl"
+    },
+    {
+        "Name":  "Le RÃ©colteur",
+        "ID":  "recolteur",
+        "Cost":  6,
+        "Type":  "Monster",
+        "Attack":  4.0,
+        "PV":  6.0,
+        "Desc":  "Eveil : Invoque \u0027Catherine fumerol\u0027 en arriÃ¨re et Yvan le Costaud sur la ligne de front.",
+        "Race":  "Humain"
+    },
+    {
+        "Name":  "Matriarche peau-de-roc",
+        "ID":  "matriarche_peau_roc",
+        "Cost":  6,
+        "Type":  "Monster",
+        "Attack":  5.0,
+        "PV":  6.0,
+        "Desc":  "Eveil : Invoque 2 \u0027sanglier peau-de-roc\u0027 sur la ligne de front.",
+        "Race":  "Sanglier"
+    },
+    {
+        "Name":  "Tarrinox",
+        "ID":  "tarrinox",
+        "Cost":  6,
+        "Type":  "Monster",
+        "Attack":  5.0,
+        "PV":  7.0,
+        "Desc":  "Eveil : Donne +4/+4 aux AraignÃ©e forestiÃ¨re sur le terrain.",
+        "Race":  "AraignÃ©e"
+    },
+    {
+        "Name":  "Massacreur Geule-Roche",
+        "ID":  "massacreur_geule_roche",
+        "Cost":  7,
+        "Type":  "Monster",
+        "Attack":  7.0,
+        "PV":  6.0,
+        "Desc":  "Aura : Les \u0027Loup de guerre Geule-Roche\u0027 ont +2/+2.",
+        "Race":  "Orc"
+    },
+    {
+        "Name":  "Gorrak",
+        "ID":  "gorrak",
+        "Cost":  8,
+        "Type":  "Monster",
+        "Attack":  7.0,
+        "PV":  7.0,
+        "Desc":  "Eveil : Invoque 2 Skarls chÃ©tif. CrÃ©puscule : Inflige 2 dÃ©gÃ¢ts Ã  votre adversaire pour chaque HumanoÃ¯de alliÃ© sur le terrain.",
+        "Race":  "Skarl"
+    }
+]

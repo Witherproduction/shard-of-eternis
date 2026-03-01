@@ -1,10 +1,10 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Le Récolteur"
-attack = 4;
-PV = 6;
-mana_cost = 6;
+attack = 6;
+PV = 7;
+mana_cost = 7;
 genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "legendaire"

@@ -1,11 +1,11 @@
-﻿event_inherited();
+event_inherited();
 race = "Humain";  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Sorcier voleur"
-attack = 2;
-PV = 2;
-mana_cost = 2;
+attack = 5;
+PV = 6;
+mana_cost = 6;
 genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "commun"

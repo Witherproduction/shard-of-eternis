@@ -1,11 +1,11 @@
-﻿event_inherited();
+event_inherited();
 race = "Tunnelin";  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Mineur Tunnelin"
-attack = 2;
-PV = 2;
-mana_cost = 2;
+attack = 3;
+PV = 3;
+mana_cost = 3;
 genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "commun"

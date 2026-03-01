@@ -1,10 +1,10 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Bandit guerrier"
-attack = 3;
-PV = 2;
-mana_cost = 4;
+attack = 5;
+PV = 5;
+mana_cost = 5;
 genre = "Humanoïde"
 race = "Humain";tags = ["Humanoïde", "Humain", "Eveil"];
 booster = "Retour des Archontes"

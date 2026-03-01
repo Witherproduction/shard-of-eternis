@@ -1,8 +1,8 @@
-﻿// Définit les stats spécifiques de ce monstre
+// Définit les stats spécifiques de ce monstre
 name = "Morgane la venimeuse"
-attack = 1;
-PV = 3;
-mana_cost = 2;
+attack = 4;
+PV = 6;
+mana_cost = 5;
 genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "rare"

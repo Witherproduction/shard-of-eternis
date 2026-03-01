@@ -1,8 +1,8 @@
-﻿// Définit les stats spécifiques de ce monstre
+// Définit les stats spécifiques de ce monstre
 name = "Peau-de-roc robuste"
-attack = 2;
-PV = 5;
-mana_cost = 4;
+attack = 5;
+PV = 7;
+mana_cost = 6;
 genre = "Bête"
 booster = "Retour des Archontes"
 rarity = "rare"

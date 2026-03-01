@@ -1,6 +1,6 @@
 {
   "$GMFont":"",
-  "%Name":"fontCardDisplay_1",
+  "%Name":"fontCardText",
   "AntiAlias":1,
   "applyKerning":0,
   "ascender":17,
@@ -147,7 +147,7 @@
   "last":0,
   "lineHeight":21,
   "maintainGms1Font":false,
-  "name":"fontCardDisplay_1",
+  "name":"fontCardText",
   "parent":{
     "name":"Polices",
     "path":"folders/Polices.yy",

@@ -1,11 +1,11 @@
-﻿event_inherited();
+event_inherited();
 race = "Bête";  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Loup de guerre Gueule-Roche"
-attack = 4;
+attack = 3;
 PV = 4;
-mana_cost = 4;
+mana_cost = 3;
 genre = "Bête"
 tags = "Bête"
 booster = "Retour des Archontes"

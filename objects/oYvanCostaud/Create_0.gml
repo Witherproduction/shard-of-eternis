@@ -1,10 +1,10 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Yvan le Costaud"
-attack = 2;
-PV = 5;
-mana_cost = 3;
+attack = 3;
+PV = 6;
+mana_cost = 4;
 genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "legendaire"

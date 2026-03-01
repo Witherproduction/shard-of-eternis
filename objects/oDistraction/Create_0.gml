@@ -1,4 +1,4 @@
-﻿event_inherited();
+event_inherited();
 race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
@@ -9,7 +9,7 @@ booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Secret : Quand un serviteur ennemi est invoqué, le renvoie dans la main et augmente son coût de (2).";
-mana_cost = 2;
+mana_cost = 3;
 
 effects = [
     {

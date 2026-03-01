@@ -1,10 +1,10 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Renard mystique"
 attack = 2;
 PV = 2;
-mana_cost = 2;
+mana_cost = 1;
 genre = "Bête"
 booster = "Retour des Archontes"
 rarity = "epique"

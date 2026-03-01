@@ -1,8 +1,8 @@
-﻿// Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
+// Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
 name = "Tortue vagabonde"
-attack = 1;
-PV = 6;
-mana_cost = 2;
+attack = 2;
+PV = 8;
+mana_cost = 4;
 genre = "Bête"
 booster = "Retour des Archontes"
 rarity = "rare"

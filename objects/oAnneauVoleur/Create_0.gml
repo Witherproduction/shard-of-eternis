@@ -1,4 +1,4 @@
-﻿event_inherited();
+event_inherited();
 
 
 name = "Anneau du voleur";
@@ -10,7 +10,7 @@ booster = "Retour des Archontes";
 is_player_card = true;
 
 description = "Vole une carte aléatoire du deck de votre adversaire et l'ajoute à votre main.";
-mana_cost = 2;
+mana_cost = 1;
 
 effects = [
     {
