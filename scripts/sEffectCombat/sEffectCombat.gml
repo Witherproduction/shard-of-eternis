@@ -196,10 +196,10 @@ function destroyCard(card, source = noone) {
         
         // --- ILLUSION CHECK ---
         // Si la carte a l'état Illusion, elle survit à la première destruction
-        if (variable_instance_exists(card, "illusion") && card.illusion > 0) {
-            card.illusion -= 1;
-            show_debug_message("### destroyCard: Prevented by Illusion! Remaining: " + string(card.illusion));
-            // FX visuel (optionnel)
+        if (variable_instance_exists(card, "HasIllusion") && card.HasIllusion) {
+            card.HasIllusion = false;
+            show_debug_message("### destroyCard: Prevented by Illusion! (HasIllusion consumed)");
+            
             // Quest System Notification
             if (instance_exists(oQuestManager)) {
                 // "Activer l'effet illusion"
@@ -224,11 +224,18 @@ function destroyCard(card, source = noone) {
     }
     var ctx = { destroyed_card: card };
     if (source != noone && instance_exists(source)) { ctx.attacker = source; }
-    if (instance_exists(card) && variable_instance_exists(card, "illusion") && card.illusion > 0) {
-        card.illusion -= 1;
+    
+    // Safety check redundant with the one above, but kept for legacy structure consistency
+    if (instance_exists(card) && variable_instance_exists(card, "HasIllusion") && card.HasIllusion) {
+        card.HasIllusion = false;
         if (variable_instance_exists(card, "PV") && card.PV <= 0) { card.PV = 1; }
         if (variable_instance_exists(card, "current_hp") && card.current_hp <= 0) { card.current_hp = 1; }
-        return true;
+        return true; // Return true here means "handled/prevented" in this context? Wait, destroyCard usually returns false if prevented.
+                     // The block above returns false.
+                     // If we are here, it means we passed the first check.
+                     // If HasIllusion is somehow true here, we should probably return false (prevent destruction).
+                     // But let's just use the same logic: consume and prevent.
+        return false; 
     }
     registerTriggerEvent(TRIGGER_ON_DESTROY, card, ctx);
 

@@ -8,6 +8,7 @@ function progression_init() {
             chapters: {},       // Struct: "1": { act1: true, act2: false... }
             rewards: {},        // Struct générique pour autres récompenses
             card_counts: {},    // Dictionnaire: id -> quantité possédée
+            daily_quests: {},   // Données des quêtes journalières
             starter_deck_granted: false // Flag pour le deck de départ
         };
         
@@ -109,7 +110,8 @@ function progression_reset() {
         unlocked_bots: [],
         chapters: {},
         rewards: { gold_coins: 0, arcane_stones: 0 },
-        starter_deck_granted: false
+        starter_deck_granted: false,
+        daily_quests: {}
     };
     global.gold_coins = 0;
     global.arcane_stones = 0;
@@ -158,6 +160,7 @@ function progression_load() {
             if (variable_struct_exists(data, "chapters")) global.progression_data.chapters = data.chapters;
             if (variable_struct_exists(data, "rewards")) global.progression_data.rewards = data.rewards;
             if (variable_struct_exists(data, "card_counts")) global.progression_data.card_counts = data.card_counts;
+            if (variable_struct_exists(data, "daily_quests")) global.progression_data.daily_quests = data.daily_quests;
             if (variable_struct_exists(data, "starter_deck_granted")) global.progression_data.starter_deck_granted = data.starter_deck_granted;
             show_debug_message("### Progression chargée.");
         } catch (e) {

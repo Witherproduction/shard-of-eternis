@@ -286,10 +286,10 @@ function Tutorial_Turn3_Init() {
     tuto_turn3_done = true;
     show_debug_message("### TUTO TURN 3: Init started");
 
-    // FIX: Donner 4 mana pour permettre de jouer Secret (2) + Gobelin (2)
-    global.mana_hero = 4;
-    // Ajuster le max aussi pour éviter confusion visuelle 4/3
-    global.mana_max_hero = 4;
+    // FIX: Donner 10 mana pour permettre de jouer Secret (2) + Gobelin (2) (Updated for higher costs)
+    global.mana_hero = 10;
+    // Ajuster le max aussi pour éviter confusion visuelle
+    global.mana_max_hero = 10;
     
     var tuto = instance_create_layer(0, 0, "UI", oTutorielManager);
     tuto.tutorial_id = 3; // ID pour le Tour 3
@@ -332,7 +332,7 @@ function Tutorial_Turn3_Init() {
     // Configuration des étapes du Tour 3
     var steps = [
         {
-            text: "C'est à votre tour ! Exceptionnellement, vous disposez de 4 Mana pour apprendre les règles.\nAu début de chaque tour, vous piochez automatiquement une carte.",
+            text: "C'est à votre tour ! Exceptionnellement, vous disposez de 10 Mana pour apprendre les règles.\nAu début de chaque tour, vous piochez automatiquement une carte.",
             highlight: noone, 
             arrow: noone
         },

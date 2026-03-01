@@ -11,6 +11,6 @@ rarity = "epique"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
 description = "Illusion (Reste à 1 PV si détruit)"
-illusion = 1
+HasIllusion = true; // Illusion active dès la création
 race = "Renard";
 tags = ["Bête", "Renard", "Illusion"];

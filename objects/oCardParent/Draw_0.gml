@@ -15,6 +15,19 @@ if (variable_instance_exists(id, "isAmbidextrous") && isAmbidextrous && variable
 }
 // ----------------------------------------------------
 
+// --- ILLUSION VISUAL (Double bleuté en décalage) ---
+if (variable_instance_exists(id, "HasIllusion") && HasIllusion && variable_instance_exists(id, "zone") && zone == "Field") {
+    var _illu_off_x = -10; // Décalage vers la gauche pour différencier d'Ambidextre
+    var _illu_off_y = -5;
+    var _illu_alpha = 0.6;
+    var _illu_col = make_color_rgb(100, 100, 255); // Bleuté clair
+
+    if (sprite_exists(sprite_index)) {
+        draw_sprite_ext(sprite_index, image_index, x + _illu_off_x, y + _illu_off_y, image_xscale, image_yscale, image_angle, _illu_col, _illu_alpha);
+    }
+}
+// ----------------------------------------------------
+
 // Dessiner la carte à sa position
 if (sprite_exists(sprite_index)) {
     draw_sprite_ext(sprite_index, image_index, x, y, image_xscale, image_yscale, image_angle, image_blend, image_alpha);

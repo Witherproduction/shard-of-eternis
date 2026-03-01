@@ -243,6 +243,11 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
              var ctxSummon = { summon_mode: mode_resolved, owner_is_hero: isHeroOwner, target: effectTarget };
              registerTriggerEvent(TRIGGER_ON_SUMMON, card, ctxSummon);
              
+             // Quest Notification (Secret)
+             if (isHeroOwner && instance_exists(oQuestManager)) {
+                 oQuestManager.notify_event("play_card", 1, { card: card });
+             }
+
              return true;
         }
         
@@ -350,6 +355,11 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
              if (instance_exists(card)) instance_destroy(card);
         }
         
+        // Quest Notification (Spell)
+        if (isHeroOwner && instance_exists(oQuestManager)) {
+             oQuestManager.notify_event("play_card", 1, { card: card });
+        }
+
         return true;
     }
 
@@ -456,6 +466,15 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
                 registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, card, ctxSummon);
             }
         }
+        
+        // Quest Notification (Fallback)
+        if (isHeroOwner && instance_exists(oQuestManager)) {
+             oQuestManager.notify_event("play_card", 1, { card: card });
+             if (card.type == "Monster") {
+                 oQuestManager.notify_event("summon", 1, { card: card });
+             }
+        }
+
         // Fallback réussi: retourner true
         return true;
     }

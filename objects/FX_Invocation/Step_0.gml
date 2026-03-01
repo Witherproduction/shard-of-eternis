@@ -1,4 +1,4 @@
-﻿// FX_Invocation - Step
+// FX_Invocation - Step
 // Phase 1: Interpolation vers l'emplacement désigné
 // Phase 2: Post-effet circuit imprimé autour de la carte posée
 
@@ -178,6 +178,24 @@ if (!finished_move) {
                     } else {
                         // Mode Set: ne déclenche pas TRIGGER_ON_SUMMON pour éviter l'activation immédiate
                         // La carte reste posée face cachée et n'active rien ici
+                    }
+                }
+
+                // Quest Notification (Moved from sGameActionController to avoid timing conflicts)
+                if (ownerHero && instance_exists(oQuestManager)) {
+                    oQuestManager.notify_event("play_card", 1, { card: card_real });
+                    
+                    var cTypeLower = string_lower(ctype);
+                    var hasMinionTag = false;
+                    if (variable_instance_exists(card_real, "tags") && is_array(card_real.tags)) {
+                        for (var i = 0; i < array_length(card_real.tags); i++) {
+                             var t = string_lower(string(card_real.tags[i]));
+                             if (t == "monster" || t == "minion" || t == "creature" || t == "monstre") hasMinionTag = true;
+                        }
+                    }
+                    
+                    if (cTypeLower == "monster" || cTypeLower == "minion" || cTypeLower == "creature" || hasMinionTag) {
+                        oQuestManager.notify_event("summon", 1, { card: card_real });
                     }
                 }
             }

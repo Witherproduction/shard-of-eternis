@@ -16,6 +16,16 @@ next_reset_time = 0;  // Timestamp
 check_timer = 0;      // Timer pour vérifier le reset périodiquement
 
 // === INITIALISATION ===
+
+function get_formatted_date_str(_date) {
+    var y = string(date_get_year(_date));
+    var m = string(date_get_month(_date));
+    var d = string(date_get_day(_date));
+    if (string_length(m) < 2) m = "0" + m;
+    if (string_length(d) < 2) d = "0" + d;
+    return y + "-" + m + "-" + d;
+}
+
 function init_quests() {
     // Tenter de charger depuis la sauvegarde globale
     if (variable_global_exists("progression_data") && variable_struct_exists(global.progression_data, "daily_quests")) {
@@ -32,7 +42,7 @@ function init_quests() {
 
 function check_daily_reset() {
     var now = date_current_datetime();
-    var today_str = string(date_get_year(now)) + "-" + string(date_get_month(now)) + "-" + string(date_get_day(now));
+    var today_str = get_formatted_date_str(now);
     
     // Si pas de date de dernier reset, on initialise
     if (last_reset_date == "") {
@@ -40,6 +50,9 @@ function check_daily_reset() {
         // Calculer le prochain reset (Demain 4h00)
         var tomorrow = date_inc_day(now, 1);
         next_reset_time = date_create_datetime(date_get_year(tomorrow), date_get_month(tomorrow), date_get_day(tomorrow), 4, 0, 0);
+        
+        // Sauvegarder immédiatement pour persister la date et les quêtes générées (cas 1ère fois)
+        save_quest_data();
         return;
     }
     
@@ -57,10 +70,17 @@ function check_daily_reset() {
         } else {
             // On est avant 4h du matin, donc on est techniquement encore dans la "journée de jeu" d'hier
             // Sauf si le last_reset_date date d'avant-hier...
-            // Pour faire simple : on compare les jours absolus
-            var days_diff = date_day_span(date_create_datetime(real(string_copy(last_reset_date, 1, 4)), real(string_copy(last_reset_date, 6, 2)), real(string_copy(last_reset_date, 9, 2)), 4, 0, 0), now);
-            if (days_diff >= 1.0) {
-                 perform_daily_reset();
+            var _y = 0, _m = 0, _d = 0;
+            var _parts = string_split(last_reset_date, "-");
+            if (array_length(_parts) >= 3) {
+                _y = real(_parts[0]);
+                _m = real(_parts[1]);
+                _d = real(_parts[2]);
+                
+                var days_diff = date_day_span(date_create_datetime(_y, _m, _d, 4, 0, 0), now);
+                if (days_diff >= 1.0) {
+                     perform_daily_reset();
+                }
             }
         }
     }
@@ -80,7 +100,7 @@ function perform_daily_reset() {
     var now = date_current_datetime();
     // Si avant 4h, on considère que le reset a eu lieu pour "la veille" (cas rare de reset forcé)
     // Mais ici on vient de passer 4h.
-    last_reset_date = string(date_get_year(now)) + "-" + string(date_get_month(now)) + "-" + string(date_get_day(now));
+    last_reset_date = get_formatted_date_str(now);
     
     save_quest_data();
 }

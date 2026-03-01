@@ -324,6 +324,13 @@ nextPhase = function() {
             
         } else { // Enemy
             global.mana_max_enemy = min(global.mana_max_enemy + 1, 10);
+            
+            // --- TUTORIAL FIX: Force 10 Mana for AI in Tutorial ---
+            if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
+                 global.mana_max_enemy = 10;
+            }
+            // -----------------------------------------------------
+
             global.mana_enemy = global.mana_max_enemy;
             show_debug_message("### Mana Enemy: " + string(global.mana_enemy) + "/" + string(global.mana_max_enemy));
         }

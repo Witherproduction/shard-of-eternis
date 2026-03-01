@@ -391,7 +391,8 @@ function _execute_Summon(payload) {
         // For HS, we force "Attack" orientation internally in hand.summon or here.
         hand.summon(card, [posXY[0], posXY[1], fieldPos], desiredOrientation, effectTarget);
         
-        // Quest System Notification
+        // Quest System Notification moved to oHand/FX_Invocation to avoid timing conflicts
+        /*
         if (ownerIsHero && instance_exists(oQuestManager)) {
             oQuestManager.notify_event("play_card", 1, { card: card });
             
@@ -408,6 +409,7 @@ function _execute_Summon(payload) {
                 oQuestManager.notify_event("summon", 1, { card: card });
             }
         }
+        */
         
         // --- HEARTHSTONE SUMMONING SICKNESS (Phase 3) ---
         // Appliquer le mal d'invocation immédiatement après le placement
