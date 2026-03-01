@@ -1,4 +1,4 @@
-﻿show_debug_message("### oUIManager.create")
+show_debug_message("### oUIManager.create")
 
 // Initialiser le flag global d'overlay d'action
 global.isActionMenuOpen = false;

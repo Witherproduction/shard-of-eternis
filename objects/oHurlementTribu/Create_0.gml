@@ -1,11 +1,12 @@
 event_inherited();
+race = "Eau";
 
 name = "Hurlement de la tribu";
 mana_cost = 2;
 genre = "Sort";
 archetype = "Forêt des voleurs";
 rarity = "commun";
-booster = "A la découverte du monde";
+booster = "Retour des Archontes";
 is_player_card = true;
 
 description = "Détruisez un Abyssien allié pour donner +2/+2 à tous vos autres monstres.";
@@ -33,4 +34,4 @@ effects = [
         }
     }
 ];
-
+tags = ["Eau", "Abyssien", "Sort"];

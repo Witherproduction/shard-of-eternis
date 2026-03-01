@@ -7,7 +7,7 @@ PV = 5;
 mana_cost = 2;
 genre = "Bête"
 archetype = "Forêt des voleurs"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
@@ -34,3 +34,5 @@ effects = [
         show_aura: false
     }
 ]
+race = "Loup";
+tags = ["Bête", "Loup"];

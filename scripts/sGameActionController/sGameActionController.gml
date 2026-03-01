@@ -212,6 +212,10 @@ function _execute_Draw(payload) {
         if (instance_exists(deckHero)) {
             deckHero.pick();
             
+            if (instance_exists(oQuestManager)) {
+                oQuestManager.notify_event("draw", 1);
+            }
+            
             if (variable_struct_exists(payload, "trigger_next_phase") && payload.trigger_next_phase) {
                 if (instance_exists(oGame)) oGame.nextPhase();
                 if (instance_exists(oNextStep)) oNextStep.image_index = 0;
@@ -346,6 +350,10 @@ function _execute_Summon(payload) {
     // Consommation du Mana
     if (ownerIsHero) {
         global.mana_hero -= cost;
+        // Quest System Notification: Spend Mana
+        if (instance_exists(oQuestManager)) {
+            oQuestManager.notify_event("spend_mana", cost);
+        }
     } else {
         global.mana_enemy -= cost;
     }
@@ -382,6 +390,24 @@ function _execute_Summon(payload) {
         // Legacy: remove desiredOrientation argument if summon() doesn't support it anymore, but currently hand.summon uses it.
         // For HS, we force "Attack" orientation internally in hand.summon or here.
         hand.summon(card, [posXY[0], posXY[1], fieldPos], desiredOrientation, effectTarget);
+        
+        // Quest System Notification
+        if (ownerIsHero && instance_exists(oQuestManager)) {
+            oQuestManager.notify_event("play_card", 1, { card: card });
+            
+            var cType = variable_instance_exists(card, "type") ? string_lower(card.type) : "";
+            var hasMinionTag = false;
+            if (variable_instance_exists(card, "tags") && is_array(card.tags)) {
+                for (var i = 0; i < array_length(card.tags); i++) {
+                     var t = string_lower(string(card.tags[i]));
+                     if (t == "monster" || t == "minion" || t == "creature" || t == "monstre") hasMinionTag = true;
+                }
+            }
+            
+            if (cType == "monster" || cType == "minion" || cType == "creature" || hasMinionTag) {
+                oQuestManager.notify_event("summon", 1, { card: card });
+            }
+        }
         
         // --- HEARTHSTONE SUMMONING SICKNESS (Phase 3) ---
         // Appliquer le mal d'invocation immédiatement après le placement
@@ -482,8 +508,27 @@ function _execute_Attack(payload) {
             // Turn 1 check removed for HS (Summoning Sickness handles it)
             
             with (dm) tryAttack(noone);
+            
+            // Quest System Notification: Attack (Direct)
+            if (attackerIsHero && instance_exists(oQuestManager)) {
+                oQuestManager.notify_event("attack", 1, { source: attacker, target: noone });
+            }
         } else {
             with (dm) tryAttack(target);
+            
+            // Quest System Notification: Attack (Target)
+            if (attackerIsHero && instance_exists(oQuestManager)) {
+                oQuestManager.notify_event("attack", 1, { source: attacker, target: target });
+                
+                // Check for attack on entraved target
+                var isEntraved = (variable_instance_exists(target, "entrave_turns_remaining") && target.entrave_turns_remaining > 0);
+                // Also check legacy flag just in case
+                if (!isEntraved && variable_instance_exists(target, "entrave_block_attack") && target.entrave_block_attack) isEntraved = true;
+                
+                if (isEntraved) {
+                    oQuestManager.notify_event("attack_entraved", 1, { source: attacker, target: target });
+                }
+            }
         }
     } else {
         if (isDirect) {
@@ -656,6 +701,14 @@ function _execute_ActivateEffect(payload) {
         
         if (script_exists(asset_get_index("consumeSpellIfNeeded"))) {
             consumeSpellIfNeeded(card, effect);
+            
+            // Quest System: Notify Playing a Spell (Instant)
+            if (ownerIsHero && instance_exists(oQuestManager)) {
+                var cType = variable_instance_exists(card, "type") ? string_lower(card.type) : "";
+                if (cType == "magic" || cType == "sort" || cType == "spell" || cType == "secret") {
+                    oQuestManager.notify_event("play_card", 1, { card: card });
+                }
+            }
         }
         
         // FIX: Always ensure secret is removed from active list after activation

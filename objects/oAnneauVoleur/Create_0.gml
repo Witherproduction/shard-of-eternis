@@ -1,10 +1,12 @@
 event_inherited();
 
+
 name = "Anneau du voleur";
 genre = "Sort";
-archetype = "Forêt des voleurs";
+race = "Ombre";
+tags = ["Pillage", "Ombre", "Sort"];archetype = "Forêt des voleurs";
 rarity = "epique";
-booster = "A la découverte du monde";
+booster = "Retour des Archontes";
 is_player_card = true;
 
 description = "Vole une carte aléatoire du deck de votre adversaire et l'ajoute à votre main.";

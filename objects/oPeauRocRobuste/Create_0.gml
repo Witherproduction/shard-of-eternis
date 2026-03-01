@@ -5,7 +5,7 @@ PV = 5;
 mana_cost = 4;
 genre = "Bête"
 archetype = "Forêt des voleurs"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
 has_charge = true;
@@ -14,3 +14,5 @@ description = "Charge"
 effects = []
 
 event_inherited();  // Hérite des variables et comportement de oCardMonster
+race = "Sanglier";
+tags = ["Bête", "Sanglier", "Charge"];

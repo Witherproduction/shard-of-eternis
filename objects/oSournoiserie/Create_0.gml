@@ -1,10 +1,11 @@
 event_inherited();
+race = "Ombre";
 
 name = "Sournoiserie";
 genre = "Sort";
 archetype = "Forêt des voleurs";
 rarity = "rare";
-booster = "A la découverte du monde";
+booster = "Retour des Archontes";
 is_player_card = true;
 
 description = "Inflige 2 dégâts à un serviteur ennemi et l'Entrave.";
@@ -28,3 +29,4 @@ effects = [
         ]
     }
 ];
+tags = ["Sort", "Ombre", "Entrave"];

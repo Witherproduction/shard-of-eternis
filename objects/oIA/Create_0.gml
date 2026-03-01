@@ -124,10 +124,6 @@ summon = function() {
     // -------------------------
 
     var moves = AI_GetLegalMoves_Summon();
-    // Add Hero Power Moves
-    var hpMoves = AI_GetLegalMoves_HeroPower();
-    for(var i=0; i<array_length(hpMoves); i++) array_push(moves, hpMoves[i]);
-
     var bestMove = AI_SelectBestMove(moves);
     
     if (bestMove != noone) {

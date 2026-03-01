@@ -7,7 +7,7 @@ PV = 3;
 mana_cost = 3;
 genre = "Humanoïde"
 archetype = "Forêt des voleurs"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
@@ -30,3 +30,5 @@ effects = [
         label: "Aube"
 	}
 		]
+race = "Abyssien";
+tags = ["Humanoïde", "Abyssien", "Camouflage", "Aube"];

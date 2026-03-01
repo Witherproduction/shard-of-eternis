@@ -102,10 +102,15 @@ function setDefense(card, value) {
 }
 
 // === Dégâts et soins ===
-/// @function damageCard(card, amount)
-function damageCard(card, amount) {
+/// @function damageCard(card, amount, source)
+function damageCard(card, amount, source = noone) {
     if (card == noone) return false;
     registerTriggerEvent(TRIGGER_ON_DAMAGE, card, { damage: amount, source: card });
+    
+    // Quest System Notification
+    if (instance_exists(oQuestManager)) {
+        oQuestManager.notify_event("deal_damage", amount, { source: source, target: card });
+    }
     
     // Support for LP Objects (Hero/Enemy)
     if (variable_instance_exists(card, "nbLP")) {
@@ -115,6 +120,11 @@ function damageCard(card, amount) {
         
         var ownerIsHero = (card.object_index == oLP_Hero); // Determine owner based on object type
         if (variable_instance_exists(card, "isHeroOwner")) ownerIsHero = card.isHeroOwner;
+
+        // Notify Quest Manager for "Deal damage to enemy hero"
+        if (instance_exists(oQuestManager) && !ownerIsHero) {
+            oQuestManager.notify_event("damage_hero", amount);
+        }
         
         registerTriggerEvent(TRIGGER_ON_LP_CHANGE, noone, {
             old_lp: oldLP,
@@ -183,6 +193,21 @@ function healCard(card, amount) {
 function destroyCard(card, source = noone) {
     if (card == noone) return false;
     if (instance_exists(card)) {
+        
+        // --- ILLUSION CHECK ---
+        // Si la carte a l'état Illusion, elle survit à la première destruction
+        if (variable_instance_exists(card, "illusion") && card.illusion > 0) {
+            card.illusion -= 1;
+            show_debug_message("### destroyCard: Prevented by Illusion! Remaining: " + string(card.illusion));
+            // FX visuel (optionnel)
+            // Quest System Notification
+            if (instance_exists(oQuestManager)) {
+                // "Activer l'effet illusion"
+                oQuestManager.notify_event("trigger_keyword", 1, { keyword: "Illusion", card: card });
+            }
+            return false;
+        }
+
         var cancelled_by_secret = false;
         if (!is_undefined(activateSecretsOnDestroyAttempt)) {
             cancelled_by_secret = activateSecretsOnDestroyAttempt(card, source);
@@ -206,6 +231,25 @@ function destroyCard(card, source = noone) {
         return true;
     }
     registerTriggerEvent(TRIGGER_ON_DESTROY, card, ctx);
+
+    // QUEST SYSTEM NOTIFICATION (Destruction)
+    if (instance_exists(oQuestManager) && instance_exists(card)) {
+        var cType = variable_instance_exists(card, "type") ? string_lower(card.type) : "";
+        var isMinion = (cType == "monster" || cType == "minion" || cType == "creature" || cType == "bête" || cType == "soldat");
+        var isEnemy = (variable_instance_exists(card, "isHeroOwner") && !card.isHeroOwner);
+        
+        // Count destroyed enemy minions for quest "destroy_10_minions"
+        if (isMinion && isEnemy) {
+            oQuestManager.notify_event("destroy_minion", 1);
+        }
+        
+        // Count ally minion deaths for quest "ally_death_10"
+        var isAlly = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+        if (isMinion && isAlly) {
+            oQuestManager.notify_event("ally_minion_death", 1);
+        }
+    }
+
     var delay_destroy = (instance_exists(card) && variable_instance_exists(card, "_delay_instance_destroy_for_poison") && card._delay_instance_destroy_for_poison);
     
     // Utiliser les variables globales des cimetières
@@ -302,6 +346,15 @@ function destroyCard(card, source = noone) {
         }
         // Détruire immédiatement l'instance sauf si une tempo est en attente sur cette carte
         if (instance_exists(card)) {
+            
+            // Quest System Notification (Unit Die)
+            if (instance_exists(oQuestManager)) {
+                var cType = variable_instance_exists(card, "type") ? string_lower(card.type) : "";
+                if (cType == "monster" || cType == "minion" || cType == "creature") {
+                    oQuestManager.notify_event("unit_die", 1, { card: card, source: source });
+                }
+            }
+
             var has_tempo_pending = variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending;
             if (has_tempo_pending) {
                 // Masquer brièvement et demander destruction après reprise du flow
@@ -356,19 +409,22 @@ function damageAllMonsters(amount, effect) {
     var fx_type = variable_struct_exists(effect, "visual_fx") ? effect.visual_fx : "";
     var elem = variable_struct_exists(effect, "element") ? string_lower(effect.element) : "";
     
-    if (fx_type == "Aoe_terre" || elem == "aoe_nature") {
+    if (fx_type == "multicible" || elem == "multicible") {
         for (var i = 0; i < array_length(targets); i++) {
             var tgt = targets[i];
+            if (tgt == noone || !instance_exists(tgt)) continue;
             
-            // Create the FX
-            var fx = instance_create_depth(tgt.x, tgt.y, -9000, oFX_AoeTerre);
-            fx.target = tgt;
-            fx.damage_amount = amount;
-            
-            // Define callback for damage application (triggered by FX)
-            fx.callback = method({t: tgt, a: amount}, function() {
-                if (instance_exists(t)) damageCard(t, a);
+            var dmgCallback = method({t: tgt, a: amount}, function() {
+                if (instance_exists(t)) {
+                    damageCard(t, a);
+                }
             });
+            
+            if (!is_undefined(animEffectRequestProjectileTarget)) {
+                animEffectRequestProjectileTarget("feu", effect.source_card, tgt, amount, dmgCallback);
+            } else {
+                dmgCallback();
+            }
         }
     } else {
         // Default instant behavior
@@ -388,4 +444,3 @@ function destroyAllMonsters(effect) {
     for (var i = 0; i < array_length(targets); i++) { destroyCard(targets[i]); }
     return true;
 }
-

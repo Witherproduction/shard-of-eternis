@@ -1,12 +1,20 @@
-﻿// === Barre de tri a cote du filtre ===
+// === Barre de tri a cote du filtre ===
 
 // Position et dimensions basées sur `sButton`
 var baseW = sprite_get_width(sButton);
 var baseH = sprite_get_height(sButton);
-var barWidth = round(baseW * (570.0 / 300.0));
-var barHeight = round(baseH * (90.0 / 100.0));
-var barX = 610;
-var barY = room_height - 130;
+var barWidth = round(baseW * (570.0 / 300.0)) * 0.8;
+var barHeight = round(baseH * (90.0 / 100.0)) * 0.8;
+// Placer en haut, à la suite de la barre de filtre
+var spacing = 50;
+var barY = 40;
+var barX = 40;
+if (instance_exists(oCardViewer)) {
+    with (oCardViewer) {
+        barY = dropdown_y;
+        barX = dropdown_x + dropdown_w + spacing;
+    }
+}
 
 // Dessiner le fond de la barre avec le sprite sButton (étiré sur la largeur/hauteur)
 draw_sprite_stretched(sButton, 0, barX, barY, barWidth, barHeight);

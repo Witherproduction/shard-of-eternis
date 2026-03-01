@@ -20,7 +20,7 @@ show_debug_message("### oCardViewer: Position (" + string(x) + ", " + string(y) 
 cardInstances = [];
 cardsPerRow = 8;
 cardSpacing = round(refW * gridScale) + 8; // marge légère
-cardSpacingVertical = round(refH * gridScale) + 12; // marge pour éviter chevauchement
+cardSpacingVertical = round(refH * gridScale) + 24; // marge accrue pour espacer les rangées
 startX = 200; // Décalage de +50px vers la droite pour rCollection
 startY = 300;
 scrollY = 0;
@@ -123,6 +123,27 @@ function filterOutLocked(cards) {
     return res;
 }
 
+if (!variable_global_exists("collection_invocation_mode")) {
+    global.collection_invocation_mode = false;
+}
+
+function filterInvocationCandidates(cards) {
+    var res = [];
+    for (var i = 0; i < array_length(cards); i++) {
+        var c = cards[i];
+        if (isTokenCard(c)) continue;
+        if (variable_struct_exists(c, "id")) {
+            var cid = string(c.id);
+            var owned = get_card_count(cid);
+            var maxc = get_max_copies_for_card_id(cid);
+            if (owned < maxc) {
+                array_push(res, c);
+            }
+        }
+    }
+    return res;
+}
+
 // === Menu déroulant (filtre booster) ===
 // Construire dynamiquement la liste des boosters disponibles à partir de la base
 dropdown_items = [];
@@ -131,7 +152,7 @@ var _seenBoosters = ds_map_create();
 ds_map_add(_seenBoosters, string_lower("Tout"), true);
 var _cardsForBoosters = dbGetAllCards();
 _cardsForBoosters = filterOutTokens(_cardsForBoosters);
-_cardsForBoosters = filterOutLocked(_cardsForBoosters);
+_cardsForBoosters = global.collection_invocation_mode ? filterInvocationCandidates(_cardsForBoosters) : filterOutLocked(_cardsForBoosters);
 for (var i = 0; i < array_length(_cardsForBoosters); i++) {
     var c = _cardsForBoosters[i];
     if (variable_struct_exists(c, "booster")) {
@@ -147,7 +168,7 @@ ds_map_destroy(_seenBoosters);
 // Sélection initiale
 dropdown_selected_index = 0;
 dropdown_open = false;
-dropdown_x = 40;
+dropdown_x = 240;
 dropdown_y = 40;
 dropdown_w = 220;
 dropdown_h = 28;
@@ -166,6 +187,27 @@ if (!variable_global_exists("collection_booster_filter")) {
     global.collection_booster_filter = dropdown_items[dropdown_selected_index];
 }
 lastBoosterFilter = global.collection_booster_filter;
+
+function rebuildDropdown() {
+    dropdown_items = [];
+    array_push(dropdown_items, "Tout");
+    var _seen = ds_map_create();
+    ds_map_add(_seen, string_lower("Tout"), true);
+    var src = allCards;
+    for (var i = 0; i < array_length(src); i++) {
+        var c = src[i];
+        if (variable_struct_exists(c, "booster")) {
+            var b = string(c.booster);
+            if (b != "" && !ds_map_exists(_seen, string_lower(b))) {
+                array_push(dropdown_items, b);
+                ds_map_add(_seen, string_lower(b), true);
+            }
+        }
+    }
+    ds_map_destroy(_seen);
+    dropdown_selected_index = 0;
+    global.collection_booster_filter = dropdown_items[dropdown_selected_index];
+}
 
 // Fonctions pagination
 function updateTotalPages() {
@@ -237,6 +279,19 @@ function applyFilter(filterText) {
             // Verifier la rarete
             if (variable_struct_exists(card, "rarity") && string_pos(currentFilter, string_lower(card.rarity)) > 0) matches = true;
             
+            // Verifier les tags (si existe)
+            if (variable_struct_exists(card, "tags")) {
+                var t_arr = card.tags;
+                if (is_array(t_arr)) {
+                    for (var t_i = 0; t_i < array_length(t_arr); t_i++) {
+                        if (string_pos(currentFilter, string_lower(string(t_arr[t_i]))) > 0) {
+                            matches = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (matches) {
                 array_push(filteredCards, card);
             }
@@ -329,18 +384,18 @@ function displayFilteredCards() {
             cardInstance.description = variable_struct_exists(card, "description") ? card.description : "";
             cardInstance.rarity = variable_struct_exists(card, "rarity") ? card.rarity : "commun";
             cardInstance.archetype = variable_struct_exists(card, "archetype") ? card.archetype : (variable_instance_exists(cardInstance, "archetype") ? cardInstance.archetype : "");
-
-            // Définir la limite d'exemplaires pour affichage depuis l'objet uniquement
-            // Si l'objet possède déjà la variable 'limited', on la respecte; sinon on met 3 par défaut
-            if (!variable_instance_exists(cardInstance, "limited")) {
-                cardInstance.limited = 3;
+            cardInstance.tags = variable_struct_exists(card, "tags") ? card.tags : [];
+            
+            // Appliquer la limite d'exemplaires selon la rareté (commun/rare=3, épique=2, légendaire=1)
+            var r_lower = string_lower(string(cardInstance.rarity));
+            var lim_calc = 3;
+            if (r_lower == "legendaire") lim_calc = 1; else if (r_lower == "epique") lim_calc = 2;
+            cardInstance.limited = lim_calc;
+            // Mémoriser l'identifiant pour l'affichage des quantités
+            if (variable_struct_exists(card, "id")) {
+                cardInstance.card_id = string(card.id);
             } else {
-                // Borner au besoin
-                var lim_try = real(cardInstance.limited);
-                if (!is_real(lim_try)) lim_try = 3;
-                if (lim_try < 1) lim_try = 1;
-                if (lim_try > 3) lim_try = 3;
-                cardInstance.limited = lim_try;
+                cardInstance.card_id = "";
             }
             // Résoudre et valider le sprite; fallback si introuvable
             var sprIndex = -1;
@@ -551,11 +606,17 @@ function selectCardByName(cardName) {
         pending_select_card = inst;
         show_debug_message("### selectCardByName: sélection programmée -> " + string(cardName) + " (page " + string(pageIndex) + ", index " + string(indexOnPage) + ")");
         return true;
-    } else {
-        show_debug_message("### selectCardByName: instance non trouvée sur la page");
-        return false;
     }
+    return false;
 }
+
+// Animation Convoquer (sSpecialSummon ZoomIn -> Hold -> ZoomOut)
+summonAnimState = 0; // 0: None, 1: Zoom In, 2: Hold, 3: Zoom Out
+summonAnimTimer = 0;
+summonAnimDurationIn = 30;   // 0.5s Zoom In
+summonAnimDurationHold = 120; // 2s Hold
+summonAnimDurationOut = 30;  // 0.5s Zoom Out
+summonAnimCard = noone; // Pour stocker les infos de la carte convoquée (sprite, nom)
 
 // Fonction pour gérer le défilement des cartes
 function handleScroll() {

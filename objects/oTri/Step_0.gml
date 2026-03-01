@@ -1,4 +1,4 @@
-﻿// === Gestion des clics dans l'evenement Step ===
+// === Gestion des clics dans l'evenement Step ===
 
 // Hériter de la garde de oButtonBlock
 event_inherited();
@@ -15,10 +15,17 @@ if (mouse_check_button_pressed(mb_left)) {
     // Parametres identiques a ceux du Draw
     var baseW = sprite_get_width(sButton);
     var baseH = sprite_get_height(sButton);
-    var barWidth = round(baseW * (570.0 / 300.0));
-    var barHeight = round(baseH * (90.0 / 100.0));
-    var barX = 610;
-    var barY = room_height - 130; // Descendu légèrement pour correspondre au fond
+    var barWidth = round(baseW * (570.0 / 300.0)) * 0.8;
+    var barHeight = round(baseH * (90.0 / 100.0)) * 0.8;
+    var spacing = 50;
+    var barY = 40;
+    var barX = 40;
+    if (instance_exists(oCardViewer)) {
+        with (oCardViewer) {
+            barY = dropdown_y;
+            barX = dropdown_x + dropdown_w + spacing;
+        }
+    }
     var buttonRadius = 15;
     var buttonSpacing = 60; // Espacement légèrement réduit pour resserrer les boutons
     // Centrer les boutons dans la barre

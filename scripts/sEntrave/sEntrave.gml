@@ -69,6 +69,11 @@ function sEntrave(card, effect, context) {
         var sndE = asset_get_index("entrave");
         if (sndE == -1) sndE = asset_get_index("Entrave");
         if (sndE != -1) { audio_play_sound(sndE, 0, false); }
+        
+        // Quest System Notification
+        if (instance_exists(oQuestManager)) {
+            oQuestManager.notify_event("apply_effect", 1, { effect: "Entrave", source: card, target: (scopeB == "single" ? target : undefined) });
+        }
     }
     return appliedOk;
 }

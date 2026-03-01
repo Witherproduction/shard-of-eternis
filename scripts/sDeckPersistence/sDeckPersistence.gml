@@ -214,6 +214,10 @@ function save_cards_database_to_file() {
             file_text_close(file);
             show_debug_message("### Base de données des cartes sauvegardée dans: " + target_path);
             show_debug_message("### Nombre total de cartes sauvegardées: " + string(variable_struct_names_count(db.cardDatabase)));
+            
+            // EXPORT AUTOMATIQUE vers le fichier source pour le développement
+            export_cards_database_to_release();
+            
             return true;
         } else {
             show_debug_message("### Erreur: Impossible d'ouvrir un fichier de sauvegarde des cartes (datafiles et racine)");
@@ -398,7 +402,8 @@ function export_cards_database_to_release() {
         var wrote_any = false;
 
 // 1) PRIORITÉ: Copie directe dans le dossier Shard of Eternis du projet
-var dst_backup_project = "C:\\Users\\arckano\\Desktop\\jeu\\shard of Eternis\\cards_database.json";
+        // Chemin mis à jour pour l'environnement actuel
+        var dst_backup_project = "f:\\shard of eternis dev\\shard-of-eternis\\datafiles\\cards_database.json";
         var f_backup = file_text_open_write(dst_backup_project);
         if (f_backup != -1) {
             file_text_write_string(f_backup, json_string);
@@ -747,6 +752,17 @@ function get_max_copies_for_card(cardName, object_id) {
                 maxCopies = lim;
                 show_debug_message("### get_max_copies_for_card: limite depuis DB = " + string(maxCopies) + " pour '" + string(cardName) + "'");
             }
+        }
+    }
+    // Fallback basé sur la rareté si aucune limite explicite
+    if (is_struct(card) && variable_struct_exists(card, "rarity")) {
+        var r = string_lower(string(card.rarity));
+        if (r == "legendaire") {
+            maxCopies = 1;
+        } else if (r == "epique") {
+            maxCopies = 2;
+        } else {
+            maxCopies = DEFAULT_MAX; // commun ou rare
         }
     }
     return maxCopies;

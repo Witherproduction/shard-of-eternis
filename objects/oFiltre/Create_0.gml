@@ -5,13 +5,22 @@ show_debug_message("### oFiltre.create");
 filterText = ""; // Texte de filtrage saisi par l'utilisateur
 isTyping = false; // Indique si l'utilisateur est en train de taper
 
-// Position et dimensions de la barre de filtre (fond avec sButton)
-// Alignement visuel par rapport à la barre de tri (oTri) actuellement :
-// oTri: barX=310, barY=room_height-130
 var baseW = sprite_get_width(sButton);
 var baseH = sprite_get_height(sButton);
-filterBarHeight = round(baseH * (100.0 / 100.0));
-filterBarY = room_height - 130;
+filterBarHeight = round(baseH * (100.0 / 100.0)) * 0.8;
+// Positionner en haut, à la suite du bouton Booster et du bouton Invocation
+var top_y = 40;
+var booster_w = 220;
+var booster_h = 28;
+if (instance_exists(oCardViewer)) {
+    with (oCardViewer) {
+        start_x = dropdown_x;
+        booster_w = dropdown_w;
+        booster_h = dropdown_h;
+    }
+}
+filterBarY = top_y;
+
 
 // Position et taille de la zone de saisie (centrée dans la barre de filtre)
 filterBoxWidth = 300;
@@ -19,8 +28,19 @@ filterBoxHeight = 40;
 
 // Réduire la largeur du bouton filtre pour qu'il soit proche du cadre d'écriture
 // Ajouter une petite marge latérale de 20 px
+filterBoxWidth = round(filterBoxWidth * 0.8);
+filterBoxHeight = round(filterBoxHeight * 0.8);
 filterBarWidth = filterBoxWidth + 50;
-filterBarX = 310 - filterBarWidth + 200; // Décale tout l'objet vers la droite de 200px au total
+// Placer à la suite de la barre de tri avec 50px d'espacement
+var spacing = 50;
+var barWidthTri = round(baseW * (570.0 / 300.0));
+filterBarX = 40 + 220 + spacing; // fallback si oCardViewer n'existe pas
+if (instance_exists(oCardViewer)) {
+    with (oCardViewer) {
+        filterBarY = dropdown_y;
+        filterBarX = dropdown_x + dropdown_w + spacing + barWidthTri + spacing;
+    }
+}
 
 filterBoxX = filterBarX + (filterBarWidth - filterBoxWidth) / 2;
 filterBoxY = filterBarY + (filterBarHeight - filterBoxHeight) / 2;

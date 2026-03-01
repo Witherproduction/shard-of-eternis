@@ -29,6 +29,11 @@ function drawCards(amount) {
             } else {
                 array_push(oHand.cards, drawnCard);
                 registerTriggerEvent(TRIGGER_ON_CARD_DRAW, drawnCard, {});
+                
+                // Quest System Notification
+                if (variable_instance_exists(oHand, "isHeroOwner") && oHand.isHeroOwner && instance_exists(oQuestManager)) {
+                    oQuestManager.notify_event("draw", 1);
+                }
             }
         } else {
             loseLP(1000);
@@ -46,6 +51,11 @@ function drawCardsFor(ownerIsHero, amount) {
         // Laisser deck.pick gérer l'overflow et l'envoi au cimetière silencieux
         if (ds_list_size(deckInst.cards) > 0) {
             deckInst.pick();
+            
+            // Quest System Notification
+            if (ownerIsHero && instance_exists(oQuestManager)) {
+                oQuestManager.notify_event("draw", 1);
+            }
         } else {
             if (ownerIsHero) {
                 loseLP(1000);

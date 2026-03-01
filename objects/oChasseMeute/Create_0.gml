@@ -1,4 +1,5 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Chasse en meute"
@@ -6,7 +7,7 @@ mana_cost = 3;
 genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 element = "Nature"
 
@@ -25,3 +26,4 @@ effects = [
         criteria: { type: "Monster", genre: "Bête" }
     }
 ]
+tags = ["Nature", "Sort"];

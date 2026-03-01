@@ -1,11 +1,12 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Racine envahissante"
 genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "epique"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Gèle tous les serviteurs adverses.";
@@ -20,3 +21,4 @@ effects = [
         target_zone: "field"
     }
 ]
+tags = ["Sort", "Nature", "Entrave"];

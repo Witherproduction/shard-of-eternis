@@ -1,11 +1,12 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Brume de la forêt"
 genre = "Sort"
-archetype = "Forêt des voleurs"
+race = "Ombre";tags = ["Ombre", "Sort", "Combo"];archetype = "Forêt des voleurs"
 rarity = "epique"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Confère +2 ATK et Camouflage à un serviteur allié.\nCombo (Camouflage) : Détruit un serviteur ennemi aléatoire."

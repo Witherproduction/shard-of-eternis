@@ -214,7 +214,7 @@ for (var i = 0; i < array_length(rarity_buttons); i++) {
 draw_set_halign(fa_left);
 
 // === BOUTONS D'ACTION ===
-var action_buttons = ["create_card", "cancel", "load_card", "export_db", "back_to_menu"];
+var action_buttons = ["create_card", "cancel", "load_card", "export_db", "save_and_next", "back_to_menu"];
 for (var i = 0; i < array_length(action_buttons); i++) {
     var btn_name = action_buttons[i];
     btn = buttons[$ btn_name];
@@ -223,6 +223,9 @@ for (var i = 0; i < array_length(action_buttons); i++) {
     switch(btn_name) {
         case "create_card":
             draw_set_color(editing_mode ? c_yellow : c_lime);
+            break;
+        case "save_and_next":
+            draw_set_color(c_lime); // Même couleur que création pour indiquer "Sauvegarde"
             break;
         case "cancel":
             draw_set_color(c_orange);

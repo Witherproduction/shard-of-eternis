@@ -6,8 +6,8 @@ attack = 1;
 PV = 1;
 mana_cost = 0;
 genre = "Humanoïde"
-archetype = "Forêt des voleurs"
-booster = "A la découverte du monde"
+race = "Abyssien";tags = ["Abyssien", "Humanoïde"];archetype = "Forêt des voleurs"
+booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur

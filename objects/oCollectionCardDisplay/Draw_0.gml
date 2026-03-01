@@ -2,6 +2,8 @@
 
 // Affiche la carte sélectionnée uniquement dans rCollection
 if (room == rCollection && selectedCard != noone && instance_exists(selectedCard)) {
+    // ------------------------------------------------------
+
     // Position pour l'affichage agrandi (utilise la position de l'instance)
     var display_x = x;
     var display_y = y;
@@ -16,11 +18,23 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                    display_x + card_width/2 + 10, display_y + card_height/2 + 10, false);
     draw_set_alpha(1);
     
-    // Affichage de la carte
-    draw_sprite_ext(selectedCard.sprite_index, selectedCard.image_index, 
-                    display_x, display_y, display_scale, display_scale, 0, c_white, 1);
+    // --- ANIMATION PORTAIL (SPECIAL SUMMON) - DEPRECATED ---
+    // Cette section est désormais gérée par le bloc modal au début de Draw
+    /*
+    var card_scale_mod = 1.0;
     
-    // --- Bordure de rareté ---
+    if (variable_instance_exists(id, "portal_active") && portal_active && portal_sprite != -1) {
+       // ... code déplacé ...
+    }
+    */
+    var card_scale_mod = 1.0;
+    // ------------------------------------------
+
+    draw_sprite_ext(selectedCard.sprite_index, selectedCard.image_index, 
+                    display_x, display_y, display_scale * card_scale_mod, display_scale * card_scale_mod, 0, c_white, 1);
+    
+    // ---------------------------------
+    
     if (variable_instance_exists(selectedCard, "rarity")) {
         var rarity_color = getRarityColor(selectedCard.rarity);
         var glow_intensity = getRarityGlowIntensity(selectedCard.rarity);
@@ -41,8 +55,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         }
     }
     
-    // --- Affichage de l'étoile de favori ---
-    // Vérifier si la carte est en favoris
     var card_id = selectedCard.name;
     
     if (is_card_favorite(card_id)) {
@@ -77,7 +89,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_set_color(c_black);
     }
 
-    // --- Rectangles de validation des champs (coords = coin haut-gauche puis coin bas-droite, à scale 1.0) ---
     {
         var spr = selectedCard.sprite_index;
         var s = display_scale;
@@ -136,7 +147,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         }
     }
 
-    // --- Texte auto-ajusté dans les zones ---
     {
         var s = display_scale;
         var rel = s / 0.6;
@@ -183,7 +193,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         // Marges internes
         var pad = 0;
 
-        // --- NAME ---
         if (variable_instance_exists(selectedCard, "name")) {
             var tx = string(selectedCard.name);
             var mar = 7;
@@ -198,8 +207,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_text_transformed(left, top + 2, tx, scale, scale, 0);
         }
 
-        // --- MANA COST DISPLAY (Top Right) ---
-    // Replacing mana_cost Logic with Duel Room Circle Style
     var display_cost = 0;
     if (variable_instance_exists(selectedCard, "mana_cost")) display_cost = selectedCard.mana_cost;
     
@@ -245,9 +252,14 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         draw_set_valign(fa_top);
     }
 
-        // --- GENRE ---
         if (variable_instance_exists(selectedCard, "genre")) {
             var tx = string(selectedCard.genre);
+            // Include Race
+            if (variable_instance_exists(selectedCard, "race") && string_length(string(selectedCard.race)) > 0 && string_lower(string(selectedCard.race)) != "inconnu" && string_lower(string(selectedCard.race)) != "neutre") {
+                if (string_length(tx) > 0) tx += " - " + string(selectedCard.race);
+                else tx = string(selectedCard.race);
+            }
+
             var mar = 7;
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
@@ -260,7 +272,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_text_transformed(gx, gy + 2, tx, scale, scale, 0);
         }
 
-        // --- ARCHETYPE ---
         if (variable_instance_exists(selectedCard, "archetype")) {
             var tx = string(selectedCard.archetype);
             var mar = 7;
@@ -275,7 +286,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_text_transformed(ax, ay + 2, tx, scale, scale, 0);
         }
 
-        // --- DESCRIPTION (wrap natif) ---
         if (variable_instance_exists(selectedCard, "description")) {
             draw_set_halign(fa_left);
             draw_set_valign(fa_top);
@@ -304,18 +314,14 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_text_ext_transformed(left, top + 2, tx, base_h, w_eff, sc, sc, 0);
         }
 
-        // ATK/HP overlay (Hearthstone Style)
         if (!is_magic) {
             // New Positions (Using Global Layout)
-            // ATK: Bottom Left (Yellow)
             var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2; 
-            // HP: Bottom Right (Red/Green/White)
             var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2; 
             
             draw_set_halign(fa_center);
             draw_set_valign(fa_middle);
 
-            // --- ATTACK ---
             if (variable_instance_exists(selectedCard, "attack")) {
                 var valA = selectedCard.attack;
                 var colA = c_lime; // Always Green per user request
@@ -348,11 +354,9 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 draw_text_transformed(circleA_x, circleA_y, txA, scA, scA, 0);
             }
 
-            // --- HP ---
             var hpVal = 0;
             var hpMax = 0;
             
-            // Logic for HP determination (Collection fallback)
             if (variable_instance_exists(selectedCard, "current_hp")) {
                 hpVal = selectedCard.current_hp;
                 hpMax = (variable_instance_exists(selectedCard, "max_hp") ? selectedCard.max_hp : hpVal);
@@ -372,12 +376,10 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                     }
                 }
 
-                // Color Logic
                 var hpColor = c_lime; // Always Green per user request
                 
                 var txD = string(hpVal);
                 
-                // Draw Blood Drop / Circle Background for HP REMOVED
                 var circleD_x = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
                 var circleD_y = tly + (def_y1 + (def_y2-def_y1)/2) * s;
                 circleD_x = round(circleD_x);
@@ -385,7 +387,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 
                 var scD = 1.2 * rel;
                 
-                // Draw Outline (Black)
                 var o_dist = 2 * rel;
                 draw_set_color(c_black);
                 draw_text_transformed(circleD_x - o_dist, circleD_y, txD, scD, scD, 0);
@@ -393,7 +394,6 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 draw_text_transformed(circleD_x, circleD_y - o_dist, txD, scD, scD, 0);
                 draw_text_transformed(circleD_x, circleD_y + o_dist, txD, scD, scD, 0);
                 
-                // Text Color
                 draw_set_color(hpColor);
                 draw_text_transformed(circleD_x, circleD_y, txD, scD, scD, 0);
             }
@@ -404,10 +404,79 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         }
     }
 
-    // --- Texte du viewer désactivé temporairement ---
-    // Ancien panneau d’informations (nom, rareté, ATK/PV, description) supprimé
-    // pour repartir étape par étape.
+    if (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) {
+        var cost_rar = "commun";
+        if (variable_instance_exists(selectedCard, "rarity")) {
+            cost_rar = string_lower(string(selectedCard.rarity));
+        }
+        var cost = 8;
+        if (cost_rar == "rare") cost = 20;
+        else if (cost_rar == "epique") cost = 80;
+        else if (cost_rar == "legendaire") cost = 320;
+        var cid_val = "";
+        if (variable_instance_exists(selectedCard, "card_id") && string(selectedCard.card_id) != "") {
+            cid_val = string(selectedCard.card_id);
+        } else if (variable_instance_exists(selectedCard, "name")) {
+            var normalize = function(s) {
+                var r = string_lower(string(s));
+                r = string_replace_all(r, "à", "a"); r = string_replace_all(r, "â", "a"); r = string_replace_all(r, "ä", "a");
+                r = string_replace_all(r, "é", "e"); r = string_replace_all(r, "è", "e"); r = string_replace_all(r, "ê", "e"); r = string_replace_all(r, "ë", "e");
+                r = string_replace_all(r, "î", "i"); r = string_replace_all(r, "ï", "i");
+                r = string_replace_all(r, "ô", "o"); r = string_replace_all(r, "ö", "o");
+                r = string_replace_all(r, "ù", "u"); r = string_replace_all(r, "û", "u"); r = string_replace_all(r, "ü", "u");
+                r = string_replace_all(r, "ç", "c");
+                return r;
+            };
+            var nm = normalize(selectedCard.name);
+            var matches = dbGetCardsByName(selectedCard.name);
+            for (var mi = 0; mi < array_length(matches); mi++) {
+                var dc = matches[mi];
+                if (variable_struct_exists(dc, "name") && normalize(dc.name) == nm && variable_struct_exists(dc, "id")) {
+                    cid_val = string(dc.id);
+                    break;
+                }
+            }
+        }
+        var owned = 0;
+        var maxc = 0;
+        if (cid_val != "") {
+            owned = get_card_count(cid_val);
+            maxc = get_max_copies_for_card_id(cid_val);
+        }
+        var stones = variable_global_exists("arcane_stones") ? max(0, real(global.arcane_stones)) : 0;
+        var can_conv = (cid_val != "" && stones >= cost && owned < maxc);
+        var btn_w = 260;
+        var btn_h = 44;
+        var btn_x = display_x;
+        var btn_y = display_y + card_height * 0.5 + 50;
+        var bx1 = btn_x - btn_w * 0.5;
+        var by1 = btn_y - btn_h * 0.5;
+        var bx2 = btn_x + btn_w * 0.5;
+        var by2 = btn_y + btn_h * 0.5;
+        draw_set_color(make_color_rgb(30, 30, 30));
+        draw_rectangle(bx1, by1, bx2, by2, false);
+        if (can_conv) {
+            draw_set_color(make_color_rgb(40, 160, 255));
+        } else {
+            draw_set_color(make_color_rgb(50, 50, 50));
+        }
+        draw_rectangle(bx1, by1, bx2, by2, true);
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        if (can_conv) {
+            draw_set_color(c_white);
+        } else {
+            draw_set_color(make_color_rgb(140, 140, 140));
+        }
+        var label = "Convoquer (" + string(cost) + ")";
+        draw_text(btn_x, btn_y, label);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+    }
 
-    // Bloc 2 (description simplifiée) désactivé
+    // --- CLEANUP ---
+    if (variable_instance_exists(id, "portal_active") && portal_active) {
+        // Already handled by early return
+    }
+    // ----------------
 }
-

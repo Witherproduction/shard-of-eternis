@@ -1,4 +1,4 @@
-﻿show_debug_message("### oSummon.create")
+show_debug_message("### oSummon.create")
 
 // Enregistrer le clic UI pour bloquer la sélection de carte sous-jacente
 global.last_ui_click_time = current_time;

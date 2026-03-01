@@ -1,4 +1,5 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Filet de l'ombre"
@@ -6,7 +7,7 @@ mana_cost = 1;
 genre = "Secret"
 archetype = "Forêt des voleurs"
 rarity = "rare"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "S'active lorsque votre adversaire attaque avec un monstre. Entrave l'attaquant."
@@ -23,3 +24,4 @@ effects = [
         duration_turns: 1
     }
 ]
+tags = ["Ombre", "Secret", "Entrave"];

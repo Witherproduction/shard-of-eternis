@@ -788,6 +788,14 @@ function activateTrigger(card, triggerType, context = {}) {
             var effectTypeStr = variable_struct_exists(effect, "effect_type") ? string(effect.effect_type) : "unknown";
             // show_debug_message("### Found matching trigger for effect: " + effectTypeStr);
             if (checkTriggerConditions(card, effect, context)) {
+                // --- QUEST SYSTEM INTEGRATION: EVEIL (TRIGGER_ON_SUMMON) ---
+                if (triggerType == TRIGGER_ON_SUMMON) {
+                     if (instance_exists(oQuestManager)) {
+                        oQuestManager.notify_event("trigger_keyword", 1, { keyword: "Eveil", card: card });
+                    }
+                }
+                // -----------------------------------------------------------
+                
                 // show_debug_message("### Conditions passed, executing effect");
 
                 // Marquer l'effet comme utilisé sera fait après exécution réussie

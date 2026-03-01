@@ -391,6 +391,12 @@ if (variable_instance_exists(self, "selected")) {
         // GENRE
         if (variable_instance_exists(card, "genre")) {
             var tx = string(card.genre);
+            // Include Race
+            if (variable_instance_exists(card, "race") && string_length(string(card.race)) > 0 && string_lower(string(card.race)) != "inconnu" && string_lower(string(card.race)) != "neutre") {
+                if (string_length(tx) > 0) tx += " - " + string(card.race);
+                else tx = string(card.race);
+            }
+
             var mar = 7;
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;

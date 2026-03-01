@@ -10,6 +10,22 @@ if (instance_exists(oPanelOptions)) {
 
 // Gestion uniquement dans la room rCollection
 if (room == rCollection) {
+    // Mettre à jour dynamiquement la position pour rester 50px après la barre de tri
+    var spacing = 50;
+    var baseW = sprite_get_width(sButton);
+    var baseH = sprite_get_height(sButton);
+    var triWidth = round(baseW * (570.0 / 300.0)) * 0.8;
+    if (instance_exists(oCardViewer)) {
+        var cv = instance_find(oCardViewer, 0);
+        if (cv != noone && instance_exists(cv)) {
+            if (variable_instance_exists(cv, "dropdown_x") && variable_instance_exists(cv, "dropdown_w") && variable_instance_exists(cv, "dropdown_y")) {
+                filterBarY = cv.dropdown_y;
+                filterBarX = cv.dropdown_x + cv.dropdown_w + spacing + triWidth + spacing;
+                filterBoxX = filterBarX + (filterBarWidth - filterBoxWidth) / 2;
+                filterBoxY = filterBarY + (filterBarHeight - filterBoxHeight) / 2;
+            }
+        }
+    }
     
     // Vérifier si la souris est dans la zone de saisie
     var mouseInBox = point_in_rectangle(mouse_x, mouse_y, filterBoxX, filterBoxY, filterBoxX + filterBoxWidth, filterBoxY + filterBoxHeight);

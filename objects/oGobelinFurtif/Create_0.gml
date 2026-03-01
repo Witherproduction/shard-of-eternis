@@ -4,8 +4,8 @@ attack = 3;
 PV = 2;
 mana_cost = 2;
 genre = "Humanoïde"
-archetype = "Forêt des voleurs"
-booster = "A la découverte du monde"
+tags = ["Humanoïde", "Gobelin", "Camouflage"];archetype = "Forêt des voleurs"
+booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
 description = "Camouflage."
@@ -17,4 +17,5 @@ effects = [
     }
 ]
 
-event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();
+race = "Gobelin";  // Hérite des variables et comportement de oCardMonster

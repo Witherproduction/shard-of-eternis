@@ -5,10 +5,12 @@ if (!variable_instance_exists(id, "PV")) PV = 0;
 if (!variable_instance_exists(id, "mana_cost")) mana_cost = 0;
 if (!variable_instance_exists(id, "name")) name = "";
 if (!variable_instance_exists(id, "description")) description = "";
+if (!variable_instance_exists(id, "tags")) tags = []; // Tableau de chaînes pour les filtres et quêtes
 if (!variable_instance_exists(id, "booster")) booster = "";
 
 // Champs additionnels pour l'affichage dynamique
 if (!variable_instance_exists(id, "genre")) genre = "";
+if (!variable_instance_exists(id, "race")) race = "";
 if (!variable_instance_exists(id, "archetype")) archetype = "";
 // Coût/ATK/PV alternatifs si utilisés ailleurs
 if (!variable_instance_exists(id, "atk")) atk = attack; // miroir

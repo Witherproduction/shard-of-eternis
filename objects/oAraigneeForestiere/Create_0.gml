@@ -4,8 +4,8 @@ attack = 2;
 PV = 1;
 mana_cost = 1;
 genre = "Bête"
-archetype = "Forêt des voleurs"
-booster = "A la découverte du monde"
+race = "Araignée";tags = ["Bête", "Araignée"];archetype = "Forêt des voleurs"
+booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur

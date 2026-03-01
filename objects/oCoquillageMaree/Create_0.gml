@@ -1,10 +1,11 @@
 event_inherited();
+race = "Eau";
 
 name = "Coquillage des marées";
 genre = "Sort";
 archetype = "Forêt des voleurs";
 rarity = "rare";
-booster = "A la découverte du monde";
+booster = "Retour des Archontes";
 is_player_card = true;
 
 description = "Donne +2 PV à tous vos serviteurs.";
@@ -23,3 +24,4 @@ effects = [
         PV: 2
     }
 ];
+tags = ["Eau", "Sort"];

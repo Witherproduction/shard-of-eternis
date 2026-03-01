@@ -6,8 +6,8 @@ show_debug_message("### oRetour1.Create_0 - Objet créé à la position (" + str
 // Dimensions du bouton basées sur le sprite `sButton`
 var baseW = sprite_get_width(sButton);
 var baseH = sprite_get_height(sButton);
-var scaleX = 0.6; // 400 * 0.6 = 240
-var scaleY = 0.8; // 100 * 0.8 = 80
+var scaleX = 0.48; // réduction 20%
+var scaleY = 0.64; // réduction 20%
 button_width = round(baseW * scaleX);
 button_height = round(baseH * scaleY);
 

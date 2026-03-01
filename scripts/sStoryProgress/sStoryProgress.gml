@@ -49,29 +49,6 @@ function story_progress_is_reward_unlocked(reward_id) {
     return v == 1;
 }
 
-/// @function story_progress_save_talent(hero_id, tier_index, choice_index)
-/// @description Sauvegarde le choix de talent pour un tier donné (0 ou 1, ou -1 pour aucun)
-function story_progress_save_talent(hero_id, tier_index, choice_index) {
-    var sec = "talents_" + string(hero_id);
-    ini_open("progress.ini");
-    ini_write_real(sec, "tier_" + string(tier_index), choice_index);
-    ini_close();
-}
-
-/// @function story_progress_get_talents(hero_id)
-/// @description Retourne un tableau des choix de talents (index 0 ou 1) pour chaque tier
-function story_progress_get_talents(hero_id) {
-    var sec = "talents_" + string(hero_id);
-    var tree = get_hero_talent_tree(hero_id);
-    var results = array_create(array_length(tree), -1);
-    
-    ini_open("progress.ini");
-    for (var i = 0; i < array_length(tree); i++) {
-        results[i] = ini_read_real(sec, "tier_" + string(i), -1);
-    }
-    ini_close();
-    return results;
-}
 
 function story_progress_read_last_scene(chapter_id) {
     var sec = story_progress_section_name(chapter_id);

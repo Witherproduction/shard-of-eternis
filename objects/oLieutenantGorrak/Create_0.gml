@@ -6,8 +6,8 @@ attack = 6;
 PV = 4;
 mana_cost = 5;
 genre = "Humanoïde"
-archetype = "Forêt des voleurs"
-booster = "A la découverte du monde"
+race = "Skarl";tags = ["Humanoïde", "Skarl"];archetype = "Forêt des voleurs"
+booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur

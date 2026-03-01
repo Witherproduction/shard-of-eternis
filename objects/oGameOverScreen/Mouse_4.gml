@@ -7,7 +7,14 @@ if (alpha >= targetAlpha) {
     
     // === RECOMPENSES GENERALES (Victoire) ===
     if (isVictory) {
+        // Notification Quest Manager
+        if (instance_exists(oQuestManager)) {
+            oQuestManager.notify_event("win", 1);
+        }
+
         // 1. Débloquer les cartes du deck joueur utilisé
+        // [MOD] Card unlocking removed
+        /*
         if (variable_global_exists("selected_player_deck") && is_struct(global.selected_player_deck)) {
              if (variable_struct_exists(global.selected_player_deck, "cards")) {
                  var deck_cards = global.selected_player_deck.cards;
@@ -57,6 +64,7 @@ if (alpha >= targetAlpha) {
                  }
              }
         }
+        */
     }
 
     // Gestion du résultat du duel pour le scénario
@@ -77,10 +85,17 @@ if (alpha >= targetAlpha) {
                        var ac = variable_global_exists("current_act") ? global.current_act : 1;
                        var sc = variable_global_exists("duel_resume_scene") ? global.duel_resume_scene : 0;
                        
+                       // Récompense d'Or pour la fin de l'acte (si pas déjà complété)
+                       if (!is_act_complete(ch, ac)) {
+                           add_gold(100);
+                           show_debug_message("### Récompense Acte : +100 Or");
+                       }
+                       
                        // Integrer la progression
                        unlock_act_complete(ch, ac);
                        if (ac >= 4) {
                            unlock_chapter_access(ch + 1);
+                           give_chapter_reward(ch);
                        }
 
                        // Essayer d'appeler la fonction de sauvegarde si elle existe

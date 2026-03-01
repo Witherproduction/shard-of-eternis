@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"sStoryTalentData",
+  "%Name":"sQuestSystem",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"sStoryTalentData",
+  "name":"sQuestSystem",
   "parent":{
     "name":"progress",
     "path":"folders/Scripts/progress.yy",

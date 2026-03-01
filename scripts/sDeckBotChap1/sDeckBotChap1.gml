@@ -25,7 +25,6 @@ function get_bot_decks_chap1() {
                         "oJeuneOursForet": "front",
                         "oSanglierPeauRoc": "front"
                     },
-                    hero_power_rule: "finish_off_1hp",
                     conditional_play: {
                         "oMassacreurGueuleRoche": {
                              requires_on_board: ["oLoupGuerreGueuleRoche"]
@@ -60,13 +59,7 @@ function get_bot_decks_chap1() {
                 "oRugissementForet", "oRugissementForet",
                 "oCriMeute", "oCriMeute",
                 "oFeuillageProtecteur", "oFeuillageProtecteur"
-            ],
-            hero_power: {
-                id: "lancer_hache",
-                name: "Lancer de Hache",
-                description: "Inflige 1 dégât.",
-                mana_cost: 2
-            }
+            ]
         },
         {
             id: "Essaim_Abyssien",
@@ -133,13 +126,7 @@ function get_bot_decks_chap1() {
                 // Ajouts demandés
                 "oVieilOurs", "oVieilOurs",
                 "oLoupGaleux", "oLoupGaleux"
-            ],
-            hero_power: {
-                id: "appel_profondeurs",
-                name: "Appel des Profondeurs",
-                description: "Invoque un Coureur Abyssien aléatoirement.",
-                mana_cost: 1
-            }
+            ]
         },
         {
             id: "Bandit_Grand_Chemin",
@@ -204,13 +191,7 @@ function get_bot_decks_chap1() {
                 "oCapeOmbre", "oCapeOmbre",
                 "oCamouflageStrategique", "oCamouflageStrategique",
                 "oAttaqueFurtive", "oAttaqueFurtive"
-            ],
-            hero_power: {
-                id: "pillage",
-                name: "Pillage",
-                description: "Copie une carte de la main adverse et l'ajoute à sa main. Elle coute (1) de moins.",
-                mana_cost: 2
-            }
+            ]
         }
     ];
 }

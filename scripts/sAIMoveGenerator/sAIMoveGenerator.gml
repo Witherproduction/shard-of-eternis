@@ -174,69 +174,6 @@ function AI_GetLegalMoves_Summon() {
     return moves;
 }
 
-/// @function AI_GetLegalMoves_HeroPower()
-/// @description Retourne la liste des activations de pouvoir héroïque possibles
-function AI_GetLegalMoves_HeroPower() {
-    var moves = [];
-    with (oHeroPower) {
-        if (!isHeroOwner && canActivate()) {
-             var pid = variable_struct_exists(powerData, "id") ? powerData.id : "";
-             
-             if (pid == "protection_divine") {
-                 // Generate moves for each valid target (Enemy Monster = Hero's monster)
-                 if (instance_exists(oFieldMonsterHero)) {
-                    var enemies = oFieldMonsterHero.cards;
-                    for (var i = 0; i < array_length(enemies); i++) {
-                        var target = enemies[i];
-                        if (target != 0 && instance_exists(target)) {
-                            array_push(moves, {
-                                type: "use_hero_power",
-                                instance: id,
-                                target: target
-                            });
-                        }
-                    }
-                 }
-             } else if (pid == "lancer_hache") {
-                 // Generate moves for each valid target (Enemy Monster OR Enemy Hero)
-                 // 1. Enemy Monsters
-                 if (instance_exists(oFieldMonsterHero)) {
-                    var enemies = oFieldMonsterHero.cards;
-                    for (var i = 0; i < array_length(enemies); i++) {
-                        var target = enemies[i];
-                        if (target != 0 && instance_exists(target)) {
-                            // Check Stealth
-                             var isStealth = (variable_instance_exists(target, "isCamouflage") && target.isCamouflage);
-                             if (!isStealth) {
-                                array_push(moves, {
-                                    type: "use_hero_power",
-                                    instance: id,
-                                    target: target
-                                });
-                             }
-                        }
-                    }
-                 }
-                 // 2. Enemy Hero (LP)
-                 if (instance_exists(oLP_Hero)) {
-                     array_push(moves, {
-                        type: "use_hero_power",
-                        instance: id,
-                        target: instance_find(oLP_Hero, 0)
-                    });
-                 }
-             } else {
-                 // Standard hero power (no target or internal target logic like rage_pierre)
-                 array_push(moves, {
-                    type: "use_hero_power",
-                    instance: id
-                });
-             }
-        }
-    }
-    return moves;
-}
-
 /// @function AI_AddEffectMoves(card, moves, context)
 /// @description Helper pour ajouter les moves d'effets activables (Hand ou Field)
 function AI_AddEffectMoves(card, moves, context) {
@@ -575,4 +512,3 @@ function AI_CountEnemyContinuousByObjectName(objName) {
     }
     return count;
 }
-

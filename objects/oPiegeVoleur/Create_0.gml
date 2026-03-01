@@ -1,11 +1,12 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Piège du voleur"
 genre = "Secret"
 archetype = "Forêt des voleurs"
 rarity = "rare"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 mana_cost = 2;
@@ -26,3 +27,4 @@ effects = [
         ]
     }
 ]
+tags = ["Sort", "Secret", "Entrave"];

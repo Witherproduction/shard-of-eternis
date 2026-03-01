@@ -22,8 +22,10 @@ input_fields.description = "";
 input_fields.sprite = "";
 input_fields.object_id = "";
 input_fields.genre = "";
+input_fields.race = "";
 input_fields.archetype = "";
 input_fields.booster = "";
+input_fields.tags = "";
 
 // Variables de type de carte
 card_type = "Monster"; // "Monster" ou "Magic"
@@ -136,6 +138,15 @@ buttons.export_db = {
     text: "Exporter la base"
 };
 
+// Nouveau bouton: Sauvegarder et Suivant
+buttons.save_and_next = {
+    x: ui_x + 900,
+    y: ui_y + ui_height - 100,
+    width: 180,
+    height: 45,
+    text: "Sauv. & Suivant"
+};
+
 // Positions des champs de saisie (espacement augmenté)
 field_positions = {};
 var field_x = ui_x + 80;
@@ -148,11 +159,13 @@ field_positions.attack = { x: field_x, y: field_y + field_spacing * 2, width: 80
 field_positions.PV = { x: field_x + 120, y: field_y + field_spacing * 2, width: 80, height: 25, label: "PV:" };
 field_positions.mana_cost = { x: field_x, y: field_y + field_spacing * 3, width: 80, height: 25, label: "Mana Cost:" };
 field_positions.genre = { x: field_x + 120, y: field_y + field_spacing * 3, width: 120, height: 25, label: "Genre:" };
+field_positions.race = { x: field_x + 260, y: field_y + field_spacing * 3, width: 120, height: 25, label: "Race:" };
 field_positions.archetype = { x: field_x, y: field_y + field_spacing * 4, width: 200, height: 25, label: "Archétype:" };
 field_positions.booster = { x: field_x + 220, y: field_y + field_spacing * 4, width: 200, height: 25, label: "Booster:" };
 field_positions.sprite = { x: field_x, y: field_y + field_spacing * 5, width: 200, height: 25, label: "Sprite:" };
-field_positions.object_id = { x: field_x, y: field_y + field_spacing * 6, width: 200, height: 25, label: "Objet ID:" };
-field_positions.description = { x: field_x, y: field_y + field_spacing * 7 + 50, width: 300, height: 60, label: "Description:" };
+field_positions.object_id = { x: field_x + 220, y: field_y + field_spacing * 5, width: 200, height: 25, label: "Objet ID:" };
+field_positions.tags = { x: field_x, y: field_y + field_spacing * 6, width: 420, height: 25, label: "Tags:" };
+field_positions.description = { x: field_x, y: field_y + field_spacing * 7 + 20, width: 420, height: 60, label: "Description:" };
 
 // Position de l'aperçu (ajustée pour l'interface agrandie)
 // Revenir à la position sur le côté droit

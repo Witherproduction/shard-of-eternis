@@ -1,17 +1,16 @@
 {
   "$GMObject":"",
-  "%Name":"oTalentPanel",
+  "%Name":"oQuestButton",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":64,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"oTalentPanel",
+  "name":"oQuestButton",
   "overriddenProperties":[],
   "parent":{
-    "name":"Histoire",
-    "path":"folders/Objets/Histoire.yy",
+    "name":"acceuil",
+    "path":"folders/Objets/acceuil.yy",
   },
   "parentObjectId":null,
   "persistent":false,

@@ -29,6 +29,8 @@ if (alpha >= targetAlpha) {
             
             // === RECOMPENSES GENERALES (Victoire) ===
             // Note: Pas de déblocage de cartes pour le Chapitre 0 (Tutoriel)
+            // [MOD] Card unlocking removed as per user request (replaced by Gold on Act completion)
+            /*
             if (isVictory && (!variable_global_exists("current_chapter") || global.current_chapter != 0)) {
                 // 1. Débloquer les cartes du deck joueur utilisé
                 if (variable_global_exists("selected_player_deck") && is_struct(global.selected_player_deck)) {
@@ -66,6 +68,7 @@ if (alpha >= targetAlpha) {
                      }
                 }
             }
+            */
             
             // Gestion du résultat du duel pour le scénario (Logic copied from Mouse_4)
             if (target_room == rScenario) {
@@ -93,10 +96,17 @@ if (alpha >= targetAlpha) {
                                var ac = variable_global_exists("current_act") ? global.current_act : 1;
                                var sc = variable_global_exists("duel_resume_scene") ? global.duel_resume_scene : 0;
                                
+                               // Récompense d'Or pour la fin de l'acte (si pas déjà complété)
+                               if (!is_act_complete(ch, ac)) {
+                                   add_gold(100);
+                                   show_debug_message("### Récompense Acte : +100 Or");
+                               }
+                               
                                // Integrer la progression
                                unlock_act_complete(ch, ac);
                                if (ac >= 4) {
                                    unlock_chapter_access(ch + 1);
+                                   give_chapter_reward(ch);
                                }
                                
                                // Essayer d'appeler la fonction de sauvegarde si elle existe
@@ -143,9 +153,6 @@ if (alpha >= targetAlpha) {
             }
             if (variable_global_exists("isGraveyardViewerOpen")) {
                 global.isGraveyardViewerOpen = false;
-            }
-            if (variable_global_exists("story_hero_id")) {
-                global.story_hero_id = noone;
             }
             
             room_goto(target_room);

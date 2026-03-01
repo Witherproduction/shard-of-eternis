@@ -68,6 +68,21 @@ getAllCards = function() {
     return results;
 };
 
+// Fonction pour rechercher des cartes par race
+getCardsByRace = function(raceName) {
+    var results = [];
+    var keys = variable_struct_get_names(cardDatabase);
+    
+    for (var i = 0; i < array_length(keys); i++) {
+        var card = cardDatabase[$ keys[i]];
+        if (variable_struct_exists(card, "race") && string_lower(card.race) == string_lower(raceName)) {
+            array_push(results, card);
+        }
+    }
+    
+    return results;
+};
+
 // Fonction pour obtenir les cartes par rareté
 getCardsByRarity = function(rarity) {
     var results = [];
@@ -133,15 +148,24 @@ function initializeDatabase() {
     var database_loaded = load_cards_database_from_file();
     
     if (!database_loaded) {
-        // Si pas de base de données sauvegardée, utiliser les cartes par défaut
         show_debug_message("Base de données initialisée avec " + string(array_length(variable_struct_get_names(cardDatabase))) + " cartes par défaut");
-        
-        // Supprimer les cartes de test au lancement
         dbRemoveTestCards();
         show_debug_message("Base de données après suppression des cartes de test: " + string(array_length(variable_struct_get_names(cardDatabase))) + " cartes");
-        
-        // Sauvegarder cette base de données par défaut pour la prochaine fois
         save_cards_database_to_file();
+    }
+    
+    var _keys = variable_struct_get_names(cardDatabase);
+    for (var _i = 0; _i < array_length(_keys); _i++) {
+        var _card = cardDatabase[$ _keys[_i]];
+        if (is_struct(_card) && variable_struct_exists(_card, "booster")) {
+            var _b = string(_card.booster);
+            var _n = string_lower(_b);
+            _n = string_replace_all(_n, "�", "e");
+            _n = string_replace_all(_n, "é", "e");
+            if (string_pos("a la decouverte du monde", _n) > 0) {
+                _card.booster = "Retour des Archontes";
+            }
+        }
     }
     
     // Charger les decks sauvegardés

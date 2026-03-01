@@ -45,6 +45,15 @@ function dbGetCardsByName(searchName) {
     return [];
 }
 
+// Fonction globale pour rechercher par race
+function dbGetCardsByRace(raceName) {
+    var db = getDatabase();
+    if (db != noone && instance_exists(db)) {
+        return db.getCardsByRace(raceName);
+    }
+    return [];
+}
+
 // Fonction globale pour obtenir toutes les cartes
 function dbGetAllCards() {
     var db = getDatabase();
@@ -85,6 +94,9 @@ function dbShowAllData() {
         }
         
         show_debug_message("  Description: " + card.description);
+        if (variable_struct_exists(card, "tags")) {
+            show_debug_message("  Tags: " + string(card.tags));
+        }
         show_debug_message("  Sprite: " + card.sprite);
         show_debug_message("  Objet: " + card.objectId);
         show_debug_message("-------------------------------------------");
@@ -157,6 +169,9 @@ function dbShowAllCards() {
         }
         
         show_debug_message("  Description: " + card.description);
+        if (variable_struct_exists(card, "tags")) {
+            show_debug_message("  Tags: " + string(card.tags));
+        }
         show_debug_message("  Sprite: " + card.sprite + " | Objet: " + card.objectId);
         show_debug_message("---");
     }
@@ -207,7 +222,7 @@ function dbLoadFromFile(filename) {
 function getRarityColor(rarity) {
     switch(rarity) {
         case "commun":
-            return c_gray;      // Gris pour commun
+            return make_color_rgb(190, 190, 190);      // Gris plus clair pour commun
         case "rare":
             return c_blue;      // Bleu pour rare
         case "epique":
@@ -239,7 +254,7 @@ function getRarityDisplayName(rarity) {
 function getRarityGlowIntensity(rarity) {
     switch(rarity) {
         case "commun":
-            return 0.3;         // Faible lueur
+            return 0.6;         // Lueur plus opaque pour une meilleure visibilité
         case "rare":
             return 0.5;         // Lueur moyenne
         case "epique":
@@ -329,9 +344,9 @@ function dbCheckForTestCards() {
 
 // === FONCTIONS POUR CARTES PERSONNALISÉES ===
 
-/// @function create_custom_monster_card(card_id, name, attack, PV, mana_cost, description, sprite, object_id, rarity, genre, archetype, booster)
+/// @function create_custom_monster_card(card_id, name, attack, PV, mana_cost, description, sprite, object_id, rarity, genre, race, archetype, booster)
 /// @description Crée et sauvegarde une nouvelle carte monstre personnalisée
-function create_custom_monster_card(card_id, name, attack, PV, mana_cost, description, sprite, object_id, rarity, genre, archetype, booster) {
+function create_custom_monster_card(card_id, name, attack, PV, mana_cost, description, sprite, object_id, rarity, genre, race, archetype, booster) {
     var card_data = {
         id: card_id,
         name: name,
@@ -344,6 +359,7 @@ function create_custom_monster_card(card_id, name, attack, PV, mana_cost, descri
         objectId: object_id,
         rarity: rarity,
         genre: genre,
+        race: race,
         archetype: archetype,
         booster: booster
     };
@@ -351,9 +367,9 @@ function create_custom_monster_card(card_id, name, attack, PV, mana_cost, descri
     return add_card_and_save(card_id, card_data);
 }
 
-/// @function create_custom_magic_card(card_id, name, description, sprite, object_id, rarity, genre, archetype, booster, mana_cost)
+/// @function create_custom_magic_card(card_id, name, description, sprite, object_id, rarity, genre, race, archetype, booster, mana_cost)
 /// @description Crée et sauvegarde une nouvelle carte magique personnalisée
-function create_custom_magic_card(card_id, name, description, sprite, object_id, rarity, genre, archetype, booster, mana_cost) {
+function create_custom_magic_card(card_id, name, description, sprite, object_id, rarity, genre, race, archetype, booster, mana_cost) {
     var card_data = {
         id: card_id,
         name: name,
@@ -366,6 +382,7 @@ function create_custom_magic_card(card_id, name, description, sprite, object_id,
         objectId: object_id,
         rarity: rarity,
         genre: genre,
+        race: race,
         archetype: archetype,
         booster: booster
     };

@@ -3,7 +3,7 @@
 // Affiche les boutons uniquement dans la room rCollection
 if (room == rCollection) {
     // --- Menu déroulant filtre booster ---
-    draw_set_font(fontStep);
+    draw_set_font(fontCardDisplay);
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
     var drop_x = dropdown_x;
@@ -12,13 +12,14 @@ if (room == rCollection) {
     var drop_h = dropdown_h;
     
     // Cadre
-    draw_set_color(c_dkgray);
-    draw_rectangle(drop_x, drop_y, drop_x + drop_w, drop_y + drop_h, false);
-    draw_set_color(c_black);
-    draw_rectangle(drop_x, drop_y, drop_x + drop_w, drop_y + drop_h, true);
-    draw_set_color(c_white);
     var current_label = dropdown_items[dropdown_selected_index];
-    draw_text(drop_x + 8, drop_y + drop_h/2, "Booster: " + current_label);
+    var label_text = "Booster: " + current_label;
+    var pad_btn = 18;
+    draw_sprite_stretched(sButton, 0, drop_x, drop_y, drop_w, drop_h);
+    var textScale = 0.85;
+    var text_main_color = make_color_rgb(230, 200, 120);
+    draw_set_color(text_main_color);
+    draw_text_transformed(drop_x + pad_btn, drop_y + drop_h/2, label_text, textScale, textScale, 0);
     
     // Flèche
     var ax = drop_x + drop_w - 16;
@@ -33,10 +34,7 @@ if (room == rCollection) {
         var list_y1 = drop_y + drop_h + 2;
         var list_x2 = drop_x + drop_w;
         var list_y2 = list_y1 + list_h;
-        draw_set_color(c_dkgray);
-        draw_rectangle(list_x1, list_y1, list_x2, list_y2, false);
-        draw_set_color(c_black);
-        draw_rectangle(list_x1, list_y1, list_x2, list_y2, true);
+        draw_sprite_stretched(sButton, 0, list_x1, list_y1, (list_x2 - list_x1), (list_y2 - list_y1));
         
         for (var i = 0; i < array_length(dropdown_items); i++) {
             var iy = list_y1 + i * item_h;
@@ -89,90 +87,101 @@ if (room == rCollection) {
     draw_text(grid_center_x, page_y + btn_h/2, "Page " + string(currentPage));
     draw_set_halign(fa_left);
 
-    // === AFFICHAGE DU PANNEAU DÉTAILLÉ + 3 BOUTONS ===
-    // Afficher uniquement quand une carte est selectionnee
-    if (instance_exists(oCollectionCardDisplay) && 
-        oCollectionCardDisplay.selectedCard != noone && 
-        instance_exists(oCollectionCardDisplay.selectedCard)) {
-        
-        // Position du viewer de carte
-        var viewer_x = oCollectionCardDisplay.x;
-        var viewer_y = oCollectionCardDisplay.y;
-        var display_scale = 0.6;
-        var card_width = sprite_get_width(oCollectionCardDisplay.selectedCard.sprite_index) * display_scale;
-        var card_height = sprite_get_height(oCollectionCardDisplay.selectedCard.sprite_index) * display_scale;
+    draw_set_font(fontCardDisplay);
+    var inv_label = "Invocation";
+    var inv_pad = 18;
+    var inv_extra = 60;
+    var inv_w = max(220, string_width(inv_label) + inv_pad * 2) + inv_extra;
+    var inv_h = drop_h;
+    var gui_w = display_get_gui_width();
+    var inv_x1 = (gui_w * 0.5) - (inv_w * 0.5);
+    var inv_y1 = drop_y;
+    if (instance_exists(oRetour1)) {
+        var ret = instance_find(oRetour1, 0);
+        inv_y1 = ret.y; 
+    }
 
-        // Le panneau détaillé est dessiné par oCollectionCardDisplay
-        
-        // Position des cadres a gauche du viewer
-        var frames_x = viewer_x - card_width/2 - 60; // 60 pixels a gauche du viewer
-        var frames_start_y = viewer_y - card_height/2; // Commencer du haut de la carte
-        
-        // Espacement vertical entre les cadres
-        var spacing = 50;
-        
-        // Premier cadre (en haut) avec un "+" vert
-        draw_set_color(c_gray);
-        draw_set_alpha(1);
-        draw_rectangle(frames_x - 20, frames_start_y - 20, frames_x + 20, frames_start_y + 20, false);
-        
-        // Dessiner le "+" vert dans le premier cadre
-        draw_set_color(c_lime);
-        draw_set_alpha(1);
-        // Ligne horizontale du "+"
-        draw_line_width(frames_x - 10, frames_start_y, frames_x + 10, frames_start_y, 3);
-        // Ligne verticale du "+"
-        draw_line_width(frames_x, frames_start_y - 10, frames_x, frames_start_y + 10, 3);
-        
-        // Deuxieme cadre (au milieu) avec un "-" rouge
-        draw_set_color(c_gray);
-        draw_rectangle(frames_x - 20, frames_start_y + spacing - 20, frames_x + 20, frames_start_y + spacing + 20, false);
-        
-        // Dessiner le "-" rouge dans le deuxieme cadre
+    if (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) {
+        // Mode Invocation actif : Bouton vert
+        draw_set_color(c_green);
+        draw_sprite_stretched(sButton, 0, inv_x1, inv_y1, inv_w, inv_h);
+        draw_set_color(c_white);
+        draw_set_halign(fa_center);
+        draw_text(inv_x1 + inv_w/2, inv_y1 + inv_h/2, "Invocation Active");
+        draw_set_halign(fa_left);
+    } else {
+        // Bouton normal
+        draw_sprite_stretched(sButton, 0, inv_x1, inv_y1, inv_w, inv_h);
+        draw_set_color(c_white);
+        draw_set_halign(fa_center);
+        draw_text(inv_x1 + inv_w/2, inv_y1 + inv_h/2, "Mode Invocation");
+        draw_set_halign(fa_left);
+    }
+}
+
+// Animation Feedback Convoquer (sprite sSpecialSummon)
+if (variable_instance_exists(id, "summonAnimState") && summonAnimState > 0) {
+    var _alpha = 1;
+    var _scale = 1;
+
+    // Calculer l'état
+    if (summonAnimState == 1) { // Zoom In
+        var _progress = 1 - (summonAnimTimer / summonAnimDurationIn);
+        _scale = _progress; // Zoom de 0 à 1
+        _alpha = _progress; // Fade In
+    } else if (summonAnimState == 2) { // Hold
+        _scale = 1;
+        _alpha = 1;
+    } else if (summonAnimState == 3) { // Zoom Out
+        var _progress = summonAnimTimer / summonAnimDurationOut;
+        _scale = _progress; // Zoom de 1 à 0
+        _alpha = _progress; // Fade Out
+    }
+
+    var _gw = display_get_gui_width();
+    var _gh = display_get_gui_height();
+    var _cx = (_gw / 2) - 300; // Décalé à gauche
+    var _cy = _gh / 2;
+    
+    var _spr = asset_get_index("sSpecialSummon");
+    if (_spr != -1) {
+        draw_sprite_ext(_spr, 0, _cx, _cy, _scale, _scale, 0, c_white, _alpha);
+    } else {
+        // Fallback si le sprite n'existe pas : cadre rouge
+        draw_set_alpha(_alpha);
         draw_set_color(c_red);
-        draw_set_alpha(1);
-        // Ligne horizontale du "-"
-        draw_line_width(frames_x - 10, frames_start_y + spacing, frames_x + 10, frames_start_y + spacing, 3);
-        
-        // Troisieme cadre (en bas) avec une etoile jaune
-        draw_set_color(c_gray);
-        draw_rectangle(frames_x - 20, frames_start_y + spacing * 2 - 20, frames_x + 20, frames_start_y + spacing * 2 + 20, false);
-        
-        // Dessiner l'etoile jaune dans le troisieme cadre
-        draw_set_color(c_yellow);
-        draw_set_alpha(1);
-        var star_x = frames_x;
-        var star_y = frames_start_y + spacing * 2;
-        var star_size = 12;
-        
-        // Dessiner une etoile a 5 branches
-         // Points exterieurs et interieurs de l'etoile
-        var outer_points_x = [];
-        var outer_points_y = [];
-        var inner_points_x = [];
-        var inner_points_y = [];
-        
-        for (var i = 0; i < 5; i++) {
-            var angle_outer = (i * 72 - 90) * pi / 180; // -90 pour commencer par le haut
-            var angle_inner = ((i * 72 + 36) - 90) * pi / 180;
-            
-            outer_points_x[i] = star_x + cos(angle_outer) * star_size;
-            outer_points_y[i] = star_y + sin(angle_outer) * star_size;
-            inner_points_x[i] = star_x + cos(angle_inner) * (star_size * 0.4);
-            inner_points_y[i] = star_y + sin(angle_inner) * (star_size * 0.4);
+        var _w = 400 * _scale; 
+        var _h = 300 * _scale;
+        var _th = 5;
+        if (_w > 0 && _h > 0) {
+            for(var i=0; i<_th; i++) {
+                draw_rectangle(_cx - _w/2 - i, _cy - _h/2 - i, _cx + _w/2 + i, _cy + _h/2 + i, true);
+            }
         }
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+    }
+
+    // Afficher la carte convoquée en Zoom In pendant le Hold
+    if (summonAnimState == 2 && variable_instance_exists(id, "summonAnimCard") && is_struct(summonAnimCard)) {
+        // Progression du Zoom In de la carte pendant le Hold (sur 2s)
+        var _cardProgress = 1 - (summonAnimTimer / summonAnimDurationHold);
         
-        // Dessiner l'etoile pleine en utilisant des triangles
-        for (var i = 0; i < 5; i++) {
-            var next_i = (i + 1) % 5;
-            
-            // Triangle du centre vers chaque branche de l'etoile
-            draw_triangle(star_x, star_y, 
-                         outer_points_x[i], outer_points_y[i], 
-                         inner_points_x[i], inner_points_y[i], false);
-            draw_triangle(star_x, star_y, 
-                         inner_points_x[i], inner_points_y[i], 
-                         outer_points_x[next_i], outer_points_y[next_i], false);
+        // Echelle: 0 à 0.5
+        var _cardScale = _cardProgress * 0.5; 
+        var _cardAlpha = _cardProgress; // Fade In de 0 à 1
+        
+        // La carte sort du portail (_cx, _cy) et va vers sa position finale (_gw/2 + 100, _gh/2)
+        var _startX = _cx;
+        var _startY = _cy;
+        var _endX = _gw / 2 + 100;
+        var _endY = _gh / 2;
+        
+        var _currentX = lerp(_startX, _endX, _cardProgress);
+        var _currentY = lerp(_startY, _endY, _cardProgress);
+        
+        if (summonAnimCard.sprite != -1) {
+            draw_sprite_ext(summonAnimCard.sprite, summonAnimCard.image, _currentX, _currentY, _cardScale, _cardScale, 0, c_white, _cardAlpha);
         }
     }
 }

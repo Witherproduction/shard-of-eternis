@@ -1,11 +1,12 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Saut du prédateur"
 genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Inflige des dégâts égaux à l'Attaque de votre Bête la plus puissante à un serviteur adverse.";
@@ -34,3 +35,4 @@ effects = [
         }
     }
 ]
+tags = ["Sort", "Nature"];

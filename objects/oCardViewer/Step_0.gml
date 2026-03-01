@@ -1,5 +1,24 @@
 // === oCardViewer - Step Event ===
 
+// Gestion Animation Convoquer (Machine à états)
+if (variable_instance_exists(id, "summonAnimState") && summonAnimState > 0) {
+    if (summonAnimTimer > 0) {
+        summonAnimTimer--;
+    } else {
+        // Transition d'état quand timer atteint 0
+        if (summonAnimState == 1) { // Fin Zoom In -> Go Hold
+            summonAnimState = 2;
+            summonAnimTimer = summonAnimDurationHold;
+        } else if (summonAnimState == 2) { // Fin Hold -> Go Zoom Out
+            summonAnimState = 3;
+            summonAnimTimer = summonAnimDurationOut;
+        } else if (summonAnimState == 3) { // Fin Zoom Out -> Stop
+            summonAnimState = 0;
+            summonAnimTimer = 0;
+        }
+    }
+}
+
 // Bloquer toute logique du viewer si le panneau d'options est ouvert
 if (instance_exists(oPanelOptions)) {
     exit;
@@ -22,9 +41,9 @@ if (room == rCollection) {
 if (!cardsLoaded) {
     cardsLoaded = true;
     allCards = dbGetAllCards();
-    // Appliquer les filtres globaux (tokens et progression)
     allCards = filterOutTokens(allCards);
-    allCards = filterOutLocked(allCards);
+    allCards = (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) ? filterInvocationCandidates(allCards) : filterOutLocked(allCards);
+    rebuildDropdown();
 
     // Tri par défaut A→Z si aucun mode défini ou si "none"
     if (!variable_global_exists("sort_mode") || global.sort_mode == "none") {
@@ -99,28 +118,14 @@ if (variable_global_exists("pending_card_selection") && global.pending_card_sele
         var localIndex = targetIndex - start_index;
         if (localIndex >= 0 && localIndex < array_length(cardInstances)) {
             var inst = cardInstances[localIndex];
-            if (instance_exists(inst)) {
-                pending_select_card = inst; // Utiliser l'instance réelle
+            if (inst != noone && instance_exists(inst)) {
+                // Sélectionner
+                pending_select_card = inst;
+                show_debug_message("### Pending selection applied: " + cardName);
             }
         }
-    } else {
-        show_debug_message("[WARN] pending_card_selection: carte introuvable dans filteredCards -> " + string(cardName));
     }
 
-    // Réinitialiser la sélection différée globale
+    // Clear
     global.pending_card_selection = "";
-}
-
-// Rafraîchir l'affichage manuellement avec 'R' : recharge, filtre, tri, et réaffiche
-if (keyboard_check_pressed(ord("R"))) {
-    allCards = dbGetAllCards();
-    allCards = filterOutTokens(allCards);
-    allCards = filterOutLocked(allCards);
-    
-    applyBoosterFilterNow();
-    if (!variable_global_exists("sort_mode") || global.sort_mode == "none") {
-        global.sort_mode = "alpha";
-        global.sort_descending = false;
-    }
-    sortCards(global.sort_mode);
 }

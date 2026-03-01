@@ -1,11 +1,12 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Feuillage protecteur"
 genre = "Secret"
 archetype = "Forêt des voleurs"
 rarity = "epique"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 mana_cost = 2;
 
@@ -19,3 +20,4 @@ effects = [
         secret_let_destruction_proceed: true
     }
 ]
+tags = ["Secret", "Sort", "Nature"];

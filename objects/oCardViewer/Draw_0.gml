@@ -12,7 +12,7 @@ if (is_array(cardInstances)) {
         if (variable_instance_exists(inst, "limited")) {
             lim = real(inst.limited);
         }
-        var show_badge = (is_real(lim) && lim < 3);
+        var show_badge = false;
 
         // Couleur selon la limite
         var badge_color = c_red; // 1 -> rouge
@@ -27,35 +27,31 @@ if (is_array(cardInstances)) {
         var tlx = inst.x - w * 0.5;
         var tly = inst.y - h * 0.5;
 
-        if (show_badge) {
-            // Dimensions et position du badge (rond)
-            var margin = 6;
-            var radius = 10; // plus petit qu'avant
-            var cx = tlx + margin + radius;
-            var cy = tly + margin + radius;
+        if (show_badge) { }
 
-            // Dessiner le badge rond (rempli puis contour)
-            draw_set_alpha(0.85);
-            draw_set_color(badge_color);
-            draw_circle(cx, cy, radius, false);
-
-            draw_set_alpha(1);
-            draw_set_color(c_black);
-            draw_circle(cx, cy, radius, true);
-
-            // Dessiner le chiffre plus petit au centre
-            var prev_font = -1;
-            var font_idx = asset_get_index("fontStep");
-            if (font_idx != -1) {
-                prev_font = draw_get_font();
-                draw_set_font(font_idx);
+        // Afficher la quantité possédée (x1, x2, x3) en bas à droite de chaque carte
+        var owned = 0;
+        if (variable_instance_exists(inst, "card_id") && inst.card_id != "") {
+            owned = get_card_count(inst.card_id);
+        }
+        if (owned > 0) {
+            var label = "x" + string(owned);
+            var margin_under = 4;
+            var lx = inst.x;
+            var ly = tly + h + margin_under - 2;
+            var prev_font2 = -1;
+            var font_idx2 = asset_get_index("fontStep");
+            if (font_idx2 != -1) {
+                prev_font2 = draw_get_font();
+                draw_set_font(font_idx2);
             }
             draw_set_halign(fa_center);
-            draw_set_valign(fa_middle);
+            draw_set_valign(fa_top);
             draw_set_color(c_white);
-            // réduire la taille via transformation (moitié de la taille)
-            draw_text_transformed(cx, cy, string(lim), 0.5, 0.5, 0);
-            if (prev_font != -1) { draw_set_font(prev_font); }
+            draw_text_transformed(lx, ly, label, 0.4, 0.4, 0);
+            if (prev_font2 != -1) { draw_set_font(prev_font2); }
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_top);
         }
 
         // === Cadres verts + textes sur chaque carte (adaptés à l'échelle de l'instance) ===
@@ -99,9 +95,123 @@ if (is_array(cardInstances)) {
                 draw_debug_rect("hp", def_x1, def_y1, def_x2, def_y2, tlx, tly, s, active_field);
                 
                 draw_set_color(c_black);
-            }
+        }
+    } // End if (spr != -1)
+    } // End for loop
+} // End if (is_array)
 
-            // Text drawing removed to prevent double rendering (now handled by oCardParent)
+// === Bouton Mode Invocation (Variables) ===
+var inv_w = 200;
+var inv_h = 40;
+var inv_x1 = room_width - inv_w - 30; // Position par défaut (sera écrasée par oRetour1)
+var inv_y1 = 32;
+var inv_label = "Mode Invocation";
+var textScale = 0.5;
+
+if (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) {
+    inv_label = "Invocation Active";
+}
+
+// === Positionnement dynamique du bouton par rapport au bouton Retour ===
+var ret = instance_find(oRetour1, 0);
+if (ret != noone && instance_exists(ret)) {
+    inv_y1 = ret.y - inv_h * 0.5;
+}
+    var inv_x2 = inv_x1 + inv_w;
+    var inv_y2 = inv_y1 + inv_h;
+    var active = (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode);
+    // Fond bouton via sprite cadre
+    draw_sprite_stretched(sButton, 0, inv_x1, inv_y1, inv_w, inv_h);
+    // Texte centré
+    var inv_text_color = make_color_rgb(230, 200, 120);
+    draw_set_color(inv_text_color);
+    draw_set_halign(fa_center);
+    draw_text_transformed((inv_x1 + inv_x2)/2, (inv_y1 + inv_y2)/2, inv_label, textScale, textScale, 0);
+    draw_set_halign(fa_left);
+
+    // === AFFICHAGE DU PANNEAU DÉTAILLÉ + 3 BOUTONS ===
+    // Afficher uniquement quand une carte est selectionnee
+    if (instance_exists(oCollectionCardDisplay) && 
+        oCollectionCardDisplay.selectedCard != noone && 
+        instance_exists(oCollectionCardDisplay.selectedCard)) {
+        
+        // Position du viewer de carte
+        var viewer_x = oCollectionCardDisplay.x;
+        var viewer_y = oCollectionCardDisplay.y;
+        var display_scale = 0.6;
+        var card_width = sprite_get_width(oCollectionCardDisplay.selectedCard.sprite_index) * display_scale;
+        var card_height = sprite_get_height(oCollectionCardDisplay.selectedCard.sprite_index) * display_scale;
+
+        // Le panneau détaillé est dessiné par oCollectionCardDisplay
+        
+        // Position des cadres a gauche du viewer
+        var frames_x = viewer_x - card_width/2 - 60; // 60 pixels a gauche du viewer
+        var frames_start_y = viewer_y - card_height/2; // Commencer du haut de la carte
+        
+        // Espacement vertical entre les cadres
+        var spacing = 50;
+        
+        // Premier cadre (en haut) avec un "+" vert
+        draw_set_color(c_gray);
+        draw_set_alpha(1);
+        draw_rectangle(frames_x - 20, frames_start_y - 20, frames_x + 20, frames_start_y + 20, false);
+        
+        // Dessiner le "+" vert dans le premier cadre
+        draw_set_color(c_lime);
+        draw_set_alpha(1);
+        // Ligne horizontale du "+"
+        draw_line_width(frames_x - 10, frames_start_y, frames_x + 10, frames_start_y, 3);
+        // Ligne verticale du "+"
+        draw_line_width(frames_x, frames_start_y - 10, frames_x, frames_start_y + 10, 3);
+        
+        // Deuxieme cadre (au milieu) avec un "-" rouge
+        draw_set_color(c_gray);
+        draw_rectangle(frames_x - 20, frames_start_y + spacing - 20, frames_x + 20, frames_start_y + spacing + 20, false);
+        
+        // Dessiner le "-" rouge dans le deuxieme cadre
+        draw_set_color(c_red);
+        draw_set_alpha(1);
+        // Ligne horizontale du "-"
+        draw_line_width(frames_x - 10, frames_start_y + spacing, frames_x + 10, frames_start_y + spacing, 3);
+        
+        // Troisieme cadre (en bas) avec une etoile jaune
+        draw_set_color(c_gray);
+        draw_rectangle(frames_x - 20, frames_start_y + spacing * 2 - 20, frames_x + 20, frames_start_y + spacing * 2 + 20, false);
+        
+        // Dessiner l'etoile jaune dans le troisieme cadre
+        draw_set_color(c_yellow);
+        draw_set_alpha(1);
+        var star_x = frames_x;
+        var star_y = frames_start_y + spacing * 2;
+        var star_size = 12;
+        
+        // Dessiner une etoile a 5 branches
+         // Points exterieurs et interieurs de l'etoile
+        var outer_points_x = [];
+        var outer_points_y = [];
+        var inner_points_x = [];
+        var inner_points_y = [];
+        
+        for (var i = 0; i < 5; i++) {
+            var angle_outer = (i * 72 - 90) * pi / 180; // -90 pour commencer par le haut
+            var angle_inner = ((i * 72 + 36) - 90) * pi / 180;
+            
+            outer_points_x[i] = star_x + cos(angle_outer) * star_size;
+            outer_points_y[i] = star_y + sin(angle_outer) * star_size;
+            inner_points_x[i] = star_x + cos(angle_inner) * (star_size * 0.4);
+            inner_points_y[i] = star_y + sin(angle_inner) * (star_size * 0.4);
+        }
+        
+        // Dessiner l'etoile pleine en utilisant des triangles
+        for (var i = 0; i < 5; i++) {
+            var next_i = (i + 1) % 5;
+            
+            // Triangle du centre vers chaque branche de l'etoile
+            draw_triangle(star_x, star_y, 
+                         outer_points_x[i], outer_points_y[i], 
+                         inner_points_x[i], inner_points_y[i], false);
+            draw_triangle(star_x, star_y, 
+                         inner_points_x[i], inner_points_y[i], 
+                         outer_points_x[next_i], outer_points_y[next_i], false);
         }
     }
-}

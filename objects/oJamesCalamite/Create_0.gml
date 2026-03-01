@@ -6,8 +6,8 @@ attack = 3;
 PV = 3;
 mana_cost = 3;
 genre = "Humanoïde"
-archetype = "Forêt des voleurs"
-booster = "A la découverte du monde"
+race = "Humain";tags = ["Humanoïde", "Humain", "Camouflage", "Crepuscule"];archetype = "Forêt des voleurs"
+booster = "Retour des Archontes"
 rarity = "legendaire"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur

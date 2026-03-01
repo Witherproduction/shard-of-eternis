@@ -1,17 +1,18 @@
 {
   "$GMObject":"",
-  "%Name":"oHeroPower",
+  "%Name":"oShopUI",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
+    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":4,"eventType":6,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
+    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":64,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"oHeroPower",
+  "name":"oShopUI",
   "overriddenProperties":[],
   "parent":{
-    "name":"Duel",
-    "path":"folders/Objets/Duel.yy",
+    "name":"Option",
+    "path":"folders/Objets/Option.yy",
   },
   "parentObjectId":null,
   "persistent":false,
@@ -31,10 +32,7 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":{
-    "name":"sHeroPower",
-    "path":"sprites/sHeroPower/sHeroPower.yy",
-  },
+  "spriteId":null,
   "spriteMaskId":null,
   "visible":true,
 }

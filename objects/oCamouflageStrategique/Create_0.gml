@@ -1,12 +1,13 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+
 
 // Définit les stats spécifiques de ce sort
 name = "Camouflage stratégique"
 mana_cost = 2;
 genre = "Sort"
-archetype = "Forêt des voleurs"
+race = "Ombre";tags = ["Ombre", "Sort"];archetype = "Forêt des voleurs"
 rarity = "rare"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Donne +1/+2 à un serviteur. S'il a Camouflage, il peut attaquer ce tour sans le perdre."

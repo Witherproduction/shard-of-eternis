@@ -473,6 +473,12 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
         }
         if (variable_instance_exists(self, "genre")) {
             var tx = string(genre);
+            // Include Race if available
+            if (variable_instance_exists(self, "race") && string_length(string(race)) > 0 && string_lower(string(race)) != "inconnu" && string_lower(string(race)) != "neutre") {
+                if (string_length(tx) > 0) tx += " - " + string(race);
+                else tx = string(race);
+            }
+
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
             var sc = fit_line(tx, 16 * rel, rw, rh);

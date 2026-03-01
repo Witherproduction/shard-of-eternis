@@ -1,4 +1,4 @@
-﻿if (instance_exists(oPanelOptions)) exit;
+if (instance_exists(oPanelOptions)) exit;
 
 // Gestion du bouton Auto
 if (point_in_rectangle(mouse_x, mouse_y, btn_auto_x1, btn_auto_y1, btn_auto_x2, btn_auto_y2)) {
@@ -219,6 +219,12 @@ if (point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, 
         } else {
             // End of scenario
             
+            // Récompense d'Or pour la fin de l'acte (si pas déjà complété)
+            if (!is_act_complete(chapter_id, act_num)) {
+                add_gold(100);
+                show_debug_message("### Récompense Acte : +100 Or");
+            }
+            
             // Integrer la progression
             unlock_act_complete(chapter_id, act_num);
             story_progress_unlock_reward("act_" + string(chapter_id) + "_" + string(act_num));
@@ -228,6 +234,7 @@ if (point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, 
             
             if (act_num >= 4) {
                 unlock_chapter_access(chapter_id + 1);
+                give_chapter_reward(chapter_id);
                 // Fin de chapitre : on reste sur le dernier acte pour ce chapitre
                 next_act = act_num;
                 next_scene = scene_index;

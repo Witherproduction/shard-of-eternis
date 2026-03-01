@@ -1,10 +1,11 @@
 event_inherited();
+race = "Nature";
 
 name = "Griffe du prédateur";
 genre = "Sort";
 archetype = "Forêt des voleurs";
 rarity = "commune";
-booster = "A la découverte du monde";
+booster = "Retour des Archontes";
 is_player_card = true;
 
 description = "Donne +2/+1 à une Bête alliée.";
@@ -23,4 +24,4 @@ effects = [
         PV: 1
     }
 ];
-
+tags = ["Sort", "Nature"];

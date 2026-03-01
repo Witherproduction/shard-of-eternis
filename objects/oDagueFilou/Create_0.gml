@@ -1,10 +1,11 @@
 event_inherited();
+race = "Ombre";
 
 name = "Dague du filou";
 genre = "Sort";
 archetype = "Forêt des voleurs";
 rarity = "commun";
-booster = "A la découverte du monde";
+booster = "Retour des Archontes";
 is_player_card = true;
 
 description = "Donne +1 ATK. Combo (Camouflage) : Donne +3 ATK à la place.";
@@ -24,3 +25,4 @@ effects = [
         bonus_atk: 2
     }
 ];
+tags = ["Ombre", "Sort", "Combo"];

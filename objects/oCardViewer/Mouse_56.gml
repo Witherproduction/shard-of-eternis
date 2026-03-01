@@ -96,6 +96,143 @@ var my = device_mouse_y_to_gui(0);
     }
 }
 
+// --- Bouton Invocation ---
+{
+    var drop_x = dropdown_x;
+    var drop_y = dropdown_y;
+    var drop_w = dropdown_w;
+    var drop_h = dropdown_h;
+    var inv_label = "Invocation";
+    var inv_pad = 18;
+    draw_set_font(fontCardDisplay);
+    var inv_w = max(220, string_width(inv_label) + inv_pad * 2);
+    var inv_h = drop_h;
+    var gui_w = display_get_gui_width();
+    var inv_x1 = (gui_w * 0.5) - (inv_w * 0.5);
+    var inv_y1 = drop_y;
+    if (instance_exists(oRetour1)) {
+        var ret = instance_find(oRetour1, 0);
+        if (ret != noone && instance_exists(ret)) {
+            inv_y1 = ret.y - inv_h * 0.5;
+        }
+    }
+    var inv_x2 = inv_x1 + inv_w;
+    var inv_y2 = inv_y1 + inv_h;
+    if (mx >= inv_x1 && mx <= inv_x2 && my >= inv_y1 && my <= inv_y2) {
+        global.collection_invocation_mode = !global.collection_invocation_mode;
+        allCards = dbGetAllCards();
+        allCards = filterOutTokens(allCards);
+        allCards = global.collection_invocation_mode ? filterInvocationCandidates(allCards) : filterOutLocked(allCards);
+        rebuildDropdown();
+        global.collection_booster_filter = "Tout";
+        applyBoosterFilterNow();
+        if (!variable_global_exists("sort_mode") || global.sort_mode == "none") {
+            global.sort_mode = "alpha";
+            global.sort_descending = false;
+        }
+        sortCards(global.sort_mode);
+        displayFilteredCards();
+        exit;
+    }
+}
+
+// --- Clic sur le bouton "Convoquer" de la carte sélectionnée ---
+if (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) {
+    if (instance_exists(oCollectionCardDisplay) && oCollectionCardDisplay.selectedCard != noone && instance_exists(oCollectionCardDisplay.selectedCard)) {
+        var display_x = oCollectionCardDisplay.x;
+        var display_y = oCollectionCardDisplay.y;
+        var display_scale = 0.6;
+        var card_width = sprite_get_width(oCollectionCardDisplay.selectedCard.sprite_index) * display_scale;
+        var card_height = sprite_get_height(oCollectionCardDisplay.selectedCard.sprite_index) * display_scale;
+        var btn_w = 260;
+        var btn_h = 44;
+        var btn_x = display_x;
+        var btn_y = display_y + card_height * 0.5 + 50;
+        var bx1 = btn_x - btn_w * 0.5;
+        var by1 = btn_y - btn_h * 0.5;
+        var bx2 = btn_x + btn_w * 0.5;
+        var by2 = btn_y + btn_h * 0.5;
+        var mxw = mouse_x;
+        var myw = mouse_y;
+        if (mxw >= bx1 && mxw <= bx2 && myw >= by1 && myw <= by2) {
+            // Animation Trigger
+            if (variable_instance_exists(id, "summonAnimState")) {
+                summonAnimState = 1; // Start Zoom In
+                summonAnimTimer = summonAnimDurationIn;
+                
+                // Capture info of the summoned card
+                if (instance_exists(oCollectionCardDisplay) && instance_exists(oCollectionCardDisplay.selectedCard)) {
+                     var _c = oCollectionCardDisplay.selectedCard;
+                     summonAnimCard = {
+                        sprite: _c.sprite_index,
+                        image: _c.image_index,
+                        name: variable_instance_exists(_c, "name") ? _c.name : ""
+                     };
+                }
+            }
+
+            var cost_rar = "commun";
+            if (variable_instance_exists(oCollectionCardDisplay.selectedCard, "rarity")) {
+                cost_rar = string_lower(string(oCollectionCardDisplay.selectedCard.rarity));
+            }
+            var cost = 8;
+            if (cost_rar == "rare") cost = 20;
+            else if (cost_rar == "epique") cost = 80;
+            else if (cost_rar == "legendaire") cost = 320;
+            var cid_val = "";
+            if (variable_instance_exists(oCollectionCardDisplay.selectedCard, "card_id") && string(oCollectionCardDisplay.selectedCard.card_id) != "") {
+                cid_val = string(oCollectionCardDisplay.selectedCard.card_id);
+            } else if (variable_instance_exists(oCollectionCardDisplay.selectedCard, "name")) {
+                var normalize = function(s) {
+                    var r = string_lower(string(s));
+                    r = string_replace_all(r, "à", "a"); r = string_replace_all(r, "â", "a"); r = string_replace_all(r, "ä", "a");
+                    r = string_replace_all(r, "é", "e"); r = string_replace_all(r, "è", "e"); r = string_replace_all(r, "ê", "e"); r = string_replace_all(r, "ë", "e");
+                    r = string_replace_all(r, "î", "i"); r = string_replace_all(r, "ï", "i");
+                    r = string_replace_all(r, "ô", "o"); r = string_replace_all(r, "ö", "o");
+                    r = string_replace_all(r, "ù", "u"); r = string_replace_all(r, "û", "u"); r = string_replace_all(r, "ü", "u");
+                    r = string_replace_all(r, "ç", "c");
+                    return r;
+                };
+                var nm = normalize(oCollectionCardDisplay.selectedCard.name);
+                var matches = dbGetCardsByName(oCollectionCardDisplay.selectedCard.name);
+                for (var mi = 0; mi < array_length(matches); mi++) {
+                    var dc = matches[mi];
+                    if (variable_struct_exists(dc, "name") && normalize(dc.name) == nm && variable_struct_exists(dc, "id")) {
+                        cid_val = string(dc.id);
+                        break;
+                    }
+                }
+            }
+            if (cid_val != "") {
+                var owned = get_card_count(cid_val);
+                var maxc = get_max_copies_for_card_id(cid_val);
+                var stones = variable_global_exists("arcane_stones") ? max(0, real(global.arcane_stones)) : 0;
+                if (owned < maxc && stones >= cost) {
+                    if (!spend_arcane_stones(cost)) {
+                        exit;
+                    }
+                    unlock_card(cid_val);
+                    audio_play_sound(invocation, 1, false);
+                    show_debug_message("[DEBUG] Invocation immediate (NO ANIMATION) for card: " + cid_val);
+
+                    // Refresh UI immediately
+                    // Re-fetch all cards to update "owned" counts
+                    allCards = dbGetAllCards();
+                    // Re-apply filters
+                    if (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) {
+                        allCards = filterInvocationCandidates(allCards);
+                    } else {
+                        allCards = filterOutLocked(allCards);
+                    }
+                    applyBoosterFilterNow(); // Refreshes filteredCards
+                    sortCards(global.sort_mode);
+                }
+            }
+            exit;
+        }
+    }
+}
+
 // --- Gestion des boutons d'action de carte sélectionnée (+, -, étoile) ---
 if (instance_exists(oCollectionCardDisplay) && 
     oCollectionCardDisplay.selectedCard != noone && 
@@ -145,8 +282,35 @@ if (instance_exists(oCollectionCardDisplay) &&
                     }
                     with (oDeckBuilder) {
                         if (!is_array(cards_list)) { cards_list = []; }
-                        array_push(cards_list, cardName);
-                        if (!is_undefined(check_and_add_slot)) check_and_add_slot();
+                        // Résoudre la carte depuis la DB
+                        var cardData = noone;
+                        var candidates = dbGetCardsByName(cardName);
+                        for (var ii = 0; ii < array_length(candidates); ii++) {
+                            if (variable_struct_exists(candidates[ii], "name") && candidates[ii].name == cardName) {
+                                cardData = candidates[ii];
+                                break;
+                            }
+                        }
+                        var oid = (cardData != noone && variable_struct_exists(cardData, "objectId")) ? cardData.objectId : "";
+                        var cid = (cardData != noone && variable_struct_exists(cardData, "id")) ? string(cardData.id) : "";
+                        var maxCopies = get_max_copies_for_card(cardName, oid);
+                        // Compter copies déjà dans le deck
+                        var deckCount = 0;
+                        for (var di = 0; di < array_length(cards_list); di++) {
+                            var entry = cards_list[di];
+                            var entry_name = is_struct(entry) && variable_struct_exists(entry, "name") ? entry.name : string(entry);
+                            if (entry_name == cardName) deckCount++;
+                        }
+                        // Quantité possédée
+                        var owned = (cid != "") ? get_card_count(cid) : 0;
+                        if (owned <= 0) {
+                            show_debug_message("### Ajout refusé: carte non possédée (" + cardName + ")");
+                        } else if (deckCount >= min(maxCopies, owned)) {
+                            show_debug_message("### Ajout refusé: limite atteinte pour " + cardName + " (deck=" + string(deckCount) + ", max=" + string(min(maxCopies, owned)) + ")");
+                        } else {
+                            array_push(cards_list, cardName);
+                            if (!is_undefined(check_and_add_slot)) check_and_add_slot();
+                        }
                     }
                 }
             }

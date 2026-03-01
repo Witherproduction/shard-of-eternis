@@ -47,7 +47,10 @@ if (mouse_check_button_pressed(mb_left)) {
                           buttons.create_card.x + buttons.create_card.width, 
                           buttons.create_card.y + buttons.create_card.height)) {
         // Créer et sauvegarder la carte
-        create_new_card();
+        if (create_new_card()) {
+            reset_fields_keep_type();
+            editing_mode = false;
+        }
     }
     
     if (point_in_rectangle(mx, my, buttons.cancel.x, buttons.cancel.y, 
@@ -75,6 +78,49 @@ if (mouse_check_button_pressed(mb_left)) {
             show_status_message("Base exportée (EXE ou export/) — voir logs");
         } else {
             show_status_message("Export impossible — voir logs");
+        }
+    }
+    
+    // Bouton Sauvegarder et Suivant
+    if (point_in_rectangle(mx, my, buttons.save_and_next.x, buttons.save_and_next.y,
+                          buttons.save_and_next.x + buttons.save_and_next.width,
+                          buttons.save_and_next.y + buttons.save_and_next.height)) {
+        if (editing_mode) {
+             create_new_card(); // Sauvegarde
+             
+             // Trouver la carte suivante
+             var all_cards = dbGetAllCards(); // Assumons que dbGetAllCards retourne un tableau de cartes
+             // Idéalement on devrait utiliser la liste filtrée actuelle si possible, mais dbGetAllCards est plus sûr pour "toutes les cartes"
+             // Si on veut suivre la liste affichée (card_list), on devrait utiliser card_list si elle est peuplée.
+             // Mais card_list n'est peuplée que si on a ouvert la liste.
+             // Utilisons dbGetAllCards pour être sûr, et trions par ID ou Nom pour avoir un ordre stable.
+             // dbGetAllCards retourne déjà un tableau.
+             
+             // Tri alphabétique pour être cohérent avec la liste
+             array_sort(all_cards, function(a, b) {
+                if (a.name < b.name) return -1;
+                if (a.name > b.name) return 1;
+                return 0;
+             });
+
+             var current_index = -1;
+             for (var i = 0; i < array_length(all_cards); i++) {
+                 if (string(all_cards[i].id) == string(input_fields.card_id)) {
+                     current_index = i;
+                     break;
+                 }
+             }
+             
+             if (current_index != -1) {
+                 var next_index = (current_index + 1) % array_length(all_cards);
+                 var next_card = all_cards[next_index];
+                 load_card_for_editing(next_card.id);
+                 show_status_message("Sauvegardé. Suivante: " + next_card.name);
+             } else {
+                 show_status_message("Carte actuelle introuvable dans la liste ?");
+             }
+        } else {
+            show_status_message("Pas en mode édition");
         }
     }
     
@@ -111,7 +157,7 @@ if (mouse_check_button_pressed(mb_left)) {
     // === ACTIVATION DES CHAMPS DE SAISIE ===
     var field_clicked = false;
     var prev_active_field = active_field;
-    var field_names = ["card_id", "name", "attack", "PV", "mana_cost", "genre", "archetype", "booster", "sprite", "object_id", "description"];
+    var field_names = ["card_id", "name", "attack", "PV", "mana_cost", "genre", "race", "archetype", "booster", "tags", "sprite", "object_id", "description"];
     for (var i = 0; i < array_length(field_names); i++) {
         var field_name = field_names[i];
         var field = field_positions[$ field_name];
@@ -645,8 +691,20 @@ function load_card_for_editing(card_id) {
     input_fields.PV = string(variable_struct_exists(card, "PV") ? card.PV : 0);
     input_fields.mana_cost = string(variable_struct_exists(card, "mana_cost") ? card.mana_cost : 0);
     input_fields.genre = string(variable_struct_exists(card, "genre") ? card.genre : "");
+    input_fields.race = string(variable_struct_exists(card, "race") ? card.race : "");
     input_fields.archetype = string(variable_struct_exists(card, "archetype") ? card.archetype : "");
     input_fields.booster = string(variable_struct_exists(card, "booster") ? card.booster : "");
+    var raw_tags = variable_struct_exists(card, "tags") ? card.tags : "";
+    if (is_array(raw_tags)) {
+        var str_tags = "";
+        for (var t = 0; t < array_length(raw_tags); t++) {
+            if (t > 0) str_tags += ", ";
+            str_tags += string(raw_tags[t]);
+        }
+        input_fields.tags = str_tags;
+    } else {
+        input_fields.tags = string(raw_tags);
+    }
     input_fields.sprite = _normalize_sprite_field(string(variable_struct_exists(card, "sprite") ? card.sprite : ""));
     input_fields.object_id = string(variable_struct_exists(card, "objectId") ? card.objectId : "");
     input_fields.description = string(variable_struct_exists(card, "description") ? card.description : "");
@@ -729,8 +787,10 @@ function reset_fields() {
     input_fields.PV = "0";
     input_fields.mana_cost = "0";
     input_fields.genre = "";
+    input_fields.race = "";
     input_fields.archetype = "";
     input_fields.booster = "";
+    input_fields.tags = "";
     input_fields.sprite = "";
     input_fields.object_id = "";
     input_fields.description = "";
@@ -747,8 +807,10 @@ function reset_fields_keep_type() {
     input_fields.PV = "0";
     input_fields.mana_cost = "0";
     input_fields.genre = "";
+    input_fields.race = "";
     input_fields.archetype = "";
     input_fields.booster = "";
+    input_fields.tags = "";
     input_fields.sprite = "";
     input_fields.object_id = "";
     input_fields.description = "";
@@ -767,8 +829,21 @@ function create_new_card() {
     var new_name = string(input_fields.name);
     var rarity = string(selected_rarity);
     var genre = string(input_fields.genre);
+    var race = string(input_fields.race);
     var archetype = string(input_fields.archetype);
     var booster = string(input_fields.booster);
+    var raw_tags_str = string(input_fields.tags);
+    var tags_array = [];
+    if (string_length(raw_tags_str) > 0) {
+        var parts = string_split(raw_tags_str, ",");
+        for (var i = 0; i < array_length(parts); i++) {
+            var val = string_trim(parts[i]);
+            if (val != "") {
+                array_push(tags_array, val);
+            }
+        }
+    }
+    
     var sprite = _normalize_sprite_field(string(input_fields.sprite));
     if (is_real(input_fields.sprite) && input_fields.object_id != "") {
         var objn = string(input_fields.object_id);
@@ -805,15 +880,19 @@ function create_new_card() {
         sprite: sprite,
         objectId: objectId,
         rarity: rarity,
-        genre: (type_local == "Monster") ? genre : "",
+        genre: genre,
+        race: race,
         archetype: archetype,
-        booster: booster
+        booster: booster,
+        tags: tags_array
     };
     
     add_card_and_save(new_id, card_data);
     show_status_message("Carte créée/sauvegardée: " + new_name);
-    reset_fields_keep_type();
-    editing_mode = false;
+    // Note: Ne pas reset si on veut enchaîner, mais la fonction est appelée par le bouton Créer Carte qui reset.
+    // Le bouton Save & Next gère le chargement de la suivante, donc ça va écraser les champs de toute façon.
+    // Mais pour le bouton standard "Créer Carte", on garde le reset.
+    
     return true;
 }
 function _resolve_sprite_name(obj_name, spr_idx) {

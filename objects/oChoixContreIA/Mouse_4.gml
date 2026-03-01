@@ -20,9 +20,8 @@ if (mouse_x_pos >= button_left && mouse_x_pos <= button_right &&
     
     show_debug_message("### oChoixContreIA.Mouse_4 - Clic détecté dans la zone du bouton");
     
-    // Nettoyage des variables liées au mode Histoire pour éviter les fuites (ex: Hero Power)
+    // Nettoyage des variables liées au mode Histoire
     if (variable_global_exists("current_chapter")) global.current_chapter = -1;
-    if (variable_global_exists("story_hero_id")) global.story_hero_id = noone;
     
     show_debug_message("### Navigation vers rContreIa depuis " + string(room_get_name(room)));
     room_goto(rContreIa);

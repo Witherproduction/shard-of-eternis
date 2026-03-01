@@ -1,4 +1,5 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Main furtive"
@@ -6,7 +7,7 @@ mana_cost = 1;
 genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "rare"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Copie une carte de la main de votre adversaire et l'ajoute à votre main."
@@ -22,3 +23,4 @@ effects = [
         value: 1
     }
 ]
+tags = ["Ombre", "Sort", "Pillage"];

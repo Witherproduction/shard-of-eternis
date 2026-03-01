@@ -1,4 +1,5 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Frénésie sauvage"
@@ -6,7 +7,7 @@ mana_cost = 2;
 genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Confère +1 ATK et Ambidextrie à une Bête allié."
@@ -23,3 +24,4 @@ effects = [
         grant_ambidextrous: true
     }
 ]
+tags = ["Nature", "Ambidextrie", "Sort"];

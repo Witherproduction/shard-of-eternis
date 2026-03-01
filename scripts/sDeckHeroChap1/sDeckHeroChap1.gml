@@ -1,4 +1,4 @@
-﻿/// @function get_hero_decks_chap1() 
+/// @function get_hero_decks_chap1() 
 /// @description Retourne la liste des decks héros préconstruits pour le Chapitre 1 
 function get_hero_decks_chap1() { 
     return [ 
@@ -6,7 +6,7 @@ function get_hero_decks_chap1() {
             id: "rebellion_horde", 
             name: "La Diversité de la Forêt", 
             description: "Un deck optimisé pour la force brute et la défense solide. Les bêtes écrasent les orcs !", 
-            cards: [ 
+            cards: [
                 // Base Fixe (Bêtes - 20 cartes)
                 "oTarrinox", "oTarrinox", 
                 "oTarentuleForet", "oTarentuleForet", 
@@ -95,13 +95,7 @@ function get_hero_decks_chap1() {
                 "oCapeOmbre", "oCapeOmbre",
                 "oFiletOmbre", "oFiletOmbre",
                 "oDagueFilou", "oDagueFilou"
-            ],
-            hero_power: {
-                id: "protection_divine",
-                name: "Protection Divine",
-                description: "Réduit de 1 l'ATK d'un serviteur ennemi.",
-                mana_cost: 2
-            }
+            ]
         }
     ];
 }

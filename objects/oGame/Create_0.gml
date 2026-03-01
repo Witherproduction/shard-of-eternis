@@ -10,13 +10,6 @@ if (!variable_global_exists("options_loaded") || !global.options_loaded) {
     // Ce bloc est gardé en secours si on lance le jeu directement depuis rDuel
     progression_init();
     
-    // CLEANUP: Ensure story talents are disabled in non-story modes (or Tutorial)
-    if (!variable_global_exists("current_chapter") || global.current_chapter == 0) {
-        if (variable_global_exists("story_hero_id")) {
-            global.story_hero_id = noone;
-        }
-    }
-    
     // Charger les decks de bots personnalisés
     load_bot_decks_from_file();
 load_hero_decks_from_file();
@@ -263,85 +256,6 @@ if (!instance_exists(oDataBase)) {
     show_debug_message("### oGame: oDataBase créé automatiquement");
 }
 
-// --- HERO POWER INSTANTIATION ---
-// Uniquement disponible en Mode Histoire (Si un chapitre est défini et valide)
-// ET PAS DANS LE TUTORIEL (Chapitre 0)
-if (variable_global_exists("current_chapter") && global.current_chapter != -1 && global.current_chapter != 0 && !instance_exists(oHeroPower)) {
-    // 1. Hero Power (Player)
-    var powerDataPlayer = {};
-    var heroFound = false;
-
-    // A. Attempt to find Hero based on Chapter (Story Mode)
-    // Ensure script exists
-    if (script_exists(asset_get_index("get_story_heroes"))) {
-        var heroes = get_story_heroes();
-        for (var i=0; i<array_length(heroes); i++) {
-            var h = heroes[i];
-            if (variable_struct_exists(h, "chapters")) {
-                for (var j=0; j<array_length(h.chapters); j++) {
-                    if (h.chapters[j] == global.current_chapter) {
-                            if (variable_struct_exists(h, "hero_power")) {
-                                powerDataPlayer = h.hero_power;
-                                heroFound = true;
-                                show_debug_message("### oGame: Hero Power loaded from Hero Definition (" + h.name + ")");
-                            }
-                            break;
-                    }
-                }
-            }
-            if (heroFound) break;
-        }
-    }
-
-    // B. Fallback to Deck if not found in Hero
-    if (!heroFound && variable_global_exists("selected_player_deck") && global.selected_player_deck != noone) {
-        if (variable_struct_exists(global.selected_player_deck, "hero_power")) {
-            powerDataPlayer = global.selected_player_deck.hero_power;
-            show_debug_message("### oGame: Hero Power loaded from Deck");
-        }
-    }
-    
-    // Create Player Hero Power
-    var hp = instance_create_layer(0, 0, "Instances", oHeroPower);
-    hp.init(true, powerDataPlayer);
-
-
-    // 2. Hero Power (Enemy/Bot)
-    if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
-            var botDeckStruct = noone;
-            
-            // Search in Chapter 1 Decks
-            if (script_exists(asset_get_index("get_bot_decks_chap1"))) {
-                var decks = get_bot_decks_chap1();
-                for(var i=0; i<array_length(decks); i++) {
-                    if (decks[i].id == global.selected_bot_deck_id) {
-                        botDeckStruct = decks[i];
-                        break;
-                    }
-                }
-            }
-            
-            // Search in Tuto Decks (Fallback)
-            if (botDeckStruct == noone && script_exists(asset_get_index("get_bot_decks_tuto"))) {
-                var decks = get_bot_decks_tuto();
-                for(var i=0; i<array_length(decks); i++) {
-                    if (decks[i].id == global.selected_bot_deck_id) {
-                        botDeckStruct = decks[i];
-                        break;
-                    }
-                }
-            }
-            
-            if (botDeckStruct != noone) {
-                var hpEnemy = instance_create_layer(0, 0, "Instances", oHeroPower);
-                var powerDataEnemy = variable_struct_exists(botDeckStruct, "hero_power") ? botDeckStruct.hero_power : {};
-                hpEnemy.init(false, powerDataEnemy);
-                show_debug_message("### oGame: Hero Power created for Bot (" + global.selected_bot_deck_id + ")");
-            }
-    }
-}
-
-
 ///////////////////////////////////////////////////////////////////////
 // Méthodes
 
@@ -361,6 +275,11 @@ nextPhase = function() {
     if (phase[phase_current] == "Main" || phase[phase_current] == "End") {
         // Fin du tour actuel
         registerTriggerEvent(TRIGGER_END_TURN, noone, {});
+        
+        // Quest System Notification: End Turn
+        if (player_current == local_player_index && instance_exists(oQuestManager)) {
+            oQuestManager.notify_event("end_turn", 1);
+        }
         
         // Nettoyage visuel des mains
         if (instance_exists(handHero)) { handHero.reveal_override = false; if (variable_instance_exists(handHero, "updateDisplay")) { handHero.updateDisplay(); } }
@@ -411,15 +330,6 @@ nextPhase = function() {
 
         // 2. Reset des états de combat (Mal d'invocation géré à l'invocation, mais reset des attaques ici)
         hasSummonedThisTurn[player_current] = false;
-        
-        // Reset Hero Power
-        with (oHeroPower) {
-            var localIdx = (variable_instance_exists(oGame, "local_player_index")) ? oGame.local_player_index : 0;
-            var ownerIdx = (isHeroOwner) ? localIdx : (1 - localIdx);
-            if (ownerIdx == oGame.player_current) {
-                hasUsedThisTurn = false;
-            }
-        }
 
         with (oCardMonster) {
             var localIdx = (variable_instance_exists(oGame, "local_player_index")) ? oGame.local_player_index : 0;

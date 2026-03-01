@@ -6,7 +6,8 @@ function progression_init() {
             unlocked_cards: [], // Tableau d'IDs de cartes (strings)
             unlocked_bots: [],  // Tableau d'IDs de bots (reals)
             chapters: {},       // Struct: "1": { act1: true, act2: false... }
-            rewards: {}         // Struct générique pour autres récompenses
+            rewards: {},        // Struct générique pour autres récompenses
+            card_counts: {}     // Dictionnaire: id -> quantité possédée
         };
         
         // Charger les données si le fichier existe
@@ -15,6 +16,21 @@ function progression_init() {
     
     if (!variable_global_exists("admin_mode")) {
         global.admin_mode = false;
+    }
+    
+    if (!variable_global_exists("gold_coins")) {
+        if (variable_struct_exists(global.progression_data, "rewards") && variable_struct_exists(global.progression_data.rewards, "gold_coins")) {
+            global.gold_coins = max(0, real(global.progression_data.rewards.gold_coins));
+        } else {
+            global.gold_coins = 0;
+        }
+    }
+    if (!variable_global_exists("arcane_stones")) {
+        if (variable_struct_exists(global.progression_data, "rewards") && variable_struct_exists(global.progression_data.rewards, "arcane_stones")) {
+            global.arcane_stones = max(0, real(global.progression_data.rewards.arcane_stones));
+        } else {
+            global.arcane_stones = 0;
+        }
     }
 }
 
@@ -25,8 +41,10 @@ function progression_reset() {
         unlocked_cards: [],
         unlocked_bots: [],
         chapters: {},
-        rewards: {}
+        rewards: { gold_coins: 0, arcane_stones: 0 }
     };
+    global.gold_coins = 0;
+    global.arcane_stones = 0;
     progression_save();
     
     // Réinitialiser également la progression héritée (INI)
@@ -40,6 +58,11 @@ function progression_reset() {
 /// @function progression_save()
 /// @description Sauvegarde la progression dans un fichier JSON
 function progression_save() {
+    if (!variable_struct_exists(global.progression_data, "rewards")) {
+        global.progression_data.rewards = {};
+    }
+    global.progression_data.rewards[$ "gold_coins"] = max(0, real(global.gold_coins));
+    global.progression_data.rewards[$ "arcane_stones"] = max(0, real(global.arcane_stones));
     var json_str = json_stringify(global.progression_data);
     var f = file_text_open_write("save_player.json");
     file_text_write_string(f, json_str);
@@ -66,9 +89,24 @@ function progression_load() {
             if (variable_struct_exists(data, "unlocked_bots")) global.progression_data.unlocked_bots = data.unlocked_bots;
             if (variable_struct_exists(data, "chapters")) global.progression_data.chapters = data.chapters;
             if (variable_struct_exists(data, "rewards")) global.progression_data.rewards = data.rewards;
+            if (variable_struct_exists(data, "card_counts")) global.progression_data.card_counts = data.card_counts;
             show_debug_message("### Progression chargée.");
         } catch (e) {
             show_debug_message("### Erreur chargement progression : " + string(e));
+        }
+        
+        if (variable_struct_exists(global.progression_data, "rewards") && variable_struct_exists(global.progression_data.rewards, "gold_coins")) {
+            global.gold_coins = max(0, real(global.progression_data.rewards.gold_coins));
+        } else {
+            global.gold_coins = 0;
+        }
+        if (variable_struct_exists(global.progression_data, "rewards") && variable_struct_exists(global.progression_data.rewards, "arcane_stones")) {
+            global.arcane_stones = max(0, real(global.progression_data.rewards.arcane_stones));
+        } else {
+            global.arcane_stones = 0;
+        }
+        if (!variable_struct_exists(global.progression_data, "card_counts")) {
+            global.progression_data.card_counts = {};
         }
     }
 }
@@ -78,6 +116,11 @@ function progression_load() {
 /// @function unlock_card(card_id)
 /// @description Débloque une carte pour le joueur
 function unlock_card(card_id) {
+    if (!variable_struct_exists(global.progression_data, "card_counts")) {
+        global.progression_data.card_counts = {};
+    }
+    var first_time = false;
+    // Ajouter au tableau des cartes débloquées si première fois
     var arr = global.progression_data.unlocked_cards;
     var found = false;
     for (var i = 0; i < array_length(arr); i++) {
@@ -85,11 +128,40 @@ function unlock_card(card_id) {
     }
     if (!found) {
         array_push(global.progression_data.unlocked_cards, card_id);
-        progression_save();
-        show_debug_message("### Carte débloquée : " + string(card_id));
-        return true; // Nouvelle carte
+        first_time = true;
     }
-    return false; // Déjà possédée
+    var prev = 0;
+    if (variable_struct_exists(global.progression_data.card_counts, card_id)) {
+        prev = real(global.progression_data.card_counts[$ card_id]);
+    }
+    var maxc = get_max_copies_for_card_id(card_id);
+    if (prev >= maxc) {
+        var rar = "commun";
+        var allCards2 = dbGetAllCards();
+        for (var ii = 0; ii < array_length(allCards2); ii++) {
+            var cc = allCards2[ii];
+            if (variable_struct_exists(cc, "id") && string(cc.id) == string(card_id)) {
+                rar = variable_struct_exists(cc, "rarity") ? string_lower(string(cc.rarity)) : "commun";
+                break;
+            }
+        }
+        var reward = 1;
+        if (rar == "rare") {
+            reward = 4;
+        } else if (rar == "epique") {
+            reward = 20;
+        } else if (rar == "legendaire") {
+            reward = 80;
+        }
+        add_arcane_stones(reward);
+        progression_save();
+        show_debug_message("### Carte convertie en Pierre arcanique : " + string(card_id));
+    } else {
+        global.progression_data.card_counts[$ card_id] = prev + 1;
+        progression_save();
+        show_debug_message("### Carte obtenue : " + string(card_id) + " (x" + string(prev + 1) + ")");
+    }
+    return first_time; // true uniquement pour la première obtention
 }
 
 /// @function is_card_unlocked(card_id)
@@ -104,6 +176,40 @@ function is_card_unlocked(card_id) {
         if (arr[i] == card_id) return true;
     }
     return false;
+}
+
+/// @function get_card_count(card_id)
+/// @description Retourne la quantité possédée pour une carte (0 si inconnue)
+function get_card_count(card_id) {
+    if (!variable_global_exists("progression_data")) progression_init();
+    if (!variable_struct_exists(global.progression_data, "card_counts")) {
+        global.progression_data.card_counts = {};
+    }
+    if (variable_global_exists("admin_mode") && global.admin_mode) {
+        return get_max_copies_for_card_id(card_id);
+    }
+    if (variable_struct_exists(global.progression_data.card_counts, card_id)) {
+        return max(0, floor(real(global.progression_data.card_counts[$ card_id])));
+    }
+    return 0;
+}
+
+/// @function get_max_copies_for_card_id(card_id)
+/// @description Retourne la limite d'exemplaires selon la rareté pour l'ID donné
+function get_max_copies_for_card_id(card_id) {
+    var DEFAULT_MAX = 3;
+    var maxCopies = DEFAULT_MAX;
+    var allCards = dbGetAllCards();
+    for (var i = 0; i < array_length(allCards); i++) {
+        var c = allCards[i];
+        if (variable_struct_exists(c, "id") && string(c.id) == string(card_id)) {
+            var r = variable_struct_exists(c, "rarity") ? string_lower(string(c.rarity)) : "commun";
+            if (r == "legendaire") return 1;
+            if (r == "epique") return 2;
+            return DEFAULT_MAX; // commun/rare
+        }
+    }
+    return maxCopies;
 }
 
 // === GESTION DES BOTS ===
@@ -191,6 +297,132 @@ function is_chapter_unlocked(chapter_id) {
     
     if (variable_struct_exists(global.progression_data.chapters[$ ch_key], "unlocked")) {
         return global.progression_data.chapters[$ ch_key].unlocked;
+    }
+    return false;
+}
+
+function get_gold() {
+    if (!variable_global_exists("gold_coins")) progression_init();
+    return max(0, real(global.gold_coins));
+}
+
+function can_afford(cost) {
+    var c = max(0, floor(real(cost)));
+    if (!variable_global_exists("gold_coins")) progression_init();
+    return global.gold_coins >= c;
+}
+
+function add_gold(amount) {
+    var a = max(0, floor(real(amount)));
+    if (a <= 0) return max(0, real(global.gold_coins));
+    if (!variable_global_exists("gold_coins")) progression_init();
+    var v = global.gold_coins + a;
+    if (v > 2147483647) v = 2147483647;
+    global.gold_coins = v;
+    if (!variable_struct_exists(global.progression_data, "rewards")) global.progression_data.rewards = {};
+    global.progression_data.rewards[$ "gold_coins"] = global.gold_coins;
+    progression_save();
+    return global.gold_coins;
+}
+
+function spend_gold(amount) {
+    var a = max(0, floor(real(amount)));
+    if (a <= 0) return true;
+    if (!variable_global_exists("gold_coins")) progression_init();
+    if (global.gold_coins < a) return false;
+    var v = global.gold_coins - a;
+    if (v < 0) v = 0;
+    global.gold_coins = v;
+    if (!variable_struct_exists(global.progression_data, "rewards")) global.progression_data.rewards = {};
+    global.progression_data.rewards[$ "gold_coins"] = global.gold_coins;
+    progression_save();
+    return true;
+}
+
+function get_arcane_stones() {
+    if (!variable_global_exists("arcane_stones")) progression_init();
+    return max(0, real(global.arcane_stones));
+}
+
+function add_arcane_stones(amount) {
+    var a = max(0, floor(real(amount)));
+    if (a <= 0) return max(0, real(global.arcane_stones));
+    if (!variable_global_exists("arcane_stones")) progression_init();
+    var v = global.arcane_stones + a;
+    if (v > 2147483647) v = 2147483647;
+    global.arcane_stones = v;
+    if (!variable_struct_exists(global.progression_data, "rewards")) global.progression_data.rewards = {};
+    global.progression_data.rewards[$ "arcane_stones"] = global.arcane_stones;
+    progression_save();
+    return global.arcane_stones;
+}
+
+function spend_arcane_stones(amount) {
+    var a = max(0, floor(real(amount)));
+    if (a <= 0) return true;
+    if (!variable_global_exists("arcane_stones")) progression_init();
+    if (global.arcane_stones < a) return false;
+    var v = global.arcane_stones - a;
+    if (v < 0) v = 0;
+    global.arcane_stones = v;
+    if (!variable_struct_exists(global.progression_data, "rewards")) global.progression_data.rewards = {};
+    global.progression_data.rewards[$ "arcane_stones"] = global.arcane_stones;
+    progression_save();
+    return true;
+}
+
+function reset_collection_cards() {
+    if (!variable_global_exists("progression_data")) progression_init();
+    global.progression_data.unlocked_cards = [];
+    global.progression_data.card_counts = {};
+    progression_save();
+    return true;
+}
+
+/// @function give_chapter_reward(chapter_id)
+/// @description Donne la récompense de fin de chapitre (Légendaire) si pas déjà obtenue
+function give_chapter_reward(chapter_id) {
+    if (!variable_global_exists("progression_data")) progression_init();
+    
+    var ch_key = string(chapter_id);
+    if (!variable_struct_exists(global.progression_data.chapters, ch_key)) {
+        global.progression_data.chapters[$ ch_key] = {};
+    }
+    
+    // Vérifier si déjà récompensé
+    if (variable_struct_exists(global.progression_data.chapters[$ ch_key], "reward_claimed") && global.progression_data.chapters[$ ch_key].reward_claimed) {
+        return false;
+    }
+    
+    // Définir la récompense selon le chapitre
+    var card_id = "";
+    var card_name = "";
+    
+    if (chapter_id == 1) {
+        card_id = "gorrak"; // Légendaire Chapitre 1
+        card_name = "Gorrak";
+    }
+    // Ajouter d'autres chapitres si nécessaire
+    
+    if (card_id != "") {
+        global.progression_data.chapters[$ ch_key].reward_claimed = true;
+        
+        // Vérifier si la carte est déjà possédée
+        var count = get_card_count(card_id);
+        var max_copies = get_max_copies_for_card_id(card_id);
+        
+        if (count >= max_copies) {
+            // Carte déjà possédée au max -> Récompense alternative (320 pierres)
+            add_arcane_stones(320);
+            show_debug_message("### Récompense Chapitre " + string(chapter_id) + " : " + card_name + " (Déjà possédé) -> +320 Pierres Arcaniques");
+        } else {
+            // Carte non possédée (ou pas au max) -> Débloquer la carte
+            unlock_card(card_id);
+            show_debug_message("### Récompense Chapitre " + string(chapter_id) + " : " + card_name + " (Débloqué)");
+        }
+        
+        progression_save();
+        return true;
     }
     return false;
 }

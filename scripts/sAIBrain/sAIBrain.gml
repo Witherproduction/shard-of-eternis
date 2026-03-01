@@ -216,129 +216,6 @@ function AI_SelectBestMove(moves) {
             // Si on est un bot "Control", on aime les pièges
             if (p_removal > 1.2) moveScoreVal += 20;
             
-        } else if (move.type == "use_hero_power") {
-            // Pouvoir Héroïque
-            moveScoreVal = 50; // Base score (Always good to use mana)
-            
-            // Custom Logic based on Power ID
-            var pid = variable_struct_exists(move.instance.powerData, "id") ? move.instance.powerData.id : "";
-            
-            // --- Custom Rule Check for Hero Power ---
-            var hpRule = (profile != undefined && variable_struct_exists(profile, "custom_rules") && variable_struct_exists(profile.custom_rules, "hero_power_rule")) ? profile.custom_rules.hero_power_rule : "";
-            
-            if (pid == "pillage") {
-                // Toujours bon d'avoir plus de cartes, surtout avec réduction de coût
-                // On vérifie juste si l'ennemi a des cartes
-                var enemyHandSize = 0;
-                
-                // Trouver la main du héros (Adversaire de l'IA)
-                var hHero = noone;
-                with(oHand) { if (isHeroOwner) hHero = id; }
-                
-                if (instance_exists(hHero)) {
-                     var hCards = hHero.cards;
-                     for(var i=0; i<array_length(hCards); i++) {
-                         if (hCards[i] != 0) enemyHandSize++;
-                     }
-                }
-                
-                if (enemyHandSize > 0) {
-                    moveScoreVal += 200; // PRIORITE ABSOLUE AU VOL (boosté de 40 à 200)
-                } else {
-                    moveScoreVal = -100; // Inutile si pas de cartes
-                }
-            } else if (pid == "protection_divine") {
-                // Reduce Attack of target by 1
-                if (variable_struct_exists(move, "target") && move.target != noone) {
-                     var targetAtk = variable_instance_exists(move.target, "attack") ? move.target.attack : 0;
-                     
-                     // Priority to high attack monsters (mitigation)
-                     if (targetAtk > 0) {
-                        moveScoreVal += 20 + (targetAtk * 10);
-                     } else {
-                        moveScoreVal = -100; // Useless on 0 ATK
-                     }
-                }
-            } else if (pid == "lancer_hache") {
-                // Deal 1 damage
-                if (variable_struct_exists(move, "target") && move.target != noone) {
-                    var target = move.target;
-                    var tName = object_get_name(target.object_index);
-                    
-                    if (tName == "oLP_Hero" || tName == "oLP_Parent") {
-                        // Face Damage
-                        if (hpRule == "finish_off_1hp") {
-                            // Only face if lethal or no minions to target?
-                            // User said: "uniquement sur un monstre adverse si il y exactement 1 PV"
-                            // Implies: never Face unless lethal? Or just restriction on monsters?
-                            // "Il utilise sont pouvoir heroique uniquement sur un monstre adverse si il y exactement 1 PV."
-                            // -> Doesn't explicitly forbid Face. But implies strict usage.
-                            // Let's assume Face is OK for Lethal, otherwise avoid Face if we follow strict interpretation.
-                            // But usually "only on monster if 1HP" means "if targeting monster, must be 1HP".
-                            // Let's keep Face as option but low prio unless lethal.
-                             var currentLP = variable_instance_exists(target, "nbLP") ? target.nbLP : (variable_instance_exists(target, "hp") ? target.hp : 50);
-                             if (currentLP <= 1) {
-                                moveScoreVal += 10000;
-                             } else {
-                                // If rule is strict, maybe we shouldn't ping face?
-                                // Let's allow ping face but low score.
-                                moveScoreVal += 10 * p_direct;
-                            }
-                        } else {
-                            moveScoreVal += 30 * p_direct;
-                            var currentLP = variable_instance_exists(target, "nbLP") ? target.nbLP : (variable_instance_exists(target, "hp") ? target.hp : 50);
-                            if (currentLP <= 1) {
-                                moveScoreVal += 10000; // WIN GAME
-                            }
-                        }
-                    } else {
-                        // Minion Damage
-                        var hp = variable_instance_exists(target, "current_hp") ? target.current_hp : 0;
-                        var atk = variable_instance_exists(target, "attack") ? target.attack : 0;
-                        
-                        if (hpRule == "finish_off_1hp") {
-                            if (hp == 1) {
-                                // EXCELLENT! Meets condition
-                                moveScoreVal += 200 + (atk * 10) * p_removal;
-                            } else {
-                                // FORBIDDEN by Rule
-                                moveScoreVal = -9999;
-                            }
-                        } else {
-                            if (hp <= 1) {
-                                // Kill! High value based on ATK of target
-                                moveScoreVal += 50 + (atk * 10) * p_removal;
-                            } else {
-                                // Chip damage. Good if setting up for trade, but less valuable
-                                moveScoreVal += 10 * p_removal;
-                            }
-                        }
-                    }
-                }
-            } else if (pid == "appel_profondeurs") {
-                 // Invoque un Coureur Abyssien (1/1)
-                 // Condition: Au moins 1 emplacement libre
-                 var freeSlots = 0;
-                 if (instance_exists(oFieldMonsterEnemy)) {
-                      var cards = oFieldMonsterEnemy.cards;
-                      for(var k=0; k<array_length(cards); k++) {
-                          if (cards[k] == 0) freeSlots++;
-                      }
-                 }
-                 
-                 if (freeSlots > 0) {
-                     moveScoreVal += 300; // Très bonne value pour 1 mana (Body + Synergie)
-                     moveScoreVal += 100 * p_summon; // Bonus selon profil invocation
-                 } else {
-                     moveScoreVal = -9999; // Impossible sans place
-                 }
-            }
-            
-            // Avoid using it if we have better plays (Summon/Removal)
-            // But if we have spare mana, it's great.
-            // Since we iterate all moves, if a Summon has score 100, we will do it first.
-            // If we have 2 mana left after Summon, we will come back here in next iteration (if oIA loop allows).
-            
         } else if (move.type == "activate" || move.type == "activate_effect") {
             // Magie - Scoring contextuel avancé
             var effectType = variable_struct_exists(move, "effect_type") ? move.effect_type : "unknown";
@@ -800,16 +677,6 @@ function AI_ExecuteMove(move) {
             }
         }
         
-    } else if (move.type == "use_hero_power") {
-        if (instance_exists(move.instance)) {
-            var target = variable_struct_exists(move, "target") ? move.target : noone;
-            with (move.instance) {
-                activate(target);
-            }
-            return true;
-        }
-        return false;
-
     } else if (move.type == "activate" || move.type == "activate_effect") {
         var card = move.card;
         var effectIndex = variable_struct_exists(move, "effect_index") ? move.effect_index : -1;
@@ -1010,5 +877,3 @@ function AI_HasAbyssienSynergyOnField() {
     }
     return false;
 }
-
-

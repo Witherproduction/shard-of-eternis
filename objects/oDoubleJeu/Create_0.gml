@@ -1,11 +1,12 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Double jeu"
 genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "rare"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 mana_cost = 4;
 
@@ -23,3 +24,4 @@ effects = [
         force_front_line: true
     }
 ]
+tags = ["Ombre", "Sort"];

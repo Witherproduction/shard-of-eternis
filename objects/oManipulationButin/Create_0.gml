@@ -1,4 +1,5 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Manipulation du butin"
@@ -6,7 +7,7 @@ mana_cost = 1;
 genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "rare"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Echange une carte aléatoire de votre main avec une carte aléatoire de la main adverse."
@@ -18,3 +19,4 @@ effects = [
         operation: "exchange"
     }
 ]
+tags = ["Ombre", "Sort", "Pillage"];

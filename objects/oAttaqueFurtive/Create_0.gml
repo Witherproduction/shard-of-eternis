@@ -1,11 +1,12 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Attaque furtive"
 genre = "Sort"
-archetype = "Forêt des voleurs"
+race = "Ombre";tags = ["Ombre", "Sort", "Combo"];archetype = "Forêt des voleurs"
 rarity = "epique"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Combo : camouflage\nInflige 2 dégâts. Si vous contrôlez un serviteur avec Camouflage, inflige 4 dégâts à la place."
@@ -30,4 +31,3 @@ effects = [
         replace_base_value: true
     }
 ]
-

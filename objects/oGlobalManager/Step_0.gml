@@ -27,9 +27,29 @@ if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_press
 }
 
 // === FORCAGE DES RÉGLAGES VIDÉO (DÉMARRAGE) ===
+// Ajout Or (Debug): F2 -> +1000 pièces d'or
+if (keyboard_check_pressed(vk_f2)) {
+    var before = get_gold();
+    var after = add_gold(1000);
+    show_debug_message("### GOLD GRANT: " + string(before) + " -> " + string(after));
+}
+
+// Reset Collection: F3
+if (keyboard_check_pressed(vk_f3)) {
+    reset_collection_cards();
+    if (instance_exists(oCardViewer)) {
+        with (oCardViewer) {
+            if (!is_undefined(displayFilteredCards)) displayFilteredCards();
+        }
+    }
+    show_debug_message("### COLLECTION RESET");
+}
+
 // Force les réglages pendant les 60 premières frames pour contrer le comportement par défaut de l'OS/Runner
 if (variable_instance_exists(id, "force_settings_frames") && force_settings_frames > 0) {
     force_settings_frames--;
+    
+    
     
     // On force l'application uniquement toutes les 10 frames ou à la fin, pour ne pas spammer trop le driver graphique
     if (force_settings_frames % 10 == 0 || force_settings_frames == 1) {

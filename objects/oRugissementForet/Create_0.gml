@@ -1,11 +1,12 @@
-event_inherited();  // Hérite des variables et comportement de oCardMagic
+event_inherited();
+race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Rugissement de la forêt"
 genre = "Sort"
 archetype = "Forêt des voleurs"
 rarity = "commun"
-booster = "A la découverte du monde"
+booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Donne +2 PV à toutes vos Bêtes.";
@@ -23,3 +24,4 @@ effects = [
         PV: 2
     }
 ]
+tags = ["Sort", "Nature"];

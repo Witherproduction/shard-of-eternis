@@ -14,6 +14,7 @@
     {"name":"inst_CollectionCardDisplay","path":"rooms/rCollection/rCollection.yy",},
     {"name":"inst_5290C595","path":"rooms/rCollection/rCollection.yy",},
     {"name":"inst_166CAB07","path":"rooms/rCollection/rCollection.yy",},
+    {"name":"inst_CurrencyHUD","path":"rooms/rCollection/rCollection.yy",},
     {"name":"inst_RoomContour","path":"rooms/rCollection/rCollection.yy",},
   ],
   "isDnd":false,
@@ -21,6 +22,7 @@
     {"$GMRInstanceLayer":"","%Name":"UI","depth":0,"effectEnabled":true,"effectType":null,"gridX":32,"gridY":32,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"instances":[
         {"$GMRInstance":"v4","%Name":"inst_5290C595","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_5290C595","objectId":{"name":"oCollectionSelectManager","path":"objects/oCollectionSelectManager/oCollectionSelectManager.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":1312.0,"y":0.0,},
         {"$GMRInstance":"v4","%Name":"inst_CollectionCardDisplay","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CollectionCardDisplay","objectId":{"name":"oCollectionCardDisplay","path":"objects/oCollectionCardDisplay/oCollectionCardDisplay.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":1408.0,"y":416.0,},
+        {"$GMRInstance":"v4","%Name":"inst_CurrencyHUD","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CurrencyHUD","objectId":{"name":"oCurrencyHUD","path":"objects/oCurrencyHUD/oCurrencyHUD.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":1880.0,"y":40.0,},
       ],"layers":[],"name":"UI","properties":[],"resourceType":"GMRInstanceLayer","resourceVersion":"2.0","userdefinedDepth":false,"visible":true,},
     {"$GMRInstanceLayer":"","%Name":"Instances","depth":100,"effectEnabled":true,"effectType":null,"gridX":32,"gridY":32,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"instances":[
         {"$GMRInstance":"v4","%Name":"inst_8B40AA3","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_8B40AA3","objectId":{"name":"oDataBase","path":"objects/oDataBase/oDataBase.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":864.0,"y":32.0,},

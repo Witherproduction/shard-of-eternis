@@ -1,10 +1,11 @@
 event_inherited();
+race = "Eau";
 
 name = "Ferveur du marais";
 genre = "Sort";
 archetype = "Forêt des voleurs";
 rarity = "rare";
-booster = "A la découverte du monde";
+booster = "Retour des Archontes";
 is_player_card = true;
 
 description = "Invoque 3 Coureurs Abyssiens (1/1) sur des emplacements aléatoires.";
@@ -24,4 +25,4 @@ effects = [
         ]
     }
 ];
-
+tags = ["Eau", "Sort"];
