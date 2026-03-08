@@ -18,12 +18,12 @@ check_timer = 0;      // Timer pour vérifier le reset périodiquement
 // === INITIALISATION ===
 
 function get_formatted_date_str(_date) {
-    var y = string(date_get_year(_date));
-    var m = string(date_get_month(_date));
-    var d = string(date_get_day(_date));
-    if (string_length(m) < 2) m = "0" + m;
-    if (string_length(d) < 2) d = "0" + d;
-    return y + "-" + m + "-" + d;
+    var _y = string(date_get_year(_date));
+    var _m = string(date_get_month(_date));
+    var _d = string(date_get_day(_date));
+    if (string_length(_m) < 2) _m = "0" + _m;
+    if (string_length(_d) < 2) _d = "0" + _d;
+    return _y + "-" + _m + "-" + _d;
 }
 
 function init_quests() {
@@ -161,6 +161,7 @@ function claim_reward(_slot_key) {
 // === SAUVEGARDE / CHARGEMENT ===
 
 function save_quest_data() {
+    save_pending = false;
     var data = {
         last_reset: last_reset_date,
         reroll: reroll_available,
@@ -223,6 +224,8 @@ function load_quest_data(_data) {
 
 // === EVENT HOOKS ===
 
+save_pending = false;
+
 function notify_event(_type, _amount = 1, _context = undefined) {
     var changed = false;
     
@@ -242,7 +245,8 @@ function notify_event(_type, _amount = 1, _context = undefined) {
     if (check_q(quest_slots.C, _type, _amount, _context)) changed = true;
     
     if (changed) {
-        save_quest_data();
+        // Defer save to avoid blocking gameplay logic (especially targeting/summon triggers)
+        save_pending = true;
     }
 }
 

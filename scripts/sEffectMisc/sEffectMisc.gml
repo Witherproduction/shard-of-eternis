@@ -198,12 +198,13 @@ function getTargetsByFilter(effect) {
     return targets;
 }
 
-/// @function hasValidTargetForEffect(card, effect)
+/// @function hasValidTargetForEffect(card, effect, context)
 /// @description Retourne true si un effet ciblé possède au moins une cible valide selon ses règles
 /// @param {instance} card - La carte source (utilisée pour les restrictions d’allégeance)
 /// @param {struct} effect - L’effet à vérifier
+/// @param {struct} [context] - Le contexte optionnel (pour les conditions de trigger)
 /// @returns {bool}
-function hasValidTargetForEffect(card, effect) {
+function hasValidTargetForEffect(card, effect, context = {}) {
     if (effect == noone) return false;
     var etype = variable_struct_exists(effect, "effect_type") ? effect.effect_type : "";
 
@@ -237,7 +238,7 @@ function hasValidTargetForEffect(card, effect) {
     if (!needsTarget) {
         // Garde spécifique: EFFECT_DESTROY doit vérifier qu'une cible existe selon critères avant d'afficher le bouton
         if (etype == EFFECT_DESTROY) {
-            return isEffectActivatable(card, effect);
+            return isEffectActivatable(card, effect, context);
         }
         // Vérifier les prérequis d'effets non-ciblés connus qui ne doivent pas afficher le bouton si non satisfaits
         // 1) Fin de tour: défausser 1 puis détruire 1 Magie ennemie
@@ -297,7 +298,7 @@ function hasValidTargetForEffect(card, effect) {
             return foundCopy;
         }
 
-        return isEffectActivatable(card, effect);
+        return isEffectActivatable(card, effect, context);
     }
 
     // Cas spécifique: sélection de cible pour équipement (Artefact)
@@ -346,19 +347,20 @@ function hasValidTargetForEffect(card, effect) {
     return false;
 }
 
-/// @function isEffectActivatable(card, effect)
+/// @function isEffectActivatable(card, effect, context)
 /// @description Valide de manière unifiée si un effet a des cibles/conditions satisfaites
 /// @param {instance} card - La carte source (pour les restrictions d’allégeance)
 /// @param {struct} effect - L’effet à vérifier
+/// @param {struct} [context] - Le contexte optionnel
 /// @returns {bool}
-function isEffectActivatable(card, effect) {
+function isEffectActivatable(card, effect, context = {}) {
     if (effect == noone) return false;
     
     // 1. Vérification des conditions génériques (Once per turn, LP, Main, Phase...)
     // On utilise checkTriggerConditions si disponible pour valider les prérequis non-ciblés
     if (!is_undefined(asset_get_index("checkTriggerConditions"))) {
-        // Contexte vide car on vérifie l'activabilité "à froid"
-        if (!checkTriggerConditions(card, effect, {})) return false;
+        // Passer le contexte complet pour valider les conditions comme summon_mode
+        if (!checkTriggerConditions(card, effect, context)) return false;
     }
     
     var etype = variable_struct_exists(effect, "effect_type") ? effect.effect_type : "";

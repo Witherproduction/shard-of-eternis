@@ -200,6 +200,11 @@ function destroyCard(card, source = noone) {
             card.HasIllusion = false;
             show_debug_message("### destroyCard: Prevented by Illusion! (HasIllusion consumed)");
             
+            // FIX: Reset HP to 1 to avoid zombie state (0 HP but alive)
+            // Done BEFORE quest notification to ensure valid save state
+            if (variable_instance_exists(card, "PV") && card.PV <= 0) { card.PV = 1; }
+            if (variable_instance_exists(card, "current_hp") && card.current_hp <= 0) { card.current_hp = 1; }
+            
             // Quest System Notification
             if (instance_exists(oQuestManager)) {
                 // "Activer l'effet illusion"

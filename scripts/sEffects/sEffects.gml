@@ -283,7 +283,7 @@ function executeEffect(card, effect, context = {}) {
         var ownerIsHero_ctx = (variable_struct_exists(context, "owner_is_hero")) ? context.owner_is_hero
                               : ((card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true);
         
-        if (isManualActivation && ownerIsHero_ctx && instance_exists(selectManager)) {
+        if (isManualActivation && ownerIsHero_ctx && instance_exists(oSelectManager)) {
             var hasValidTarget = true;
             if (effectType == EFFECT_BUFF) {
                 var scopeS = variable_struct_exists(effect, "scope") ? string_lower(effect.scope) : "single";
@@ -326,7 +326,7 @@ function executeEffect(card, effect, context = {}) {
                 hasValidTarget = false;
                 // Utiliser la fonction centralisée qui a été corrigée pour gérer correctement "both" et copy_target
                 if (script_exists(asset_get_index("hasValidTargetForEffect"))) {
-                    hasValidTarget = hasValidTargetForEffect(card, effect);
+                    hasValidTarget = hasValidTargetForEffect(card, effect, context);
                 } else if (script_exists(getTargetsByFilter)) {
                     var arrT = getTargetsByFilter(effect);
                     hasValidTarget = (is_array(arrT) && array_length(arrT) > 0);
@@ -390,7 +390,7 @@ function executeEffect(card, effect, context = {}) {
             
             // Définir le callback de sélection de cible (utilise self = struct de l'effet)
             effect.onTargetSelected = function(cardTarget) {
-                var eff = (instance_exists(selectManager)) ? selectManager.targetingEffectId : noone;
+                var eff = (instance_exists(oSelectManager)) ? oSelectManager.targetingEffectId : noone;
                 var src = (is_struct(eff) && variable_struct_exists(eff, "source_card")) ? eff.source_card : noone;
                 var zTarget = (cardTarget != noone && instance_exists(cardTarget) && variable_instance_exists(cardTarget, "zone")) ? cardTarget.zone : "";
                 if (cardTarget != noone && instance_exists(cardTarget) && (zTarget == "Field" || zTarget == "FieldSelected")) {
@@ -447,11 +447,11 @@ function executeEffect(card, effect, context = {}) {
                 card.equip_pending = true;
             }
             // Activer le mode ciblage et afficher la flèche depuis la carte source
-            selectManager.startTargeting(effect);
-            if (instance_exists(card)) {
-                // show_debug_message("### sEffects: Force creation of targeting arrow for " + string(card.id));
-                selectManager.createTargetingArrow(card);
-            }
+        oSelectManager.startTargeting(effect);
+        if (instance_exists(card)) {
+            // show_debug_message("### sEffects: Force creation of targeting arrow for " + string(card.id));
+            oSelectManager.createTargetingArrow(card);
+        }
             // Le processus est lancé; l'application se fera après la sélection
             // Important: ne pas signaler une réussite immédiate pour éviter la consommation prématurée des sorts Direct
             return false;

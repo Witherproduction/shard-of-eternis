@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"fond",
-    "path":"folders/Sprites/Histoire/Chapitre 1/fond.yy",
+    "name":"acte1",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte1.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

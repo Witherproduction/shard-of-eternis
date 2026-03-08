@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"Orc",
-    "path":"folders/Sprites/Histoire/Chapitre 1/personnage/Orc.yy",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte1/Orc.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

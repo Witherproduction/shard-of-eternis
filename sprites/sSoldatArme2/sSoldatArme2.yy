@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"Soldat",
-    "path":"folders/Sprites/Histoire/Chapitre 1/personnage/Soldat.yy",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte1/Soldat.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

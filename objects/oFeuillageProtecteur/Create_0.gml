@@ -1,4 +1,4 @@
-﻿event_inherited();
+event_inherited();
 race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
@@ -9,7 +9,7 @@ booster = "Retour des Archontes"
 is_player_card = true;
 mana_cost = 2;
 
-description = "S'active lorsque votre adversaire détruit un de vos monstres. Annule la destruction du monstre et lui confère Illusion."
+description = "S'active lorsque votre adversaire détruit un de vos monstres. Lui confère Illusion."
 effects = [
     {
         id: 1,

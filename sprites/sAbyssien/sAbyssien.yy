@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"Abyssien",
-    "path":"folders/Sprites/Histoire/Chapitre 1/personnage/Abyssien.yy",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte2/Abyssien.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

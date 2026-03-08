@@ -181,22 +181,20 @@ if (!finished_move) {
                     }
                 }
 
-                // Quest Notification (Moved from sGameActionController to avoid timing conflicts)
+                // Quest Notification - PREPARE ONLY
+                // Delayed to end of FX to avoid interference with targeting state (Save/Lag)
                 if (ownerHero && instance_exists(oQuestManager)) {
-                    oQuestManager.notify_event("play_card", 1, { card: card_real });
-                    
-                    var cTypeLower = string_lower(ctype);
-                    var hasMinionTag = false;
-                    if (variable_instance_exists(card_real, "tags") && is_array(card_real.tags)) {
-                        for (var i = 0; i < array_length(card_real.tags); i++) {
-                             var t = string_lower(string(card_real.tags[i]));
-                             if (t == "monster" || t == "minion" || t == "creature" || t == "monstre") hasMinionTag = true;
+                    quest_notify_pending = true;
+                    // Cache necessary data as card_real might be destroyed later or we need to avoid instance access during critical phases
+                    quest_notify_data = {
+                        card: {
+                            type: ctype,
+                            tags: (variable_instance_exists(card_real, "tags") ? card_real.tags : []),
+                            genre: (variable_instance_exists(card_real, "genre") ? card_real.genre : ""),
+                            race: (variable_instance_exists(card_real, "race") ? card_real.race : ""),
+                            name: (variable_instance_exists(card_real, "name") ? card_real.name : "")
                         }
-                    }
-                    
-                    if (cTypeLower == "monster" || cTypeLower == "minion" || cTypeLower == "creature" || hasMinionTag) {
-                        oQuestManager.notify_event("summon", 1, { card: card_real });
-                    }
+                    };
                 }
             }
 
@@ -218,6 +216,27 @@ if (!finished_move) {
         flash_duration = max(1, (variable_instance_exists(self, "flash_duration_ms") ? (flash_duration_ms / 1000.0) : 0.15) * room_speed);
     }
     if (post_fx_t >= post_fx_duration + flash_duration) {
+        // Execute delayed quest notification
+        if (variable_instance_exists(self, "quest_notify_pending") && quest_notify_pending) {
+            if (instance_exists(oQuestManager)) {
+                 var qd = quest_notify_data; 
+                 oQuestManager.notify_event("play_card", 1, qd);
+                 
+                 var cTypeLower = string_lower(qd.card.type);
+                 var hasMinionTag = false;
+                 if (variable_struct_exists(qd.card, "tags") && is_array(qd.card.tags)) {
+                    for (var i = 0; i < array_length(qd.card.tags); i++) {
+                         var t = string_lower(string(qd.card.tags[i]));
+                         if (t == "monster" || t == "minion" || t == "creature" || t == "monstre") hasMinionTag = true;
+                    }
+                 }
+                 
+                 if (cTypeLower == "monster" || cTypeLower == "minion" || cTypeLower == "creature" || hasMinionTag) {
+                    oQuestManager.notify_event("summon", 1, qd);
+                 }
+            }
+        }
+
         // Fin de l'effet total (après le flash)
         if (variable_instance_exists(self, "snd_invocation_id") && snd_invocation_id != -1) {
             audio_stop_sound(snd_invocation_id);

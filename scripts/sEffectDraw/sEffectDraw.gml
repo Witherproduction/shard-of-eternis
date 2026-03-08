@@ -1,5 +1,6 @@
 function drawCards(amount) {
     if (!instance_exists(oHand) || !instance_exists(oDeck)) return false;
+    var drawnCount = 0;
     for (var i = 0; i < amount; i++) {
         if (array_length(oDeck.cards) > 0) {
             var drawnCard = array_pop(oDeck.cards);
@@ -30,15 +31,20 @@ function drawCards(amount) {
                 array_push(oHand.cards, drawnCard);
                 registerTriggerEvent(TRIGGER_ON_CARD_DRAW, drawnCard, {});
                 
-                // Quest System Notification
-                if (variable_instance_exists(oHand, "isHeroOwner") && oHand.isHeroOwner && instance_exists(oQuestManager)) {
-                    oQuestManager.notify_event("draw", 1);
+                // Count successful draws for batch notification
+                if (variable_instance_exists(oHand, "isHeroOwner") && oHand.isHeroOwner) {
+                    drawnCount++;
                 }
             }
         } else {
             loseLP(1000);
             break;
         }
+    }
+    
+    // Quest System Notification (Batched)
+    if (drawnCount > 0 && instance_exists(oQuestManager)) {
+        oQuestManager.notify_event("draw", drawnCount);
     }
     return true;
 }

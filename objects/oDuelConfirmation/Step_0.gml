@@ -1,4 +1,4 @@
-﻿// --- INITIALIZATION (Run once) ---
+// --- INITIALIZATION (Run once) ---
 if (!variable_instance_exists(id, "setup_done")) {
     show_debug_message("### oDuelConfirmation - Initializing Duel Setup...");
     
@@ -220,7 +220,44 @@ if (mouse_check_button_pressed(mb_left)) {
     var mx = mouse_x;
     var my = mouse_y;
     
+    // --- Checkbox Interaction ---
+    if (variable_instance_exists(id, "checkbox_x")) {
+        // Allow clicking text as well
+        if (mx >= checkbox_x && mx <= checkbox_x + checkbox_size + 200 && my >= checkbox_y && my <= checkbox_y + checkbox_size) {
+            use_custom_deck = !use_custom_deck;
+        }
+    }
+    
+    // --- Deck Selector Interaction ---
+    if (use_custom_deck && variable_global_exists("saved_decks") && array_length(global.saved_decks) > 0) {
+        var sel_y_center = selector_y + selector_h/2;
+        // Left Arrow Area (approximate)
+        if (mx >= selector_x - 120 && mx <= selector_x - 80 && my >= sel_y_center - 20 && my <= sel_y_center + 20) {
+             selected_custom_deck_index--;
+             if (selected_custom_deck_index < 0) selected_custom_deck_index = array_length(global.saved_decks) - 1;
+        }
+        // Right Arrow Area (approximate)
+        if (mx >= selector_x + 80 && mx <= selector_x + 120 && my >= sel_y_center - 20 && my <= sel_y_center + 20) {
+             selected_custom_deck_index++;
+             if (selected_custom_deck_index >= array_length(global.saved_decks)) selected_custom_deck_index = 0;
+        }
+    }
+    
+    // --- Confirm Button ---
     if (mx >= btn_x && mx <= btn_x + btn_width && my >= btn_y && my <= btn_y + btn_height) {
+        
+        // Apply Custom Deck Selection
+        if (use_custom_deck) {
+            if (variable_global_exists("saved_decks") && array_length(global.saved_decks) > 0) {
+                // Ensure index validity
+                if (selected_custom_deck_index >= 0 && selected_custom_deck_index < array_length(global.saved_decks)) {
+                    global.selected_player_deck = global.saved_decks[selected_custom_deck_index];
+                    show_debug_message("### oDuelConfirmation - Overriding with Custom Deck: " + global.selected_player_deck.name);
+                }
+            } else {
+                show_debug_message("### oDuelConfirmation - Custom deck requested but none available. Keeping default.");
+            }
+        }
         
         // Stop sounds
         audio_stop_all();

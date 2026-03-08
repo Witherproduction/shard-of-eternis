@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"pretre",
-    "path":"folders/Sprites/Histoire/Chapitre 1/personnage/pretre.yy",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte1/pretre.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

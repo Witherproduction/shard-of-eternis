@@ -24,7 +24,8 @@ effects = [
         select_mode: "target",
         value: 2,
         conditions: { summon_mode: "Summon" },
-        criteria: { type: "Monster" }
+        criteria: { type: "Monster" },
+        target_zone: "field"
     }
 ]
 

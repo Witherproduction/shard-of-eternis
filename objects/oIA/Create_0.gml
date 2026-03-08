@@ -23,7 +23,14 @@ var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_b
 
 if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) {
     // Récupère le nom de profil associé au deck (ex: "aggro", "control", etc.) ou une struct de directives
-    var profileData = get_bot_deck_profile(global.selected_bot_deck_id);
+    // FIX: Utiliser get_bot_deck_by_id_new pour récupérer l'objet deck complet, 
+    // car get_bot_deck_profile retourne une string "Personnalisé" pour les structs, ce qui casse la logique.
+    var deckData = get_bot_deck_by_id_new(global.selected_bot_deck_id);
+    var profileData = undefined;
+    
+    if (!is_undefined(deckData) && variable_struct_exists(deckData, "profile")) {
+        profileData = deckData.profile;
+    }
     
     var isValidProfile = false;
     if (is_string(profileData) && profileData != "") isValidProfile = true;
@@ -32,7 +39,7 @@ if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_i
     if (isValidProfile) {
         AI_Config_SetBotProfile(botID, profileData);
         if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
-            var pName = is_string(profileData) ? profileData : "Custom Directives";
+            var pName = is_string(profileData) ? profileData : "Custom Directives (Struct)";
             show_debug_message("### oIA - Profil IA activé pour Bot " + string(botID) + ": " + pName);
         }
     } else {

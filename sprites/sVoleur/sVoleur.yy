@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"voleur",
-    "path":"folders/Sprites/Histoire/Chapitre 1/personnage/voleur.yy",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte2/voleur.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

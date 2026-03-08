@@ -1,4 +1,4 @@
-﻿/// sAIScoringSystem.gml
+/// sAIScoringSystem.gml
 /// Système central de scoring pour l'IA (Refonte 2025)
 
 // --- CONSTANTES DE PONDERATION (WEIGHTS) ---
@@ -22,11 +22,11 @@ function AI_Evaluate_BoardState() {
     var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     var profile = AI_Config_GetBotProfile(botID);
 
-    var p_board = (profile != undefined) ? (profile.board_presence_weight / 50.0) : 1.0;
-    var p_hand = (profile != undefined) ? (profile.draw_weight / 50.0) : 1.0; // Approximation pour Card Advantage
-    var p_risk = (profile != undefined) ? (profile.risk_tolerance / 50.0) : 1.0;
-    var p_continuous = (profile != undefined) ? (profile.continuous_weight / 50.0) : 1.0;
-    var p_manual = (profile != undefined) ? (profile.manual_effect_weight / 50.0) : 1.0;
+    var p_board = (profile != undefined && variable_struct_exists(profile, "board_presence_weight")) ? (profile.board_presence_weight / 50.0) : 1.0;
+    var p_hand = (profile != undefined && variable_struct_exists(profile, "draw_weight")) ? (profile.draw_weight / 50.0) : 1.0; // Approximation pour Card Advantage
+    var p_risk = (profile != undefined && variable_struct_exists(profile, "risk_tolerance")) ? (profile.risk_tolerance / 50.0) : 1.0;
+    var p_continuous = (profile != undefined && variable_struct_exists(profile, "continuous_weight")) ? (profile.continuous_weight / 50.0) : 1.0;
+    var p_manual = (profile != undefined && variable_struct_exists(profile, "manual_effect_weight")) ? (profile.manual_effect_weight / 50.0) : 1.0;
 
     // 1. Évaluation des Monstres de l'IA (Positif)
     if (instance_exists(oFieldMonsterEnemy)) {
@@ -127,6 +127,11 @@ function AI_Evaluate_BoardState() {
 function AI_GetCardScore(card) {
     if (card == noone || !instance_exists(card)) return 0;
 
+    // Protection contre les objets LP (Héros) qui ne sont pas des cartes
+    if (card.object_index == oLP_Hero || card.object_index == oLP_Enemy) {
+        return 10000; // Valeur critique (Game Over)
+    }
+
     // FORCE RECOMPUTE: Ensure AI sees the most up-to-date stats (buffs/debuffs)
     if (script_exists(asset_get_index("buffRecompute"))) {
         buffRecompute(card);
@@ -134,8 +139,8 @@ function AI_GetCardScore(card) {
 
     var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     var profile = AI_Config_GetBotProfile(botID);
-    var p_atk = (profile != undefined) ? (profile.attack_bias / 50.0) : 1.0;
-    var p_def = (profile != undefined) ? (profile.defense_bias / 50.0) : 1.0;
+    var p_atk = (profile != undefined && variable_struct_exists(profile, "attack_bias")) ? (profile.attack_bias / 50.0) : 1.0;
+    var p_def = (profile != undefined && variable_struct_exists(profile, "defense_bias")) ? (profile.defense_bias / 50.0) : 1.0;
 
     var currentScoreVal = SCORE_MONSTER_EXIST;
     
@@ -167,8 +172,8 @@ function AI_GetCardScore_Predicted(card) {
     // Similaire à AI_GetCardScore mais lit les stats de base
     var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     var profile = AI_Config_GetBotProfile(botID);
-    var p_atk = (profile != undefined) ? (profile.attack_bias / 50.0) : 1.0;
-    var p_def = (profile != undefined) ? (profile.defense_bias / 50.0) : 1.0;
+    var p_atk = (profile != undefined && variable_struct_exists(profile, "attack_bias")) ? (profile.attack_bias / 50.0) : 1.0;
+    var p_def = (profile != undefined && variable_struct_exists(profile, "defense_bias")) ? (profile.defense_bias / 50.0) : 1.0;
 
     var atk = (is_struct(card) && variable_struct_exists(card, "attack")) ? card.attack : (variable_instance_exists(card, "attack") ? card.attack : 0);
     var PV = (is_struct(card) && variable_struct_exists(card, "PV")) ? card.PV : (variable_instance_exists(card, "PV") ? card.PV : 0);

@@ -13,14 +13,14 @@ function AI_SelectBestMove(moves) {
     var botID = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone) ? global.selected_bot_deck_id : "Invasion_Gueule_Roche";
     var profile = AI_Config_GetBotProfile(botID);
     
-    var p_summon = (profile != undefined) ? (profile.summon_weight / 50.0) : 1.0;
-    var p_direct = (profile != undefined) ? (profile.direct_damage_bias / 50.0) : 1.0;
-    var p_removal = (profile != undefined) ? (profile.removal_weight / 50.0) : 1.0;
-    var p_sac = (profile != undefined) ? (profile.sacrifice_tolerance / 50.0) : 1.0;
-    var p_manual = (profile != undefined) ? (profile.manual_effect_weight / 50.0) : 1.0;
-    var p_continuous = (profile != undefined) ? (profile.continuous_weight / 50.0) : 1.0;
-    var p_draw = (profile != undefined) ? (profile.draw_weight / 50.0) : 1.0;
-    var p_tutor = (profile != undefined) ? (profile.tutor_weight / 50.0) : 1.0;
+    var p_summon = (profile != undefined && variable_struct_exists(profile, "summon_weight")) ? (profile.summon_weight / 50.0) : 1.0;
+    var p_direct = (profile != undefined && variable_struct_exists(profile, "direct_damage_bias")) ? (profile.direct_damage_bias / 50.0) : 1.0;
+    var p_removal = (profile != undefined && variable_struct_exists(profile, "removal_weight")) ? (profile.removal_weight / 50.0) : 1.0;
+    var p_sac = (profile != undefined && variable_struct_exists(profile, "sacrifice_tolerance")) ? (profile.sacrifice_tolerance / 50.0) : 1.0;
+    var p_manual = (profile != undefined && variable_struct_exists(profile, "manual_effect_weight")) ? (profile.manual_effect_weight / 50.0) : 1.0;
+    var p_continuous = (profile != undefined && variable_struct_exists(profile, "continuous_weight")) ? (profile.continuous_weight / 50.0) : 1.0;
+    var p_draw = (profile != undefined && variable_struct_exists(profile, "draw_weight")) ? (profile.draw_weight / 50.0) : 1.0;
+    var p_tutor = (profile != undefined && variable_struct_exists(profile, "tutor_weight")) ? (profile.tutor_weight / 50.0) : 1.0;
     var p_risk = (profile != undefined && variable_struct_exists(profile, "risk_tolerance")) ? (profile.risk_tolerance / 50.0) : 1.0;
 
     for (var i = 0; i < array_length(moves); i++) {
@@ -74,7 +74,7 @@ function AI_SelectBestMove(moves) {
                             
                             if (instance_exists(oFieldManagerEnemy)) {
                                 with (oCardParent) {
-                                    if (variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && location == "Board") {
+                                    if (variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && variable_instance_exists(id, "location") && location == "Board") {
                                         var myName = variable_instance_exists(id, "name") ? name : "";
                                         var myObjName = object_get_name(object_index);
                                         
@@ -123,7 +123,7 @@ function AI_SelectBestMove(moves) {
                     // Check if trigger card is on AI board
                     if (instance_exists(oFieldManagerEnemy)) {
                         with (oCardParent) {
-                             if (variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && location == "Board") {
+                             if (variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && variable_instance_exists(id, "location") && location == "Board") {
                                  var myName = variable_instance_exists(id, "name") ? name : "";
                                  if (string_pos(tName, myName) > 0) {
                                      triggerExists = true;
@@ -225,185 +225,284 @@ function AI_SelectBestMove(moves) {
             
             // --- CUSTOM SPELL RULES (Added for Bot 2) ---
             var spellRules = (profile != undefined && variable_struct_exists(profile, "custom_rules") && variable_struct_exists(profile.custom_rules, "spell_rules")) ? profile.custom_rules.spell_rules : undefined;
+            var rule = undefined;
+            
             if (spellRules != undefined) {
                  var cName = variable_instance_exists(move.card, "name") ? move.card.name : "";
                  var cObj = object_get_name(move.card.object_index);
-                 var rule = undefined;
                  
                  if (variable_struct_exists(spellRules, cName)) rule = variable_struct_get(spellRules, cName);
                  else if (variable_struct_exists(spellRules, cObj)) rule = variable_struct_get(spellRules, cObj);
 
                  if (rule != undefined) {
-                     // 1. Marée Déferlante: Bounce Big Threat
-                     if (rule == "bounce_big_threat" && target != noone) {
-                         var tCost = variable_instance_exists(target, "mana_cost") ? target.mana_cost : 0;
-                         var tAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
-                         var tPV = variable_instance_exists(target, "PV") ? target.PV : 0;
-                         
-                         // Cible idéale : Coût élevé ou Stats élevées
-                         if (tCost >= 4 || tAtk >= 4 || tPV >= 5) {
-                             moveScoreVal += 800; 
-                         } else if (tCost <= 2) {
-                             moveScoreVal -= 200; // Gâchis sur petite cible (sauf si létal/urgence, mais ici règle stricte)
-                         }
-                     }
-                     
-                     // 2. Protection Marée: Buff if 3+ Abyssien
-                     else if (rule == "buff_if_3_abyssien") {
-                         var count = 0;
-                         if (instance_exists(oFieldMonsterEnemy)) {
-                             with(oCardParent) {
-                                 if (variable_instance_exists(id, "location") && location == "Board" && 
-                                     variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && 
-                                     variable_instance_exists(id, "name") && string_pos("Abyssien", name) > 0) {
-                                     count++;
-                                 }
-                             }
-                         }
-                         if (count >= 3) moveScoreVal += 800; // Huge Value
-                         else moveScoreVal -= 500; // Wait for better board
-                     }
-                     
-                     // 3. Hurlement Tribu: Sacrifier Coureur si 2+ alliés
-                     else if (rule == "sac_coureur_buff_2" && target != noone) {
-                         var tName = variable_instance_exists(target, "name") ? target.name : "";
-                         // On veut sacrifier un Coureur (token 1/1)
-                         if (string_pos("Coureur", tName) > 0) {
-                             // Compter les AUTRES alliés qui bénéficieront du buff
+                     // 1. Marée Déferlante: Bounce Dangerous Threat
+                    if (rule == "bounce_big_threat" && target != noone) {
+                        var tAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
+                        var tPV = variable_instance_exists(target, "PV") ? target.PV : 0;
+                        var hasTaunt = (variable_instance_exists(target, "has_taunt") && target.has_taunt);
+                        
+                        // Définition de "Dangereux"
+                        var isLethalThreat = (tAtk >= 4 || hasTaunt); // Menace majeure
+                        var isMinorThreat = (tAtk >= 2);              // Menace mineure
+                        
+                        if (isLethalThreat) {
+                            moveScoreVal += 1500; // Priorité élevée mais permet de jouer un gros monstre si mieux
+                        } else if (isMinorThreat) {
+                            moveScoreVal += 600;  // Bon coup, mais moins prioritaire qu'un monstre (Score ~1000)
+                        } else {
+                            moveScoreVal -= 200;  // Inutile sur cible inoffensive
+                        }
+                    }
+                    
+                    // 2. Protection Marée: Buff if 2+ Abyssien
+                    else if (rule == "buff_if_3_abyssien") {
+                        var count = 0;
+                        if (instance_exists(oFieldMonsterEnemy)) {
+                            with(oCardParent) {
+                                if (variable_instance_exists(id, "location") && location == "Board" && 
+                                    variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && 
+                                    variable_instance_exists(id, "name") && string_pos("Abyssien", name) > 0) {
+                                    count++;
+                                }
+                            }
+                        }
+                        
+                        // Scaling dynamique : Plus on touche de cibles, plus c'est fort
+                        if (count >= 2) {
+                             moveScoreVal += 400 * count; // 2 cibles = 800, 3 cibles = 1200
+                        } else {
+                             moveScoreVal -= 500;
+                        }
+                    }
+                    
+                    // 3. Hurlement Tribu: Sacrifier faible/Abyssien pour booster
+                    else if (rule == "sac_coureur_buff_2" && target != noone) {
+                        var tName = variable_instance_exists(target, "name") ? target.name : "";
+                        var tAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
+                        var tHP = variable_instance_exists(target, "current_hp") ? target.current_hp : (variable_instance_exists(target, "PV") ? target.PV : 0);
+                        
+                        var isWeak = (tAtk <= 2 || tHP <= 2);
+                        var isAbyssien = (string_pos("Abyssien", tName) > 0 || string_pos("Coureur", tName) > 0);
+                        
+                        if (isWeak || isAbyssien) {
                              var otherAllies = 0;
                              if (instance_exists(oFieldMonsterEnemy)) {
-                                 var cards = oFieldMonsterEnemy.cards;
-                                 for(var k=0; k<array_length(cards); k++) {
-                                     if (cards[k] != 0 && instance_exists(cards[k]) && cards[k] != target) otherAllies++;
-                                 }
+                                var cards = oFieldMonsterEnemy.cards;
+                                for(var k=0; k<array_length(cards); k++) {
+                                    if (cards[k] != 0 && instance_exists(cards[k]) && cards[k] != target) otherAllies++;
+                                }
                              }
                              
-                             if (otherAllies >= 2) moveScoreVal += 800;
-                             else moveScoreVal -= 200; // Pas assez de cibles pour rentabiliser le sacrifice
-                         } else {
-                             moveScoreVal -= 1000; // Ne pas sacrifier autre chose (sauf urgence non gérée ici)
-                         }
-                     }
-                     
-                     // 4. Ferveur Marais: Summon if 3 slots
-                     else if (rule == "summon_if_3_slots") {
-                         var freeSlots = 0;
-                         if (instance_exists(oFieldMonsterEnemy)) {
-                              var cards = oFieldMonsterEnemy.cards;
-                              for(var k=0; k<array_length(cards); k++) {
-                                  if (cards[k] == 0) freeSlots++;
-                              }
-                         }
-                         
-                         if (freeSlots >= 3) moveScoreVal += 800; // Max Value
-                         else moveScoreVal -= 500; // Manque de place
-                     }
-                 }
-            }
-            switch (effectType) {
-                case "search_deck":
-                    moveScoreVal = 100 * p_tutor;
-                    break;
-
-                case "pillage":
-                    // Voler des cartes (Hand ou Deck)
-                    // "Voler un maximum de carte a l'adversaire"
-                    moveScoreVal = 300 * p_manual; // Score de base très élevé
-                    
-                    // Si on peut voler, on le fait !
-                    // On pourrait vérifier s'il reste des cartes dans le deck/main adverse,
-                    // mais pour l'instant on suppose que c'est toujours bon sauf fin de partie.
-                    break;
-
-                case "draw_cards":
-                    // Piocher est toujours bon, surtout si main vide
-                    moveScoreVal = 100 * p_draw; 
-                    break;
-                
-                case "destroy_target":
-                case "banish_target":
-                case "return_to_hand":
-                case "entrave":
-                case "damage_target":
-                    if (target != noone) {
-                        var targetVal = AI_GetCardScore(target);
-                        var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
-                        var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
-                        var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
-                        
-                        if (isAlly) {
-                            moveScoreVal = -targetVal * 2; // Penalize targeting ally
+                             if (otherAllies >= 1) moveScoreVal += 800; // Bon coup tactique
+                             else moveScoreVal -= 200;
                         } else {
-                            // On veut détruire les grosses menaces adverses
-                            moveScoreVal = targetVal * p_removal;
+                            moveScoreVal -= 500;
                         }
                     }
-                    break;
                     
-                case "buff":
-                case "set_attack":
-                case "equip_select_target":
-                    if (target != noone) {
-                        var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
-                        var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
-                        var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
-                        
-                        if (isAlly) {
-                            // On veut buffer nos propres monstres forts ou ceux qui vont attaquer
-                            var targetAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
-                            var canAttack = (variable_instance_exists(target, "orientation") && target.orientation == "Attack");
-                            
-                            moveScoreVal = 50 + (targetAtk * 0.5);
-                            if (canAttack) moveScoreVal += 200 * p_direct; // Bonus si agressif
-                        } else {
-                            // Ne pas buffer l'ennemi
-                            moveScoreVal = -100;
+                    // 4. Ferveur Marais: Summon if 2 slots
+                    else if (rule == "summon_if_3_slots") {
+                        var freeSlots = 0;
+                        if (instance_exists(oFieldMonsterEnemy)) {
+                             var cards = oFieldMonsterEnemy.cards;
+                             for(var k=0; k<array_length(cards); k++) {
+                                 if (cards[k] == 0) freeSlots++;
+                             }
                         }
-                    }
-                    break;
-                    
-                case "heal_target":
-                    if (target != noone) {
-                        var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
-                        var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
-                        var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
                         
-                        if (isAlly) {
-                            var maxHP = variable_instance_exists(target, "max_hp") ? target.max_hp : 0;
-                            var curHP = variable_instance_exists(target, "current_hp") ? target.current_hp : 0;
-                            var damageTaken = maxHP - curHP;
+                        if (freeSlots >= 2) moveScoreVal += 900; // Comparable à une invocation de monstre
+                        else moveScoreVal -= 500; 
+                    }
+
+                    // --- BOT 3 RULES (Bandit) ---
+
+                    // 5. Brume de la Foret: Buff non-camo, bonus if other camo exists
+                    else if (rule == "buff_if_no_camo_bonus_combo" && target != noone) {
+                        var tIsCamo = (variable_instance_exists(target, "isCamouflage") && target.isCamouflage) || (variable_instance_exists(target, "effects_text") && string_pos("Camouflage", target.effects_text) > 0);
+                        
+                        if (!tIsCamo) {
+                            moveScoreVal += 300; // Base score for buffing non-camo (gives camo)
                             
-                            if (damageTaken > 0) {
-                                moveScoreVal = damageTaken * 2; // 1 PV soigné = 2 points
-                            } else {
-                                moveScoreVal = -100; // Inutile de soigner si full vie
+                            // Check for Combo (another camo unit on board)
+                            var hasOtherCamo = false;
+                            if (instance_exists(oFieldMonsterEnemy)) {
+                                with(oCardParent) {
+                                    if (variable_instance_exists(id, "location") && location == "Board" && 
+                                        variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && 
+                                        id != target) {
+                                        
+                                        var myCamo = (variable_instance_exists(id, "isCamouflage") && id.isCamouflage) || (variable_instance_exists(id, "effects_text") && string_pos("Camouflage", id.effects_text) > 0);
+                                        if (myCamo) {
+                                            hasOtherCamo = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (hasOtherCamo) {
+                                moveScoreVal += 500; // Combo activated! Destroy random enemy is huge.
                             }
                         } else {
-                            moveScoreVal = -200; // Ne pas soigner l'ennemi
+                            moveScoreVal -= 200; // Do not use on already camouflaged unit (waste of effect)
                         }
                     }
-                    break;
-                    
-                case "destroy_all":
-                    // Destruction de masse (Dark Hole)
-                    // Score = (Valeur Totale Ennemis) - (Valeur Totale Alliés)
-                    var valEnemies = 0;
-                    var valAllies = 0;
-                    
-                    if (instance_exists(oFieldMonsterHero)) {
-                        var enemies = oFieldMonsterHero.cards;
-                        for (var e = 0; e < array_length(enemies); e++) valEnemies += AI_GetCardScore(enemies[e]);
+
+                    // 6. Cape d'ombre: Buff non-camo
+                    else if (rule == "buff_if_no_camo" && target != noone) {
+                        var tIsCamo = (variable_instance_exists(target, "isCamouflage") && target.isCamouflage) || (variable_instance_exists(target, "effects_text") && string_pos("Camouflage", target.effects_text) > 0);
+                        
+                        if (!tIsCamo) {
+                            moveScoreVal += 400; // Good buff (+4/+4 + Camo)
+                        } else {
+                            moveScoreVal -= 100; // Less value if already camo, but stats are still good so not huge penalty
+                        }
                     }
-                    if (instance_exists(oFieldMonsterEnemy)) {
-                        var allies = oFieldMonsterEnemy.cards;
-                        for (var a = 0; a < array_length(allies); a++) valAllies += AI_GetCardScore(allies[a]);
+
+                    // 7. Camouflage Strategique: Must target camo
+                    else if (rule == "buff_if_camo" && target != noone) {
+                        var tIsCamo = (variable_instance_exists(target, "isCamouflage") && target.isCamouflage) || (variable_instance_exists(target, "effects_text") && string_pos("Camouflage", target.effects_text) > 0);
+                        
+                        if (tIsCamo) {
+                            moveScoreVal += 400; // Keeps camo + stats -> Good
+                        } else {
+                            moveScoreVal -= 500; // Rules say MUST target camo
+                        }
                     }
+
+                    // 8. Attaque Furtive: Bonus damage if camo exists
+                    else if (rule == "damage_bonus_if_camo") {
+                         var hasCamo = false;
+                         if (instance_exists(oFieldMonsterEnemy)) {
+                            with(oCardParent) {
+                                if (variable_instance_exists(id, "location") && location == "Board" && 
+                                    variable_instance_exists(id, "isHeroOwner") && !isHeroOwner) {
+                                    
+                                    var myCamo = (variable_instance_exists(id, "isCamouflage") && id.isCamouflage) || (variable_instance_exists(id, "effects_text") && string_pos("Camouflage", id.effects_text) > 0);
+                                    if (myCamo) {
+                                        hasCamo = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (hasCamo) {
+                            moveScoreVal += 400; // 4 damage for 1 mana is huge value
+                        } else {
+                            moveScoreVal += 100; // 2 damage is okay but less priority
+                        }
+                    }
+                 }
+            }
+            // Si une règle personnalisée existe, on l'utilise et on ignore la logique standard
+            // Sinon, la logique standard écraserait le score personnalisé
+            if (rule == undefined) {
+                switch (effectType) {
+                    case "search_deck":
+                        moveScoreVal = 100 * p_tutor;
+                        break;
+
+                    case "pillage":
+                        // Voler des cartes (Hand ou Deck)
+                        // "Voler un maximum de carte a l'adversaire"
+                        moveScoreVal = 300 * p_manual; // Score de base très élevé
+                        
+                        // Si on peut voler, on le fait !
+                        // On pourrait vérifier s'il reste des cartes dans le deck/main adverse,
+                        // mais pour l'instant on suppose que c'est toujours bon sauf fin de partie.
+                        break;
+
+                    case "draw_cards":
+                        // Piocher est toujours bon, surtout si main vide
+                        moveScoreVal = 100 * p_draw; 
+                        break;
                     
-                    moveScoreVal = (valEnemies - valAllies) * p_removal;
-                    break;
-                    
-                default:
-                    moveScoreVal = 20; // Valeur par défaut faible pour tester
+                    case "destroy_target":
+                    case "banish_target":
+                    case "return_to_hand":
+                    case "entrave":
+                    case "damage_target":
+                        if (target != noone) {
+                            var targetVal = AI_GetCardScore(target);
+                            var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
+                            var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
+                            var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
+                            
+                            if (isAlly) {
+                                moveScoreVal = -targetVal * 2; // Penalize targeting ally
+                            } else {
+                                // On veut détruire les grosses menaces adverses
+                                moveScoreVal = targetVal * p_removal;
+                            }
+                        }
+                        break;
+                        
+                    case "buff":
+                    case "set_attack":
+                    case "equip_select_target":
+                        if (target != noone) {
+                            var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
+                            var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
+                            var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
+                            
+                            if (isAlly) {
+                                // On veut buffer nos propres monstres forts ou ceux qui vont attaquer
+                                var targetAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
+                                var canAttack = (variable_instance_exists(target, "orientation") && target.orientation == "Attack");
+                                
+                                moveScoreVal = 50 + (targetAtk * 0.5);
+                                if (canAttack) moveScoreVal += 200 * p_direct; // Bonus si agressif
+                            } else {
+                                // Ne pas buffer l'ennemi
+                                moveScoreVal = -100;
+                            }
+                        }
+                        break;
+                        
+                    case "heal_target":
+                        if (target != noone) {
+                            var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
+                            var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
+                            var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
+                            
+                            if (isAlly) {
+                                var maxHP = variable_instance_exists(target, "max_hp") ? target.max_hp : 0;
+                                var curHP = variable_instance_exists(target, "current_hp") ? target.current_hp : 0;
+                                var damageTaken = maxHP - curHP;
+                                
+                                if (damageTaken > 0) {
+                                    moveScoreVal = damageTaken * 2; // 1 PV soigné = 2 points
+                                } else {
+                                    moveScoreVal = -100; // Inutile de soigner si full vie
+                                }
+                            } else {
+                                moveScoreVal = -200; // Ne pas soigner l'ennemi
+                            }
+                        }
+                        break;
+                        
+                    case "destroy_all":
+                        // Destruction de masse (Dark Hole)
+                        // Score = (Valeur Totale Ennemis) - (Valeur Totale Alliés)
+                        var valEnemies = 0;
+                        var valAllies = 0;
+                        
+                        if (instance_exists(oFieldMonsterHero)) {
+                            var enemies = oFieldMonsterHero.cards;
+                            for (var e = 0; e < array_length(enemies); e++) valEnemies += AI_GetCardScore(enemies[e]);
+                        }
+                        if (instance_exists(oFieldMonsterEnemy)) {
+                            var allies = oFieldMonsterEnemy.cards;
+                            for (var a = 0; a < array_length(allies); a++) valAllies += AI_GetCardScore(allies[a]);
+                        }
+                        
+                        moveScoreVal = (valEnemies - valAllies) * p_removal;
+                        break;
+                        
+                    default:
+                        moveScoreVal = 20; // Valeur par défaut faible pour tester
+                }
             }
             
             // --- BONUS MANUAL EFFECT ---
@@ -524,6 +623,20 @@ function AI_SelectBestMove(moves) {
                 var enemyHasPoison = (variable_instance_exists(target, "effects_text") && string_pos("Poison", target.effects_text) > 0);
                 if (myHasPoison) enemyDies = true;
                 if (enemyHasPoison) iDie = true;
+                
+                // --- CUSTOM: Poison Sacrifice Logic (Bot 3) ---
+                if (customRules != undefined && variable_struct_exists(customRules, "poison_sacrifice_logic") && customRules.poison_sacrifice_logic) {
+                    if (myHasPoison && enemyDies) {
+                         var tAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
+                         var tHP = variable_instance_exists(target, "current_hp") ? target.current_hp : (variable_instance_exists(target, "PV") ? target.PV : 0);
+                         
+                         // Target is "Strong" (Worth sacrificing for)
+                         // Example: 4+ ATK or 5+ HP
+                         if (tAtk >= 4 || tHP >= 5) {
+                             moveScoreVal += 1000; // HUGE BONUS to ensure trade
+                         }
+                    }
+                }
                 
                 // --- SMART TRADE SCORING ---
                 

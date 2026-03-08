@@ -18,9 +18,24 @@ draw_text(x + width/2, y + 60, text);
 
 // --- VS Display ---
 var hero_name = "Deck Héros";
-if (variable_global_exists("selected_player_deck") && is_struct(global.selected_player_deck)) {
-    if (variable_struct_exists(global.selected_player_deck, "name")) {
-        hero_name = global.selected_player_deck.name;
+
+// Determine hero name based on selection mode
+if (variable_instance_exists(id, "use_custom_deck") && use_custom_deck) {
+    if (variable_global_exists("saved_decks") && array_length(global.saved_decks) > 0) {
+        // Ensure index is valid
+        if (selected_custom_deck_index >= array_length(global.saved_decks)) selected_custom_deck_index = 0;
+        
+        var deck = global.saved_decks[selected_custom_deck_index];
+        if (variable_struct_exists(deck, "name")) hero_name = deck.name;
+    } else {
+        hero_name = "Aucun deck";
+    }
+} else {
+    // Default Scenario Deck
+    if (variable_global_exists("selected_player_deck") && is_struct(global.selected_player_deck)) {
+        if (variable_struct_exists(global.selected_player_deck, "name")) {
+            hero_name = global.selected_player_deck.name;
+        }
     }
 }
 
@@ -33,6 +48,44 @@ draw_set_color(c_yellow);
 draw_text(x + width/2, y + 90, hero_name + " VS " + bot_name);
 draw_set_color(c_white);
 // ------------------
+
+// --- Custom Deck UI ---
+if (variable_instance_exists(id, "checkbox_x")) {
+    // Checkbox
+    var cb_hover = (mouse_x >= checkbox_x && mouse_x <= checkbox_x + checkbox_size + 200 && mouse_y >= checkbox_y && mouse_y <= checkbox_y + checkbox_size);
+    
+    draw_set_color(cb_hover ? c_ltgray : c_white);
+    draw_rectangle(checkbox_x, checkbox_y, checkbox_x + checkbox_size, checkbox_y + checkbox_size, true);
+    
+    if (use_custom_deck) {
+        // Draw Checkmark (X)
+        draw_line(checkbox_x + 4, checkbox_y + 4, checkbox_x + checkbox_size - 4, checkbox_y + checkbox_size - 4);
+        draw_line(checkbox_x + checkbox_size - 4, checkbox_y + 4, checkbox_x + 4, checkbox_y + checkbox_size - 4);
+    }
+    
+    draw_set_halign(fa_left);
+    draw_text(checkbox_x + checkbox_size + 10, checkbox_y + checkbox_size/2, "Utiliser un deck perso");
+    draw_set_halign(fa_center);
+    
+    // Selector
+    if (use_custom_deck) {
+        var deck_display = "Aucun deck";
+        if (variable_global_exists("saved_decks") && array_length(global.saved_decks) > 0) {
+             var deck = global.saved_decks[selected_custom_deck_index];
+             if (variable_struct_exists(deck, "name")) deck_display = deck.name;
+        }
+        
+        // Draw Arrows
+        var sel_y_center = selector_y + selector_h/2;
+        draw_text(selector_x - 100, sel_y_center, "<");
+        draw_text(selector_x + 100, sel_y_center, ">");
+        
+        draw_set_color(c_aqua);
+        draw_text(selector_x, sel_y_center, deck_display);
+        draw_set_color(c_white);
+    }
+}
+// ----------------------
 
 // Draw Button
 var mx = mouse_x;

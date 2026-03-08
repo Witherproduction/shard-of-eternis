@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"Jame Calamité",
-    "path":"folders/Sprites/Histoire/Chapitre 1/personnage/Jame Calamité.yy",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte2/Jame Calamité.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

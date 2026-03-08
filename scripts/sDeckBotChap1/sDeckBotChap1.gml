@@ -153,7 +153,6 @@ function get_bot_decks_chap1() {
                 custom_rules: {
                     prioritize_card_name: ["James la Calamité", "Morgane la Venimeuse"], // Priorité #1
                     protect_card: "James la Calamité", // Ne jamais attaquer avec cette carte
-                    // stealth_lethal_only: true, // RETIRÉ: Les furtifs peuvent attaquer normalement
                     
                     // Placement : James au fond pour le protéger
                     placement_priority: {
@@ -161,7 +160,17 @@ function get_bot_decks_chap1() {
                         "oMorganeVenimeuse": "back",
                         "oGobelinFurtif": "front", // Ecran de fumée
                         "oVideGousset": "front"
-                    }
+                    },
+                    
+                    // Règles de Sorts
+                    spell_rules: {
+                        "oBrumeForet": "buff_if_no_camo_bonus_combo",
+                        "oCapeOmbre": "buff_if_no_camo",
+                        "oCamouflageStrategique": "buff_if_camo",
+                        "oAttaqueFurtive": "damage_bonus_if_camo"
+                    },
+                    
+                    poison_sacrifice_logic: true
                 }
             },
             deck_name: "Bandit de Grand Chemin",

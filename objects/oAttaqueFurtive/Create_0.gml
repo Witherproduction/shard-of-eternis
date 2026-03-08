@@ -1,15 +1,16 @@
-﻿event_inherited();
+event_inherited();
 race = "Ombre";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Attaque furtive"
 genre = "Sort"
-race = "Ombre";tags = ["Ombre", "Sort", "Combo"];
+race = "Ombre";
+tags = ["Ombre", "Sort", "Combo"];
 rarity = "epique"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Combo : camouflage\nInflige 2 dégâts. Si vous contrôlez un serviteur avec Camouflage, inflige 4 dégâts à la place."
+description = "Inflige 2 dégâts. Combo (camouflage) : inflige 4 dégâts à la place."
 mana_cost = 1;
 
 // L'élément détermine l'animation (ex: "Ombre" pour sBouleOmbre)

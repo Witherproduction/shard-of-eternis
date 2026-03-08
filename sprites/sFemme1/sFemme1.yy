@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"Femme",
-    "path":"folders/Sprites/Histoire/Chapitre 1/personnage/Femme.yy",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte1/Femme.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

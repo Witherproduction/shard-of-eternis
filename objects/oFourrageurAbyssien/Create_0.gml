@@ -1,4 +1,4 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Fourrageur Abyssien"
@@ -11,7 +11,7 @@ booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque un 'Courreur Abyssien'."
+description = "Eveil : Invoque un 'Courreur Abyssien'à coté de lui."
 effects = [
     {
         id: 1,

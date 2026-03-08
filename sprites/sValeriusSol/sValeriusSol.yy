@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"Valerius",
-    "path":"folders/Sprites/Histoire/Chapitre 1/personnage/Valerius.yy",
+    "path":"folders/Sprites/Histoire/Chapitre 1/Valerius.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

@@ -1,4 +1,4 @@
-﻿/// Utilitaires d’agrégation de buffs pour éviter les écrasements
+/// Utilitaires d’agrégation de buffs pour éviter les écrasements
 
 function buffEnsure(target) {
     if (target == noone || !instance_exists(target)) return false;
@@ -6,10 +6,10 @@ function buffEnsure(target) {
         target.buff_contribs = [];
     }
     if (!variable_instance_exists(target, "effective_attack")) {
-        target.effective_attack = target.attack;
+        target.effective_attack = variable_instance_exists(target, "attack") ? target.attack : 0;
     }
     if (!variable_instance_exists(target, "effective_defense")) {
-        target.effective_defense = target.PV;
+        target.effective_defense = variable_instance_exists(target, "PV") ? target.PV : 0;
     }
     return true;
 }
@@ -65,7 +65,10 @@ function buffRecompute(target) {
     var tempAtk = variable_instance_exists(target, "temp_attack") ? target.temp_attack : 0;
     var tempDef = variable_instance_exists(target, "temp_defense") ? target.temp_defense : 0;
     
-    target.effective_attack = max(0, target.attack + totalAtk + tempAtk);
-    target.effective_defense = max(0, target.PV + totalDef + tempDef);
+    var baseAtk = variable_instance_exists(target, "attack") ? target.attack : 0;
+    var basePV = variable_instance_exists(target, "PV") ? target.PV : 0;
+    
+    target.effective_attack = max(0, baseAtk + totalAtk + tempAtk);
+    target.effective_defense = max(0, basePV + totalDef + tempDef);
     return true;
 }
