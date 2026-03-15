@@ -1,1470 +1,1470 @@
-﻿﻿{
-    "save_date":  46082.489496527778,
-    "cards_database":  {
-                           "maree_deferlante":  {
-                                                    "type":  "Magic",
-                                                    "mana_cost":  2.0,
-                                                    "genre":  "",
-                                                    "attack":  0.0,
-                                                    "name":  "MarÃ©e dÃ©ferlante",
-                                                    "rarity":  "commun",
-                                                    "race":  "Eau",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "Renvoyez un serviteur adverse dans la main de son propriÃ©taire.",
-                                                    "tags":  [
-                                                                 "Eau",
-                                                                 "Sort"
-                                                             ],
-                                                    "id":  "maree_deferlante",
-                                                    "sprite":  "sMareeDeferlante",
-                                                    "objectId":  "oMareeDeferlante",
-                                                    "PV":  0.0
-                                                },
-                           "piege_ronce":  {
-                                               "type":  "Magic",
-                                               "mana_cost":  2.0,
-                                               "genre":  "",
-                                               "attack":  0.0,
-                                               "name":  "PiÃ¨ge de ronce",
-                                               "rarity":  "epique",
-                                               "race":  "Nature",
-                                               "booster":  "Retour des Archontes",
-                                               "description":  "Secret : Quand un ennemi vous attaque, Inflige 2 dÃ©gats Ã  tous les adversaires.",
-                                               "tags":  [
-                                                            "Sort",
-                                                            "Secret",
-                                                            "Nature"
-                                                        ],
-                                               "id":  "piege_ronce",
-                                               "sprite":  "sPiegeRonce",
-                                               "objectId":  "oPiegeRonce",
-                                               "PV":  0.0
-                                           },
-                           "piege_voleur":  {
-                                                "type":  "Magic",
-                                                "mana_cost":  2.0,
-                                                "genre":  "",
-                                                "attack":  0.0,
-                                                "name":  "PiÃ¨ge du voleur",
-                                                "rarity":  "rare",
-                                                "race":  "Nature",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Secret : Lorsque votre adversaire invoque un serviteur, l\u0027entrave et rÃ©duit son ATK de 2.",
-                                                "tags":  [
-                                                             "Sort",
-                                                             "Secret",
-                                                             "Entrave"
-                                                         ],
-                                                "id":  "piege_voleur",
-                                                "sprite":  "sPiegeVoleur",
-                                                "objectId":  "oPiegeVoleur",
-                                                "PV":  0.0
-                                            },
-                           "protection_maree":  {
-                                                    "type":  "Magic",
-                                                    "mana_cost":  2.0,
-                                                    "genre":  "",
-                                                    "attack":  0.0,
-                                                    "name":  "Protection de la marÃ©e",
-                                                    "rarity":  "commun",
-                                                    "race":  "Eau",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "Donne +2 PV Ã  tous les Abyssiens sur votre terrain.",
-                                                    "tags":  [
-                                                                 "Sort",
-                                                                 "Eau",
-                                                                 "Abyssien"
-                                                             ],
-                                                    "id":  "protection_maree",
-                                                    "sprite":  "sProtectionMaree",
-                                                    "objectId":  "oProtectionMaree",
-                                                    "PV":  0.0
-                                                },
-                           "racine_envahissante":  {
-                                                       "type":  "Magic",
-                                                       "mana_cost":  3.0,
-                                                       "genre":  "",
-                                                       "attack":  0.0,
-                                                       "name":  "Racine envahissante",
-                                                       "rarity":  "epique",
-                                                       "race":  "Nature",
-                                                       "booster":  "Retour des Archontes",
-                                                       "description":  "Entrave tous les serviteurs adverses.",
-                                                       "tags":  [
-                                                                    "Sort",
-                                                                    "Nature",
-                                                                    "Entrave"
-                                                                ],
-                                                       "id":  "racine_envahissante",
-                                                       "sprite":  "sRacineEnvahissante",
-                                                       "objectId":  "oRacineEnvahissante",
-                                                       "PV":  0.0
-                                                   },
-                           "rugissement_foret":  {
-                                                     "type":  "Magic",
-                                                     "mana_cost":  2.0,
-                                                     "genre":  "",
-                                                     "attack":  0.0,
-                                                     "name":  "Rugissement de la forÃªt",
-                                                     "rarity":  "commun",
-                                                     "race":  "Nature",
-                                                     "booster":  "Retour des Archontes",
-                                                     "description":  "Donne +2 PV Ã  toutes les BÃªtes.",
-                                                     "tags":  [
-                                                                  "Sort",
-                                                                  "Nature"
-                                                              ],
-                                                     "id":  "rugissement_foret",
-                                                     "sprite":  "sRugissementForet",
-                                                     "objectId":  "oRugissementForet",
-                                                     "PV":  0.0
-                                                 },
-                           "saut_predateur":  {
-                                                  "type":  "Magic",
-                                                  "mana_cost":  2.0,
-                                                  "genre":  "",
-                                                  "attack":  0.0,
-                                                  "name":  "Saut du prÃ©dateur",
-                                                  "rarity":  "commun",
-                                                  "race":  "Nature",
-                                                  "booster":  "Retour des Archontes",
-                                                  "description":  "Inflige des dÃ©gÃ¢ts Ã©gaux Ã  l\u0027attaque de votre BÃªte la plus puissante Ã  serviteur adverse.",
-                                                  "tags":  [
-                                                               "Sort",
-                                                               "Nature"
-                                                           ],
-                                                  "id":  "saut_predateur",
-                                                  "sprite":  "sSautPredateur",
-                                                  "objectId":  "oSautPredateur",
-                                                  "PV":  0.0
-                                              },
-                           "sournoiserie":  {
-                                                "type":  "Magic",
-                                                "mana_cost":  2.0,
-                                                "genre":  "",
-                                                "attack":  0.0,
-                                                "name":  "Sournoiserie",
-                                                "rarity":  "rare",
-                                                "race":  "Ombre",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Inflige 2 dÃ©gÃ¢ts Ã  un serviteur ennemi et l\u0027entrave.",
-                                                "tags":  [
-                                                             "Sort",
-                                                             "Ombre",
-                                                             "Entrave"
-                                                         ],
-                                                "id":  "sournoiserie",
-                                                "sprite":  "sSournoiserie",
-                                                "objectId":  "oSournoiserie",
-                                                "PV":  0.0
-                                            },
-                           "araignee_forestiere":  {
-                                                       "type":  "Monster",
-                                                       "mana_cost":  1.0,
-                                                       "genre":  "BÃªte",
-                                                       "attack":  2.0,
-                                                       "name":  "AraignÃ©e forestiÃ¨re",
-                                                       "rarity":  "commun",
-                                                       "race":  "AraignÃ©e",
-                                                       "booster":  "Retour des Archontes",
-                                                       "description":  "A peine sortie de l\u0027oeuf qu\u0027elle est dÃ©ja venimeuse",
-                                                       "tags":  [
-                                                                    "BÃªte",
-                                                                    "AraignÃ©e"
-                                                                ],
-                                                       "id":  "araignee_forestiere",
-                                                       "sprite":  "sAraigneeForestiere",
-                                                       "objectId":  "oAraigneeForestiere",
-                                                       "PV":  1.0
-                                                   },
-                           "bandit_guerrier":  {
-                                                   "type":  "Monster",
-                                                   "mana_cost":  4.0,
-                                                   "genre":  "HumanoÃ¯de",
-                                                   "attack":  3.0,
-                                                   "name":  "Bandit guerrier",
-                                                   "rarity":  "rare",
-                                                   "race":  "Humain",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "Eveil : Invoque un bandit Ã  ses cotÃ©s.",
-                                                   "tags":  [
-                                                                "HumanoÃ¯de",
-                                                                "Humain",
-                                                                "Eveil"
-                                                            ],
-                                                   "id":  "bandit_guerrier",
-                                                   "sprite":  "sBanditGuerrier",
-                                                   "objectId":  "oBanditGuerrier",
-                                                   "PV":  2.0
-                                               },
-                           "bougimencien_tunnelin":  {
-                                                         "type":  "Monster",
-                                                         "mana_cost":  2.0,
-                                                         "genre":  "HumanoÃ¯de",
-                                                         "attack":  2.0,
-                                                         "name":  "Bougimencien Tunnelin",
-                                                         "rarity":  "rare",
-                                                         "race":  "Tunnelin",
-                                                         "booster":  "Retour des Archontes",
-                                                         "description":  "Eveil :Entrave un serviteur adverse.",
-                                                         "tags":  [
-                                                                      "Tunnelin",
-                                                                      "Eveil",
-                                                                      "Entrave",
-                                                                      "HumanoÃ¯de"
-                                                                  ],
-                                                         "id":  "bougimencien_tunnelin",
-                                                         "sprite":  "sBougimencienTunnelin",
-                                                         "objectId":  "oBougimencienTunnelin",
-                                                         "PV":  1.0
-                                                     },
-                           "catherine_fumerol":  {
-                                                     "type":  "Monster",
-                                                     "mana_cost":  3.0,
-                                                     "genre":  "HumanoÃ¯de",
-                                                     "attack":  3.0,
-                                                     "name":  "Catherine Fumerol",
-                                                     "rarity":  "legendaire",
-                                                     "race":  "Humain",
-                                                     "booster":  "Retour des Archontes",
-                                                     "description":  "Crepuscule : Inflige 3 dÃ©gÃ¢ts Ã  votre adversaire.",
-                                                     "tags":  [
-                                                                  "Humain",
-                                                                  "HumanoÃ¯de",
-                                                                  "Crepuscule"
-                                                              ],
-                                                     "id":  "catherine_fumerol",
-                                                     "sprite":  "sCatherineFumerol",
-                                                     "objectId":  "oCatherineFumerol",
-                                                     "PV":  2.0
-                                                 },
-                           "coureur_abyssien":  {
-                                                    "type":  "Monster",
-                                                    "mana_cost":  0.0,
-                                                    "genre":  "HumanoÃ¯de",
-                                                    "attack":  1.0,
-                                                    "name":  "Coureur Abyssien",
-                                                    "rarity":  "commun",
-                                                    "race":  "Abyssien",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "Une crÃ©ature violente qui aime vivre en groupe prÃ¨s des milieux aquatique",
-                                                    "tags":  [
-                                                                 "Abyssien",
-                                                                 "HumanoÃ¯de"
-                                                             ],
-                                                    "id":  "coureur_abyssien",
-                                                    "sprite":  "sCoureurAbyssien",
-                                                    "objectId":  "oCoureurAbyssien",
-                                                    "PV":  1.0
-                                                },
-                           "envahisseur_geule_roche":  {
-                                                           "type":  "Monster",
-                                                           "mana_cost":  5.0,
-                                                           "genre":  "HumanoÃ¯de",
-                                                           "attack":  4.0,
-                                                           "name":  "Envahisseur Geule-Roche",
-                                                           "rarity":  "commun",
-                                                           "race":  "Orc",
-                                                           "booster":  "Retour des Archontes",
-                                                           "description":  "Eveil : Ajoute un Loup de guerre Geule-Roche",
-                                                           "tags":  [
-                                                                        "HumanoÃ¯de",
-                                                                        "Orc",
-                                                                        "Eveil"
-                                                                    ],
-                                                           "id":  "envahisseur_geule_roche",
-                                                           "sprite":  "sEnvahisseurGueuleRoche",
-                                                           "objectId":  "oEnvahisseurGueuleRoche",
-                                                           "PV":  5.0
-                                                       },
-                           "estafette_skarl":  {
-                                                   "type":  "Monster",
-                                                   "mana_cost":  3.0,
-                                                   "genre":  "HumanoÃ¯de",
-                                                   "attack":  4.0,
-                                                   "name":  "Estafette Skarl",
-                                                   "rarity":  "rare",
-                                                   "race":  "Skarl",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "Ambidextrie",
-                                                   "tags":  [
-                                                                "Skarl",
-                                                                "HumanoÃ¯de",
-                                                                "Ambidextrie"
-                                                            ],
-                                                   "id":  "estafette_skarl",
-                                                   "sprite":  "sEstafetteSkarl",
-                                                   "objectId":  "oEstafetteSkarl",
-                                                   "PV":  2.0
-                                               },
-                           "fourrageur_abyssien":  {
-                                                       "type":  "Monster",
-                                                       "mana_cost":  2.0,
-                                                       "genre":  "HumanoÃ¯de",
-                                                       "attack":  2.0,
-                                                       "name":  "Fourrageur Abyssien",
-                                                       "rarity":  "commun",
-                                                       "race":  "Abyssien",
-                                                       "booster":  "Retour des Archontes",
-                                                       "description":  "Eveil : Invoque un \u0027Courreur Abyssien\u0027.",
-                                                       "tags":  [
-                                                                    "HumanoÃ¯de",
-                                                                    "Abyssien",
-                                                                    "Eveil"
-                                                                ],
-                                                       "id":  "fourrageur_abyssien",
-                                                       "sprite":  "sFourrageurAbyssien",
-                                                       "objectId":  "oFourrageurAbyssien",
-                                                       "PV":  1.0
-                                                   },
-                           "bandit":  {
-                                          "type":  "Monster",
-                                          "mana_cost":  2.0,
-                                          "genre":  "HumanoÃ¯de",
-                                          "attack":  2.0,
-                                          "name":  "Bandit",
-                                          "rarity":  "commun",
-                                          "race":  "Humain",
-                                          "booster":  "Retour des Archontes",
-                                          "description":  "Un apprenti voleur qui s\u0027entraÃ®ne encore.",
-                                          "tags":  [
-                                                       "HumanoÃ¯de",
-                                                       "Humain"
-                                                   ],
-                                          "id":  "bandit",
-                                          "sprite":  "sBandit",
-                                          "objectId":  "oBandit",
-                                          "PV":  3.0
-                                      },
-                           "frere_gorrak":  {
-                                                "type":  "Monster",
-                                                "mana_cost":  6.0,
-                                                "genre":  "HumanoÃ¯de",
-                                                "attack":  3.0,
-                                                "name":  "FrÃ¨re de Gorrak",
-                                                "rarity":  "legendaire",
-                                                "race":  "Skarl",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Eveil : RÃ©duit de 2 l\u0027ATK de tous les monstre adverse.",
-                                                "tags":  [
-                                                             "HumanoÃ¯de",
-                                                             "Skarl",
-                                                             "Eveil"
-                                                         ],
-                                                "id":  "frere_gorrak",
-                                                "sprite":  "sFrereGorrak",
-                                                "objectId":  "oFrereGorrak",
-                                                "PV":  6.0
-                                            },
-                           "geomancien_tunnelin":  {
-                                                       "type":  "Monster",
-                                                       "mana_cost":  4.0,
-                                                       "genre":  "HumanoÃ¯de",
-                                                       "attack":  2.0,
-                                                       "name":  "GÃ©omancien Tunnelin",
-                                                       "rarity":  "commun",
-                                                       "race":  "Tunnelin",
-                                                       "booster":  "Retour des Archontes",
-                                                       "description":  "Eveil : Entrave tout les serviteurs adverses.",
-                                                       "tags":  [
-                                                                    "HumanoÃ¯de",
-                                                                    "Tunnelin",
-                                                                    "Eveil",
-                                                                    "Entrave"
-                                                                ],
-                                                       "id":  "geomancien_tunnelin",
-                                                       "sprite":  "sGeomancienTunnelin",
-                                                       "objectId":  "oGeomancienTunnelin",
-                                                       "PV":  2.0
-                                                   },
-                           "gobelin_furtif":  {
-                                                  "type":  "Monster",
-                                                  "mana_cost":  2.0,
-                                                  "genre":  "HumanoÃ¯de",
-                                                  "attack":  3.0,
-                                                  "name":  "Gobelin furtif",
-                                                  "rarity":  "commun",
-                                                  "race":  "Gobelin",
-                                                  "booster":  "Retour des Archontes",
-                                                  "description":  "Camouflage",
-                                                  "tags":  [
-                                                               "HumanoÃ¯de",
-                                                               "Gobelin",
-                                                               "Camouflage"
-                                                           ],
-                                                  "id":  "gobelin_furtif",
-                                                  "sprite":  "sGobelinFurtif",
-                                                  "objectId":  "oGobelinFurtif",
-                                                  "PV":  2.0
-                                              },
-                           "gorrak":  {
-                                          "type":  "Monster",
-                                          "mana_cost":  8.0,
-                                          "genre":  "HumanoÃ¯de",
-                                          "attack":  7.0,
-                                          "name":  "Gorrak",
-                                          "rarity":  "legendaire",
-                                          "race":  "Skarl",
-                                          "booster":  "Retour des Archontes",
-                                          "description":  "Eveil : Invoque 2 Skarls chÃ©tif. CrÃ©puscule : Inflige 2 dÃ©gÃ¢ts Ã  votre adversaire pour chaque HumanoÃ¯de alliÃ© sur le terrain.",
-                                          "tags":  [
-                                                       "HumanoÃ¯de",
-                                                       "Skarl",
-                                                       "Eveil",
-                                                       "Crepuscule"
-                                                   ],
-                                          "id":  "gorrak",
-                                          "sprite":  "sGorrak",
-                                          "objectId":  "oGorrak",
-                                          "PV":  7.0
-                                      },
-                           "james_calamite":  {
-                                                  "type":  "Monster",
-                                                  "mana_cost":  3.0,
-                                                  "genre":  "HumanoÃ¯de",
-                                                  "attack":  3.0,
-                                                  "name":  "James la CalamitÃ©",
-                                                  "rarity":  "legendaire",
-                                                  "race":  "Humain",
-                                                  "booster":  "Retour des Archontes",
-                                                  "description":  "Camouflage. CrÃ©puscule : Pille une carte du deck adverse",
-                                                  "tags":  [
-                                                               "HumanoÃ¯de",
-                                                               "Humain",
-                                                               "Camouflage",
-                                                               "Crepuscule"
-                                                           ],
-                                                  "id":  "james_calamite",
-                                                  "sprite":  "sJamesCalamite",
-                                                  "objectId":  "oJamesCalamite",
-                                                  "PV":  3.0
-                                              },
-                           "jeune_loup":  {
-                                              "type":  "Monster",
-                                              "mana_cost":  1.0,
-                                              "genre":  "BÃªte",
-                                              "attack":  1.0,
-                                              "name":  "Jeune loup",
-                                              "rarity":  "commun",
-                                              "race":  "Loup",
-                                              "booster":  "Retour des Archontes",
-                                              "description":  "Gagne +1 ATK pour chaque autre Jeune loup sur le terrain.",
-                                              "tags":  [
-                                                           "BÃªte",
-                                                           "Loup"
-                                                       ],
-                                              "id":  "jeune_loup",
-                                              "sprite":  "sJeuneLoup",
-                                              "objectId":  "oJeuneLoup",
-                                              "PV":  2.0
-                                          },
-                           "jeune_ours_foret":  {
-                                                    "type":  "Monster",
-                                                    "mana_cost":  2.0,
-                                                    "genre":  "BÃªte",
-                                                    "attack":  2.0,
-                                                    "name":  "Jeune ours des forÃªts",
-                                                    "rarity":  "commun",
-                                                    "race":  "Ours",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "Un jeune ours qui protegera sa taniÃ¨re coÃ»te que coÃ»te.",
-                                                    "tags":  [
-                                                                 "BÃªte",
-                                                                 "Ours"
-                                                             ],
-                                                    "id":  "jeune_ours_foret",
-                                                    "sprite":  "sJeuneOursForet",
-                                                    "objectId":  "oJeuneOursForet",
-                                                    "PV":  3.0
-                                                },
-                           "lieutenant_gorrak":  {
-                                                     "type":  "Monster",
-                                                     "mana_cost":  5.0,
-                                                     "genre":  "HumanoÃ¯de",
-                                                     "attack":  6.0,
-                                                     "name":  "Lieutenant de Gorrak",
-                                                     "rarity":  "rare",
-                                                     "race":  "Skarl",
-                                                     "booster":  "Retour des Archontes",
-                                                     "description":  "Quand Gorrak n\u0027est pas dans le coin, c\u0027est lui qui s\u0027occupe du clan. Du moins... il essaye.",
-                                                     "tags":  [
-                                                                  "HumanoÃ¯de",
-                                                                  "Skarl"
-                                                              ],
-                                                     "id":  "lieutenant_gorrak",
-                                                     "sprite":  "sLieutenantGorrak",
-                                                     "objectId":  "oLieutenantGorrak",
-                                                     "PV":  4.0
-                                                 },
-                           "loup_galeux":  {
-                                               "type":  "Monster",
-                                               "mana_cost":  2.0,
-                                               "genre":  "BÃªte",
-                                               "attack":  2.0,
-                                               "name":  "Loup galeux",
-                                               "rarity":  "commun",
-                                               "race":  "Loup",
-                                               "booster":  "Retour des Archontes",
-                                               "description":  "Gagne +3 ATK tant qu\u0027il n\u0027y a aucune autre bÃªte sur le terrain.",
-                                               "tags":  [
-                                                            "BÃªte",
-                                                            "Loup"
-                                                        ],
-                                               "id":  "loup_galeux",
-                                               "sprite":  "sLoupGaleux",
-                                               "objectId":  "oLoupGaleux",
-                                               "PV":  3.0
-                                           },
-                           "loup_gris_foret":  {
-                                                   "type":  "Monster",
-                                                   "mana_cost":  3.0,
-                                                   "genre":  "BÃªte",
-                                                   "attack":  3.0,
-                                                   "name":  "Loup gris des forÃªts",
-                                                   "rarity":  "rare",
-                                                   "race":  "Loup",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "Ils vivent et chasse en meute. Si vous en croisez un, courrez aussi loin que vous pourrez car la meute n\u0027est pas loin.",
-                                                   "tags":  [
-                                                                "BÃªte",
-                                                                "Loup"
-                                                            ],
-                                                   "id":  "loup_gris_foret",
-                                                   "sprite":  "sLoupGrisForet",
-                                                   "objectId":  "oLoupGrisForet",
-                                                   "PV":  4.0
-                                               },
-                           "loup_guerre_geule_roche":  {
-                                                           "type":  "Monster",
-                                                           "mana_cost":  3.0,
-                                                           "genre":  "BÃªte",
-                                                           "attack":  3.0,
-                                                           "name":  "Loup de guerre Gueule-Roche",
-                                                           "rarity":  "commun",
-                                                           "race":  "BÃªte",
-                                                           "booster":  "Retour des Archontes",
-                                                           "description":  "Provocation.",
-                                                           "tags":  [
-                                                                        "BÃªte",
-                                                                        "Gueule-roche",
-                                                                        "Provocation"
-                                                                    ],
-                                                           "id":  "loup_guerre_geule_roche",
-                                                           "sprite":  "sLoupGuerreGueuleRoche",
-                                                           "objectId":  "oLoupGuerreGueuleRoche",
-                                                           "PV":  4.0
-                                                       },
-                           "maitre_passe":  {
-                                                "type":  "Monster",
-                                                "mana_cost":  4.0,
-                                                "genre":  "HumanoÃ¯de",
-                                                "attack":  3.0,
-                                                "name":  "MaÃ®tre des passes",
-                                                "rarity":  "rare",
-                                                "race":  "Humain",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "CrÃ©puscule : Invoque un HumanoÃ¯de de coÃ»t 2 ou moins depuis votre main.",
-                                                "tags":  [
-                                                             "HumanoÃ¯de",
-                                                             "Humain",
-                                                             "Crepuscule"
-                                                         ],
-                                                "id":  "maitre_passe",
-                                                "sprite":  "sMaitrePasse",
-                                                "objectId":  "oMaitrePasse",
-                                                "PV":  4.0
-                                            },
-                           "massacreur_geule_roche":  {
-                                                          "type":  "Monster",
-                                                          "mana_cost":  7.0,
-                                                          "genre":  "HumanoÃ¯de",
-                                                          "attack":  7.0,
-                                                          "name":  "Massacreur Geule-Roche",
-                                                          "rarity":  "rare",
-                                                          "race":  "Orc",
-                                                          "booster":  "Retour des Archontes",
-                                                          "description":  "Aura : Les \u0027Loup de guerre Geule-Roche\u0027 ont +2/+2.",
-                                                          "tags":  [
-                                                                       "Orc",
-                                                                       "Aura",
-                                                                       "HumanoÃ¯de"
-                                                                   ],
-                                                          "id":  "massacreur_geule_roche",
-                                                          "sprite":  "sMassacreurGueuleRoche",
-                                                          "objectId":  "oMassacreurGueuleRoche",
-                                                          "PV":  6.0
-                                                      },
-                           "matriarche_peau_roc":  {
-                                                       "type":  "Monster",
-                                                       "mana_cost":  6.0,
-                                                       "genre":  "BÃªte",
-                                                       "attack":  5.0,
-                                                       "name":  "Matriarche peau-de-roc",
-                                                       "rarity":  "legendaire",
-                                                       "race":  "Sanglier",
-                                                       "booster":  "Retour des Archontes",
-                                                       "description":  "Eveil : Invoque 2 \u0027sanglier peau-de-roc\u0027 sur la ligne de front.",
-                                                       "tags":  [
-                                                                    "BÃªte",
-                                                                    "Sanglier",
-                                                                    "Eveil"
-                                                                ],
-                                                       "id":  "matriarche_peau_roc",
-                                                       "sprite":  "sMatriarchePeauRoc",
-                                                       "objectId":  "oMatriarchePeauRoc",
-                                                       "PV":  6.0
-                                                   },
-                           "mineur_tunnelin":  {
-                                                   "type":  "Monster",
-                                                   "mana_cost":  3.0,
-                                                   "genre":  "HumanoÃ¯de",
-                                                   "attack":  3.0,
-                                                   "name":  "Mineur Tunnelin",
-                                                   "rarity":  "commun",
-                                                   "race":  "Tunnelin",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "Eveil : Inflige 2 dÃ©gÃ¢ts Ã  un serviteur adverse.",
-                                                   "tags":  [
-                                                                "HumanoÃ¯de",
-                                                                "Tunnelin",
-                                                                "Eveil"
-                                                            ],
-                                                   "id":  "mineur_tunnelin",
-                                                   "sprite":  "sMineurTunnelin",
-                                                   "objectId":  "oMineurTunnelin",
-                                                   "PV":  2.0
-                                               },
-                           "morgane_venimeuse":  {
-                                                     "type":  "Monster",
-                                                     "mana_cost":  2.0,
-                                                     "genre":  "HumanoÃ¯de",
-                                                     "attack":  1.0,
-                                                     "name":  "Morgane la venimeuse",
-                                                     "rarity":  "legendaire",
-                                                     "race":  "Humain",
-                                                     "booster":  "Retour des Archontes",
-                                                     "description":  "Camouflage et poison.",
-                                                     "tags":  [
-                                                                  "HumanoÃ¯de",
-                                                                  "Humain",
-                                                                  "Camouflage",
-                                                                  "Poison"
-                                                              ],
-                                                     "id":  "morgane_venimeuse",
-                                                     "sprite":  "sMorganeVenimeuse",
-                                                     "objectId":  "oMorganeVenimeuse",
-                                                     "PV":  3.0
-                                                 },
-                           "patte_brise_larmoyant":  {
-                                                         "type":  "Monster",
-                                                         "mana_cost":  2.0,
-                                                         "genre":  "BÃªte",
-                                                         "attack":  1.0,
-                                                         "name":  "Patte-brisÃ© larmoyant",
-                                                         "rarity":  "epique",
-                                                         "race":  "Loup",
-                                                         "booster":  "Retour des Archontes",
-                                                         "description":  "Gagne +2 ATK pendant le tour adverse uniquement.",
-                                                         "tags":  [
-                                                                      "BÃªte",
-                                                                      "Loup"
-                                                                  ],
-                                                         "id":  "patte_brise_larmoyant",
-                                                         "sprite":  "sPatteBriseLarmoyant",
-                                                         "objectId":  "oPatteBriseLarmoyant",
-                                                         "PV":  5.0
-                                                     },
-                           "peau_roc_robuste":  {
-                                                    "type":  "Monster",
-                                                    "mana_cost":  4.0,
-                                                    "genre":  "BÃªte",
-                                                    "attack":  2.0,
-                                                    "name":  "Peau-de-roc robuste",
-                                                    "rarity":  "rare",
-                                                    "race":  "Sanglier",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "Charge",
-                                                    "tags":  [
-                                                                 "BÃªte",
-                                                                 "Sanglier",
-                                                                 "Charge"
-                                                             ],
-                                                    "id":  "peau_roc_robuste",
-                                                    "sprite":  "sPeauRocRobuste",
-                                                    "objectId":  "oPeauRocRobuste",
-                                                    "PV":  5.0
-                                                },
-                           "portefaix":  {
-                                             "type":  "Monster",
-                                             "mana_cost":  3.0,
-                                             "genre":  "HumanoÃ¯de",
-                                             "attack":  3.0,
-                                             "name":  "Portefaix",
-                                             "rarity":  "commun",
-                                             "race":  "Humain",
-                                             "booster":  "Retour des Archontes",
-                                             "description":  "Camouflage. Eveil : Purge un serviteur adverse.",
-                                             "tags":  [
-                                                          "HumanoÃ¯de",
-                                                          "Humain",
-                                                          "Camouflage",
-                                                          "Eveil"
-                                                      ],
-                                             "id":  "portefaix",
-                                             "sprite":  "sPortefaix",
-                                             "objectId":  "oPortefaix",
-                                             "PV":  3.0
-                                         },
-                           "recolteur":  {
-                                             "type":  "Monster",
-                                             "mana_cost":  6.0,
-                                             "genre":  "HumanoÃ¯de",
-                                             "attack":  4.0,
-                                             "name":  "Le RÃ©colteur",
-                                             "rarity":  "legendaire",
-                                             "race":  "Humain",
-                                             "booster":  "Retour des Archontes",
-                                             "description":  "Eveil : Invoque \u0027Catherine fumerol\u0027 en arriÃ¨re et Yvan le Costaud sur la ligne de front.",
-                                             "tags":  [
-                                                          "HumanoÃ¯de",
-                                                          "Humain",
-                                                          "Eveil"
-                                                      ],
-                                             "id":  "recolteur",
-                                             "sprite":  "sRecolteur",
-                                             "objectId":  "oRecolteur",
-                                             "PV":  6.0
-                                         },
-                           "renard_mystique":  {
-                                                   "type":  "Monster",
-                                                   "mana_cost":  2.0,
-                                                   "genre":  "BÃªte",
-                                                   "attack":  2.0,
-                                                   "name":  "Renard mystique",
-                                                   "rarity":  "epique",
-                                                   "race":  "Renard",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "Illusion",
-                                                   "tags":  [
-                                                                "BÃªte",
-                                                                "Renard",
-                                                                "Illusion"
-                                                            ],
-                                                   "id":  "renard_mystique",
-                                                   "sprite":  "sRenardMystique",
-                                                   "objectId":  "oRenardMystique",
-                                                   "PV":  2.0
-                                               },
-                           "rodeur_abyssien":  {
-                                                   "type":  "Monster",
-                                                   "mana_cost":  3.0,
-                                                   "genre":  "HumanoÃ¯de",
-                                                   "attack":  3.0,
-                                                   "name":  "RÃ´deur Abyssien",
-                                                   "rarity":  "rare",
-                                                   "race":  "Abyssien",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "Camouflage. Aube : Ajoute un \u0027Abyssien\u0027 de votre cimetiÃ¨re ou deck Ã  votre main.",
-                                                   "tags":  [
-                                                                "HumanoÃ¯de",
-                                                                "Abyssien",
-                                                                "Camouflage",
-                                                                "Aube"
-                                                            ],
-                                                   "id":  "rodeur_abyssien",
-                                                   "sprite":  "sRodeurAbyssien",
-                                                   "objectId":  "oRodeurAbyssien",
-                                                   "PV":  3.0
-                                               },
-                           "sanglier_peau_roc":  {
-                                                     "type":  "Monster",
-                                                     "mana_cost":  2.0,
-                                                     "genre":  "BÃªte",
-                                                     "attack":  2.0,
-                                                     "name":  "Sanglier Peau-de-Roc",
-                                                     "rarity":  "commun",
-                                                     "race":  "Sanglier",
-                                                     "booster":  "Retour des Archontes",
-                                                     "description":  "Il vivent en famille autour des fermes pour voler les rÃ©coltes.",
-                                                     "tags":  [
-                                                                  "BÃªte",
-                                                                  "Sanglier"
-                                                              ],
-                                                     "id":  "sanglier_peau_roc",
-                                                     "sprite":  "sSanglierPeauRoc",
-                                                     "objectId":  "oSanglierPeauRoc",
-                                                     "PV":  3.0
-                                                 },
-                           "skarl_chetif":  {
-                                                "type":  "Monster",
-                                                "mana_cost":  1.0,
-                                                "genre":  "HumanoÃ¯de",
-                                                "attack":  2.0,
-                                                "name":  "Skarl chÃ©tif",
-                                                "rarity":  "commun",
-                                                "race":  "Skarl",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Il Ã©tait le plus faible de la portÃ©e mais ca ne l\u0027empÃªche pas d\u0027Ãªtre dangereux.",
-                                                "tags":  [
-                                                             "HumanoÃ¯de",
-                                                             "Skarl"
-                                                         ],
-                                                "id":  "skarl_chetif",
-                                                "sprite":  "sSkarlChetif",
-                                                "objectId":  "oSkarlChetif",
-                                                "PV":  1.0
-                                            },
-                           "sorcier_voleur":  {
-                                                  "type":  "Monster",
-                                                  "mana_cost":  2.0,
-                                                  "genre":  "HumanoÃ¯de",
-                                                  "attack":  2.0,
-                                                  "name":  "Sorcier voleur",
-                                                  "rarity":  "commun",
-                                                  "race":  "Humain",
-                                                  "booster":  "Retour des Archontes",
-                                                  "description":  "Eveil : Vole un sort du deck adverse.",
-                                                  "tags":  [
-                                                               "HumanoÃ¯de",
-                                                               "Humain",
-                                                               "Eveil",
-                                                               "Pillage"
-                                                           ],
-                                                  "id":  "sorcier_voleur",
-                                                  "sprite":  "sSorcierVoleur",
-                                                  "objectId":  "oSorcierVoleur",
-                                                  "PV":  2.0
-                                              },
-                           "sous_chef_tunnelin":  {
-                                                      "type":  "Monster",
-                                                      "mana_cost":  5.0,
-                                                      "genre":  "HumanoÃ¯de",
-                                                      "attack":  4.0,
-                                                      "name":  "Sous-chef Tunnelin",
-                                                      "rarity":  "epique",
-                                                      "race":  "Tunnelin",
-                                                      "booster":  "Retour des Archontes",
-                                                      "description":  "Eveil : Donne +2 ATK Ã  tous vos serviteur sur le terrain.",
-                                                      "tags":  [
-                                                                   "HumanoÃ¯de",
-                                                                   "Tunnelin",
-                                                                   "Eveil"
-                                                               ],
-                                                      "id":  "sous_chef_tunnelin",
-                                                      "sprite":  "sSousChefTunnelin",
-                                                      "objectId":  "oSousChefTunnelin",
-                                                      "PV":  5.0
-                                                  },
-                           "tarentule_foret":  {
-                                                   "type":  "Monster",
-                                                   "mana_cost":  4.0,
-                                                   "genre":  "BÃªte",
-                                                   "attack":  4.0,
-                                                   "name":  "Tarentule des forÃªts",
-                                                   "rarity":  "epique",
-                                                   "race":  "AraignÃ©e",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "BrisÃ© : Invoque 2 \u0027AraignÃ©e forestiÃ¨re\u0027.",
-                                                   "tags":  [
-                                                                "BÃªte",
-                                                                "AraignÃ©e",
-                                                                "BrisÃ©"
-                                                            ],
-                                                   "id":  "tarentule_foret",
-                                                   "sprite":  "sTarentuleForet",
-                                                   "objectId":  "oTarentuleForet",
-                                                   "PV":  4.0
-                                               },
-                           "tarrinox":  {
-                                            "type":  "Monster",
-                                            "mana_cost":  6.0,
-                                            "genre":  "BÃªte",
-                                            "attack":  5.0,
-                                            "name":  "Tarrinox",
-                                            "rarity":  "epique",
-                                            "race":  "AraignÃ©e",
-                                            "booster":  "Retour des Archontes",
-                                            "description":  "Eveil : Donne +4/+4 aux AraignÃ©e forestiÃ¨re sur le terrain.",
-                                            "tags":  [
-                                                         "BÃªte",
-                                                         "AraignÃ©e",
-                                                         "Eveil"
-                                                     ],
-                                            "id":  "tarrinox",
-                                            "sprite":  "sTarrinox",
-                                            "objectId":  "oTarrinox",
-                                            "PV":  7.0
-                                        },
-                           "tortue_vagabonde":  {
-                                                    "type":  "Monster",
-                                                    "mana_cost":  2.0,
-                                                    "genre":  "BÃªte",
-                                                    "attack":  1.0,
-                                                    "name":  "Tortue vagabonde",
-                                                    "rarity":  "rare",
-                                                    "race":  "Tortue",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "Elle longe la lisiÃ¨re sÃ©parant les forÃªt Ã  la recherche de ses enfants.",
-                                                    "tags":  [
-                                                                 "BÃªte",
-                                                                 "Tortue"
-                                                             ],
-                                                    "id":  "tortue_vagabonde",
-                                                    "sprite":  "sTortueVagabonde",
-                                                    "objectId":  "oTortueVagabonde",
-                                                    "PV":  6.0
-                                                },
-                           "tunnelin":  {
-                                            "type":  "Monster",
-                                            "mana_cost":  1.0,
-                                            "genre":  "HumanoÃ¯de",
-                                            "attack":  1.0,
-                                            "name":  "Tunnelin",
-                                            "rarity":  "commun",
-                                            "race":  "Tunnelin",
-                                            "booster":  "Retour des Archontes",
-                                            "description":  "Eveil : Invoque une copie de ce serviteur.",
-                                            "tags":  [
-                                                         "HumanoÃ¯de",
-                                                         "Tunnelin",
-                                                         "Eveil"
-                                                     ],
-                                            "id":  "tunnelin",
-                                            "sprite":  "sTunnelin",
-                                            "objectId":  "oTunnelin",
-                                            "PV":  1.0
-                                        },
-                           "vide_gousset":  {
-                                                "type":  "Monster",
-                                                "mana_cost":  4.0,
-                                                "genre":  "HumanoÃ¯de",
-                                                "attack":  3.0,
-                                                "name":  "VideGousset",
-                                                "rarity":  "commun",
-                                                "race":  "Humain",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Camouflage. Eveil : Pille une carte du deck adverse.",
-                                                "tags":  [
-                                                             "HumanoÃ¯de",
-                                                             "Humain",
-                                                             "Camouflage",
-                                                             "Eveil",
-                                                             "Pillage"
-                                                         ],
-                                                "id":  "vide_gousset",
-                                                "sprite":  "sVideGousset",
-                                                "objectId":  "oVideGousset",
-                                                "PV":  4.0
-                                            },
-                           "vieil_ours":  {
-                                              "type":  "Monster",
-                                              "mana_cost":  3.0,
-                                              "genre":  "BÃªte",
-                                              "attack":  2.0,
-                                              "name":  "Viel ours",
-                                              "rarity":  "rare",
-                                              "race":  "Ours",
-                                              "booster":  "Retour des Archontes",
-                                              "description":  "Gagne +2 ATK lorsqu\u0027il combat un monstre sur la ligne de front.",
-                                              "tags":  [
-                                                           "BÃªte",
-                                                           "Ours"
-                                                       ],
-                                              "id":  "vieil_ours",
-                                              "sprite":  "sVieilOurs",
-                                              "objectId":  "oVieilOurs",
-                                              "PV":  4.0
-                                          },
-                           "voleur_finelame":  {
-                                                   "type":  "Monster",
-                                                   "mana_cost":  3.0,
-                                                   "genre":  "HumanoÃ¯de",
-                                                   "attack":  3.0,
-                                                   "name":  "Voleur Finelame",
-                                                   "rarity":  "epique",
-                                                   "race":  "Humain",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "Camouflage et PercÃ©e.",
-                                                   "tags":  [
-                                                                "HumanoÃ¯de",
-                                                                "Humain",
-                                                                "Camouflage",
-                                                                "Percee"
-                                                            ],
-                                                   "id":  "voleur_finelame",
-                                                   "sprite":  "sVoleurFinelame",
-                                                   "objectId":  "oVoleurFinelame",
-                                                   "PV":  2.0
-                                               },
-                           "yvan_costaud":  {
-                                                "type":  "Monster",
-                                                "mana_cost":  3.0,
-                                                "genre":  "HumanoÃ¯de",
-                                                "attack":  2.0,
-                                                "name":  "Yvan le Costaud",
-                                                "rarity":  "legendaire",
-                                                "race":  "Humain",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Tant que cette carte est sur le terrain, \u0027Catherine Fumerol\u0027 ne peut pas Ãªtre dÃ©truit",
-                                                "tags":  [
-                                                             "HumanoÃ¯de",
-                                                             "Humain"
-                                                         ],
-                                                "id":  "yvan_costaud",
-                                                "sprite":  "sYvanCostaud",
-                                                "objectId":  "oYvanCostaud",
-                                                "PV":  5.0
-                                            },
-                           "anneau_voleur":  {
-                                                 "type":  "Magic",
-                                                 "mana_cost":  2.0,
-                                                 "genre":  "",
-                                                 "attack":  0.0,
-                                                 "name":  "Anneau du voleur",
-                                                 "rarity":  "epique",
-                                                 "race":  "Ombre",
-                                                 "booster":  "Retour des Archontes",
-                                                 "description":  "Vole une carte alÃ©atoire du deck de votre adversaire et l\u0027ajoute Ã  votre main.",
-                                                 "tags":  [
-                                                              "Pillage",
-                                                              "Ombre",
-                                                              "Sort"
-                                                          ],
-                                                 "id":  "anneau_voleur",
-                                                 "sprite":  "sAnneauVoleur",
-                                                 "objectId":  "oAnneauVoleur",
-                                                 "PV":  0.0
-                                             },
-                           "attaque_furtive":  {
-                                                   "type":  "Magic",
-                                                   "mana_cost":  1.0,
-                                                   "genre":  "",
-                                                   "attack":  0.0,
-                                                   "name":  "Attaque furtive",
-                                                   "rarity":  "epique",
-                                                   "race":  "Ombre",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "Inflige 2 dÃ©gÃ¢ts. Combo(Camouflage) : Inflige 4 dÃ©gÃ¢ts Ã  la place.",
-                                                   "tags":  [
-                                                                "Ombre",
-                                                                "Sort",
-                                                                "Combo"
-                                                            ],
-                                                   "id":  "attaque_furtive",
-                                                   "sprite":  "sAttaqueFurtive",
-                                                   "objectId":  "oAttaqueFurtive",
-                                                   "PV":  0.0
-                                               },
-                           "brume_foret":  {
-                                               "type":  "Magic",
-                                               "mana_cost":  2.0,
-                                               "genre":  "",
-                                               "attack":  0.0,
-                                               "name":  "Brume de la forÃªt",
-                                               "rarity":  "epique",
-                                               "race":  "Ombre",
-                                               "booster":  "Retour des Archontes",
-                                               "description":  "ConfÃ¨re +2 ATK et Camouflage Ã  un serviteur alliÃ©. Combo (Camouflage) : DÃ©truit un serviteur ennemi alÃ©atoire.",
-                                               "tags":  [
-                                                            "Ombre",
-                                                            "Sort",
-                                                            "Combo"
-                                                        ],
-                                               "id":  "brume_foret",
-                                               "sprite":  "sBrumeForet",
-                                               "objectId":  "oBrumeForet",
-                                               "PV":  0.0
-                                           },
-                           "brume_trompeuse":  {
-                                                   "type":  "Magic",
-                                                   "mana_cost":  5.0,
-                                                   "genre":  "",
-                                                   "attack":  0.0,
-                                                   "name":  "Brume trompeuse",
-                                                   "rarity":  "legendaire",
-                                                   "race":  "Ombre",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "DÃ©truit tous les serviteurs qui n\u0027ont pas Camouflage.",
-                                                   "tags":  [
-                                                                "Sort",
-                                                                "Ombre"
-                                                            ],
-                                                   "id":  "brume_trompeuse",
-                                                   "sprite":  "sBrumeTrompeuse",
-                                                   "objectId":  "oBrumeTrompeuse",
-                                                   "PV":  0.0
-                                               },
-                           "camouflage_strategique":  {
-                                                          "type":  "Magic",
-                                                          "mana_cost":  2.0,
-                                                          "genre":  "",
-                                                          "attack":  0.0,
-                                                          "name":  "Camouflage stratÃ©gique",
-                                                          "rarity":  "rare",
-                                                          "race":  "Ombre",
-                                                          "booster":  "Retour des Archontes",
-                                                          "description":  "Donne +1/+2 Ã  un serviteur. S\u0027il a Camouflage, il peut attaquerce tour sans le perdre.",
-                                                          "tags":  [
-                                                                       "Ombre",
-                                                                       "Sort"
-                                                                   ],
-                                                          "id":  "camouflage_strategique",
-                                                          "sprite":  "sCamouflageStrategique",
-                                                          "objectId":  "oCamouflageStrategique",
-                                                          "PV":  0.0
-                                                      },
-                           "ruisselier_abyssien":  {
-                                                       "type":  "Monster",
-                                                       "mana_cost":  2.0,
-                                                       "genre":  "HumanoÃ¯de",
-                                                       "attack":  2.0,
-                                                       "name":  "Ruisselier Abyssien",
-                                                       "rarity":  "commun",
-                                                       "race":  "Abyssien",
-                                                       "booster":  "Retour des Archontes",
-                                                       "description":  "Chaque fois que vous invoquez un Abyssien, gagne +1ATK",
-                                                       "tags":  [
-                                                                    "HumanoÃ¯de",
-                                                                    "Abyssien"
-                                                                ],
-                                                       "id":  "ruisselier_abyssien",
-                                                       "sprite":  "sRuisselierAbyssien",
-                                                       "objectId":  "oRuisselierAbyssien",
-                                                       "PV":  3.0
-                                                   },
-                           "cape_ombre":  {
-                                              "type":  "Magic",
-                                              "mana_cost":  2.0,
-                                              "genre":  "",
-                                              "attack":  0.0,
-                                              "name":  "Cape d\u0027ombre",
-                                              "rarity":  "epique",
-                                              "race":  "Ombre",
-                                              "booster":  "Retour des Archontes",
-                                              "description":  "Donne +2/+2 et Camouflage Ã  un serviteur.",
-                                              "tags":  [
-                                                           "Ombre",
-                                                           "Sort"
-                                                       ],
-                                              "id":  "cape_ombre",
-                                              "sprite":  "sCapeOmbre",
-                                              "objectId":  "oCapeOmbre",
-                                              "PV":  0.0
-                                          },
-                           "chasse_meute":  {
-                                                "type":  "Magic",
-                                                "mana_cost":  3.0,
-                                                "genre":  "",
-                                                "attack":  0.0,
-                                                "name":  "Chasse en meute",
-                                                "rarity":  "commun",
-                                                "race":  "Nature",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Inflige 2 dÃ©gats Ã  votre adversaire pour chaque BÃªte que vous contrÃ´lez.",
-                                                "tags":  [
-                                                             "Nature",
-                                                             "Sort"
-                                                         ],
-                                                "id":  "chasse_meute",
-                                                "sprite":  "sChasseuMeute",
-                                                "objectId":  "oChasseMeute",
-                                                "PV":  0.0
-                                            },
-                           "coquillage_maree":  {
-                                                    "type":  "Magic",
-                                                    "mana_cost":  2.0,
-                                                    "genre":  "",
-                                                    "attack":  0.0,
-                                                    "name":  "Coquillage des marÃ©es",
-                                                    "rarity":  "rare",
-                                                    "race":  "Eau",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "Donne +2 Pv Ã  tous vos serviteurs.",
-                                                    "tags":  [
-                                                                 "Eau",
-                                                                 "Sort"
-                                                             ],
-                                                    "id":  "coquillage_maree",
-                                                    "sprite":  "sCoquillageMaree",
-                                                    "objectId":  "oCoquillageMaree",
-                                                    "PV":  0.0
-                                                },
-                           "rodeur_foret":  {
-                                                "type":  "Monster",
-                                                "mana_cost":  5.0,
-                                                "genre":  "BÃªte",
-                                                "attack":  4.0,
-                                                "name":  "RÃ´deur des forÃªts",
-                                                "rarity":  "epique",
-                                                "race":  "Loup",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Eveil : Invoque un \u0027jeune loup\u0027.",
-                                                "tags":  [
-                                                             "BÃªte",
-                                                             "Loup",
-                                                             "Eveil"
-                                                         ],
-                                                "id":  "rodeur_foret",
-                                                "sprite":  "sRodeurForet",
-                                                "objectId":  "oRodeurForet",
-                                                "PV":  5.0
-                                            },
-                           "cri_meute":  {
-                                             "type":  "Magic",
-                                             "mana_cost":  2.0,
-                                             "genre":  "",
-                                             "attack":  0.0,
-                                             "name":  "Cri de la meute",
-                                             "rarity":  "commun",
-                                             "race":  "Nature",
-                                             "booster":  "Retour des Archontes",
-                                             "description":  "Vos BÃªtes gagnent +1/+1.",
-                                             "tags":  [
-                                                          "Nature",
-                                                          "BÃªte"
-                                                      ],
-                                             "id":  "cri_meute",
-                                             "sprite":  "sCriMeute",
-                                             "objectId":  "oCriMeute",
-                                             "PV":  0.0
-                                         },
-                           "dague_filou":  {
-                                               "type":  "Magic",
-                                               "mana_cost":  1.0,
-                                               "genre":  "",
-                                               "attack":  0.0,
-                                               "name":  "Dague du filou",
-                                               "rarity":  "commun",
-                                               "race":  "Ombre",
-                                               "booster":  "Retour des Archontes",
-                                               "description":  "Donne +1 ATK. Combo ( Camouflage) : Donne +3 ATK Ã  la place.",
-                                               "tags":  [
-                                                            "Ombre",
-                                                            "Sort",
-                                                            "Combo"
-                                                        ],
-                                               "id":  "dague_filou",
-                                               "sprite":  "sDagueFilou",
-                                               "objectId":  "oDagueFilou",
-                                               "PV":  0.0
-                                           },
-                           "distraction":  {
-                                               "type":  "Magic",
-                                               "mana_cost":  2.0,
-                                               "genre":  "",
-                                               "attack":  0.0,
-                                               "name":  "Distraction",
-                                               "rarity":  "epique",
-                                               "race":  "Ombre",
-                                               "booster":  "Retour des Archontes",
-                                               "description":  "Secret : Quand un serviteur ennemi est invoquÃ©, le renvoie dans la main et augmente son coÃ»t de (2).",
-                                               "tags":  [
-                                                            "Ombre",
-                                                            "Sort",
-                                                            "Secret"
-                                                        ],
-                                               "id":  "distraction",
-                                               "sprite":  "sDistraction",
-                                               "objectId":  "oDistraction",
-                                               "PV":  0.0
-                                           },
-                           "double_jeu":  {
-                                              "type":  "Magic",
-                                              "mana_cost":  4.0,
-                                              "genre":  "",
-                                              "attack":  0.0,
-                                              "name":  "Double jeu",
-                                              "rarity":  "rare",
-                                              "race":  "Ombre",
-                                              "booster":  "Retour des Archontes",
-                                              "description":  "Choisissez un serviteur. Invoquez-en une copie sur votre ligne de front. Il ne peut pas attaquer.",
-                                              "tags":  [
-                                                           "Ombre",
-                                                           "Sort"
-                                                       ],
-                                              "id":  "double_jeu",
-                                              "sprite":  "sDoubleJeu",
-                                              "objectId":  "oDoubleJeu",
-                                              "PV":  0.0
-                                          },
-                           "espionnage":  {
-                                              "type":  "Magic",
-                                              "mana_cost":  1.0,
-                                              "genre":  "",
-                                              "attack":  0.0,
-                                              "name":  "Espionnage",
-                                              "rarity":  "rare",
-                                              "race":  "Ombre",
-                                              "booster":  "Retour des Archontes",
-                                              "description":  "Devoile 3 carte du deck adverse. Choississez une carte Ã  placer sur le dessus du deck.",
-                                              "tags":  [
-                                                           "Ombre",
-                                                           "Sort"
-                                                       ],
-                                              "id":  "espionnage",
-                                              "sprite":  "sEspionnage",
-                                              "objectId":  "oEspionnage",
-                                              "PV":  0.0
-                                          },
-                           "ferveur_marais":  {
-                                                  "type":  "Magic",
-                                                  "mana_cost":  3.0,
-                                                  "genre":  "",
-                                                  "attack":  0.0,
-                                                  "name":  "Ferveur du marais",
-                                                  "rarity":  "rare",
-                                                  "race":  "Eau",
-                                                  "booster":  "Retour des Archontes",
-                                                  "description":  "Invoque 3 Coureurs Abyssiens.",
-                                                  "tags":  [
-                                                               "Eau",
-                                                               "Sort"
-                                                           ],
-                                                  "id":  "ferveur_marais",
-                                                  "sprite":  "sFerveurMarais",
-                                                  "objectId":  "oFerveurMarais",
-                                                  "PV":  0.0
-                                              },
-                           "feuillage_protecteur":  {
-                                                        "type":  "Magic",
-                                                        "mana_cost":  2.0,
-                                                        "genre":  "",
-                                                        "attack":  0.0,
-                                                        "name":  "Feuillage protecteur",
-                                                        "rarity":  "epique",
-                                                        "race":  "Nature",
-                                                        "booster":  "Retour des Archontes",
-                                                        "description":  "secret : Lorsqu\u0027un de vos monstres doit Ãªtre dÃ©truit par votre adversaire, lui confere Illusion.",
-                                                        "tags":  [
-                                                                     "Secret",
-                                                                     "Sort",
-                                                                     "Nature"
-                                                                 ],
-                                                        "id":  "feuillage_protecteur",
-                                                        "sprite":  "sFeuillageProtecteur",
-                                                        "objectId":  "oFeuillageProtecteur",
-                                                        "PV":  0.0
-                                                    },
-                           "filet_ombre":  {
-                                               "type":  "Magic",
-                                               "mana_cost":  1.0,
-                                               "genre":  "",
-                                               "attack":  0.0,
-                                               "name":  "Filet de l\u0027ombre",
-                                               "rarity":  "rare",
-                                               "race":  "Ombre",
-                                               "booster":  "Retour des Archontes",
-                                               "description":  "S\u0027active lorsque votre adversaire attaque avec un monstre. Entrave l\u0027attaquant.",
-                                               "tags":  [
-                                                            "Ombre",
-                                                            "Secret",
-                                                            "Entrave"
-                                                        ],
-                                               "id":  "filet_ombre",
-                                               "sprite":  "sFiletOmbre",
-                                               "objectId":  "oFiletOmbre",
-                                               "PV":  0.0
-                                           },
-                           "frenesie_sauvage":  {
-                                                    "type":  "Magic",
-                                                    "mana_cost":  2.0,
-                                                    "genre":  "",
-                                                    "attack":  0.0,
-                                                    "name":  "FrÃ©nÃ©sie sauvage",
-                                                    "rarity":  "commun",
-                                                    "race":  "Nature",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "ConfÃ¨re +1 ATK et Ambidextrie Ã  une BÃªte alliÃ©.",
-                                                    "tags":  [
-                                                                 "Nature",
-                                                                 "Ambidextrie",
-                                                                 "Sort"
-                                                             ],
-                                                    "id":  "frenesie_sauvage",
-                                                    "sprite":  "sFrenesieSauvage",
-                                                    "objectId":  "oFrenesieSauvage",
-                                                    "PV":  0.0
-                                                },
-                           "griffe_predateur":  {
-                                                    "type":  "Magic",
-                                                    "mana_cost":  1.0,
-                                                    "genre":  "",
-                                                    "attack":  0.0,
-                                                    "name":  "Griffe du prÃ©dateur",
-                                                    "rarity":  "commun",
-                                                    "race":  "Nature",
-                                                    "booster":  "Retour des Archontes",
-                                                    "description":  "Donne ++2/+1 Ã  une BÃªte alliÃ©e.",
-                                                    "tags":  [
-                                                                 "Sort",
-                                                                 "Nature"
-                                                             ],
-                                                    "id":  "griffe_predateur",
-                                                    "sprite":  "sGriffePredateur",
-                                                    "objectId":  "oGriffePredateur",
-                                                    "PV":  0.0
-                                                },
-                           "hurlement_tribu":  {
-                                                   "type":  "Magic",
-                                                   "mana_cost":  2.0,
-                                                   "genre":  "",
-                                                   "attack":  0.0,
-                                                   "name":  "Hurlement de la tribu",
-                                                   "rarity":  "commun",
-                                                   "race":  "Eau",
-                                                   "booster":  "Retour des Archontes",
-                                                   "description":  "DÃ©truisez un Abyssien alliÃ© pour donner +2/+2 Ã  tous vos autres serviteurs.",
-                                                   "tags":  [
-                                                                "Eau",
-                                                                "Abyssien",
-                                                                "Sort"
-                                                            ],
-                                                   "id":  "hurlement_tribu",
-                                                   "sprite":  "sHurlementTribu",
-                                                   "objectId":  "oHurlementTribu",
-                                                   "PV":  0.0
-                                               },
-                           "main_furtive":  {
-                                                "type":  "Magic",
-                                                "mana_cost":  1.0,
-                                                "genre":  "",
-                                                "attack":  0.0,
-                                                "name":  "Main furtive",
-                                                "rarity":  "rare",
-                                                "race":  "Ombre",
-                                                "booster":  "Retour des Archontes",
-                                                "description":  "Copie une carte de la main de votre adversaire et l\u0027ajoute Ã  votre main.",
-                                                "tags":  [
-                                                             "Ombre",
-                                                             "Sort",
-                                                             "Pillage"
-                                                         ],
-                                                "id":  "main_furtive",
-                                                "sprite":  "sMainFurtive",
-                                                "objectId":  "oMainFurtive",
-                                                "PV":  0.0
-                                            },
-                           "manipulation_butin":  {
-                                                      "type":  "Magic",
-                                                      "mana_cost":  1.0,
-                                                      "genre":  "",
-                                                      "attack":  0.0,
-                                                      "name":  "Manipulation du butin",
-                                                      "rarity":  "rare",
-                                                      "race":  "Ombre",
-                                                      "booster":  "Retour des Archontes",
-                                                      "description":  "Echange une carte alÃ©atoire de votre main avec une carte alÃ©atoire de la main adverse.",
-                                                      "tags":  [
-                                                                   "Ombre",
-                                                                   "Sort",
-                                                                   "Pillage"
-                                                               ],
-                                                      "id":  "manipulation_butin",
-                                                      "sprite":  "sManipulationButin",
-                                                      "objectId":  "oManipulationButin",
-                                                      "PV":  0.0
-                                                  }
-                       },
-    "total_cards":  74.0,
-    "version":  "1.0"
+{
+    "version": "2.0 (Python-Gen)",
+    "cards_database": {
+        "anneau_du_voleur": {
+            "id": "anneau_du_voleur",
+            "objectId": "oAnneauVoleur",
+            "name": "Anneau du voleur",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Vole une carte aléatoire du deck de votre adversaire et l'ajoute à votre main.",
+            "rarity": "epique",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Pillage",
+                "Ombre",
+                "Sort"
+            ],
+            "sprite": "sAnneauVoleur"
+        },
+        "araignee_forestiere": {
+            "id": "araignee_forestiere",
+            "objectId": "oAraigneeForestiere",
+            "name": "Araignée forestière",
+            "type": "Unit",
+            "mana_cost": 1.0,
+            "attack": 2.0,
+            "PV": 1.0,
+            "description": "A peine sortie de l'oeuf qu'elle est déja venimeuse",
+            "rarity": "commun",
+            "race": "Araignée",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Araignée"
+            ],
+            "sprite": "sAraigneeForestiere"
+        },
+        "attaque_furtive": {
+            "id": "attaque_furtive",
+            "objectId": "oAttaqueFurtive",
+            "name": "Attaque furtive",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Inflige 2 dégâts. Combo (camouflage) : inflige 4 dégâts à la place.",
+            "rarity": "epique",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort",
+                "Combo"
+            ],
+            "sprite": "sAttaqueFurtive"
+        },
+        "bandit": {
+            "id": "bandit",
+            "objectId": "oBandit",
+            "name": "Bandit",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 4.0,
+            "PV": 3.0,
+            "description": "Un apprenti voleur qui s'entraîne encore.",
+            "rarity": "commun",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain"
+            ],
+            "sprite": "sBandit"
+        },
+        "bandit_guerrier": {
+            "id": "bandit_guerrier",
+            "objectId": "oBanditGuerrier",
+            "name": "Bandit guerrier",
+            "type": "Unit",
+            "mana_cost": 5.0,
+            "attack": 5.0,
+            "PV": 5.0,
+            "description": "Eveil : Invoque un bandit à ses cotés.",
+            "rarity": "rare",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Eveil"
+            ],
+            "sprite": "sBanditGuerrier"
+        },
+        "bougimencien_tunnelin": {
+            "id": "bougimencien_tunnelin",
+            "objectId": "oBougimencienTunnelin",
+            "name": "Bougimencien Tunnelin",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 3.0,
+            "PV": 2.0,
+            "description": "Eveil : Entrave un serviteur adverse",
+            "rarity": "rare",
+            "race": "Tunnelin",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Tunnelin",
+                "Eveil",
+                "Entrave",
+                "Humanoïde"
+            ],
+            "sprite": "sBougimencienTunnelin"
+        },
+        "brume_de_la_foret": {
+            "id": "brume_de_la_foret",
+            "objectId": "oBrumeForet",
+            "name": "Brume de la forêt",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Confère +2 ATK et Camouflage à un serviteur allié.\\nCombo (Camouflage) : Détruit un serviteur ennemi aléatoire.",
+            "rarity": "epique",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort",
+                "Combo"
+            ],
+            "sprite": "sBrumeForet"
+        },
+        "brume_trompeuse": {
+            "id": "brume_trompeuse",
+            "objectId": "oBrumeTrompeuse",
+            "name": "Brume trompeuse",
+            "type": "Magic",
+            "mana_cost": 5.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Détruit tous les serviteurs qui n'ont pas Camouflage.",
+            "rarity": "legendaire",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Ombre"
+            ],
+            "sprite": "sBrumeTrompeuse"
+        },
+        "camouflage_strategique": {
+            "id": "camouflage_strategique",
+            "objectId": "oCamouflageStrategique",
+            "name": "Camouflage stratégique",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Donne +1/+2 à un serviteur. S'il a Camouflage, il peut attaquer ce tour sans le perdre.",
+            "rarity": "rare",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort"
+            ],
+            "sprite": "sCamouflageStrategique"
+        },
+        "cape_dombre": {
+            "id": "cape_dombre",
+            "objectId": "oCapeOmbre",
+            "name": "Cape d'ombre",
+            "type": "Magic",
+            "mana_cost": 4.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Donne +4/+4 et Camouflage à un serviteur.",
+            "rarity": "epique",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort"
+            ],
+            "sprite": "sCapeOmbre"
+        },
+        "catherine_fumerol": {
+            "id": "catherine_fumerol",
+            "objectId": "oCatherineFumerol",
+            "name": "Catherine Fumerol",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 3.0,
+            "PV": 2.0,
+            "description": "Crepuscule : Inflige 3 dégats à votre adversaire.",
+            "rarity": "legendaire",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humain",
+                "Humanoïde",
+                "Crepuscule"
+            ],
+            "sprite": "sCatherineFumerol"
+        },
+        "chasse_en_meute": {
+            "id": "chasse_en_meute",
+            "objectId": "oChasseMeute",
+            "name": "Chasse en meute",
+            "type": "Magic",
+            "mana_cost": 3.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Inflige 2 dégats à votre adversaire pour chaque Bête que vous contrôlez.",
+            "rarity": "commun",
+            "race": "Nature",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Nature",
+                "Sort"
+            ],
+            "sprite": "sChasseuMeute"
+        },
+        "coquillage_des_marees": {
+            "id": "coquillage_des_marees",
+            "objectId": "oCoquillageMaree",
+            "name": "Coquillage des marées",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Donne +2 PV à tous vos serviteurs.",
+            "rarity": "rare",
+            "race": "Eau",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Eau",
+                "Sort"
+            ],
+            "sprite": "sCoquillageMaree"
+        },
+        "coureur_abyssien": {
+            "id": "coureur_abyssien",
+            "objectId": "oCoureurAbyssien",
+            "name": "Coureur Abyssien",
+            "type": "Unit",
+            "mana_cost": 0.0,
+            "attack": 1.0,
+            "PV": 1.0,
+            "description": "Une créature violente qui aime vivre en groupe près des milieux aquatique",
+            "rarity": "commun",
+            "race": "Abyssien",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Abyssien",
+                "Humanoïde"
+            ],
+            "sprite": "sCoureurAbyssien"
+        },
+        "cri_de_la_meute": {
+            "id": "cri_de_la_meute",
+            "objectId": "oCriMeute",
+            "name": "Cri de la meute",
+            "type": "Magic",
+            "mana_cost": 5.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Vos Bêtes gagnent +3/+3.",
+            "rarity": "commun",
+            "race": "Nature",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Nature",
+                "Bête"
+            ],
+            "sprite": "sCriMeute"
+        },
+        "dague_du_filou": {
+            "id": "dague_du_filou",
+            "objectId": "oDagueFilou",
+            "name": "Dague du filou",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Donne +1 ATK. Combo (Camouflage) : Donne +3 ATK à la place.",
+            "rarity": "commun",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort",
+                "Combo"
+            ],
+            "sprite": "sDagueFilou"
+        },
+        "distraction": {
+            "id": "distraction",
+            "objectId": "oDistraction",
+            "name": "Distraction",
+            "type": "Magic",
+            "mana_cost": 3.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Secret : Quand un serviteur ennemi est invoqué, le renvoie dans la main et augmente son coût de (2).",
+            "rarity": "epique",
+            "race": "Ombre",
+            "genre": "Secret",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort",
+                "Secret"
+            ],
+            "sprite": "sDistraction"
+        },
+        "double_jeu": {
+            "id": "double_jeu",
+            "objectId": "oDoubleJeu",
+            "name": "Double jeu",
+            "type": "Magic",
+            "mana_cost": 4.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Choisissez un serviteur. Invoquez-en une copie sur votre terrain (Ligne de front). Elle ne peut pas attaquer.",
+            "rarity": "rare",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort"
+            ],
+            "sprite": "sDoubleJeu"
+        },
+        "envahisseur_gueule-roche": {
+            "id": "envahisseur_gueule-roche",
+            "objectId": "oEnvahisseurGueuleRoche",
+            "name": "Envahisseur Gueule-Roche",
+            "type": "Unit",
+            "mana_cost": 6.0,
+            "attack": 6.0,
+            "PV": 6.0,
+            "description": "Eveil : Ajoute un Loup de guerre Gueule-Roche à votre main.",
+            "rarity": "commun",
+            "race": "Orc",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Orc",
+                "Eveil"
+            ],
+            "sprite": "sEnvahisseurGueuleRoche"
+        },
+        "espionnage": {
+            "id": "espionnage",
+            "objectId": "oEspionnage",
+            "name": "Espionnage",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Devoile 3 carte du deck adverse. Choississez une carte à placer sur le dessus du deck.",
+            "rarity": "rare",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort"
+            ],
+            "sprite": "sEspionnage"
+        },
+        "estafette_skarl": {
+            "id": "estafette_skarl",
+            "objectId": "oEstafetteSkarl",
+            "name": "Estafette Skarl",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 4.0,
+            "PV": 2.0,
+            "description": "Ambidextrie",
+            "rarity": "rare",
+            "race": "Skarl",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Skarl",
+                "Humanoïde",
+                "Ambidextrie"
+            ],
+            "sprite": "sEstafetteSkarl"
+        },
+        "ferveur_du_marais": {
+            "id": "ferveur_du_marais",
+            "objectId": "oFerveurMarais",
+            "name": "Ferveur du marais",
+            "type": "Magic",
+            "mana_cost": 3.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Invoque 3 Coureurs Abyssiens (1/1) sur des emplacements aléatoires.",
+            "rarity": "rare",
+            "race": "Eau",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Eau",
+                "Sort"
+            ],
+            "sprite": "sFerveurMarais"
+        },
+        "feuillage_protecteur": {
+            "id": "feuillage_protecteur",
+            "objectId": "oFeuillageProtecteur",
+            "name": "Feuillage protecteur",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "S'active lorsque votre adversaire détruit un de vos monstres. Lui confère Illusion.",
+            "rarity": "epique",
+            "race": "Nature",
+            "genre": "Secret",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Secret",
+                "Sort",
+                "Nature"
+            ],
+            "sprite": "sFeuillageProtecteur"
+        },
+        "filet_de_lombre": {
+            "id": "filet_de_lombre",
+            "objectId": "oFiletOmbre",
+            "name": "Filet de l'ombre",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "S'active lorsque votre adversaire attaque avec un monstre. Entrave l'attaquant.",
+            "rarity": "rare",
+            "race": "Ombre",
+            "genre": "Secret",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Secret",
+                "Entrave"
+            ],
+            "sprite": "sFiletOmbre"
+        },
+        "fourrageur_abyssien": {
+            "id": "fourrageur_abyssien",
+            "objectId": "oFourrageurAbyssien",
+            "name": "Fourrageur Abyssien",
+            "type": "Unit",
+            "mana_cost": 2.0,
+            "attack": 2.0,
+            "PV": 1.0,
+            "description": "Eveil : Invoque un 'Courreur Abyssien'à coté de lui.",
+            "rarity": "commun",
+            "race": "Abyssien",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Abyssien",
+                "Eveil"
+            ],
+            "sprite": "sFourrageurAbyssien"
+        },
+        "frenesie_sauvage": {
+            "id": "frenesie_sauvage",
+            "objectId": "oFrenesieSauvage",
+            "name": "Frénésie sauvage",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Confère +1 ATK et Ambidextrie à une Bête allié.",
+            "rarity": "commun",
+            "race": "Nature",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Nature",
+                "Ambidextrie",
+                "Sort"
+            ],
+            "sprite": "sFrenesieSauvage"
+        },
+        "frere_de_gorrak": {
+            "id": "frere_de_gorrak",
+            "objectId": "oFrereGorrak",
+            "name": "Frère de Gorrak",
+            "type": "Unit",
+            "mana_cost": 7.0,
+            "attack": 6.0,
+            "PV": 8.0,
+            "description": "Eveil : Réduit de 2 l'ATK de tous les monstre adverse",
+            "rarity": "legendaire",
+            "race": "Skarl",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Skarl",
+                "Eveil"
+            ],
+            "sprite": "sFrereGorrak"
+        },
+        "geomancien_tunnelin": {
+            "id": "geomancien_tunnelin",
+            "objectId": "oGeomancienTunnelin",
+            "name": "Géomancien Tunnelin",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 2.0,
+            "PV": 2.0,
+            "description": "Eveil : Entrave tous les serviteurs adverses",
+            "rarity": "commun",
+            "race": "Tunnelin",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Tunnelin",
+                "Eveil",
+                "Entrave"
+            ],
+            "sprite": "sGeomancienTunnelin"
+        },
+        "gobelin_furtif": {
+            "id": "gobelin_furtif",
+            "objectId": "oGobelinFurtif",
+            "name": "Gobelin Furtif",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 5.0,
+            "PV": 3.0,
+            "description": "Camouflage.",
+            "rarity": "commun",
+            "race": "Gobelin",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Gobelin",
+                "Camouflage"
+            ],
+            "sprite": "sGobelinFurtif"
+        },
+        "gorrak": {
+            "id": "gorrak",
+            "objectId": "oGorrak",
+            "name": "Gorrak",
+            "type": "Unit",
+            "mana_cost": 8.0,
+            "attack": 7.0,
+            "PV": 7.0,
+            "description": "Eveil : Invoque 2 'Skarl Chétif' sur la ligne de front. n\\Crépuscule : Inflige 2 dégats à votre adversaire pour chaque Humanoïde allié sur le terrain.",
+            "rarity": "legendaire",
+            "race": "Skarl",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Skarl",
+                "Eveil",
+                "Crepuscule"
+            ],
+            "sprite": "sGorrak"
+        },
+        "griffe_du_predateur": {
+            "id": "griffe_du_predateur",
+            "objectId": "oGriffePredateur",
+            "name": "Griffe du prédateur",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Donne +2/+1 à une Bête alliée.",
+            "rarity": "commune",
+            "race": "Nature",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Nature"
+            ],
+            "sprite": "sGriffePredateur"
+        },
+        "hurlement_de_la_tribu": {
+            "id": "hurlement_de_la_tribu",
+            "objectId": "oHurlementTribu",
+            "name": "Hurlement de la tribu",
+            "type": "Magic",
+            "mana_cost": 5.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Détruisez un Abyssien allié pour donner +4/+4 à tous vos autres monstres.",
+            "rarity": "commun",
+            "race": "Eau",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Eau",
+                "Abyssien",
+                "Sort"
+            ],
+            "sprite": "sHurlementTribu"
+        },
+        "james_la_calamite": {
+            "id": "james_la_calamite",
+            "objectId": "oJamesCalamite",
+            "name": "James la Calamité",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 4.0,
+            "PV": 4.0,
+            "description": "Camouflage. Crépuscule : Pille une carte du deck adverse",
+            "rarity": "legendaire",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Camouflage",
+                "Crepuscule"
+            ],
+            "sprite": "sJamesCalamite"
+        },
+        "jeune_loup": {
+            "id": "jeune_loup",
+            "objectId": "oJeuneLoup",
+            "name": "Jeune loup",
+            "type": "Unit",
+            "mana_cost": 1.0,
+            "attack": 1.0,
+            "PV": 2.0,
+            "description": "Gagne +1 ATK pour chaque autre 'Jeune loup' sur le terrain",
+            "rarity": "commun",
+            "race": "Loup",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Loup"
+            ],
+            "sprite": "sJeuneLoup"
+        },
+        "jeune_ours_des_forets": {
+            "id": "jeune_ours_des_forets",
+            "objectId": "oJeuneOursForet",
+            "name": "Jeune ours des forêts",
+            "type": "Unit",
+            "mana_cost": 5.0,
+            "attack": 5.0,
+            "PV": 6.0,
+            "description": "Un jeune ours qui protegera sa tanière coûte que coûte.",
+            "rarity": "commun",
+            "race": "Ours",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Ours"
+            ],
+            "sprite": "sJeuneOursForet"
+        },
+        "lieutenant_de_gorrak": {
+            "id": "lieutenant_de_gorrak",
+            "objectId": "oLieutenantGorrak",
+            "name": "Lieutenant de Gorrak",
+            "type": "Unit",
+            "mana_cost": 7.0,
+            "attack": 8.0,
+            "PV": 6.0,
+            "description": "Quand Gorrak n'est pas dans le coin, c'est lui qui s'occupe du clan. Du moins... il essaye.",
+            "rarity": "rare",
+            "race": "Skarl",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Skarl"
+            ],
+            "sprite": "sLieutenantGorrak"
+        },
+        "loup_galeux": {
+            "id": "loup_galeux",
+            "objectId": "oLoupGaleux",
+            "name": "Loup galeux",
+            "type": "Unit",
+            "mana_cost": 5.0,
+            "attack": 5.0,
+            "PV": 5.0,
+            "description": "Gagne +3 ATK tant qu'il n'y a aucune autre bête sur le terrain.",
+            "rarity": "commun",
+            "race": "Loup",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Loup"
+            ],
+            "sprite": "sLoupGaleux"
+        },
+        "loup_gris_des_forets": {
+            "id": "loup_gris_des_forets",
+            "objectId": "oLoupGrisForet",
+            "name": "Loup gris des forêts",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 4.0,
+            "PV": 5.0,
+            "description": "Ils vivent et chasse en meute. Si vous en croisez un, courrez aussi loin que vous pourrez car la meute n'est pas loin.",
+            "rarity": "rare",
+            "race": "Loup",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Loup"
+            ],
+            "sprite": "sLoupGrisForet"
+        },
+        "loup_de_guerre_gueule-roche": {
+            "id": "loup_de_guerre_gueule-roche",
+            "objectId": "oLoupGuerreGueuleRoche",
+            "name": "Loup de guerre Gueule-Roche",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 3.0,
+            "PV": 4.0,
+            "description": "Loup de guerre qui peut servir aussi de monture aux Orcs",
+            "rarity": "commun",
+            "race": "Bête",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Gueule-roche",
+                "Provocation"
+            ],
+            "sprite": "sLoupGuerreGueuleRoche"
+        },
+        "main_furtive": {
+            "id": "main_furtive",
+            "objectId": "oMainFurtive",
+            "name": "Main furtive",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Copie une carte de la main de votre adversaire et l'ajoute à votre main.",
+            "rarity": "rare",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort",
+                "Pillage"
+            ],
+            "sprite": "sMainFurtive"
+        },
+        "maitre_des_passes": {
+            "id": "maitre_des_passes",
+            "objectId": "oMaitrePasse",
+            "name": "Maître des passes",
+            "type": "Unit",
+            "mana_cost": 6.0,
+            "attack": 5.0,
+            "PV": 6.0,
+            "description": "Crépuscule : Invoque un Humanoïde de coût 3 ou moins depuis votre main.",
+            "rarity": "rare",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Crepuscule"
+            ],
+            "sprite": "sMaitrePasse"
+        },
+        "manipulation_du_butin": {
+            "id": "manipulation_du_butin",
+            "objectId": "oManipulationButin",
+            "name": "Manipulation du butin",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Echange une carte aléatoire de votre main avec une carte aléatoire de la main adverse.",
+            "rarity": "rare",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Ombre",
+                "Sort",
+                "Pillage"
+            ],
+            "sprite": "sManipulationButin"
+        },
+        "maree_deferlante": {
+            "id": "maree_deferlante",
+            "objectId": "oMareeDeferlante",
+            "name": "Marée déferlante",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Renvoyez un serviteur adverse dans la main de son propriétaire.",
+            "rarity": "commun",
+            "race": "Eau",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Eau",
+                "Sort"
+            ],
+            "sprite": "sMareeDeferlante"
+        },
+        "massacreur_gueule-roche": {
+            "id": "massacreur_gueule-roche",
+            "objectId": "oMassacreurGueuleRoche",
+            "name": "Massacreur Gueule-Roche",
+            "type": "Unit",
+            "mana_cost": 8.0,
+            "attack": 9.0,
+            "PV": 9.0,
+            "description": "Aura : Les 'Loup de guerre Gueule-Roche' ont +2/+2.",
+            "rarity": "rare",
+            "race": "Orc",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Orc",
+                "Aura",
+                "Humanoïde"
+            ],
+            "sprite": "sMassacreurGueuleRoche"
+        },
+        "matriarche_peau-de-roc": {
+            "id": "matriarche_peau-de-roc",
+            "objectId": "oMatriarchePeauRoc",
+            "name": "Matriarche peau-de-roc",
+            "type": "Unit",
+            "mana_cost": 7.0,
+            "attack": 7.0,
+            "PV": 7.0,
+            "description": "Eveil : Invoque 2 'sanglier peau-de-roc' sur la ligne de front.",
+            "rarity": "legendaire",
+            "race": "Sanglier",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Sanglier",
+                "Eveil"
+            ],
+            "sprite": "sMatriarchePeauRoc"
+        },
+        "mineur_tunnelin": {
+            "id": "mineur_tunnelin",
+            "objectId": "oMineurTunnelin",
+            "name": "Mineur Tunnelin",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 3.0,
+            "PV": 2.0,
+            "description": "Eveil : Inflige 2 dégâts à un serviteur adverse.",
+            "rarity": "commun",
+            "race": "Tunnelin",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Tunnelin",
+                "Eveil"
+            ],
+            "sprite": "sMineurTunnelin"
+        },
+        "morgane_la_venimeuse": {
+            "id": "morgane_la_venimeuse",
+            "objectId": "oMorganeVenimeuse",
+            "name": "Morgane la venimeuse",
+            "type": "Unit",
+            "mana_cost": 5.0,
+            "attack": 4.0,
+            "PV": 6.0,
+            "description": "Camouflage et poison.",
+            "rarity": "rare",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Camouflage",
+                "Poison"
+            ],
+            "sprite": "sMorganeVenimeuse"
+        },
+        "patte-brise_larmoyant": {
+            "id": "patte-brise_larmoyant",
+            "objectId": "oPatteBriseLarmoyant",
+            "name": "Patte-brisé larmoyant",
+            "type": "Unit",
+            "mana_cost": 6.0,
+            "attack": 5.0,
+            "PV": 9.0,
+            "description": "Gagne +2 ATK durant le tour adverse.",
+            "rarity": "epique",
+            "race": "Loup",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Loup"
+            ],
+            "sprite": "sPatteBriseLarmoyant"
+        },
+        "peau-de-roc_robuste": {
+            "id": "peau-de-roc_robuste",
+            "objectId": "oPeauRocRobuste",
+            "name": "Peau-de-roc robuste",
+            "type": "Unit",
+            "mana_cost": 6.0,
+            "attack": 5.0,
+            "PV": 7.0,
+            "description": "Charge",
+            "rarity": "rare",
+            "race": "Sanglier",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Sanglier",
+                "Charge"
+            ],
+            "sprite": "sPeauRocRobuste"
+        },
+        "piege_de_ronce": {
+            "id": "piege_de_ronce",
+            "objectId": "oPiegeRonce",
+            "name": "Piège de ronce",
+            "type": "Magic",
+            "mana_cost": 4.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Secret : Quand un ennemi vous attaque, Inflige 3 dégats à tous les adversaires.",
+            "rarity": "epique",
+            "race": "Nature",
+            "genre": "Secret",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Secret",
+                "Canture"
+            ],
+            "sprite": "sPiegeRonce"
+        },
+        "piege_du_voleur": {
+            "id": "piege_du_voleur",
+            "objectId": "oPiegeVoleur",
+            "name": "Piège du voleur",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "S'active lorsque votre adversaire invoque un monstre : l'entrave et lui inflige -2 d'attaque.",
+            "rarity": "rare",
+            "race": "Nature",
+            "genre": "Secret",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Secret",
+                "Entrave"
+            ],
+            "sprite": "sPiegeVoleur"
+        },
+        "portefaix": {
+            "id": "portefaix",
+            "objectId": "oPortefaix",
+            "name": "Portefaix",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 3.0,
+            "PV": 3.0,
+            "description": "Camouflage. Eveil : Purge un serviteur adverse (Retire tous ses effets).",
+            "rarity": "commun",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Camouflage",
+                "Eveil"
+            ],
+            "sprite": "sPortefaix"
+        },
+        "protection_de_la_maree": {
+            "id": "protection_de_la_maree",
+            "objectId": "oProtectionMaree",
+            "name": "Protection de la marée",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Donne +2 PV à tous les Abyssiens sur votre terrain.",
+            "rarity": "commun",
+            "race": "Eau",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Eau",
+                "Abyssien"
+            ],
+            "sprite": "sProtectionMaree"
+        },
+        "racine_envahissante": {
+            "id": "racine_envahissante",
+            "objectId": "oRacineEnvahissante",
+            "name": "Racine envahissante",
+            "type": "Magic",
+            "mana_cost": 3.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Gèle tous les serviteurs adverses.",
+            "rarity": "epique",
+            "race": "Nature",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Nature",
+                "Entrave"
+            ],
+            "sprite": "sRacineEnvahissante"
+        },
+        "le_recolteur": {
+            "id": "le_recolteur",
+            "objectId": "oRecolteur",
+            "name": "Le Récolteur",
+            "type": "Unit",
+            "mana_cost": 7.0,
+            "attack": 6.0,
+            "PV": 7.0,
+            "description": "Eveil : Invoque 'Catherine fumerol' et 'Yvan le costaud'",
+            "rarity": "legendaire",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Eveil"
+            ],
+            "sprite": "sRecolteur"
+        },
+        "renard_mystique": {
+            "id": "renard_mystique",
+            "objectId": "oRenardMystique",
+            "name": "Renard mystique",
+            "type": "Unit",
+            "mana_cost": 1.0,
+            "attack": 2.0,
+            "PV": 2.0,
+            "description": "Illusion",
+            "rarity": "epique",
+            "race": "Renard",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Renard",
+                "Illusion"
+            ],
+            "sprite": "sRenardMystique"
+        },
+        "rodeur_abyssien": {
+            "id": "rodeur_abyssien",
+            "objectId": "oRodeurAbyssien",
+            "name": "Rôdeur Abyssien",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 3.0,
+            "PV": 3.0,
+            "description": "Camouflage. Aube : Ajoute un 'Abyssien' de votre cimetière ou deck à votre main.",
+            "rarity": "rare",
+            "race": "Abyssien",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Abyssien",
+                "Camouflage",
+                "Aube"
+            ],
+            "sprite": "sRodeurAbyssien"
+        },
+        "rodeur_des_forets": {
+            "id": "rodeur_des_forets",
+            "objectId": "oRodeurForet",
+            "name": "Rôdeur des forêts",
+            "type": "Unit",
+            "mana_cost": 5.0,
+            "attack": 4.0,
+            "PV": 5.0,
+            "description": "Eveil : Invoque un 'jeune loup'.",
+            "rarity": "epique",
+            "race": "Loup",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Loup",
+                "Eveil"
+            ],
+            "sprite": "sRodeurForet"
+        },
+        "rugissement_de_la_foret": {
+            "id": "rugissement_de_la_foret",
+            "objectId": "oRugissementForet",
+            "name": "Rugissement de la forêt",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Donne +2 PV à toutes vos Bêtes.",
+            "rarity": "commun",
+            "race": "Nature",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Nature"
+            ],
+            "sprite": "sRugissementForet"
+        },
+        "ruisselier_abyssien": {
+            "id": "ruisselier_abyssien",
+            "objectId": "oRuisselierAbyssien",
+            "name": "Ruisselier Abyssien",
+            "type": "Unit",
+            "mana_cost": 2.0,
+            "attack": 2.0,
+            "PV": 3.0,
+            "description": "Chaque fois que vous invoquez un Abyssien, gagne +1ATK",
+            "rarity": "commun",
+            "race": "Abyssien",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Abyssien"
+            ],
+            "sprite": "sRuisselierAbyssien"
+        },
+        "sanglier_peau-de-roc": {
+            "id": "sanglier_peau-de-roc",
+            "objectId": "oSanglierPeauRoc",
+            "name": "Sanglier Peau-de-Roc",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 4.0,
+            "PV": 4.0,
+            "description": "Il vivent en famille autour des fermes pour voler les récoltes",
+            "rarity": "commun",
+            "race": "Sanglier",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Sanglier"
+            ],
+            "sprite": "sSanglierPeauRoc"
+        },
+        "saut_du_predateur": {
+            "id": "saut_du_predateur",
+            "objectId": "oSautPredateur",
+            "name": "Saut du prédateur",
+            "type": "Magic",
+            "mana_cost": 1.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Inflige des dégâts égaux à l'Attaque de votre Bête la plus puissante à un serviteur adverse.",
+            "rarity": "commun",
+            "race": "Nature",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Nature"
+            ],
+            "sprite": "sSautPredateur"
+        },
+        "skarl_chetif": {
+            "id": "skarl_chetif",
+            "objectId": "oSkarlChetif",
+            "name": "Skarl chétif",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 4.0,
+            "PV": 2.0,
+            "description": "Il était le plus faible de la portée mais ca ne l'empêche pas d'être dangereux",
+            "rarity": "commun",
+            "race": "Skarl",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Skarl"
+            ],
+            "sprite": "sSkarlChetif"
+        },
+        "sorcier_voleur": {
+            "id": "sorcier_voleur",
+            "objectId": "oSorcierVoleur",
+            "name": "Sorcier voleur",
+            "type": "Unit",
+            "mana_cost": 6.0,
+            "attack": 5.0,
+            "PV": 6.0,
+            "description": "Eveil : Vole un sort du deck adverse.",
+            "rarity": "commun",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Eveil",
+                "Pillage"
+            ],
+            "sprite": "sSorcierVoleur"
+        },
+        "sournoiserie": {
+            "id": "sournoiserie",
+            "objectId": "oSournoiserie",
+            "name": "Sournoiserie",
+            "type": "Magic",
+            "mana_cost": 2.0,
+            "attack": 0,
+            "PV": 0,
+            "description": "Inflige 2 dégâts à un serviteur ennemi et l'Entrave.",
+            "rarity": "rare",
+            "race": "Ombre",
+            "genre": "Sort",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Sort",
+                "Ombre",
+                "Entrave"
+            ],
+            "sprite": "sSournoiserie"
+        },
+        "sous-chef_tunnelin": {
+            "id": "sous-chef_tunnelin",
+            "objectId": "oSousChefTunnelin",
+            "name": "Sous-chef Tunnelin",
+            "type": "Unit",
+            "mana_cost": 6.0,
+            "attack": 6.0,
+            "PV": 7.0,
+            "description": "Eveil : Donne +2 ATK à tous vos serviteur sur le terrain",
+            "rarity": "epique",
+            "race": "Tunnelin",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Tunnelin",
+                "Eveil"
+            ],
+            "sprite": "sSousChefTunnelin"
+        },
+        "tarentule_des_forets": {
+            "id": "tarentule_des_forets",
+            "objectId": "oTarentuleForet",
+            "name": "Tarentule des forêts",
+            "type": "Unit",
+            "mana_cost": 6.0,
+            "attack": 6.0,
+            "PV": 5.0,
+            "description": "Brisé : Invoque 2 'Araignée forestière'.",
+            "rarity": "epique",
+            "race": "Araignée",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Araignée",
+                "Brisé"
+            ],
+            "sprite": "sTarentuleForet"
+        },
+        "tarrinox": {
+            "id": "tarrinox",
+            "objectId": "oTarrinox",
+            "name": "Tarrinox",
+            "type": "Unit",
+            "mana_cost": 8.0,
+            "attack": 8.0,
+            "PV": 10.0,
+            "description": "Eveil : Donne +4/+4 aux Araignée forestière sur le terrain.",
+            "rarity": "epique",
+            "race": "Araignée",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Araignée",
+                "Eveil"
+            ],
+            "sprite": "sTarrinox"
+        },
+        "tortue_vagabonde": {
+            "id": "tortue_vagabonde",
+            "objectId": "oTortueVagabonde",
+            "name": "Tortue vagabonde",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 2.0,
+            "PV": 8.0,
+            "description": "Elle longe la lisière séparant les forêt à la recherche de ses enfants.",
+            "rarity": "rare",
+            "race": "Tortue",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Tortue"
+            ],
+            "sprite": "sTortueVagabonde"
+        },
+        "tunnelin": {
+            "id": "tunnelin",
+            "objectId": "oTunnelin",
+            "name": "Tunnelin",
+            "type": "Unit",
+            "mana_cost": 2.0,
+            "attack": 1.0,
+            "PV": 2.0,
+            "description": "Eveil : Invoque une copie de ce serviteur à ses cotés.",
+            "rarity": "commun",
+            "race": "Tunnelin",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Tunnelin",
+                "Eveil"
+            ],
+            "sprite": "sTunnelin"
+        },
+        "videgousset": {
+            "id": "videgousset",
+            "objectId": "oVideGousset",
+            "name": "VideGousset",
+            "type": "Unit",
+            "mana_cost": 5.0,
+            "attack": 4.0,
+            "PV": 5.0,
+            "description": "Camouflage. Eveil : Pille une carte du deck adverse",
+            "rarity": "commun",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Camouflage",
+                "Eveil",
+                "Pillage"
+            ],
+            "sprite": "sVideGousset"
+        },
+        "viel_ours": {
+            "id": "viel_ours",
+            "objectId": "oVieilOurs",
+            "name": "Viel ours",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 3.0,
+            "PV": 5.0,
+            "description": "Ce monstre gagne temporairement +2 ATK lorsqu'il combat un monstre sur la ligne de front.",
+            "rarity": "rare",
+            "race": "Ours",
+            "genre": "Bête",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Bête",
+                "Ours"
+            ],
+            "sprite": "sVieilOurs"
+        },
+        "voleur_finelame": {
+            "id": "voleur_finelame",
+            "objectId": "oVoleurFinelame",
+            "name": "Voleur Finelame",
+            "type": "Unit",
+            "mana_cost": 3.0,
+            "attack": 3.0,
+            "PV": 2.0,
+            "description": "Camouflage. Percée (Peut ignorer la ligne de front pour attaquer le Héros ou l'arrière-garde).",
+            "rarity": "epique",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain",
+                "Camouflage",
+                "Percee"
+            ],
+            "sprite": "sVoleurFinelame"
+        },
+        "yvan_le_costaud": {
+            "id": "yvan_le_costaud",
+            "objectId": "oYvanCostaud",
+            "name": "Yvan le Costaud",
+            "type": "Unit",
+            "mana_cost": 4.0,
+            "attack": 3.0,
+            "PV": 6.0,
+            "description": "Tant que cette carte est sur le terrain, 'Catherine Fumerol' ne peut pas être détruit",
+            "rarity": "legendaire",
+            "race": "Humain",
+            "genre": "Humanoïde",
+            "booster": "Retour des Archontes",
+            "tags": [
+                "Humanoïde",
+                "Humain"
+            ],
+            "sprite": "sYvanCostaud"
+        }
+    },
+    "save_date": 46089.78537037037,
+    "total_cards": 74
 }

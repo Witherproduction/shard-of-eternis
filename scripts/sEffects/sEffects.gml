@@ -1004,6 +1004,40 @@ function executeEffect(card, effect, context = {}) {
                 } else {
                     var excludeSelfC = (variable_struct_exists(effect, "criteria") && variable_struct_exists(effect.criteria, "exclude_self")) ? effect.criteria.exclude_self : false;
                     tgt = excludeSelfC ? noone : card;
+                    
+                    // Auto-ciblage IA: si aucune cible fournie pour un buff "single", choisir une cible valide sur le terrain
+                    // (utile pour les sorts de buff joués par l'IA qui sinon tentent de se cibler eux-mêmes)
+                    var owner_ctx = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner"))
+                                    ? card.isHeroOwner
+                                    : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+                    if (!owner_ctx && (variable_struct_exists(effect, "criteria") && is_struct(effect.criteria)) && script_exists(asset_get_index("_cardMatchesCriteria"))) {
+                        var critAuto = effect.criteria;
+                        var arraysToCheck = [];
+                        var os = ownerSideB;
+                        if (os == "hero") os = "ally";
+                        if (os == "ally") {
+                            arraysToCheck = [ srcHeroB ? fieldMonsterHero.cards : fieldMonsterEnemy.cards ];
+                        } else if (os == "enemy") {
+                            arraysToCheck = [ srcHeroB ? fieldMonsterEnemy.cards : fieldMonsterHero.cards ];
+                        } else {
+                            arraysToCheck = [ fieldMonsterHero.cards, fieldMonsterEnemy.cards ];
+                        }
+                        for (var ai = 0; ai < array_length(arraysToCheck); ai++) {
+                            var arrAuto = arraysToCheck[ai];
+                            for (var ii = 0; ii < array_length(arrAuto); ii++) {
+                                var cAuto = arrAuto[ii];
+                                if (cAuto == 0 || !instance_exists(cAuto)) continue;
+                                var zcAuto = variable_instance_exists(cAuto, "zone") ? string_lower(cAuto.zone) : "";
+                                if (zcAuto != "field" && zcAuto != "fieldselected") continue;
+                                if (excludeSelfC && instance_exists(card) && cAuto == card) continue;
+                                if (_cardMatchesCriteria(cAuto, critAuto)) {
+                                    tgt = cAuto;
+                                    ai = array_length(arraysToCheck);
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
                 if (tgt == noone) { return false; }
 
@@ -1210,7 +1244,7 @@ function executeEffect(card, effect, context = {}) {
                     if (variable_instance_exists(target, "effective_attack")) ta = target.effective_attack; else if (variable_instance_exists(target, "attack")) ta = target.attack;
                     if (variable_instance_exists(target, "effective_defense")) td = target.effective_defense; else if (variable_instance_exists(target, "PV")) td = target.PV;
                 }
-                if (card != noone && instance_exists(card) && variable_instance_exists(card, "isPoisoner") && card.isPoisoner) { spawnPoisonFX(target, card); return true; }
+                if (card != noone && instance_exists(card) && variable_instance_exists(card, "isPoisoner") && card.isPoisoner) { spawnPoisonFX(target, card); }
                 var okdt = destroyCard(target);
                 if (okdt) {
                     var owner_flag_dt = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);

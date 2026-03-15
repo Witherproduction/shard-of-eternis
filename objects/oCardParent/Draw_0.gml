@@ -1,5 +1,59 @@
 // === oCardParent - Draw Event ===
 
+var __attackable = false;
+if (room == rDuel
+    && variable_instance_exists(id, "type") && type == "Monster"
+    && variable_instance_exists(id, "isHeroOwner") && isHeroOwner
+    && variable_instance_exists(id, "zone") && (zone == "Field" || zone == "FieldSelected")
+    && instance_exists(game)
+) {
+    var __is_turn = false;
+    if (variable_global_exists("NET_MODE") && global.NET_MODE != "offline") {
+        __is_turn = (variable_instance_exists(game, "is_local_turn") && game.is_local_turn);
+    } else {
+        __is_turn = (variable_instance_exists(game, "player_current") && game.player_current == 0);
+    }
+
+    var __phase = (variable_instance_exists(game, "phase") && variable_instance_exists(game, "phase_current")) ? game.phase[game.phase_current] : "";
+    var __turn1_lock = (variable_instance_exists(game, "nbTurn") && game.nbTurn == 1);
+    if (__is_turn && __phase == "Main" && !__turn1_lock) {
+        if (variable_instance_exists(id, "orientation") && orientation == "Attack") {
+            var __entrave_blocks = (variable_instance_exists(id, "entrave_turns_remaining") && entrave_turns_remaining > 0
+                                    && variable_instance_exists(id, "entrave_block_attack") && entrave_block_attack);
+            if (!__entrave_blocks) {
+                var __attack_limit = (variable_instance_exists(id, "isAmbidextrous") && isAmbidextrous) ? 2 : 1;
+                var __used_attacks = (variable_instance_exists(id, "attacksUsedThisTurn") ? attacksUsedThisTurn : 0);
+                __attackable = (__used_attacks < __attack_limit);
+            }
+        }
+    }
+}
+
+if (__attackable) {
+    var __spr_glow = sprite_index;
+    if (!sprite_exists(__spr_glow)) __spr_glow = asset_get_index("sCarteBack");
+    var __subimg = (__spr_glow == sprite_index) ? image_index : 0;
+    var __t = current_time / 1000.0;
+    var __period = 2.5;
+    var __a = (sin((__t * (2 * pi)) / __period - (pi * 0.5)) + 1) * 0.5;
+
+    if (sprite_exists(__spr_glow)) {
+        gpu_set_blendmode(bm_normal);
+        var __col_base = make_color_rgb(180, 0, 0);
+        draw_sprite_ext(__spr_glow, __subimg, x, y, image_xscale * 1.10, image_yscale * 1.10, image_angle, __col_base, 0.55 * __a);
+
+        gpu_set_blendmode(bm_add);
+        var __col = make_color_rgb(255, 70, 70);
+        draw_sprite_ext(__spr_glow, __subimg, x, y, image_xscale * 1.03, image_yscale * 1.03, image_angle, __col, 0.75 * __a);
+        draw_sprite_ext(__spr_glow, __subimg, x, y, image_xscale * 1.08, image_yscale * 1.08, image_angle, __col, 0.45 * __a);
+        draw_sprite_ext(__spr_glow, __subimg, x, y, image_xscale * 1.14, image_yscale * 1.14, image_angle, __col, 0.25 * __a);
+        draw_sprite_ext(__spr_glow, __subimg, x, y, image_xscale * 1.22, image_yscale * 1.22, image_angle, __col, 0.14 * __a);
+        gpu_set_blendmode(bm_normal);
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+    }
+}
+
 // --- AMBIDEXTROUS VISUAL (Doppelgänger / Mirage Statique) ---
 if (variable_instance_exists(id, "isAmbidextrous") && isAmbidextrous && variable_instance_exists(id, "zone") && zone == "Field") {
     // Configuration
@@ -372,10 +426,9 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             if (variable_instance_exists(self, "orientation") && orientation == "DefenseVisible") {
                 ang_overlay = image_angle;
             } else {
-                var owner_hero = (variable_instance_exists(self, "isHeroOwner") && isHeroOwner);
                 var a_norm = ((image_angle % 360) + 360) % 360;
                 if (a_norm == 0 || a_norm == 90 || a_norm == 180 || a_norm == 270) {
-                    ang_overlay = owner_hero ? image_angle : -image_angle;
+                    ang_overlay = image_angle;
                 }
             }
         }

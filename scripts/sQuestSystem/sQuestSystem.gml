@@ -57,7 +57,7 @@ function get_quest_database() {
         "minion_dmg_20": { type: "B", desc: "Infliger des dégâts avec des serviteurs 20 fois", target: 20, reward: 25 },
         "survive_25_turns": { type: "B", desc: "Survivre à 25 tours cumulés", target: 25, reward: 25 },
         
-        "trigger_eveil_10": { type: "B", desc: "Déclencher 10 Eveil", target: 10, reward: 25 },
+        "trigger_eveil_10": { type: "B", desc: "Jouer 10 cartes avec Eveil", target: 10, reward: 25 },
         "ally_death_10": { type: "B", desc: "Faire mourir 10 serviteur allié", target: 10, reward: 25 },
         
         "entrave_8": { type: "B", desc: "Entraver 8 serviteur adverse", target: 8, reward: 25 },
@@ -221,7 +221,6 @@ function check_quest_match(_q, _t, _c) {
             var kw = "";
             if (_c != undefined && variable_struct_exists(_c, "keyword")) kw = _c.keyword;
             
-            if (q.id == "trigger_eveil_10" && kw == "Eveil") match = true;
             if (q.id == "trigger_illusion_6" && kw == "Illusion") match = true;
         }
         
@@ -248,7 +247,10 @@ function check_quest_match(_q, _t, _c) {
             }
         }
         
-        if (_t == "play_card" && q.id == "play_20_cards") match = true;
+        if (_t == "play_card") {
+            if (q.id == "play_20_cards") match = true;
+            if (q.id == "trigger_eveil_10" && quest_helper_check_tag_prop(_c, "eveil")) match = true;
+        }
         
         if (_t == "spend_mana" && q.id == "spend_mana_60") match = true;
         

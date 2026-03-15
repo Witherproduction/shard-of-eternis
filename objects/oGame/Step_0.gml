@@ -184,6 +184,82 @@ if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
 // Arrêter si la partie est terminée (après avoir laissé le Tuto se mettre à jour)
 if (variable_instance_exists(id, "gameEnded") && gameEnded) return;
 
+if ((!variable_instance_exists(id, "story_pause_after_enemy_draw") || !story_pause_after_enemy_draw) && !instance_exists(oStoryToast)) {
+    if (is_callable(chap1_bot_events_on_progress)) {
+        var pause_story_anytime = chap1_bot_events_on_progress(id);
+        if (pause_story_anytime) {
+            story_pause_after_enemy_draw = true;
+            exit;
+        }
+    }
+}
+
+if (variable_instance_exists(id, "story_pause_after_enemy_draw") && story_pause_after_enemy_draw) {
+    if (instance_exists(oStoryToast)) {
+        exit;
+    }
+    {
+        if (variable_instance_exists(id, "story_pending_summon_asset") && story_pending_summon_asset != "") {
+            var summonCount = (variable_instance_exists(id, "story_pending_summon_count") ? story_pending_summon_count : 1);
+            if (summonCount < 1) summonCount = 1;
+            var mana_cost = (variable_instance_exists(id, "story_pending_summon_cost") ? story_pending_summon_cost : 0);
+            var forceCost = (variable_instance_exists(id, "story_pending_summon_force_cost") && story_pending_summon_force_cost);
+            for (var i = 0; i < summonCount; i++) {
+                var slot = getLeftmostFreeMonsterSlot(false);
+                if (slot == noone) break;
+                var payload = {
+                    card_asset_name: story_pending_summon_asset,
+                    xy: [slot.x, slot.y, slot.pos],
+                    summon_mode: "SpecialSummon"
+                };
+                if (mana_cost > 0 || forceCost) payload.mana_cost_override = mana_cost;
+                RequestGameAction(ACTION_SUMMON, payload);
+            }
+            story_pending_summon_asset = "";
+            if (variable_instance_exists(id, "story_pending_summon_cost")) story_pending_summon_cost = 0;
+            if (variable_instance_exists(id, "story_pending_summon_count")) story_pending_summon_count = 0;
+            if (variable_instance_exists(id, "story_pending_summon_force_cost")) story_pending_summon_force_cost = false;
+        }
+        
+        if (variable_instance_exists(id, "story_pending_add_to_hand_asset") && story_pending_add_to_hand_asset != "") {
+            var handInst = handEnemy;
+            if (instance_exists(handInst)) {
+                var cap = (variable_global_exists("MAX_HAND_SIZE") ? global.MAX_HAND_SIZE : 10);
+                var handCount = ds_list_size(handInst.cards);
+                if (handCount < cap) {
+                    var objIdxHand = asset_get_index(story_pending_add_to_hand_asset);
+                    if (objIdxHand != -1) {
+                        var newCard = instance_create_layer(handInst.x, handInst.y, layer_get_id("Instances"), objIdxHand);
+                        if (newCard != noone) {
+                            newCard.isHeroOwner = false;
+                            newCard.image_angle = 180;
+                            newCard.zone = "Hand";
+                            handInst.addCard(newCard);
+                            registerTriggerEvent(TRIGGER_ENTER_HAND, newCard, { owner_is_hero: false });
+                        }
+                    }
+                } else {
+                    var gy = graveyardEnemy;
+                    var objIdxBurn = asset_get_index(story_pending_add_to_hand_asset);
+                    if (instance_exists(gy) && objIdxBurn != -1) {
+                        var burnCard = instance_create_layer(gy.x, gy.y, layer_get_id("Instances"), objIdxBurn);
+                        if (burnCard != noone) {
+                            burnCard.isHeroOwner = false;
+                            gy.addToGraveyard(burnCard, true);
+                            burnCard.zone = "Graveyard";
+                            instance_destroy(burnCard);
+                        }
+                    }
+                }
+            }
+            story_pending_add_to_hand_asset = "";
+        }
+    }
+    story_pause_after_enemy_draw = false;
+    if (player_current == 1 && phase[phase_current] == "Start") nextPhase();
+    exit;
+}
+
 if(timerMulligan > 0 && timerEnabledMulligan) {
 	timerMulligan -= 1/room_speed;
 }
@@ -214,39 +290,47 @@ else if(timerEnabledMulligan) {
 	}
 }
 
-
-if(timerIA > 0 && timerEnabledIA) {
-	timerIA -= 1/room_speed;
-}
-else if(timerEnabledIA) {
-	
-	timerEnabledIA = false;
-
-    // SECURITY CHECK: IA timer should only execute if it's Enemy turn
-    if (player[player_current] != "Enemy") {
-        if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oGame: Blocked IA timer execution during Hero turn");
-        exit;
+if (!(timerEnabledIA && instance_exists(oStoryToast))) {
+    if(timerIA > 0 && timerEnabledIA) {
+    	timerIA -= 1/room_speed;
     }
+    else if(timerEnabledIA) {
+	
+    	timerEnabledIA = false;
 
-	switch (phase[phase_current])
-	{
-		case "Start": 
-            IA.pick(); 
-            // Force passage Main Phase for IA (simulated)
-            if (instance_exists(oGame)) oGame.nextPhase();
-            break;
-            
-		case "Main": 
-            // IA logic simple: Invoque puis attaque puis fin de tour
-            // [HEARTHSTONE] Asynchronous Turn Logic
-            IA.startTurnLogic();
-            
-            // Note: IA.startTurnLogic() initiates the Summoning phase.
-            // oIA Step event handles the transition Summon -> Attack -> NextPhase.
-            break;
-            
-        // Legacy phases removed
-	}
+        // SECURITY CHECK: IA timer should only execute if it's Enemy turn
+        if (player[player_current] != "Enemy") {
+            if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oGame: Blocked IA timer execution during Hero turn");
+            exit;
+        }
+
+    	switch (phase[phase_current])
+    	{
+    		case "Start": 
+                IA.pick(); 
+                var pause_story = false;
+                if (is_callable(chap1_bot_events_on_enemy_draw)) {
+                    pause_story = chap1_bot_events_on_enemy_draw(id);
+                }
+                if (pause_story) {
+                    story_pause_after_enemy_draw = true;
+                    exit;
+                }
+                if (instance_exists(oGame)) oGame.nextPhase();
+                break;
+                
+    		case "Main": 
+                // IA logic simple: Invoque puis attaque puis fin de tour
+                // [HEARTHSTONE] Asynchronous Turn Logic
+                IA.startTurnLogic();
+                
+                // Note: IA.startTurnLogic() initiates the Summoning phase.
+                // oIA Step event handles the transition Summon -> Attack -> NextPhase.
+                break;
+                
+            // Legacy phases removed
+    	}
+    }
 }
 
 // === GESTION DES EFFETS CONTINUS ===

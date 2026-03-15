@@ -120,7 +120,14 @@ if (variable_instance_exists(id, "show_duel_window") && show_duel_window) {
         
         // Delete Duel Button
         var btn_del_x = duel_window_x + 30 * k;
-        if (current.duel_bot_id > 0 && point_in_rectangle(mx, my, btn_del_x, btn_y_local, btn_del_x + btn_w_local, btn_y_local + btn_h_local)) {
+        var duel_exists = false;
+        if (variable_struct_exists(current, "duel_bot_id")) {
+            var bid = current.duel_bot_id;
+            if (is_real(bid)) duel_exists = (bid > 0);
+            else if (is_string(bid)) duel_exists = (bid != "" && bid != "0");
+            else duel_exists = (bid != 0 && bid != noone);
+        }
+        if (duel_exists && point_in_rectangle(mx, my, btn_del_x, btn_y_local, btn_del_x + btn_w_local, btn_y_local + btn_h_local)) {
              current.duel_bot_id = 0;
              current.duel_player_deck = noone;
              if (scene_idx >= 0 && scene_idx < array_length(editor_scenes)) {
@@ -486,6 +493,16 @@ if (mouse_check_button_pressed(mb_left)) {
         var json2 = json_stringify(scen2);
         var base_name2 = "scenario_chapter_" + string(chap2) + "_act_" + string(actn2) + ".json";
         var full_path2 = "scenarios/ch" + string(chap2) + "/" + base_name2;
+        show_debug_message("### ScenarioCreatorUI: SAVE wd=" + working_directory + " path=" + full_path2);
+        var scenes_count2 = array_length(scenes_out);
+        var total_lines2 = 0;
+        var i_lines2 = 0;
+        while (i_lines2 < scenes_count2) {
+            var scn2 = scenes_out[i_lines2];
+            if (variable_struct_exists(scn2, "lines") && is_array(scn2.lines)) total_lines2 += array_length(scn2.lines);
+            i_lines2 += 1;
+        }
+        show_debug_message("### ScenarioCreatorUI: SAVE chap=" + string(chap2) + " act=" + string(actn2) + " scenes=" + string(scenes_count2) + " lines=" + string(total_lines2));
         directory_create("scenarios");
         directory_create("scenarios/ch" + string(chap2));
         var f2 = file_text_open_write(full_path2);
@@ -515,8 +532,10 @@ if (mouse_check_button_pressed(mb_left)) {
         var actn3 = global.current_act; if (is_undefined(actn3)) actn3 = 1;
         var base_name3 = "scenario_chapter_" + string(chap3) + "_act_" + string(actn3) + ".json";
         var path = "scenarios/ch" + string(chap3) + "/" + base_name3;
+        show_debug_message("### ScenarioCreatorUI: LOAD wd=" + working_directory + " path=" + path);
         if (!file_exists(path)) {
             path = base_name3;
+            show_debug_message("### ScenarioCreatorUI: LOAD fallback path=" + path);
         }
         if (file_exists(path)) {
             var fr = file_text_open_read(path);
@@ -527,6 +546,15 @@ if (mouse_check_button_pressed(mb_left)) {
             editor_scenes = data.scenes;
             scene_idx = 0;
             line_idx = 0;
+            var scenes_count3 = array_length(editor_scenes);
+            var total_lines3 = 0;
+            var i_lines3 = 0;
+            while (i_lines3 < scenes_count3) {
+                var scn3 = editor_scenes[i_lines3];
+                if (variable_struct_exists(scn3, "lines") && is_array(scn3.lines)) total_lines3 += array_length(scn3.lines);
+                i_lines3 += 1;
+            }
+            show_debug_message("### ScenarioCreatorUI: LOAD chap=" + string(chap3) + " act=" + string(actn3) + " scenes=" + string(scenes_count3) + " lines=" + string(total_lines3));
             if (array_length(editor_scenes) > 0) {
                 var sc = editor_scenes[scene_idx];
                 current.bg_name = sc.bg;

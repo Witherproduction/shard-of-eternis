@@ -125,18 +125,18 @@ if (!finished_move) {
                 } else {
                     if (desiredOr == "PV") {
                         orientation = "PV";
-                        image_angle = 270;
+                        image_angle = 90;
                         image_index = 1;
                         isFaceDown = true;
                     } else if (ctype == "Magic" && mode == "Set") {
                         // Secrets/magies posées côté IA doivent être face cachée
                         orientation = "Attack";
-                        image_angle = 180;
+                        image_angle = 0;
                         image_index = 1;
                         isFaceDown = true;
                     } else {
                         orientation = "Attack";
-                        image_angle = 180;
+                        image_angle = 0;
                         image_index = 0;
                         isFaceDown = false;
                     }
@@ -245,4 +245,3 @@ if (!finished_move) {
         instance_destroy();
     }
 }
-

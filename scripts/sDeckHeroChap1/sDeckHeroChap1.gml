@@ -91,10 +91,39 @@ function get_hero_decks_chap1() {
                 "oBanditGuerrier", "oBanditGuerrier",
                 "oVoleurFinelame", "oVoleurFinelame",
                 "oBandit", "oBandit",
-                "oFourrageurAbyssien", "oFourrageurAbyssien",
+                "oSournoiserie", "oSournoiserie",
                 "oCapeOmbre", "oCapeOmbre",
                 "oFiletOmbre", "oFiletOmbre",
                 "oDagueFilou", "oDagueFilou"
+            ]
+        },
+        {
+            id: "fureur_sauvage",
+            name: "Fureur Sauvage",
+            description: "Un deck agressif basé sur les bêtes et la charge des sangliers.",
+            cards: [
+                // Base Fixe (Bêtes - 20 cartes)
+                "oTarrinox", "oTarrinox", 
+                "oTarentuleForet", "oTarentuleForet", 
+                "oTortueVagabonde", "oTortueVagabonde", 
+                "oLoupGaleux", "oLoupGaleux", 
+                "oJeuneLoup", "oJeuneLoup", 
+                "oRenardMystique", "oRenardMystique", 
+                "oVieilOurs", "oVieilOurs", 
+                
+                "oGriffePredateur", "oGriffePredateur", 
+                "oSautPredateur", "oSautPredateur", 
+                "oFeuillageProtecteur", "oFeuillageProtecteur",
+
+                // Complément Bêtes & Sangliers (20 cartes)
+                "oPeauRocRobuste", "oPeauRocRobuste", "oPeauRocRobuste", // Charge (Rare x3)
+                "oSanglierPeauRoc", "oSanglierPeauRoc", "oSanglierPeauRoc", // Charge (Commun x3)
+                "oFrenesieSauvage", "oFrenesieSauvage", // Buff ATK
+                "oRugissementForet", "oRugissementForet", // Buff PV
+                "oLoupGrisForet", "oLoupGrisForet", "oLoupGrisForet", // Meute (Rare x3)
+                "oRodeurForet", "oRodeurForet", // Invoque Jeune Loup
+                "oAraigneeForestiere", "oAraigneeForestiere", "oAraigneeForestiere", // T1 Venimeux
+                "oCriMeute", "oCriMeute" // Buff Late Game
             ]
         }
     ];

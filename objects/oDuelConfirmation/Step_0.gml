@@ -134,14 +134,13 @@ if (!variable_instance_exists(id, "setup_done")) {
             else if (current_chapter == 0) {
                 preferred_deck_id = "tuto_deck_hero";
             } else if (current_chapter == 1) {
-                // Si on affronte James la Calamité (Bot 3), on utilise le deck Alliance des Bois
+                // Si on affronte James la Calamité (Bot 3), on utilise le deck Alliance de la Forêt
                 if (selected_bot_deck_id == "Bandit_Grand_Chemin") {
-                    preferred_deck_id = "alliance_bois";
+                    preferred_deck_id = "alliance_foret";
                 } 
                 // Condition spécifique pour le 2ème duel de l'acte 2
                 else if (variable_global_exists("current_act") && global.current_act == 2) {
-                    // Correctif : Le joueur doit avoir le deck Alliance des Bois pour ce duel (contre James/Bot 3)
-                    preferred_deck_id = "alliance_bois"; 
+                    preferred_deck_id = "alliance_foret"; 
                 } else {
                     preferred_deck_id = "rebellion_horde";
                 }
@@ -207,6 +206,7 @@ if (!variable_instance_exists(id, "setup_done")) {
         if (check_id == 1) selected_bot_deck_id = "Invasion_Gueule_Roche";
         if (check_id == 2) selected_bot_deck_id = "Essaim_Abyssien";
         if (check_id == 3) selected_bot_deck_id = "Bandit_Grand_Chemin";
+        if (check_id == 4) selected_bot_deck_id = "Matriarche_Peau_Roc";
     }
     
     // Final Assignment of Bot Deck ID to global
@@ -265,4 +265,3 @@ if (mouse_check_button_pressed(mb_left)) {
         room_goto(rDuel);
     }
 }
-

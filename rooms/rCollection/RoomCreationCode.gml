@@ -7,6 +7,16 @@ if (!instance_exists(oDataBase)) {
     instance_create_layer(0, 0, "Instances", oDataBase);
 } else {
     show_debug_message("oDataBase existe déjà");
+    
+    // VÉRIFICATION DE SÉCURITÉ : Si la DB est vide, on force le rechargement
+    var db = instance_find(oDataBase, 0);
+    var count = variable_struct_names_count(db.cardDatabase);
+    if (count == 0) {
+        show_debug_message("### ATTENTION: oDataBase vide détectée dans rCollection ! Tentative de rechargement forcé...");
+        load_cards_database_from_file();
+        count = variable_struct_names_count(db.cardDatabase);
+        show_debug_message("### Résultat rechargement forcé: " + string(count) + " cartes.");
+    }
 }
 
 // Charger les decks sauvegardés depuis le fichier

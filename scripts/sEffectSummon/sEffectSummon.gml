@@ -32,7 +32,7 @@ function summonToken(card, effect, context) {
     token.orientation = "Attack";
     token.isFaceDown = false;
     token.image_index = 0;
-    token.image_angle = ownerIsHero ? 0 : 180;
+    token.image_angle = 0;
     token.attackModeActivated = false;
     token.visible = false;
 
@@ -50,7 +50,7 @@ function summonToken(card, effect, context) {
     var start_x_ss = 220;
     var start_y_ss = room_height * 0.5;
     var ghost_idx = 0;
-    var ghost_angle = ownerIsHero ? 0 : 180;
+    var ghost_angle = 0;
     var fx = instance_create_layer(start_x_ss, start_y_ss, "UI", FX_Invocation);
     if (fx != noone) {
         fx.spriteGhost         = token.sprite_index;
@@ -141,7 +141,7 @@ function copySummonFromTarget(card, effect, context) {
     copy.orientation = "Attack";
     copy.isFaceDown = false;
     copy.image_index = 0;
-    copy.image_angle = ownerIsHero ? 0 : 180;
+    copy.image_angle = 0;
     copy.attackModeActivated = false;
     copy.visible = false;
 
@@ -153,7 +153,7 @@ function copySummonFromTarget(card, effect, context) {
     var start_x = 220;
     var start_y = room_height * 0.5;
     var ghost_idx = 0;
-    var ghost_angle = ownerIsHero ? 0 : 180;
+    var ghost_angle = 0;
     var fx = instance_create_layer(start_x, start_y, "UI", FX_Invocation);
     if (fx != noone) {
         fx.spriteGhost         = copy.sprite_index;
@@ -255,7 +255,7 @@ function activateSpellByCriteria(card, effect, context) {
         spellCard.isFaceDown = false;
         spellCard.image_index = 0;
     }
-    spellCard.image_angle = ownerIsHero ? 0 : 180;
+    spellCard.image_angle = 0;
     var ctx2 = { summon_mode: "Summon", owner_is_hero: ownerIsHero };
     registerTriggerEvent(TRIGGER_ON_SUMMON, spellCard, ctx2);
     if (!isSecret2) { registerTriggerEvent(TRIGGER_ON_SPELL_CAST, spellCard, ctx2); }

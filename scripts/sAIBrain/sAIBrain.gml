@@ -74,7 +74,14 @@ function AI_SelectBestMove(moves) {
                             
                             if (instance_exists(oFieldManagerEnemy)) {
                                 with (oCardParent) {
-                                    if (variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && variable_instance_exists(id, "location") && location == "Board") {
+                                    var __onBoard = false;
+                                    if (variable_instance_exists(id, "zone")) {
+                                        __onBoard = (zone == "Field" || zone == "FieldSelected" || zone == "Board");
+                                    } else if (variable_instance_exists(id, "location")) {
+                                        __onBoard = (location == "Board" || location == "Field");
+                                    }
+                                    
+                                    if (variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && __onBoard) {
                                         var myName = variable_instance_exists(id, "name") ? name : "";
                                         var myObjName = object_get_name(object_index);
                                         
@@ -90,7 +97,16 @@ function AI_SelectBestMove(moves) {
                             }
                             
                             if (!conditionMet) {
-                                moveScoreVal = -9999; // FORBIDDEN MOVE
+                                var strict = (variable_struct_exists(condRule, "forbid_if_missing") && condRule.forbid_if_missing);
+                                if (strict) {
+                                    moveScoreVal = -9999; // FORBIDDEN MOVE
+                                } else {
+                                    var penalty = variable_struct_exists(condRule, "missing_penalty") ? condRule.missing_penalty : 600;
+                                    moveScoreVal -= penalty;
+                                }
+                            } else {
+                                var bonus = variable_struct_exists(condRule, "met_bonus") ? condRule.met_bonus : 400;
+                                moveScoreVal += bonus;
                             }
                         }
                     }
@@ -391,6 +407,37 @@ function AI_SelectBestMove(moves) {
                             moveScoreVal += 400; // 4 damage for 1 mana is huge value
                         } else {
                             moveScoreVal += 100; // 2 damage is okay but less priority
+                        }
+                    }
+                    
+                    else if (rule == "buff_beast_bonus_wolf") {
+                        var beastCount = 0;
+                        var hasWarWolf = false;
+                        if (instance_exists(oFieldMonsterEnemy)) {
+                            var cards = oFieldMonsterEnemy.cards;
+                            for (var kk = 0; kk < array_length(cards); kk++) {
+                                var c = cards[kk];
+                                if (c == 0 || !instance_exists(c)) continue;
+                                var g = variable_instance_exists(c, "genre") ? string_lower(string(c.genre)) : "";
+                                g = string_replace_all(g, "ê", "e");
+                                if (g == "bete") beastCount++;
+                                if (c.object_index == oLoupGuerreGueuleRoche) hasWarWolf = true;
+                            }
+                        }
+                        
+                        if (beastCount <= 0 || target == noone || !instance_exists(target)) {
+                            moveScoreVal = -9999;
+                        } else {
+                            var tg = variable_instance_exists(target, "genre") ? string_lower(string(target.genre)) : "";
+                            tg = string_replace_all(tg, "ê", "e");
+                            if (tg != "bete") {
+                                moveScoreVal = -9999;
+                            } else {
+                                var base = 250;
+                                if (hasWarWolf) base += 300;
+                                if (target.object_index == oLoupGuerreGueuleRoche) base += 700;
+                                moveScoreVal += base;
+                            }
                         }
                     }
                  }

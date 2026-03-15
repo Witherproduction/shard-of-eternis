@@ -205,6 +205,11 @@ function destroyCard(card, source = noone) {
             if (variable_instance_exists(card, "PV") && card.PV <= 0) { card.PV = 1; }
             if (variable_instance_exists(card, "current_hp") && card.current_hp <= 0) { card.current_hp = 1; }
             
+            // FIX: Cancel delayed poison destruction if it was pending
+            if (variable_instance_exists(card, "_delay_instance_destroy_for_poison")) {
+                card._delay_instance_destroy_for_poison = false;
+            }
+            
             // Quest System Notification
             if (instance_exists(oQuestManager)) {
                 // "Activer l'effet illusion"

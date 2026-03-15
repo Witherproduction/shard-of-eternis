@@ -301,8 +301,8 @@ function AI_AddEffectMoves(card, moves, context) {
             var checkTargets = hasFilter;
             
             // Types nécessitant impérativement une cible (même sans filtre explicite = field par défaut)
-            var mustCheck = (effectType == "destroy_target" || effectType == "banish_target" || effectType == "return_to_hand" || effectType == "equip_select_target" || (effectType == "buff" && scope == "single") || effectType == "damage_target" || effectType == "heal_target" || effectType == "entrave" || effectType == "pillage" || effectType == "camouflage" || effectType == "deck_reorder_top3" || effectType == "purge" || (effectType == "summon" && variable_struct_exists(effect, "summon_mode") && effect.summon_mode == "copy_target"));
-            if (mustCheck) checkTargets = true;
+            var mustTarget = (effectType == "destroy_target" || effectType == "banish_target" || effectType == "return_to_hand" || effectType == "equip_select_target" || (effectType == "buff" && scope == "single") || effectType == "damage_target" || effectType == "heal_target" || effectType == "entrave" || effectType == "pillage" || effectType == "camouflage" || effectType == "deck_reorder_top3" || effectType == "purge" || (effectType == "summon" && variable_struct_exists(effect, "summon_mode") && effect.summon_mode == "copy_target"));
+            if (mustTarget) checkTargets = true;
 
             if (checkTargets && !is_undefined(asset_get_index("getTargetsByFilter"))) {
                 var targetsFound = getTargetsByFilter(filterStruct);
@@ -317,6 +317,10 @@ function AI_AddEffectMoves(card, moves, context) {
                 } else {
                     // Si aucune cible n'est trouvée et que c'est aléatoire (mais avec filtre requis), on bloque.
                     if (isRandom) {
+                        k++;
+                        continue;
+                    }
+                    if (mustTarget) {
                         k++;
                         continue;
                     }

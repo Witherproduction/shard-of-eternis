@@ -203,14 +203,14 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
         }
     } else {
         if (desiredOrientation == "PV" || (card.type == "Monster" && mode_resolved == "Set")) {
-            ghost_angle = 270; // 180° (retourne) + 90° (défense)
+            ghost_angle = 90;
             ghost_index = 1; // face cachée
         } else if (card.type == "Magic" && isSecret && mode_resolved == "Set") {
             // Secret ennemi posé face cachée
-            ghost_angle = 180; // rangée magie ennemi
+            ghost_angle = 0;
             ghost_index = 1; // face cachée
         } else {
-            ghost_angle = 180; // attaque côté ennemi
+            ghost_angle = 0;
             ghost_index = 0; // face visible
         }
     }
@@ -437,18 +437,18 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
         } else {
             if (desiredOrientation == "PV" || (card.type == "Monster" && mode_resolved == "Set")) {
                 card.orientation = "PV";
-                card.image_angle = 270;
+                card.image_angle = 90;
                 card.image_index = 1;
                 card.isFaceDown = true;
             } else if (card.type == "Magic" && isSecret && mode_resolved == "Set") {
                 // Secret ennemi posé face cachée
                 card.orientation = "Attack";
-                card.image_angle = 180;
+                card.image_angle = 0;
                 card.image_index = 1;
                 card.isFaceDown = true;
             } else {
                 card.orientation = "Attack";
-                card.image_angle = 180;
+                card.image_angle = 0;
                 card.image_index = 0;
                 card.isFaceDown = false;
             }

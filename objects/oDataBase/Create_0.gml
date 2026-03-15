@@ -99,31 +99,27 @@ getCardsByRarity = function(rarity) {
 };
 
 // Initialiser la base de données avec les cartes existantes
-initializeDatabase();
+    // IMPORTANT: On utilise la nouvelle fonction robuste de sDeckPersistence
+    // Cette fonction gère automatiquement:
+    // 1. La synchronisation (Mise à jour AppData si Install > AppData)
+    // 2. La réparation (Copie Install -> AppData si AppData vide/corrompu)
+    // 3. Le chargement (Lecture depuis AppData uniquement)
+    // load_cards_database_from_file(); // DÉPLACÉ PLUS BAS
 
-// Fonction d'initialisation
-function initializeDatabase() {
-    // Debug global supprimé
-    // Synchronisation: toujours copier la DB depuis le dossier de l'exe vers AppData (WD)
-    // Objectif: garantir que les JSON mis à jour dans la release écrasent les versions locales obsolètes
-    var wd_datafile = CARDS_DATABASE_SAVE_FILE; // working_directory/datafiles/cards_database.json
-    var wd_rootfile = "cards_database.json";   // working_directory/cards_database.json
-    var exe_df = program_directory + "datafiles/cards_database.json";
-    var exe_root = program_directory + "cards_database.json";
-    show_debug_message("### Sync DB: probing EXE paths...");
-    if (file_exists(exe_df)) {
-        directory_create("datafiles");
-        if (file_exists(wd_datafile)) { file_delete(wd_datafile); }
-        var ok_sync_df = file_copy(exe_df, wd_datafile);
-        show_debug_message("### Sync DB from EXE datafiles -> WD: " + string(ok_sync_df));
-    } else if (file_exists(exe_root)) {
-        if (file_exists(wd_rootfile)) { file_delete(wd_rootfile); }
-        var ok_sync_root = file_copy(exe_root, wd_rootfile);
-        show_debug_message("### Sync DB from EXE root -> WD: " + string(ok_sync_root));
-    } else {
-        show_debug_message("### Sync DB skipped: no DB found beside EXE");
+    // --- MISE A JOUR DB FORCEE DEPUIS LES OBJETS (DEV TOOL) ---
+    // Cette ligne régénère le JSON à partir des objets GML (oCardParent children)
+    // Utile quand les stats dans l'IDE ont changé mais pas le JSON.
+    // À désactiver en release ou une fois la DB à jour.
+    // regenerate_database_from_objects();
+    
+    // NETTOYAGE CACHE FORCE : Pour s'assurer que la nouvelle DB générée est bien chargée
+    // On supprime le fichier du cache AppData pour forcer la copie depuis les Included Files
+    if (file_exists(CARDS_DATABASE_SAVE_FILE)) {
+        file_delete(CARDS_DATABASE_SAVE_FILE);
+        show_debug_message("### DEV: Cache DB supprimé pour forcer la mise à jour.");
     }
-
+    // -----------------------------------------------------------
+    
     // Amorçage des decks: copier vers AppData si absent
     var wd_decks_datafile = DECK_SAVE_FILE;      // working_directory/datafiles/saved_decks.json
     var wd_decks_rootfile = "saved_decks.json"; // working_directory/saved_decks.json
@@ -197,4 +193,4 @@ function initializeDatabase() {
     load_favorites_from_file();
     show_debug_message("Favoris chargés: " + string(get_favorites_count()) + " cartes favorites");
 
-}   show_debug_message("Base de données finale: " + string(array_length(variable_struct_get_names(cardDatabase))) + " cartes au total");
+   show_debug_message("Base de données finale: " + string(array_length(variable_struct_get_names(cardDatabase))) + " cartes au total");

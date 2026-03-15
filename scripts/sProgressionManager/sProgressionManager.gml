@@ -131,13 +131,27 @@ function progression_save() {
     if (!variable_struct_exists(global.progression_data, "rewards")) {
         global.progression_data.rewards = {};
     }
+    
+    // Initialiser les valeurs par défaut si elles n'existent pas
+    if (!variable_global_exists("gold_coins")) global.gold_coins = 0;
+    if (!variable_global_exists("arcane_stones")) global.arcane_stones = 0;
+    
     global.progression_data.rewards[$ "gold_coins"] = max(0, real(global.gold_coins));
     global.progression_data.rewards[$ "arcane_stones"] = max(0, real(global.arcane_stones));
-    var json_str = json_stringify(global.progression_data);
-    var f = file_text_open_write("save_player.json");
-    file_text_write_string(f, json_str);
-    file_text_close(f);
-    show_debug_message("### Progression sauvegardée.");
+    
+    try {
+        var json_str = json_stringify(global.progression_data);
+        var f = file_text_open_write("save_player.json");
+        if (f != -1) {
+            file_text_write_string(f, json_str);
+            file_text_close(f);
+            show_debug_message("### Progression sauvegardée.");
+        } else {
+            show_debug_message("### ERREUR: Impossible d'écrire dans save_player.json");
+        }
+    } catch(e) {
+        show_debug_message("### ERREUR CRITIQUE lors de la sauvegarde: " + string(e));
+    }
 }
 
 /// @function progression_load()

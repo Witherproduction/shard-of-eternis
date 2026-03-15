@@ -335,6 +335,10 @@ nextPhase = function() {
             show_debug_message("### Mana Enemy: " + string(global.mana_enemy) + "/" + string(global.mana_max_enemy));
         }
 
+        if (is_callable(chap1_bot_events_on_start_turn)) {
+            chap1_bot_events_on_start_turn(id);
+        }
+
         // 2. Reset des états de combat (Mal d'invocation géré à l'invocation, mais reset des attaques ici)
         hasSummonedThisTurn[player_current] = false;
 

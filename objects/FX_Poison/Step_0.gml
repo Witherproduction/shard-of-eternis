@@ -24,6 +24,7 @@ if (!variable_instance_exists(self, "_depth_applied") || !_depth_applied) {
 
 if (elapsed >= duration_ms) {
     if (target != noone && instance_exists(target)) {
+        // FIX: Check if poison destruction is still requested (might be cancelled by Illusion)
         if (variable_instance_exists(target, "_delay_instance_destroy_for_poison") && target._delay_instance_destroy_for_poison) {
             var ctx = { destroyed_card: target };
             if (variable_instance_exists(self, "source") && instance_exists(source)) { ctx.attacker = source; }
@@ -43,10 +44,11 @@ if (elapsed >= duration_ms) {
             target._delay_instance_destroy_for_poison = false;
             target._skip_destruction_fx = true;
             registerTriggerEvent(TRIGGER_ENTER_GRAVEYARD, target, ctx);
-        }
-        if (!destroy_called) {
-            destroy_called = true;
-            if (instance_exists(target)) instance_destroy(target);
+            
+            if (!destroy_called) {
+                destroy_called = true;
+                if (instance_exists(target)) instance_destroy(target);
+            }
         }
     }
     instance_destroy();

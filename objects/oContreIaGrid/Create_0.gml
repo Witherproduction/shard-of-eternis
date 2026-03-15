@@ -1,4 +1,4 @@
-﻿// === oContreIaGrid - Create Event ===
+// === oContreIaGrid - Create Event ===
 // Initialisation des variables pour la sélection des bots
 
 // Configuration du tableau
@@ -41,6 +41,7 @@ for (var i = 0; i < array_length(all_available_decks); i++) {
         if (bot_id == "Invasion_Gueule_Roche") bot_id = 1;
         else if (bot_id == "Essaim_Abyssien") bot_id = 2;
         else if (bot_id == "Bandit_Grand_Chemin") bot_id = 3;
+        else if (bot_id == "Matriarche_Peau_Roc") bot_id = 4;
     }
     
     // Vérification du type de bot_id pour éviter le crash (ex: "tuto_deck_bot" est une string)

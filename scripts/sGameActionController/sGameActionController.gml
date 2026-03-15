@@ -340,7 +340,8 @@ function _execute_Summon(payload) {
     
     // --- HEARTHSTONE MANA CHECK (Phase 3) ---
     var currentMana = ownerIsHero ? global.mana_hero : global.mana_enemy;
-    var cost = variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0;
+    var cost = variable_struct_exists(payload, "mana_cost_override") ? real(payload.mana_cost_override)
+        : (variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0);
     
     if (currentMana < cost) {
         show_debug_message("ERREUR: Mana insuffisant pour invoquer " + object_get_name(card.object_index) + " (" + string(currentMana) + "/" + string(cost) + ")");
@@ -389,7 +390,20 @@ function _execute_Summon(payload) {
         // Note: summon attend [x, y, slotIndex, desiredOrientation, effectTarget]
         // Legacy: remove desiredOrientation argument if summon() doesn't support it anymore, but currently hand.summon uses it.
         // For HS, we force "Attack" orientation internally in hand.summon or here.
+        var ui = instance_exists(oUIManager) ? instance_find(oUIManager, 0) : noone;
+        var ui_prev_mode = "";
+        var ui_overridden = false;
+        if (ui != noone && instance_exists(ui)) {
+            ui_prev_mode = (variable_instance_exists(ui, "selectedSummonOrSet") ? ui.selectedSummonOrSet : "");
+            if (variable_struct_exists(payload, "summon_mode") && string(payload.summon_mode) != "") {
+                ui.selectedSummonOrSet = payload.summon_mode;
+                ui_overridden = true;
+            }
+        }
         hand.summon(card, [posXY[0], posXY[1], fieldPos], desiredOrientation, effectTarget);
+        if (ui_overridden && ui != noone && instance_exists(ui)) {
+            ui.selectedSummonOrSet = ui_prev_mode;
+        }
         
         // Quest System Notification moved to oHand/FX_Invocation to avoid timing conflicts
         /*
@@ -797,4 +811,3 @@ function _findCardByInstanceUID(uid) {
     }
     return noone;
 }
-

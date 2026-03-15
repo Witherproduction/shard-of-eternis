@@ -297,7 +297,7 @@ function specialSummonNamed(card, effect, context) {
     cardToSummon.visible = false;
 
     var ghost_idx = 0;
-    var ghost_angle = ownerIsHero ? 0 : 180;
+    var ghost_angle = 0;
     var start_x_ss = 220;
     var start_y_ss = room_height * 0.5;
     var fx = instance_create_layer(start_x_ss, start_y_ss, "UI", FX_Invocation);

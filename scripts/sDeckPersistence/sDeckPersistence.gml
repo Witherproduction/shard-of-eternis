@@ -6,6 +6,51 @@
 #macro FAVORITES_SAVE_FILE "datafiles/favorite_cards.json"
 #macro CARDS_DATABASE_SAVE_FILE "datafiles/cards_database.json"
 
+/// @function read_file_content(path)
+/// @description Lit tout le contenu d'un fichier texte en utilisant un buffer pour garantir l'encodage UTF-8
+function read_file_content(path) {
+    if (!file_exists(path)) return "";
+    
+    try {
+        var buff = buffer_load(path);
+        if (buff == -1) return "";
+        
+        // Lire tout le buffer comme une chaîne
+        var content = buffer_read(buff, buffer_text);
+        buffer_delete(buff);
+        
+        // Nettoyage basique des caractères invisibles (BOM, etc.)
+        // Le BOM UTF-8 est souvent le caractère \uFEFF
+        if (string_length(content) > 0 && string_ord_at(content, 1) == 65279) {
+            content = string_delete(content, 1, 1);
+        }
+        
+        // --- REPARATION ENCODAGE (MOJIBAKE) ---
+        // Correction des caractères corrompus (UTF-8 lu comme ANSI puis resauvegardé)
+        content = string_replace_all(content, "Ã©", "é");
+        content = string_replace_all(content, "Ã¨", "è");
+        content = string_replace_all(content, "Ãª", "ê");
+        content = string_replace_all(content, "Ã«", "ë");
+        content = string_replace_all(content, "Ã¢", "â");
+        content = string_replace_all(content, "Ã®", "î");
+        content = string_replace_all(content, "Ã¯", "ï");
+        content = string_replace_all(content, "Ã´", "ô");
+        content = string_replace_all(content, "Ã»", "û");
+        content = string_replace_all(content, "Ã¹", "ù");
+        content = string_replace_all(content, "Ã§", "ç");
+        content = string_replace_all(content, "Å“", "œ");
+        content = string_replace_all(content, "â€™", "'");
+        
+        // Cas spécial pour 'à' (souvent Ã + NBSP)
+        content = string_replace_all(content, "Ã" + chr(160), "à");
+        
+        return content;
+    } catch(e) {
+        show_debug_message("### Erreur lecture buffer: " + string(e));
+        return "";
+    }
+}
+
 /// @function save_decks_to_file()
 /// @description Sauvegarde tous les decks dans un fichier JSON
 function save_decks_to_file() {
@@ -66,13 +111,9 @@ function load_decks_from_file() {
             exe_root                // 4) EXE root
         ];
         var path_to_use = "";
-        var file = -1;
         for (var i = 0; i < array_length(candidate_paths); i++) {
             var p = candidate_paths[i];
-            if (file_exists(p)) {
-                file = file_text_open_read(p);
-                if (file != -1) { path_to_use = p; break; }
-            }
+            if (file_exists(p)) { path_to_use = p; break; }
         }
         if (path_to_use == "") {
             show_debug_message("### Aucun fichier de decks trouvé (EXE ou AppData), initialisation d'une liste vide");
@@ -80,13 +121,8 @@ function load_decks_from_file() {
             return true;
         }
 
-        // Lire le fichier (handle déjà ouvert)
-        var json_string = "";
-        while (!file_text_eof(file)) {
-            json_string += file_text_read_string(file);
-            file_text_readln(file);
-        }
-        file_text_close(file);
+        // Lire le fichier
+        var json_string = read_file_content(path_to_use);
 
         // Parser le JSON
         var save_data = json_parse(json_string);
@@ -187,12 +223,18 @@ function save_cards_database_to_file() {
             return false;
         }
         
+        var card_count = variable_struct_names_count(db.cardDatabase);
+        if (card_count == 0) {
+            show_debug_message("### PROTECTION: Tentative de sauvegarde d'une DB vide (0 cartes). Sauvegarde annulée pour éviter d'écraser les données valides.");
+            return false;
+        }
+
         // Créer la structure de données à sauvegarder (toute la base de données)
         var save_data = {
             version: "1.0",
             cards_database: db.cardDatabase,
             save_date: date_current_datetime(),
-            total_cards: variable_struct_names_count(db.cardDatabase)
+            total_cards: card_count
         };
         
         // Convertir en JSON (corrige variable manquante)
@@ -215,9 +257,6 @@ function save_cards_database_to_file() {
             show_debug_message("### Base de données des cartes sauvegardée dans: " + target_path);
             show_debug_message("### Nombre total de cartes sauvegardées: " + string(variable_struct_names_count(db.cardDatabase)));
             
-            // EXPORT AUTOMATIQUE vers le fichier source pour le développement
-            export_cards_database_to_release();
-            
             return true;
         } else {
             show_debug_message("### Erreur: Impossible d'ouvrir un fichier de sauvegarde des cartes (datafiles et racine)");
@@ -233,134 +272,165 @@ function save_cards_database_to_file() {
 /// @description Charge toute la base de données des cartes depuis le fichier JSON
 function load_cards_database_from_file() {
     try {
-        // Journaux des répertoires clés pour diagnostiquer les chemins
-        show_debug_message("### working_directory = " + working_directory);
-        show_debug_message("### program_directory = " + program_directory);
-        // Écrire aussi ces infos dans un fichier de debug côté AppData
-        directory_create("datafiles");
-        var _dbg = file_text_open_write("datafiles/debug_paths.txt");
-        if (_dbg != -1) {
-            file_text_write_string(_dbg, "working_directory=" + working_directory + "\n");
-            file_text_write_string(_dbg, "program_directory=" + program_directory + "\n");
-            file_text_close(_dbg);
-        }
-        // Résoudre le meilleur chemin disponible en PRIORISANT le dossier de l'exe
-        // Ordre: dossier de l'exe -> datafiles de l'exe -> datafiles (AppData/sandbox) -> racine (AppData/sandbox)
-        var candidate_paths = [
-            program_directory + "cards_database.json",              // 1) côté .exe (priorité max)
-            program_directory + "datafiles/cards_database.json",    // 2) datafiles à côté de l'exe
-            CARDS_DATABASE_SAVE_FILE,                                 // 3) AppData: datafiles/cards_database.json (working_directory)
-            "cards_database.json"                                   // 4) AppData: racine du working_directory
-        ];
-        var path_to_use = "";
-        var file = -1;
-        for (var i = 0; i < array_length(candidate_paths); i++) {
-            var p = candidate_paths[i];
-            var exists = file_exists(p);
-            show_debug_message("### Probe DB path: " + p + " exists=" + string(exists));
-            if (exists) {
-                var fh = file_text_open_read(p);
-                if (fh != -1) {
-                    file = fh;
-                    path_to_use = p;
-                    break;
-                } else {
-                    show_debug_message("### Impossible d'ouvrir '" + p + "' (sandbox/protection). Essai du prochain chemin...");
-                }
+        // STRATÉGIE SIMPLIFIÉE : 
+        // 1. On synchronise le fichier d'installation vers l'AppData (pour s'assurer qu'il est à jour)
+        // 2. On lit UNIQUEMENT depuis l'AppData (comme GameMaker le prévoit)
+        
+        var install_db_path = "";
+        
+        // --- LOGIQUE DE DÉTECTION ROBUSTE POUR SANDBOX & RELEASE ---
+        
+        // 1. Tenter program_directory (Dossier de l'exécutable / Runner) - Prioritaire car c'est la source fiable
+        // Cela évite de confondre le fichier AppData (Sandbox) avec le fichier d'installation
+        try {
+            if (file_exists(program_directory + "datafiles/cards_database.json")) {
+                 install_db_path = program_directory + "datafiles/cards_database.json";
+                 show_debug_message("### DEBUG: install_db_path trouvé (PD): " + install_db_path);
             }
-        }
-        if (file == -1) {
-            show_debug_message("### Aucun fichier de base de données utilisable trouvé (ouverture échouée). Utilisation des cartes par défaut");
-            return false; // Retourner false pour indiquer qu'aucune base de données n'a été chargée
+        } catch(e) {
+            show_debug_message("### DEBUG: Accès program_directory bloqué ou fichier absent.");
         }
 
-        // Mémoriser le chemin choisi (pour debug / UI)
-        global.cards_db_loaded_path = path_to_use;
-        var from_exe = string_copy(path_to_use, 1, string_length(program_directory)) == program_directory;
-        show_debug_message("### cards_database.json choisi: " + path_to_use + (from_exe ? " [SOURCE=EXE]" : " [SOURCE=APPDATA]"));
-        // Écrire le chemin choisi dans le fichier de debug
-        var _dbg2 = file_text_open_write("datafiles/debug_paths.txt");
-        if (_dbg2 != -1) {
-            file_text_write_string(_dbg2, "chosen_path=" + path_to_use + "\n");
-            file_text_close(_dbg2);
-        }
-
-        var db = getDatabase();
-        if (db == noone || !instance_exists(db)) {
-            show_debug_message("### Erreur: Base de données non trouvée");
-            file_text_close(file);
-            return false;
+        // 2. Tenter le chemin "datafiles/" relatif standard (Fallback)
+        if (install_db_path == "" && file_exists("datafiles/cards_database.json")) {
+             install_db_path = "datafiles/cards_database.json";
+             show_debug_message("### DEBUG: install_db_path trouvé (Relatif): " + install_db_path);
         }
         
-        // Lire le contenu complet du fichier JSON
-        var json_string = "";
-        while (!file_text_eof(file)) {
-            json_string += file_text_read_string(file);
-            file_text_readln(file);
+        // 3. Tenter working_directory (AppData temporaire en Sandbox, ou dossier d'install)
+        if (install_db_path == "" && file_exists(working_directory + "datafiles/cards_database.json")) {
+             install_db_path = working_directory + "datafiles/cards_database.json";
+             show_debug_message("### DEBUG: install_db_path trouvé (WD): " + install_db_path);
         }
-        file_text_close(file);
+
+        if (install_db_path == "") {
+             show_debug_message("### DEBUG: AUCUN fichier source trouvé ! Vérifiez que 'cards_database.json' est bien dans 'Included Files' (datafiles)");
+             // Tentative désespérée : chercher à la racine
+             if (file_exists("cards_database.json")) {
+                 install_db_path = "cards_database.json";
+                 show_debug_message("### DEBUG: Trouvé à la racine (Fallback): " + install_db_path);
+             }
+        }
         
-        // Parser le JSON et accepter plusieurs formats
-        var save_data = json_parse(json_string);
-        var db_map = noone;
-
-        if (is_struct(save_data) && variable_struct_exists(save_data, "cards_database")) {
-            // Format enveloppé { version, cards_database, ... }
-            db_map = save_data.cards_database;
-        } else if (is_array(save_data)) {
-            // Format tableau d'objets -> convertir en map par id
-            db_map = {};
-            var missing_id_count = 0;
-            for (var i = 0; i < array_length(save_data); i++) {
-                var c = save_data[i];
-                if (is_struct(c)) {
-                    var has_id = variable_struct_exists(c, "id");
-                    var id_val = has_id ? c.id : "";
-                    if (!has_id || string(id_val) == "") {
-                        // Générer un ID robuste à partir du nom, sinon index
-                        var gen_id = "card_" + string(i);
-                        if (variable_struct_exists(c, "name")) {
-                            gen_id = string_lower(string_replace_all(string(c.name), " ", "_"));
-                        }
-                        c.id = gen_id;
-                        missing_id_count += 1;
-                    }
-                    db_map[$ c.id] = c;
-                }
-            }
-            if (missing_id_count > 0) {
-                show_debug_message("### Migration: " + string(missing_id_count) + " carte(s) sans 'id' normalisée(s)");
-            }
-        } else if (is_struct(save_data)) {
-            // Format map directe { id: cardData, ... }
-            db_map = save_data;
+        var appdata_db_path = CARDS_DATABASE_SAVE_FILE; // "datafiles/cards_database.json"
+        
+        // S'assurer que le dossier "datafiles" existe dans AppData (sinon l'écriture échoue silencieusement parfois)
+        if (!directory_exists("datafiles")) {
+            directory_create("datafiles");
         }
 
-        if (db_map != noone && variable_struct_names_count(db_map) > 0) {
-            db.cardDatabase = db_map;
-            var total_cards = variable_struct_names_count(db.cardDatabase);
-            show_debug_message("### Base de données chargée depuis: " + path_to_use);
-            show_debug_message("### Nombre total de cartes chargées: " + string(total_cards));
-            // Si lecture depuis EXE, migrer aussi le JSON vers AppData pour garder l'utilisateur en phase
-            if (from_exe) {
-                directory_create("datafiles");
-                var migrate_path = CARDS_DATABASE_SAVE_FILE; // WD/datafiles/cards_database.json
-                var mf = file_text_open_write(migrate_path);
-                if (mf != -1) {
-                    file_text_write_string(mf, json_string);
-                    file_text_close(mf);
-                    show_debug_message("### Migration: DB copiée vers AppData -> " + migrate_path);
-                } else {
-                    show_debug_message("### Migration: échec de l'ouverture du fichier AppData pour DB");
+        show_debug_message("### DEBUG: appdata_db_path cible: " + appdata_db_path);
+        
+        // SYNC FORCÉE : Comparaison des dates de sauvegarde (save_date)
+         // Si le fichier d'installation est plus récent que celui de l'AppData, on écrase.
+         if (install_db_path != "") {
+              var need_sync = false;
+              var install_date = -1;
+              var appdata_date = -1;
+              
+              // 1. Lire la date du fichier d'installation
+              var json_install = read_file_content(install_db_path);
+              if (json_install != "") {
+                  try {
+                      var data_install = json_parse(json_install);
+                      if (variable_struct_exists(data_install, "save_date")) {
+                          install_date = data_install.save_date;
+                      }
+                  } catch(e) {
+                      show_debug_message("### SYNC: Erreur lecture date installation: " + string(e));
+                  }
+              }
+
+              // 2. Lire la date du fichier AppData (s'il existe)
+              if (!file_exists(appdata_db_path)) {
+                  need_sync = true;
+                  show_debug_message("### SYNC: Fichier AppData manquant. Copie requise.");
+              } else {
+                  var json_appdata = read_file_content(appdata_db_path);
+                  if (json_appdata != "") {
+                      try {
+                          var data_appdata = json_parse(json_appdata);
+                          if (variable_struct_exists(data_appdata, "save_date")) {
+                              appdata_date = data_appdata.save_date;
+                          }
+                      } catch(e) {
+                          show_debug_message("### SYNC: Erreur lecture date AppData (fichier corrompu?): " + string(e));
+                          need_sync = true; // Si corrompu, on remplace
+                      }
+                  } else {
+                      need_sync = true; // Impossible à lire
+                  }
+              }
+              
+              // 3. Comparaison : Si Install est plus récent (>), on remplace
+              if (!need_sync && install_date > appdata_date) {
+                  need_sync = true;
+                  show_debug_message("### SYNC: Mise à jour détectée! Install (" + string(install_date) + ") > AppData (" + string(appdata_date) + ")");
+              } else if (!need_sync) {
+                  show_debug_message("### SYNC: AppData est à jour (" + string(appdata_date) + " >= " + string(install_date) + "). Pas de copie.");
+              }
+              
+              if (need_sync) {
+                  // On lit le fichier source (re-lecture propre ou on pourrait utiliser le json déjà lu, mais pour être sûr on copie le texte)
+                  // Note: On a déjà le contenu dans json_install, on peut l'écrire directement
+                  if (install_date != -1) { // S'assurer qu'on a bien lu une source valide
+                      var f_dst = file_text_open_write(appdata_db_path);
+                      file_text_write_string(f_dst, json_install);
+                      file_text_close(f_dst);
+                      show_debug_message("### SYNC: Copie réussie de Installation -> AppData.");
+                  } else {
+                      show_debug_message("### SYNC: Annulée car fichier d'installation invalide (pas de date).");
+                  }
+              }
+         }
+
+        // LECTURE CLASSIQUE (Depuis AppData uniquement)
+        if (file_exists(appdata_db_path)) {
+            var json_string = read_file_content(appdata_db_path);
+            
+            // Vérifier si le contenu lu est valide (non vide)
+            if (string_length(json_string) > 10) {
+                var db_map = json_parse(json_string);
+                
+                // Adaptation structure
+                if (variable_struct_exists(db_map, "cards_database")) {
+                    db_map = db_map.cards_database;
                 }
+                
+                var db = getDatabase();
+                db.cardDatabase = db_map;
+                show_debug_message("### DB chargée depuis AppData: " + string(variable_struct_names_count(db_map)) + " cartes.");
+                return true;
+            } else {
+                 show_debug_message("### ERREUR: Fichier AppData existant mais vide/invalide !");
+                 // FALLBACK: On tente de lire directement le fichier d'installation en mémoire
+                 if (install_db_path != "") {
+                     show_debug_message("### FALLBACK: Lecture directe depuis Installation (Rescue Read)...");
+                     var json_inst = read_file_content(install_db_path);
+                     
+                     var db_map_inst = json_parse(json_inst);
+                     if (variable_struct_exists(db_map_inst, "cards_database")) {
+                        db_map_inst = db_map_inst.cards_database;
+                     }
+                     var db = getDatabase();
+                     db.cardDatabase = db_map_inst;
+                     show_debug_message("### DB chargée (Rescue): " + string(variable_struct_names_count(db_map_inst)) + " cartes.");
+                     
+                     // On répare le fichier AppData pour la prochaine fois
+                     var f_repair = file_text_open_write(appdata_db_path);
+                     file_text_write_string(f_repair, json_inst);
+                     file_text_close(f_repair);
+                     
+                     return true;
+                 }
             }
-            return true;
         } else {
-            show_debug_message("### Erreur: Format JSON non reconnu ou vide pour la base de données");
+            show_debug_message("### ERREUR: Impossible de trouver ou créer la DB dans AppData.");
             return false;
         }
+
     } catch (e) {
-        show_debug_message("### Erreur lors du chargement de la base de données: " + string(e));
+        show_debug_message("### Erreur critique chargement DB: " + string(e));
         return false;
     }
 }
@@ -387,17 +457,11 @@ function export_cards_database_to_release() {
         }
 
         // Lire le contenu JSON depuis la source
-        var fh = file_text_open_read(src);
-        if (fh == -1) {
-            show_debug_message("### Export DB: impossible d'ouvrir la source: " + src);
+        var json_string = read_file_content(src);
+        if (json_string == "") {
+            show_debug_message("### Export DB: impossible d'ouvrir ou lire la source: " + src);
             return false;
         }
-        var json_string = "";
-        while (!file_text_eof(fh)) {
-            json_string += file_text_read_string(fh);
-            file_text_readln(fh);
-        }
-        file_text_close(fh);
 
         var wrote_any = false;
 

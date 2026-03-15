@@ -58,7 +58,8 @@ if (file_exists(path)) {
                 is_resuming = true;
             }
             
-            if (!is_resuming && variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id != 0 && sc.duel_bot_id != noone) {
+            var has_scene_lines = variable_struct_exists(sc, "lines") && is_array(sc.lines) && array_length(sc.lines) > 0;
+            if (!is_resuming && !has_scene_lines && variable_struct_exists(sc, "duel_bot_id") && sc.duel_bot_id != 0 && sc.duel_bot_id != noone) {
                 global.previous_room_before_duel = rScenario;
                 global.selected_bot_deck_id = sc.duel_bot_id;
                 

@@ -353,9 +353,11 @@ load_current_act_data = function() {
     var actn = global.current_act;
     var base_name = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
     var path = "scenarios/ch" + string(chap) + "/" + base_name;
+    show_debug_message("### ScenarioCreatorUI: LOAD_CURRENT wd=" + working_directory + " path=" + path);
     
     if (!file_exists(path)) {
         path = base_name;
+        show_debug_message("### ScenarioCreatorUI: LOAD_CURRENT fallback path=" + path);
     }
     
     if (file_exists(path)) {
@@ -367,6 +369,15 @@ load_current_act_data = function() {
         editor_scenes = data.scenes;
         scene_idx = 0;
         line_idx = 0;
+        var scenes_count = array_length(editor_scenes);
+        var total_lines = 0;
+        var i_lines = 0;
+        while (i_lines < scenes_count) {
+            var scn = editor_scenes[i_lines];
+            if (variable_struct_exists(scn, "lines") && is_array(scn.lines)) total_lines += array_length(scn.lines);
+            i_lines += 1;
+        }
+        show_debug_message("### ScenarioCreatorUI: LOAD_CURRENT chap=" + string(chap) + " act=" + string(actn) + " scenes=" + string(scenes_count) + " lines=" + string(total_lines));
         if (array_length(editor_scenes) > 0) {
             load_scene_data(editor_scenes[0]);
         } else {

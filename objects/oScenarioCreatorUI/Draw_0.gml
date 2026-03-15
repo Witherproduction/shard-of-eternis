@@ -536,7 +536,14 @@ draw_roundrect(btn_create_duel_x1, btn_create_duel_y1, btn_create_duel_x2, btn_c
 draw_set_color(c_white);
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
-var duel_count = (variable_struct_exists(current, "duel_bot_id") && current.duel_bot_id > 0) ? 1 : 0;
+var duel_exists = false;
+if (variable_struct_exists(current, "duel_bot_id")) {
+    var bid = current.duel_bot_id;
+    if (is_real(bid)) duel_exists = (bid > 0);
+    else if (is_string(bid)) duel_exists = (bid != "" && bid != "0");
+    else duel_exists = (bid != 0 && bid != noone);
+}
+var duel_count = duel_exists ? 1 : 0;
 draw_text((btn_create_duel_x1 + btn_create_duel_x2) * 0.5, (btn_create_duel_y1 + btn_create_duel_y2) * 0.5, "Créer Duel (" + string(duel_count) + ")");
 
 obj1_flip_hover = point_in_rectangle(mouse_x, mouse_y, obj1_flip_btn_x1, obj1_flip_btn_y1, obj1_flip_btn_x2, obj1_flip_btn_y2);
@@ -956,7 +963,7 @@ if (variable_instance_exists(id, "show_duel_window") && show_duel_window) {
     if (variable_instance_exists(id, "bot_deck_options")) {
          for (var i = 0; i < array_length(bot_deck_options); i++) {
              var item_y = list_y_start + i * item_h;
-             var is_selected = (current.duel_bot_id == bot_deck_options[i].id);
+             var is_selected = (string(current.duel_bot_id) == string(bot_deck_options[i].id));
              draw_set_color(is_selected ? c_green : c_dkgray);
              draw_rectangle(duel_window_x + duel_window_w/2 + 20 * k, item_y, duel_window_x + duel_window_w - 20 * k, item_y + item_h - 5, false);
              draw_set_color(c_white);
@@ -974,11 +981,11 @@ if (variable_instance_exists(id, "show_duel_window") && show_duel_window) {
     draw_set_color(c_black);
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    var btn_text = (current.duel_bot_id > 0) ? "Modifier" : "Créer";
+    var btn_text = duel_exists ? "Modifier" : "Créer";
     draw_text(btn_save_x + btn_w_local / 2, btn_y_local + btn_h_local / 2, btn_text);
     
     // Delete Duel Button
-    if (current.duel_bot_id > 0) {
+    if (duel_exists) {
         var btn_del_x = duel_window_x + 30 * k;
         draw_set_color(c_red);
         draw_roundrect(btn_del_x, btn_y_local, btn_del_x + btn_w_local, btn_y_local + btn_h_local, false);
