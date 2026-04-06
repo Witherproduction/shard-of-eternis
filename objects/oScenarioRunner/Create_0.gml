@@ -8,31 +8,47 @@ object1  = { x: room_width * 0.35, y: room_height * 0.30, w: 300 * k, h: 300 * k
 object2  = { x: room_width * 0.65, y: room_height * 0.30, w: 300 * k, h: 300 * k };
 
 btn_prev_x1 = 0; btn_prev_y1 = 0; btn_prev_x2 = 0; btn_prev_y2 = 0;
-// Boutons de navigation (Dimensions standard et alignés verticalement à droite du textbox)
-var bw = 120; 
-var bh = 50;
-var gap = 10;
-var bx = textbox.x + textbox.w * 0.5 + bw * 0.5 + 10; // 10px padding à droite du cadre
-
-// Auto (en bas, aligné avec le bas du cadre)
-btn_auto_x1 = bx - bw/2;
-btn_auto_y2 = textbox.y + textbox.h * 0.5;
-btn_auto_y1 = btn_auto_y2 - bh;
-btn_auto_x2 = bx + bw/2;
-
-// Suivant (au-dessus de Auto)
-btn_next_x1 = bx - bw/2;
-btn_next_y2 = btn_auto_y1 - gap;
-btn_next_y1 = btn_next_y2 - bh;
-btn_next_x2 = bx + bw/2;
-
-// Précédent (au-dessus de Suivant)
-btn_prev_x1 = bx - bw/2;
-btn_prev_y2 = btn_next_y1 - gap;
-btn_prev_y1 = btn_prev_y2 - bh;
-btn_prev_x2 = bx + bw/2;
-
+btn_next_x1 = 0; btn_next_y1 = 0; btn_next_x2 = 0; btn_next_y2 = 0;
+btn_auto_x1 = 0; btn_auto_y1 = 0; btn_auto_x2 = 0; btn_auto_y2 = 0;
+btn_skip_x1 = 0; btn_skip_y1 = 0; btn_skip_x2 = 0; btn_skip_y2 = 0;
 btn_quit_x1 = 0; btn_quit_y1 = 0; btn_quit_x2 = 0; btn_quit_y2 = 0;
+
+update_nav_buttons = function() {
+    var bw = 120;
+    var bh = 50;
+    var gap = 10;
+    var pad = 10;
+    var base_y2 = textbox.y + textbox.h * 0.5;
+
+    var right_x1 = textbox.x + textbox.w * 0.5 + pad;
+    btn_auto_x1 = right_x1;
+    btn_auto_x2 = right_x1 + bw;
+    btn_auto_y2 = base_y2;
+    btn_auto_y1 = btn_auto_y2 - bh;
+
+    btn_skip_x1 = right_x1;
+    btn_skip_x2 = right_x1 + bw;
+    btn_skip_y2 = btn_auto_y1 - gap;
+    btn_skip_y1 = btn_skip_y2 - bh;
+
+    btn_next_x1 = right_x1;
+    btn_next_x2 = right_x1 + bw;
+    btn_next_y2 = btn_skip_y1 - gap;
+    btn_next_y1 = btn_next_y2 - bh;
+
+    var left_x2 = textbox.x - textbox.w * 0.5 - pad;
+    btn_quit_x1 = left_x2 - bw;
+    btn_quit_x2 = left_x2;
+    btn_quit_y2 = base_y2;
+    btn_quit_y1 = btn_quit_y2 - bh;
+
+    btn_prev_x1 = left_x2 - bw;
+    btn_prev_x2 = left_x2;
+    btn_prev_y2 = btn_quit_y1 - gap;
+    btn_prev_y1 = btn_prev_y2 - bh;
+};
+
+update_nav_buttons();
 
 auto_mode = true; // Par défaut activé
 

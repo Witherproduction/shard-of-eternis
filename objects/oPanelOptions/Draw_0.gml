@@ -12,9 +12,15 @@ if (spr != -1) {
     var draw_y = y - (h * 0.5 - oy) * sy;
     draw_sprite_ext(spr, 0, draw_x, draw_y, sx, sy, 0, image_blend, image_alpha);
 
-    // Police UI et échelle visuelle réduite
-    draw_set_font(fontStep);
-    var ui_text_scale = 0.5;
+    var f = -1;
+    if (variable_global_exists("get_runtime_font")) f = global.get_runtime_font("text", 16);
+    if (f == -1) {
+        if (font_exists(fontText)) f = fontText;
+        else if (font_exists(fontTitle)) f = fontTitle;
+        else if (font_exists(fontUI)) f = fontUI;
+    }
+    if (f != -1) draw_set_font(f);
+    var ui_text_scale = 1.0;
 
     // Dimensions visuelles du panneau (utilisées pour le slider)
     var panel_w = w * sx;
@@ -72,17 +78,17 @@ if (spr != -1) {
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
     draw_set_color(c_white);
-    draw_text_transformed((btn_x1 + btn_x2) * 0.5, (btn_y1 + btn_y2) * 0.5, "Retour", ui_text_scale, ui_text_scale, 0);
+    draw_text((btn_x1 + btn_x2) * 0.5, (btn_y1 + btn_y2) * 0.5, "Retour");
     
     // Texte du bouton secondaire
     if (abandon_enabled) {
         var abandon_btn_center_x = (abandon_btn_x1 + abandon_btn_x2) * 0.5;
         var abandon_btn_center_y = (abandon_btn_y1 + abandon_btn_y2) * 0.5;
-        draw_text_transformed(abandon_btn_center_x, abandon_btn_center_y, "Abandonner", ui_text_scale, ui_text_scale, 0);
+        draw_text(abandon_btn_center_x, abandon_btn_center_y, "Abandonner");
     } else if (quit_enabled) {
         var quit_btn_center_x = (abandon_btn_x1 + abandon_btn_x2) * 0.5;
         var quit_btn_center_y = (abandon_btn_y1 + abandon_btn_y2) * 0.5;
-        draw_text_transformed(quit_btn_center_x, quit_btn_center_y, "Quitter", ui_text_scale, ui_text_scale, 0);
+        draw_text(quit_btn_center_x, quit_btn_center_y, "Quitter");
 
         // Pop-up de confirmation (uniquement pour Abandonner)
         if (abandon_confirm_open) {
@@ -104,7 +110,7 @@ if (spr != -1) {
             draw_set_color(c_white);
             draw_set_halign(fa_center);
             draw_set_valign(fa_middle);
-            draw_text_transformed(x, y - 20, "Voulez-vous abandonner ?", ui_text_scale, ui_text_scale, 0);
+            draw_text(x, y - 20, "Voulez-vous abandonner ?");
             
             // Bouton Oui (avec bordure rouge)
             draw_set_color(make_color_rgb(40, 40, 40));
@@ -112,7 +118,7 @@ if (spr != -1) {
             draw_set_color(c_red);
             draw_rectangle(confirm_yes_x1, confirm_yes_y1, confirm_yes_x2, confirm_yes_y2, true);
             draw_set_color(c_white);
-            draw_text_transformed((confirm_yes_x1 + confirm_yes_x2) / 2, (confirm_yes_y1 + confirm_yes_y2) / 2, "Oui", ui_text_scale, ui_text_scale, 0);
+            draw_text((confirm_yes_x1 + confirm_yes_x2) / 2, (confirm_yes_y1 + confirm_yes_y2) / 2, "Oui");
             
             // Bouton Non
             draw_set_color(make_color_rgb(40, 40, 40));
@@ -120,7 +126,7 @@ if (spr != -1) {
             draw_set_color(make_color_rgb(220, 200, 120));
             draw_rectangle(confirm_no_x1, confirm_no_y1, confirm_no_x2, confirm_no_y2, true);
             draw_set_color(c_white);
-            draw_text_transformed((confirm_no_x1 + confirm_no_x2) / 2, (confirm_no_y1 + confirm_no_y2) / 2, "Non", ui_text_scale, ui_text_scale, 0);
+            draw_text((confirm_no_x1 + confirm_no_x2) / 2, (confirm_no_y1 + confirm_no_y2) / 2, "Non");
             
             // Réinitialiser les paramètres de dessin
             draw_set_halign(fa_left);
@@ -168,7 +174,7 @@ if (spr != -1) {
     draw_set_color(c_white);
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
-    draw_text_transformed(label_x, label_y, txt, ui_text_scale, ui_text_scale, 0);
+    draw_text(label_x, label_y, txt);
 
     // Barre de fond
     draw_set_color(make_color_rgb(80, 80, 80));
@@ -205,7 +211,7 @@ if (spr != -1) {
     draw_set_color(c_white);
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
-    draw_text_transformed(knob_x + 12, knob_y, string(vol_value), ui_text_scale, ui_text_scale, 0);
+    draw_text(knob_x + 12, knob_y, string(vol_value));
 
     // ==========================
     // Bloc Mode d'affichage (Dropdown)
@@ -234,7 +240,7 @@ if (spr != -1) {
     draw_set_color(c_white);
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
-    draw_text_transformed(dm_label_x_loc, dm_label_y_loc, "Mode", ui_text_scale, ui_text_scale, 0);
+    draw_text(dm_label_x_loc, dm_label_y_loc, "Mode");
 
     // Menu déroulant
     draw_set_color(make_color_rgb(60, 60, 60));
@@ -247,7 +253,7 @@ if (spr != -1) {
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
     var dm_text = (display_mode >= 0 && display_mode < array_length(display_mode_list)) ? display_mode_list[display_mode] : "Inconnu";
-    draw_text_transformed(dm_dropdown_x1_loc + 8, (dm_dropdown_y1_loc + dm_dropdown_y2_loc) * 0.5, dm_text, ui_text_scale, ui_text_scale, 0);
+    draw_text(dm_dropdown_x1_loc + 8, (dm_dropdown_y1_loc + dm_dropdown_y2_loc) * 0.5, dm_text);
 
     // Flèche
     draw_set_color(c_white);
@@ -295,7 +301,7 @@ if (spr != -1) {
     draw_set_color(c_white);
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
-    draw_text_transformed(res_label_x_loc, res_label_y_loc, "Résolution", ui_text_scale, ui_text_scale, 0);
+    draw_text(res_label_x_loc, res_label_y_loc, "Résolution");
 
     // Menu déroulant principal
     draw_set_color(make_color_rgb(60, 60, 60));
@@ -309,7 +315,7 @@ if (spr != -1) {
     draw_set_valign(fa_middle);
     var selected_text = (resolution_selected >= 0 && resolution_selected < array_length(resolution_list)) ? 
                         resolution_list[resolution_selected] : "Inconnue";
-    draw_text_transformed(res_dropdown_x1_loc + 8, (res_dropdown_y1_loc + res_dropdown_y2_loc) * 0.5, selected_text, ui_text_scale, ui_text_scale, 0);
+    draw_text(res_dropdown_x1_loc + 8, (res_dropdown_y1_loc + res_dropdown_y2_loc) * 0.5, selected_text);
 
     // Flèche déroulante
     draw_set_color(c_white);
@@ -366,7 +372,7 @@ if (spr != -1) {
             draw_set_color(c_white);
             draw_set_halign(fa_left);
             draw_set_valign(fa_middle);
-            draw_text_transformed(res_list_x1 + 8, item_center_y, resolution_list[i], ui_text_scale, ui_text_scale, 0);
+            draw_text(res_list_x1 + 8, item_center_y, resolution_list[i]);
 
             // Ligne de séparation (sauf pour le dernier élément)
             if (i < array_length(resolution_list) - 1) {
@@ -401,7 +407,7 @@ if (spr != -1) {
         draw_set_color(c_white);
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_text_transformed((ab_x1 + ab_x2) * 0.5, (ab_y1 + ab_y2) * 0.5, "Abandonner", ui_text_scale, ui_text_scale, 0);
+        draw_text((ab_x1 + ab_x2) * 0.5, (ab_y1 + ab_y2) * 0.5, "Abandonner");
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
 
@@ -432,7 +438,7 @@ if (spr != -1) {
             draw_set_halign(fa_center);
             draw_set_valign(fa_middle);
             var msg_y = box_y1 + 30;
-            draw_text_transformed((box_x1 + box_x2) * 0.5, msg_y, "Voulez-vous abandonner ?", ui_text_scale, ui_text_scale, 0);
+            draw_text((box_x1 + box_x2) * 0.5, msg_y, "Voulez-vous abandonner ?");
             draw_set_halign(fa_left);
             draw_set_valign(fa_top);
 
@@ -450,7 +456,7 @@ if (spr != -1) {
             draw_set_color(c_white);
             draw_set_halign(fa_center);
             draw_set_valign(fa_middle);
-            draw_text_transformed((yes_x1 + yes_x2) * 0.5, (yes_y1 + yes_y2) * 0.5, "Oui", ui_text_scale, ui_text_scale, 0);
+            draw_text((yes_x1 + yes_x2) * 0.5, (yes_y1 + yes_y2) * 0.5, "Oui");
             draw_set_halign(fa_left);
             draw_set_valign(fa_top);
 
@@ -468,7 +474,7 @@ if (spr != -1) {
             draw_set_color(c_white);
             draw_set_halign(fa_center);
             draw_set_valign(fa_middle);
-            draw_text_transformed((no_x1 + no_x2) * 0.5, (no_y1 + no_y2) * 0.5, "Non", ui_text_scale, ui_text_scale, 0);
+            draw_text((no_x1 + no_x2) * 0.5, (no_y1 + no_y2) * 0.5, "Non");
             draw_set_halign(fa_left);
             draw_set_valign(fa_top);
         }
@@ -520,7 +526,7 @@ if (spr != -1) {
             draw_set_color(c_white);
             draw_set_halign(fa_left);
             draw_set_valign(fa_middle);
-            draw_text_transformed(dm_list_x1_draw + 8, item_center_y, display_mode_list[i], ui_text_scale, ui_text_scale, 0);
+            draw_text(dm_list_x1_draw + 8, item_center_y, display_mode_list[i]);
             
             // Ligne de séparation
             if (i < array_length(display_mode_list) - 1) {

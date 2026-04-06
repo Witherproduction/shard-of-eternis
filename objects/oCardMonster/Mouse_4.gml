@@ -105,6 +105,11 @@ if (room == rCollection) {
     return;
 }
 
+if (instance_exists(oSelectManager) && selectManager.targetingEffect) {
+    selectManager.trySelect(id);
+    return;
+}
+
 // Phase Summon : Le changement d'orientation se fait maintenant via le bouton de position
 // (Ancien système de clic direct supprimé pour éviter les changements non voulus)
 

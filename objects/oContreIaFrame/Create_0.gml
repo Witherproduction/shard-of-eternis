@@ -7,7 +7,7 @@ load_decks_from_file();
 selected_deck_index = -1; // Index du deck sélectionné (-1 = aucun)
 scroll_offset = 0; // Décalage pour le défilement
 max_visible_decks = 8; // Nombre maximum de decks visibles à la fois
-deck_item_height = 40; // Hauteur de chaque élément de deck
+deck_item_height = 60; // Hauteur de chaque élément de deck
 
 // Variables pour l'interface
 deck_list_y = 120; // Position Y de début de la liste des decks

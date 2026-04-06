@@ -5,6 +5,8 @@ if (bg != -1) {
     draw_clear_alpha(c_black, 1);
 }
 
+update_nav_buttons();
+
 var s1 = asset_get_index(current.portrait1_name);
 if (s1 != -1) {
     var sw = sprite_get_width(s1); var sh = sprite_get_height(s1);
@@ -145,7 +147,7 @@ if (o2 != -1) {
 
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
-if (font_exists(fontCardDisplay)) draw_set_font(fontCardDisplay);
+if (font_exists(fontText)) draw_set_font(fontText);
 draw_set_color(c_white);
 var txl = textbox.x - textbox.w * 0.5 + textbox.margin;
 var txr = textbox.x + textbox.w * 0.5 - textbox.margin;
@@ -195,31 +197,82 @@ draw_set_valign(fa_top);
 
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
-draw_set_font(fontCardDisplay); // Utiliser la même police
+draw_set_font(fontUI);
+
+var draw_menu_button = function(x1, y1, x2, y2, label, hover) {
+    var w = x2 - x1;
+    var h = y2 - y1;
+    if (sprite_exists(sButton)) {
+        var subimg = 0;
+        if (hover && sprite_get_number(sButton) > 1) subimg = 1;
+        draw_sprite_stretched(sButton, subimg, x1, y1, w, h);
+    } else {
+        draw_set_color(hover ? c_ltgray : c_gray);
+        draw_rectangle(x1, y1, x2, y2, false);
+        draw_set_color(c_white);
+        draw_rectangle(x1, y1, x2, y2, true);
+    }
+    
+    var cx = (x1 + x2) * 0.5;
+    var cy = (y1 + y2) * 0.5;
+    var max_w = max(1, w - 16);
+    var max_h = max(1, h - 10);
+    var col_main = make_color_rgb(230, 200, 120);
+
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    if (variable_global_exists("get_runtime_font")) {
+        var sz = 20;
+        var f = global.get_runtime_font("title", sz);
+        while (sz > 10 && f != -1) {
+            draw_set_font(f);
+            if (string_width(label) <= max_w && string_height("Ag") <= max_h) break;
+            sz -= 1;
+            f = global.get_runtime_font("title", sz);
+        }
+        if (f != -1) draw_set_font(f);
+        draw_set_color(c_black);
+        draw_text(cx + 2, cy + 2, label);
+        draw_set_color(col_main);
+        draw_text(cx, cy, label);
+    } else {
+        var f2 = -1;
+        if (font_exists(fontTitle)) f2 = fontTitle;
+        else if (font_exists(fontText)) f2 = fontText;
+        else if (font_exists(fontUI)) f2 = fontUI;
+        if (f2 != -1) draw_set_font(f2);
+        var sw = string_width(label);
+        var sh = string_height("Ag");
+        var sc = 1;
+        if (sw > 0) sc = min(sc, max_w / sw);
+        if (sh > 0) sc = min(sc, max_h / sh);
+        sc = min(1, sc);
+        draw_set_color(c_black);
+        draw_text_transformed(cx + 2, cy + 2, label, sc, sc, 0);
+        draw_set_color(col_main);
+        draw_text_transformed(cx, cy, label, sc, sc, 0);
+    }
+};
 
 // Bouton Précédent
 var hover_prev = point_in_rectangle(mouse_x, mouse_y, btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2);
-draw_set_color(hover_prev ? c_ltgray : c_gray);
-draw_rectangle(btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2, false);
-draw_set_color(c_white);
-draw_rectangle(btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2, true);
-draw_text_transformed((btn_prev_x1+btn_prev_x2)/2, (btn_prev_y1+btn_prev_y2)/2, "Précédent", 0.5, 0.5, 0);
+draw_menu_button(btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2, "Précédent", hover_prev);
+
+// Bouton Retour
+var hover_quit = point_in_rectangle(mouse_x, mouse_y, btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2);
+draw_menu_button(btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2, "Retour", hover_quit);
 
 // Bouton Suivant
 var hover_next = point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, btn_next_y2);
-draw_set_color(hover_next ? c_ltgray : c_gray);
-draw_rectangle(btn_next_x1, btn_next_y1, btn_next_x2, btn_next_y2, false);
-draw_set_color(c_white);
-draw_rectangle(btn_next_x1, btn_next_y1, btn_next_x2, btn_next_y2, true);
-draw_text_transformed((btn_next_x1+btn_next_x2)/2, (btn_next_y1+btn_next_y2)/2, "Suivant", 0.6, 0.6, 0);
+draw_menu_button(btn_next_x1, btn_next_y1, btn_next_x2, btn_next_y2, "Suivant", hover_next);
+
+// Bouton Skip
+var hover_skip = point_in_rectangle(mouse_x, mouse_y, btn_skip_x1, btn_skip_y1, btn_skip_x2, btn_skip_y2);
+draw_menu_button(btn_skip_x1, btn_skip_y1, btn_skip_x2, btn_skip_y2, "Skip", hover_skip);
 
 // Bouton Auto
 var hover_auto = point_in_rectangle(mouse_x, mouse_y, btn_auto_x1, btn_auto_y1, btn_auto_x2, btn_auto_y2);
-var col_bg_auto = hover_auto ? c_ltgray : c_gray;
-if (auto_mode) col_bg_auto = c_dkgray; 
-
-draw_set_color(col_bg_auto);
-draw_rectangle(btn_auto_x1, btn_auto_y1, btn_auto_x2, btn_auto_y2, false);
+draw_menu_button(btn_auto_x1, btn_auto_y1, btn_auto_x2, btn_auto_y2, "Auto", hover_auto);
 
 if (auto_mode) {
     var thick = 3;
@@ -306,14 +359,7 @@ if (auto_mode) {
             rem_len -= draw_len;
         }
     }
-} else {
-    draw_set_color(c_white);
-    draw_rectangle(btn_auto_x1, btn_auto_y1, btn_auto_x2, btn_auto_y2, true);
 }
-
-draw_set_color(c_white);
-draw_set_halign(fa_center); draw_set_valign(fa_middle);
-draw_text_transformed((btn_auto_x1+btn_auto_x2)/2, (btn_auto_y1+btn_auto_y2)/2, "Auto", 0.7, 0.7, 0);
 
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);

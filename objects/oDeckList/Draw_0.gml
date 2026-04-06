@@ -16,6 +16,23 @@ sprite_x = room_width - scaled_w + 55 - 55;
 // Dessiner le sprite sDeckBuilder étiré sur toute la hauteur et allongé de 30 pixels
 draw_sprite_ext(sDeckBuilder, 0, sprite_x, sprite_y, scale_x, scale_y, 0, c_white, 1);
 
+var get_font = function(kind, size) {
+    if (variable_global_exists("get_runtime_font")) {
+        var rf = global.get_runtime_font(kind, size);
+        if (rf != -1) return rf;
+    }
+    if (kind == "title") {
+        if (font_exists(fontTitle)) return fontTitle;
+        if (font_exists(fontText)) return fontText;
+        if (font_exists(fontUI)) return fontUI;
+    } else {
+        if (font_exists(fontText)) return fontText;
+        if (font_exists(fontTitle)) return fontTitle;
+        if (font_exists(fontUI)) return fontUI;
+    }
+    return -1;
+};
+
 // Dessiner le bouton "nouveau deck" à 1/3 de la hauteur, remonté de 140 pixels
 var button_x = sprite_x + 50;
 var button_y = room_height / 3 - 270;
@@ -55,12 +72,13 @@ if (variable_global_exists("admin_mode") && global.admin_mode) {
 draw_sprite_stretched(sButton, 0, button_x, button_y, button_width, button_height);
 
 // Dessiner le texte "nouveau deck" centré avec légère ombre
+var f_title_btn = get_font("text", 18);
+if (f_title_btn != -1) draw_set_font(f_title_btn);
 draw_set_color(c_black);
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 draw_text(button_x + button_width/2 + 2, button_y + button_height/2 + 2, "nouveau deck");
 draw_set_color(make_color_rgb(230, 200, 120));
-draw_text(button_x + button_width/2, button_y + button_height/2, "nouveau deck");
 draw_text(button_x + button_width/2, button_y + button_height/2, "nouveau deck");
 
 // === Affichage des decks sauvegardés ===
@@ -82,12 +100,16 @@ if (!show_deck_builder && array_length(current_list) > 0) {
     var deck_item_width = button_width;
     
     // Titre de la section
-    draw_set_color(c_black);
-    draw_set_halign(fa_center);
-    draw_set_valign(fa_middle);
     var title_text = "Decks Joueur:";
     if (list_mode == "bot") title_text = "Decks Bots:";
     else if (list_mode == "hero") title_text = "Decks Héros:";
+    var f_title_list = get_font("text", 14);
+    if (f_title_list != -1) draw_set_font(f_title_list);
+    draw_set_color(c_black);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_text(button_x + button_width/2 + 1, deck_list_y - 10 + 1, title_text);
+    draw_set_color(make_color_rgb(230, 200, 120));
     draw_text(button_x + button_width/2, deck_list_y - 10, title_text);
     
     // Afficher chaque deck sauvegardé
@@ -107,6 +129,8 @@ if (!show_deck_builder && array_length(current_list) > 0) {
         draw_rectangle(button_x, item_y, button_x + deck_item_width, item_y + deck_item_height, true);
         
         // Dessiner le nom du deck
+        var f_name = get_font("text", 14);
+        if (f_name != -1) draw_set_font(f_name);
         draw_set_color(c_black);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
@@ -114,6 +138,8 @@ if (!show_deck_builder && array_length(current_list) > 0) {
         draw_text(button_x + 5, item_y + 3, dName);
         
         // Dessiner le nombre de cartes
+        var f_count = get_font("text", 12);
+        if (f_count != -1) draw_set_font(f_count);
         draw_set_color(c_gray);
         var cCount = variable_struct_exists(deck, "card_count") ? deck.card_count : (variable_struct_exists(deck, "cards") ? array_length(deck.cards) : 0);
         draw_text(button_x + 5, item_y + 18, string(cCount) + " cartes");

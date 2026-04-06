@@ -24,13 +24,15 @@ var cell_color = c_white;
 var border_color = c_black;
 var bg_color = c_ltgray;
 
-// Dessiner le fond du tableau
-draw_set_color(bg_color);
-draw_rectangle(grid_x - 20, grid_y - 20, grid_x + total_width + 20, grid_y + total_height + 20, false);
-
-// Dessiner la bordure du tableau
-draw_set_color(border_color);
-draw_rectangle(grid_x - 20, grid_y - 20, grid_x + total_width + 20, grid_y + total_height + 20, true);
+var frame_x1 = grid_x - 20;
+var frame_y1 = grid_y - 20;
+var frame_w = total_width + 40;
+var frame_h = total_height + 40;
+var frame_cx = frame_x1 + frame_w / 2;
+var frame_cy = frame_y1 + frame_h / 2;
+var sx = frame_w / sprite_get_width(sCimetiere);
+var sy = frame_h / sprite_get_height(sCimetiere);
+draw_sprite_ext(sCimetiere, 0, frame_cx, frame_cy, sx, sy, 0, c_white, 1);
 
 // Dessiner chaque cellule
 for (var row = 0; row < grid_rows; row++) {
@@ -81,13 +83,17 @@ for (var row = 0; row < grid_rows; row++) {
             }
         }
         
-        // Dessiner le fond de la cellule
-        draw_set_color(current_cell_color);
-        draw_rectangle(cell_x, cell_y, cell_x + cell_width, cell_y + cell_height, false);
+        if (cell_index == 0) {
+            draw_sprite_stretched(sPortraitIntro, 0, cell_x, cell_y, cell_width, cell_height);
+        } else {
+            draw_sprite_stretched(sPortrait, 0, cell_x, cell_y, cell_width, cell_height);
+        }
         
         // Dessiner la bordure de la cellule
-        draw_set_color(border_color);
-        draw_rectangle(cell_x, cell_y, cell_x + cell_width, cell_y + cell_height, true);
+        if (selected_bot == cell_index) {
+            draw_set_color(border_color);
+            draw_rectangle(cell_x, cell_y, cell_x + cell_width, cell_y + cell_height, true);
+        }
         
         // Dessiner une bordure plus épaisse si sélectionné
         if (selected_bot == cell_index) {
@@ -97,81 +103,40 @@ for (var row = 0; row < grid_rows; row++) {
             }
         }
         
-        // Dessiner le nom de l'emplacement au centre de la cellule
-        draw_set_color(text_color);
-        draw_set_halign(fa_center);
-        draw_set_valign(fa_middle);
-        
-        if (cell_index == 0) {
-             draw_text(cell_x + cell_width/2, cell_y + cell_height/2, "Aleatoire");
-        } else if (bot_available) {
-             // Vérifier si un portrait est défini
-             var has_portrait = false;
-             var bot_info = bot_data[cell_index];
-             if (variable_struct_exists(bot_info, "portrait") && bot_info.portrait != undefined) {
-                 var spr_idx = -1;
-                 if (is_string(bot_info.portrait)) {
-                     spr_idx = asset_get_index(bot_info.portrait);
-                 } else {
-                     spr_idx = bot_info.portrait;
-                 }
-                 
-                 if (spr_idx != -1) {
-                     // Dessiner le sprite adapté à la cellule (remplissage complet)
-                     var draw_w = cell_width;
-                     var draw_h = cell_height;
-                     var spr_w = sprite_get_width(spr_idx);
-                     var spr_h = sprite_get_height(spr_idx);
-                     var scale_x = draw_w / spr_w;
-                     var scale_y = draw_h / spr_h;
-                     // Utiliser max() pour s'assurer que l'image couvre tout (crop si nécessaire)
-                     // Ou min() pour s'assurer que tout rentre sans déformation
-                     var scale = max(scale_x, scale_y); 
-                     
-                     var ox = sprite_get_xoffset(spr_idx);
-                     var oy = sprite_get_yoffset(spr_idx);
-                     
-                     // Centrer
-                     var draw_px = cell_x + (draw_w - spr_w * scale) / 2;
-                     var draw_py = cell_y + (draw_h - spr_h * scale) / 2;
-                     
-                     // Ajuster pour l'origine du sprite
-                     draw_px += ox * scale;
-                     draw_py += oy * scale;
-                     
-                     // Utiliser un masque (via gpu_set_scissor ou simplement dessiner)
-                     // Ici on dessine simplement, si ça dépasse on s'en fiche un peu ou on peut clipper
-                     draw_sprite_ext(spr_idx, 0, draw_px, draw_py, scale, scale, 0, c_white, 1);
-                     has_portrait = true;
-                 }
-             }
-
-             // Afficher le nom du bot si pas de portrait (ou un ID court)
-             if (!has_portrait) {
-                 draw_text(cell_x + cell_width/2, cell_y + cell_height/2, "Bot " + string(cell_index));
-             }
-        } else {
-             // Afficher un cadenas ou "Verrouillé"
-             draw_set_font(fontCardText); // Assurez-vous d'avoir une police petite si nécessaire, sinon defaut
-             draw_text(cell_x + cell_width/2, cell_y + cell_height/2, "Verrouille");
-             draw_set_font(-1);
-        }
-
-        // Dessiner une croix rouge sur les bots non sélectionnables (hors "aléatoire")
-        if (cell_index != 0 && !bot_available) {
-            draw_set_color(c_red);
-            var lw = 4;
-            draw_line_width(cell_x + 6, cell_y + 6, cell_x + cell_width - 6, cell_y + cell_height - 6, lw);
-            draw_line_width(cell_x + cell_width - 6, cell_y + 6, cell_x + 6, cell_y + cell_height - 6, lw);
+        if (bot_available && cell_index != 0) {
+            var bot_info = bot_data[cell_index];
+            if (variable_struct_exists(bot_info, "portrait") && bot_info.portrait != undefined) {
+                var spr_idx = -1;
+                if (is_string(bot_info.portrait)) {
+                    spr_idx = asset_get_index(bot_info.portrait);
+                } else {
+                    spr_idx = bot_info.portrait;
+                }
+                
+                if (spr_idx != -1) {
+                    var draw_w = cell_width;
+                    var draw_h = cell_height;
+                    var spr_w = sprite_get_width(spr_idx);
+                    var spr_h = sprite_get_height(spr_idx);
+                    var scale_x = draw_w / spr_w;
+                    var scale_y = draw_h / spr_h;
+                    var scale = max(scale_x, scale_y); 
+                    
+                    var ox = sprite_get_xoffset(spr_idx);
+                    var oy = sprite_get_yoffset(spr_idx);
+                    
+                    var draw_px = cell_x + (draw_w - spr_w * scale) / 2;
+                    var draw_py = cell_y + (draw_h - spr_h * scale) / 2;
+                    
+                    draw_px += ox * scale;
+                    draw_py += oy * scale;
+                    
+                    draw_sprite_ext(spr_idx, 0, draw_px, draw_py, scale, scale, 0, c_white, 1);
+                }
+            }
         }
     }
 }
-
-// Titre du tableau
-draw_set_color(c_black);
-draw_set_halign(fa_center);
-draw_set_valign(fa_top);
-draw_text(grid_x + total_width/2, grid_y - 50, "Plateau de Jeu");
 
 // Remettre les alignements par défaut
 draw_set_halign(fa_left);

@@ -5,6 +5,7 @@ if (array_length(cards) > 0) {
     if (is_struct(lastCardData)) {
         var ang = isHeroOwner ? 0 : 180;
         draw_sprite_ext(lastCardData.sprite_index, lastCardData.image_index, x, y, 0.25, 0.25, ang, c_white, 1);
+        gpu_set_texfilter(false);
         var s = 0.25;
         var spr = lastCardData.sprite_index;
         var cw = sprite_get_width(spr) * s;
@@ -15,7 +16,7 @@ if (array_length(cards) > 0) {
         var arch_x1  = 228, arch_y1  = 394; var arch_x2  = 422, arch_y2  = 419;
         var desc_x1  = 23,  desc_y1  = 438; var desc_x2  = 421, desc_y2  = 592;
         var is_magic = (variable_struct_exists(lastCardData, "cardType") && string_lower(string(lastCardData.cardType)) == "magic");
-        if (font_exists(fontCardText)) draw_set_font(fontCardText);
+        if (font_exists(fontText)) draw_set_font(fontText);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
         draw_set_color(c_black);
@@ -150,6 +151,7 @@ if (array_length(cards) > 0) {
             }
         }
         matrix_set(matrix_world, prev_world);
+        gpu_set_texfilter(true);
     } else if (instance_exists(lastCardData)) {
         // Compatibilité avec anciennes entrées poussées comme instance
         var ang2 = isHeroOwner ? 0 : 180;
@@ -158,4 +160,3 @@ if (array_length(cards) > 0) {
         // Instance invalide: ne rien dessiner pour éviter les erreurs
     }
 }
-

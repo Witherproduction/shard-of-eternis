@@ -176,6 +176,34 @@ function checkTriggerConditions(card, effect, context) {
         return false;
     }
 
+    if (variable_struct_exists(effect, "trigger")) {
+        var trig = effect.trigger;
+        var needsOwnerGate = (trig == TRIGGER_START_TURN) || (trig == TRIGGER_END_TURN) || (trig == TRIGGER_MAIN_PHASE);
+        if (needsOwnerGate) {
+            var hasSpecifiedOwner = false;
+            if (variable_struct_exists(effect, "conditions")) {
+                var cnd0 = effect.conditions;
+                hasSpecifiedOwner = (variable_struct_exists(cnd0, "owner_turn") && cnd0.owner_turn)
+                                    || (variable_struct_exists(cnd0, "opponent_turn") && cnd0.opponent_turn);
+            }
+            if (!hasSpecifiedOwner) {
+                if (!instance_exists(game)) { return false; }
+                var currentPlayer3 = game.player[game.player_current];
+                
+                var localIndex3 = (variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
+                var cardOwnerIndex3 = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? localIndex3 : (1 - localIndex3);
+                var cardOwner3 = game.player[cardOwnerIndex3];
+                
+                if (currentPlayer3 != cardOwner3) { return false; }
+            }
+            if (trig == TRIGGER_MAIN_PHASE) {
+                if (!instance_exists(game)) { return false; }
+                var currentPhase = game.phase[game.phase_current];
+                if (currentPhase != "Main") { return false; }
+            }
+        }
+    }
+
     // Vérifier les conditions de base
 
     if (variable_struct_exists(effect, "conditions")) {
@@ -475,32 +503,6 @@ function checkTriggerConditions(card, effect, context) {
             
             if (currentPlayer2 != cardOwner2) {
                 return false;
-            }
-        }
-
-        // Default gating for manual triggers: owner turn and phase
-        if (variable_struct_exists(effect, "trigger")) {
-            var trig = effect.trigger;
-            var needsOwnerGate = (trig == TRIGGER_START_TURN) || (trig == TRIGGER_END_TURN) || (trig == TRIGGER_MAIN_PHASE);
-            if (needsOwnerGate) {
-                var hasSpecifiedOwner = (variable_struct_exists(conditions, "owner_turn") && conditions.owner_turn)
-                                        || (variable_struct_exists(conditions, "opponent_turn") && conditions.opponent_turn);
-                if (!hasSpecifiedOwner) {
-                    if (!instance_exists(game)) { return false; }
-                    var currentPlayer3 = game.player[game.player_current];
-                    
-                    var localIndex3 = (variable_instance_exists(game, "local_player_index")) ? game.local_player_index : 0;
-                    var cardOwnerIndex3 = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? localIndex3 : (1 - localIndex3);
-                    var cardOwner3 = game.player[cardOwnerIndex3];
-                    
-                    if (currentPlayer3 != cardOwner3) { return false; }
-                }
-                if (trig == TRIGGER_MAIN_PHASE) {
-                    if (!instance_exists(game)) { return false; }
-                    var currentPhase = game.phase[game.phase_current];
-                    // Par défaut, les effets TRIGGER_MAIN_PHASE ne sont disponibles qu'en phase "Main"
-                    if (currentPhase != "Main") { return false; }
-                }
             }
         }
 

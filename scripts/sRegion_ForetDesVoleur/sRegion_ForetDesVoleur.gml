@@ -1,5 +1,48 @@
 /// @function region_get_zones_ForetDesVoleur()
 /// @description Retourne la configuration des zones de révélation pour la Forêt des Voleurs
+function region_poly_scale(_pts, _s) {
+    var n = array_length(_pts);
+    if (n <= 0) return _pts;
+    var cx = 0;
+    var cy = 0;
+    for (var i = 0; i < n; i++) {
+        cx += _pts[i].x;
+        cy += _pts[i].y;
+    }
+    cx /= n;
+    cy /= n;
+    var out = array_create(n);
+    for (var i = 0; i < n; i++) {
+        var px = _pts[i].x;
+        var py = _pts[i].y;
+        out[i] = { x: cx + (px - cx) * _s, y: cy + (py - cy) * _s };
+    }
+    return out;
+}
+
+function region_poly_scale_shift(_pts, _s, _shift_x_pct, _shift_y_pct) {
+    var out = region_poly_scale(_pts, _s);
+    var n = array_length(out);
+    if (n <= 0) return out;
+    var minx = out[0].x, maxx = out[0].x;
+    var miny = out[0].y, maxy = out[0].y;
+    for (var i = 1; i < n; i++) {
+        var px = out[i].x;
+        var py = out[i].y;
+        if (px < minx) minx = px;
+        if (px > maxx) maxx = px;
+        if (py < miny) miny = py;
+        if (py > maxy) maxy = py;
+    }
+    var dx = (maxx - minx) * _shift_x_pct;
+    var dy = (maxy - miny) * _shift_y_pct;
+    for (var i = 0; i < n; i++) {
+        out[i].x += dx;
+        out[i].y += dy;
+    }
+    return out;
+}
+
 function region_get_zones_ForetDesVoleur() {
     return [
         {
@@ -26,7 +69,7 @@ function region_get_zones_ForetDesVoleur() {
         {
             // Zone Acte 2 (Fin Chapitre 1 Acte 1)
             condition_check: function() { return is_act_complete(1, 1); },
-            points: [ 
+            points: region_poly_scale_shift([ 
                  {x:12, y:-119}, 
                  {x:52, y:-140}, 
                  {x:93, y:-125}, 
@@ -47,13 +90,13 @@ function region_get_zones_ForetDesVoleur() {
                  {x:-102, y:-99}, 
                  {x:-9, y:-107}, 
                  {x:11, y:-117} 
-             ]
+             ], 1.15, -0.05, 0)
         },
         {
             // Zone Acte 2 (Après le 1er duel / Mi-Acte)
             // Note : Il faudra appeler story_progress_unlock_reward("chap1_act2_duel1_win") dans le scénario après la victoire
             condition_check: function() { return story_progress_is_reward_unlocked("chap1_act2_duel1_win"); },
-            points: [ 
+            points: region_poly_scale_shift([ 
                  {x:-45, y:-115}, 
                  {x:-46, y:-103}, 
                  {x:-96, y:-92}, 
@@ -64,7 +107,7 @@ function region_get_zones_ForetDesVoleur() {
                  {x:-195, y:-384}, 
                  {x:-73, y:-373}, 
                  {x:-45, y:-104} 
-             ]
+             ], 1.20, -0.05, 0)
         },
         {
             // Zone Acte 3 (Fin Chapitre 1 Acte 2)

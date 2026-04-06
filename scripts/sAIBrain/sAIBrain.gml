@@ -177,8 +177,11 @@ function AI_SelectBestMove(moves) {
                             var cOwner = (is_struct(move.card) && variable_struct_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : ((variable_instance_exists(move.card, "isHeroOwner")) ? move.card.isHeroOwner : undefined);
                             var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
                             var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
-                            if (isAlly) {
-                                effectScore = -targetVal * 2; // Penalty for targeting ally with negative effect
+                            var ownerHint = variable_struct_exists(move, "effect_owner_hint") ? string_lower(move.effect_owner_hint) : "";
+                            if (ownerHint == "enemy" && isAlly) {
+                                effectScore = -999999;
+                            } else if (isAlly) {
+                                effectScore = -targetVal * 2;
                             } else {
                                 effectScore = targetVal * p_removal;
                             }
@@ -274,20 +277,35 @@ function AI_SelectBestMove(moves) {
                     else if (rule == "buff_if_3_abyssien") {
                         var count = 0;
                         if (instance_exists(oFieldMonsterEnemy)) {
-                            with(oCardParent) {
-                                if (variable_instance_exists(id, "location") && location == "Board" && 
-                                    variable_instance_exists(id, "isHeroOwner") && !isHeroOwner && 
-                                    variable_instance_exists(id, "name") && string_pos("Abyssien", name) > 0) {
-                                    count++;
+                            var cards_me = oFieldMonsterEnemy.cards;
+                            for (var ai = 0; ai < array_length(cards_me); ai++) {
+                                var cme = cards_me[ai];
+                                if (cme != 0 && instance_exists(cme)) {
+                                    var onBoard = false;
+                                    if (variable_instance_exists(cme, "zone")) {
+                                        onBoard = (cme.zone == "Field" || cme.zone == "FieldSelected" || cme.zone == "Board");
+                                    } else if (variable_instance_exists(cme, "location")) {
+                                        onBoard = (cme.location == "Board" || cme.location == "Field");
+                                    }
+                                    var isEnemy = (variable_instance_exists(cme, "isHeroOwner") && !cme.isHeroOwner);
+                                    if (onBoard && isEnemy) {
+                                    var isAby = false;
+                                    if (variable_instance_exists(cme, "tags") && is_array(cme.tags)) {
+                                        for (var ti = 0; ti < array_length(cme.tags); ti++) {
+                                            var tv = string_lower(string(cme.tags[ti]));
+                                            if (tv == "abyssien") { isAby = true; break; }
+                                        }
+                                    }
+                                        if (isAby) count++;
+                                    }
                                 }
                             }
                         }
                         
-                        // Scaling dynamique : Plus on touche de cibles, plus c'est fort
                         if (count >= 2) {
-                             moveScoreVal += 400 * count; // 2 cibles = 800, 3 cibles = 1200
+                            moveScoreVal += 500 + 300 * count;
                         } else {
-                             moveScoreVal -= 500;
+                            moveScoreVal -= 800;
                         }
                     }
                     
@@ -298,19 +316,58 @@ function AI_SelectBestMove(moves) {
                         var tHP = variable_instance_exists(target, "current_hp") ? target.current_hp : (variable_instance_exists(target, "PV") ? target.PV : 0);
                         
                         var isWeak = (tAtk <= 2 || tHP <= 2);
-                        var isAbyssien = (string_pos("Abyssien", tName) > 0 || string_pos("Coureur", tName) > 0);
+                        var isAbyTarget = false;
+                        if (variable_instance_exists(target, "tags") && is_array(target.tags)) {
+                            for (var ti2 = 0; ti2 < array_length(target.tags); ti2++) {
+                                var tv2 = string_lower(string(target.tags[ti2]));
+                                if (tv2 == "abyssien") { isAbyTarget = true; break; }
+                            }
+                        }
+                        var isCoureur = (string_pos("Coureur", tName) > 0) || (string_pos("CoureurAbyssien", object_get_name(target.object_index)) > 0);
                         
-                        if (isWeak || isAbyssien) {
-                             var otherAllies = 0;
-                             if (instance_exists(oFieldMonsterEnemy)) {
+                        // Compter le nombre total d'Abyssiens sur notre plateau
+                        var totalAby = 0;
+                        if (instance_exists(oFieldMonsterEnemy)) {
+                            var cards_me2 = oFieldMonsterEnemy.cards;
+                            for (var kk = 0; kk < array_length(cards_me2); kk++) {
+                                var c2 = cards_me2[kk];
+                                if (c2 != 0 && instance_exists(c2)) {
+                                    if (variable_instance_exists(c2, "tags") && is_array(c2.tags)) {
+                                        for (var ti3 = 0; ti3 < array_length(c2.tags); ti3++) {
+                                            var tv3 = string_lower(string(c2.tags[ti3]));
+                                            if (tv3 == "abyssien") { totalAby++; break; }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Ne jamais lancer si on n'a qu'un seul Abyssien (évite de vider le board)
+                        if (totalAby <= 1) {
+                            moveScoreVal -= 1000;
+                        } else if (isWeak || isAbyssien) {
+                            var otherAlliesAby = 0;
+                            if (instance_exists(oFieldMonsterEnemy)) {
                                 var cards = oFieldMonsterEnemy.cards;
                                 for(var k=0; k<array_length(cards); k++) {
-                                    if (cards[k] != 0 && instance_exists(cards[k]) && cards[k] != target) otherAllies++;
+                                    if (cards[k] != 0 && instance_exists(cards[k]) && cards[k] != target) {
+                                        if (variable_instance_exists(cards[k], "tags") && is_array(cards[k].tags)) {
+                                            for (var ti4 = 0; ti4 < array_length(cards[k].tags); ti4++) {
+                                                var tv4 = string_lower(string(cards[k].tags[ti4]));
+                                                if (tv4 == "abyssien") { otherAlliesAby++; break; }
+                                            }
+                                        }
+                                    }
                                 }
-                             }
-                             
-                             if (otherAllies >= 1) moveScoreVal += 800; // Bon coup tactique
-                             else moveScoreVal -= 200;
+                            }
+                            
+                            // Préférence pour sacrifier un Coureur ou une unité faible
+                            if (!isCoureur && !isWeak) {
+                                moveScoreVal -= 300;
+                            }
+                            
+                            if (otherAlliesAby >= 1) moveScoreVal += 800;
+                            else moveScoreVal -= 500;
                         } else {
                             moveScoreVal -= 500;
                         }
@@ -465,6 +522,82 @@ function AI_SelectBestMove(moves) {
                         moveScoreVal = 100 * p_draw; 
                         break;
                     
+                    case "destroy":
+                        var isBrumeTrompeuse = false;
+                        if (instance_exists(move.card)) {
+                            isBrumeTrompeuse = (object_get_name(move.card.object_index) == "oBrumeTrompeuse");
+                        } else if (is_struct(move.card)) {
+                            if (variable_struct_exists(move.card, "object_index")) {
+                                var objIdx = move.card.object_index;
+                                if (is_real(objIdx)) {
+                                    isBrumeTrompeuse = (object_get_name(objIdx) == "oBrumeTrompeuse");
+                                }
+                            }
+                        }
+                        
+                        var effectRef = undefined;
+                        if (variable_struct_exists(move, "effect_index")) {
+                            var ei = move.effect_index;
+                            if (instance_exists(move.card) && variable_instance_exists(move.card, "effects") && is_array(move.card.effects)) {
+                                if (ei >= 0 && ei < array_length(move.card.effects)) effectRef = move.card.effects[ei];
+                            } else if (is_struct(move.card) && variable_struct_exists(move.card, "effects") && is_array(move.card.effects)) {
+                                if (ei >= 0 && ei < array_length(move.card.effects)) effectRef = move.card.effects[ei];
+                            }
+                        }
+                        
+                        var isBrumeLike = isBrumeTrompeuse;
+                        if (!isBrumeLike && effectRef != undefined) {
+                            if (variable_struct_exists(effectRef, "select_all") && effectRef.select_all) {
+                                if (variable_struct_exists(effectRef, "criteria") && is_struct(effectRef.criteria)) {
+                                    if (variable_struct_exists(effectRef.criteria, "exclude_camouflaged") && effectRef.criteria.exclude_camouflaged) {
+                                        isBrumeLike = true;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (isBrumeLike) {
+                            var valEnemiesTotal = 0;
+                            var valAlliesTotal = 0;
+                            var valEnemiesDestroyed = 0;
+                            var valAlliesDestroyed = 0;
+                            var hasMyCamo = false;
+                            
+                            if (instance_exists(oFieldMonsterHero)) {
+                                var enemies = oFieldMonsterHero.cards;
+                                for (var e = 0; e < array_length(enemies); e++) {
+                                    var cE = enemies[e];
+                                    if (cE == 0 || !instance_exists(cE)) continue;
+                                    valEnemiesTotal += AI_GetCardScore(cE);
+                                    var eIsCamo = (variable_instance_exists(cE, "isCamouflage") && cE.isCamouflage) || (variable_instance_exists(cE, "effects_text") && string_pos("Camouflage", cE.effects_text) > 0);
+                                    if (!eIsCamo) valEnemiesDestroyed += AI_GetCardScore(cE);
+                                }
+                            }
+                            
+                            if (instance_exists(oFieldMonsterEnemy)) {
+                                var allies = oFieldMonsterEnemy.cards;
+                                for (var a = 0; a < array_length(allies); a++) {
+                                    var cA = allies[a];
+                                    if (cA == 0 || !instance_exists(cA)) continue;
+                                    valAlliesTotal += AI_GetCardScore(cA);
+                                    var aIsCamo = (variable_instance_exists(cA, "isCamouflage") && cA.isCamouflage) || (variable_instance_exists(cA, "effects_text") && string_pos("Camouflage", cA.effects_text) > 0);
+                                    if (aIsCamo) hasMyCamo = true;
+                                    else valAlliesDestroyed += AI_GetCardScore(cA);
+                                }
+                            }
+                            
+                            var enemyHasBoardAdvantage = (valEnemiesTotal > valAlliesTotal);
+                            if (!enemyHasBoardAdvantage || !hasMyCamo) {
+                                moveScoreVal = -999999;
+                            } else {
+                                moveScoreVal = (valEnemiesDestroyed - valAlliesDestroyed) * p_removal;
+                                if (valEnemiesDestroyed <= 0) moveScoreVal -= 500;
+                            }
+                        } else {
+                            moveScoreVal = 20;
+                        }
+                        break;
+                    
                     case "destroy_target":
                     case "banish_target":
                     case "return_to_hand":
@@ -476,8 +609,11 @@ function AI_SelectBestMove(moves) {
                             var tOwner = (is_struct(target) && variable_struct_exists(target, "isHeroOwner")) ? target.isHeroOwner : ((variable_instance_exists(target, "isHeroOwner")) ? target.isHeroOwner : undefined);
                             var isAlly = (cOwner != undefined && tOwner != undefined && cOwner == tOwner);
                             
-                            if (isAlly) {
-                                moveScoreVal = -targetVal * 2; // Penalize targeting ally
+                            var ownerHint = variable_struct_exists(move, "owner_hint") ? string_lower(move.owner_hint) : "";
+                            if (ownerHint == "enemy" && isAlly) {
+                                moveScoreVal = -999999;
+                            } else if (isAlly) {
+                                moveScoreVal = -targetVal * 2;
                             } else {
                                 // On veut détruire les grosses menaces adverses
                                 moveScoreVal = targetVal * p_removal;

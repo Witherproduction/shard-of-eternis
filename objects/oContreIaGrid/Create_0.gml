@@ -42,6 +42,9 @@ for (var i = 0; i < array_length(all_available_decks); i++) {
         else if (bot_id == "Essaim_Abyssien") bot_id = 2;
         else if (bot_id == "Bandit_Grand_Chemin") bot_id = 3;
         else if (bot_id == "Matriarche_Peau_Roc") bot_id = 4;
+        else if (bot_id == "Recolteur_Recolte_Sournoise") bot_id = 5;
+        else if (bot_id == "Armee_des_Skarls") bot_id = 6;
+        else if (bot_id == "Terreur_de_la_foret") bot_id = 7;
     }
     
     // Vérification du type de bot_id pour éviter le crash (ex: "tuto_deck_bot" est une string)

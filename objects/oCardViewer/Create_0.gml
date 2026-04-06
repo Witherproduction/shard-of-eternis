@@ -495,6 +495,16 @@ function sortCards(sortMode) {
                 return 0;
             });
             break;
+
+        case "race":
+            array_sort(filteredCards, function(a, b) {
+                var raceA = variable_struct_exists(a, "race") ? string_lower(string(a.race)) : "";
+                var raceB = variable_struct_exists(b, "race") ? string_lower(string(b.race)) : "";
+                if (raceA < raceB) return global.sort_descending ? 1 : -1;
+                if (raceA > raceB) return global.sort_descending ? -1 : 1;
+                return 0;
+            });
+            break;
             
         case "favorites":
             array_sort(filteredCards, function(a, b) {

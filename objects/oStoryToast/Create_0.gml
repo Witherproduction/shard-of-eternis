@@ -25,7 +25,7 @@ window_color = make_color_rgb(40, 40, 40);
 border_color = make_color_rgb(230, 200, 120);
 text_color = c_white;
 
-font = fontCardDisplay;
+font = fontTitle;
 
 show_portrait = true;
 portrait_sprite = -1;

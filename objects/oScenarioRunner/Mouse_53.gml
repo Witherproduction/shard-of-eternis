@@ -1,5 +1,147 @@
 if (instance_exists(oPanelOptions)) exit;
 
+var advance_to_next_scene = function() {
+    var sc_curr = scenes[scene_index];
+    var bot_id = 0;
+    if (variable_struct_exists(sc_curr, "duel_bot_id")) bot_id = sc_curr.duel_bot_id;
+    
+    var is_last_scene = (scene_index + 1 >= array_length(scenes));
+
+    show_debug_message("### CHECK DUEL V2: Scene " + string(scene_index) + " / " + string(array_length(scenes)) + " | bot_id=" + string(bot_id));
+
+    var is_valid_duel = (bot_id != 0 && string(bot_id) != "0" && bot_id != noone);
+    
+    if (is_real(bot_id) && bot_id == 1) {
+        if (scene_index > 0) {
+            show_debug_message("### CHECK DUEL V2: Legacy ID 1 detected at scene " + string(scene_index) + ". Converting to Invasion_Gueule_Roche.");
+            bot_id = "Invasion_Gueule_Roche";
+            is_valid_duel = true;
+        } else {
+            show_debug_message("### CHECK DUEL V2: BLOCKED LEGACY bot_id: 1 at Scene 0");
+            is_valid_duel = false;
+        }
+    }
+
+    if (is_valid_duel) {
+        if (!instance_exists(oDuelConfirmation)) {
+            var inst = instance_create_depth(0, 0, -9999, oDuelConfirmation);
+            inst.selected_bot_deck_id = bot_id;
+            global.selected_bot_deck_id = bot_id;
+            global.duel_resume_scene = scene_index;
+            global.duel_resume_line = line_index; 
+            global.duel_next_scene = scene_index + 1;
+            global.duel_is_last_scene = is_last_scene;
+        }
+        await_scene_click = true;
+        exit;
+    }
+    
+    if (scene_index + 1 < array_length(scenes)) {
+        scene_index += 1;
+        line_index = 0;
+        var sc2 = scenes[scene_index];
+        current.bg_name = sc2.bg;
+        if (variable_struct_exists(sc2, "bg_sound")) current.bg_sound = sc2.bg_sound; else current.bg_sound = "";
+        if (variable_struct_exists(sc2, "bg_sound2")) current.bg_sound2 = sc2.bg_sound2; else current.bg_sound2 = "";
+        prev_speaker1_x = speaker1.x; prev_speaker1_y = speaker1.y;
+        prev_speaker2_x = speaker2.x; prev_speaker2_y = speaker2.y;
+        prev_speaker3_x = speaker3.x; prev_speaker3_y = speaker3.y;
+        prev_object1_x = object1.x;    prev_object1_y = object1.y;
+        prev_object2_x = object2.x;    prev_object2_y = object2.y;
+        current.portrait1_effect = "Aucune";
+        current.portrait2_effect = "Aucune";
+        current.portrait3_effect = "Aucune";
+        current.obj1_effect = "Aucune";
+        current.obj2_effect = "Aucune";
+        current.text_effect = "Aucune";
+        fx_sp1_start_ms = current_time;
+        fx_sp2_start_ms = current_time;
+        fx_sp3_start_ms = current_time;
+        fx_obj1_start_ms = current_time;
+        fx_obj2_start_ms = current_time;
+        fx_text_start_ms = current_time;
+        await_scene_click = false;
+        line_auto_target_ms = -1;
+        current.duel_bot_id = variable_struct_exists(sc2, "duel_bot_id") ? sc2.duel_bot_id : 0;
+        if (is_array(sc2.lines) && array_length(sc2.lines) > 0) {
+            var line_data2 = sc2.lines[line_index];
+            current.speaker = line_data2.speaker;
+            current.text = line_data2.text;
+            if (variable_struct_exists(line_data2, "portrait1_name")) current.portrait1_name = line_data2.portrait1_name;
+            if (variable_struct_exists(line_data2, "portrait2_name")) current.portrait2_name = line_data2.portrait2_name;
+            if (variable_struct_exists(line_data2, "portrait3_name")) current.portrait3_name = line_data2.portrait3_name;
+            if (variable_struct_exists(line_data2, "obj1_name")) current.obj1_name = line_data2.obj1_name;
+            if (variable_struct_exists(line_data2, "obj2_name")) current.obj2_name = line_data2.obj2_name;
+            var len2 = string_length(string(current.text));
+            var cps2 = max(1, text_reveal_cps);
+            var reveal_ms2 = ceil(len2 * 1000 / cps2);
+            var wait_ms2 = wait_after_default_ms;
+            if (variable_struct_exists(line_data2, "wait_after_ms")) wait_ms2 = line_data2.wait_after_ms; else if (variable_struct_exists(line_data2, "wait_after")) wait_ms2 = line_data2.wait_after;
+            var anim_ms2 = 0;
+            var dur_base2 = fx_duration_ms;
+            if (current.portrait1_effect != "Aucune" && current.portrait1_effect != "") { var d12 = dur_base2; if (current.portrait1_effect == "SlideGaucheInverse" || current.portrait1_effect == "Slide gauche inversé" || current.portrait1_effect == "SlideDroiteInverse" || current.portrait1_effect == "Slide droite inversé" || current.portrait1_effect == "SlideHautInverse" || current.portrait1_effect == "Slide haut inversé" || current.portrait1_effect == "SlideBasInverse" || current.portrait1_effect == "Slide bas inversé") d12 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, d12); }
+            if (current.portrait2_effect != "Aucune" && current.portrait2_effect != "") { var d22 = dur_base2; if (current.portrait2_effect == "SlideGaucheInverse" || current.portrait2_effect == "Slide gauche inversé" || current.portrait2_effect == "SlideDroiteInverse" || current.portrait2_effect == "Slide droite inversé" || current.portrait2_effect == "SlideHautInverse" || current.portrait2_effect == "Slide haut inversé" || current.portrait2_effect == "SlideBasInverse" || current.portrait2_effect == "Slide bas inversé") d22 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, d22); }
+            if (current.obj1_effect != "Aucune" && current.obj1_effect != "") { var d32 = dur_base2; if (current.obj1_effect == "SlideGaucheInverse" || current.obj1_effect == "Slide gauche inversé" || current.obj1_effect == "SlideDroiteInverse" || current.obj1_effect == "Slide droite inversé" || current.obj1_effect == "SlideHautInverse" || current.obj1_effect == "Slide haut inversé" || current.obj1_effect == "SlideBasInverse" || current.obj1_effect == "Slide bas inversé") d32 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, d32); }
+            if (current.obj2_effect != "Aucune" && current.obj2_effect != "") { var d42 = dur_base2; if (current.obj2_effect == "SlideGaucheInverse" || current.obj2_effect == "Slide gauche inversé" || current.obj2_effect == "SlideDroiteInverse" || current.obj2_effect == "Slide droite inversé" || current.obj2_effect == "SlideHautInverse" || current.obj2_effect == "Slide haut inversé" || current.obj2_effect == "SlideBasInverse" || current.obj2_effect == "Slide bas inversé") d42 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, d42); }
+            if (current.text_effect != "Aucune" && current.text_effect != "") { var dt2 = dur_base2; if (current.text_effect == "SlideGaucheInverse" || current.text_effect == "Slide gauche inversé" || current.text_effect == "SlideDroiteInverse" || current.text_effect == "Slide droite inversé" || current.text_effect == "SlideHautInverse" || current.text_effect == "Slide haut inversé" || current.text_effect == "SlideBasInverse" || current.text_effect == "Slide bas inversé") dt2 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, dt2); }
+            if (len2 == 0) line_auto_target_ms = current_time + anim_ms2 + wait_ms2; else line_auto_target_ms = current_time + reveal_ms2 + wait_ms2;
+        } else {
+            current.text = "";
+        }
+        if (variable_struct_exists(sc2, "speaker1_flip")) current.speaker1_flip = sc2.speaker1_flip; else current.speaker1_flip = false;
+        if (variable_struct_exists(sc2, "speaker2_flip")) current.speaker2_flip = sc2.speaker2_flip; else current.speaker2_flip = false;
+        if (variable_struct_exists(sc2, "speaker3_flip")) current.speaker3_flip = sc2.speaker3_flip; else current.speaker3_flip = false;
+        if (variable_struct_exists(sc2, "obj1_flip")) current.obj1_flip = sc2.obj1_flip; else current.obj1_flip = false;
+        if (variable_struct_exists(sc2, "obj2_flip")) current.obj2_flip = sc2.obj2_flip; else current.obj2_flip = false;
+
+        update_bg_audio();
+
+    } else {
+        if (!is_act_complete(chapter_id, act_num)) {
+            add_gold(100);
+            show_debug_message("### Récompense Acte : +100 Or");
+        }
+        
+        unlock_act_complete(chapter_id, act_num);
+        story_progress_unlock_reward("act_" + string(chapter_id) + "_" + string(act_num));
+        
+        var next_act = act_num + 1;
+        var next_scene = 0;
+        
+        if (act_num >= 4) {
+            unlock_chapter_access(chapter_id + 1);
+            give_chapter_reward(chapter_id);
+            next_act = act_num;
+            next_scene = scene_index;
+        }
+
+        story_progress_write_last_scene(chapter_id, next_scene, next_act);
+        if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); bg_sound_asset_current = -1; }
+        if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); bg2_sound_asset_current = -1; }
+        room_goto(rHistoire);
+    }
+};
+
+if (point_in_rectangle(mouse_x, mouse_y, btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2)) {
+    story_progress_write_last_scene(chapter_id, scene_index, act_num);
+    if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); bg_sound_asset_current = -1; }
+    if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); bg2_sound_asset_current = -1; }
+    room_goto(rHistoire);
+    exit;
+}
+
+if (point_in_rectangle(mouse_x, mouse_y, btn_skip_x1, btn_skip_y1, btn_skip_x2, btn_skip_y2)) {
+    if (array_length(scenes) == 0) exit;
+    var sc_skip = scenes[scene_index];
+    if (is_array(sc_skip.lines)) {
+        line_index = max(0, array_length(sc_skip.lines) - 1);
+    } else {
+        line_index = 0;
+    }
+    advance_to_next_scene();
+    exit;
+}
+
 // Gestion du bouton Auto
 if (point_in_rectangle(mouse_x, mouse_y, btn_auto_x1, btn_auto_y1, btn_auto_x2, btn_auto_y2)) {
     auto_mode = !auto_mode;
@@ -108,143 +250,7 @@ if (point_in_rectangle(mouse_x, mouse_y, btn_next_x1, btn_next_y1, btn_next_x2, 
         input_block_frames = 4;
 
     } else {
-        // Fin des lignes de la scène actuelle
-        
-        // --- CHECK DUEL ---
-        var sc_curr = scenes[scene_index];
-        var bot_id = 0;
-        if (variable_struct_exists(sc_curr, "duel_bot_id")) bot_id = sc_curr.duel_bot_id;
-        
-        var is_last_scene = (scene_index + 1 >= array_length(scenes));
-
-        show_debug_message("### CHECK DUEL V2: Scene " + string(scene_index) + " / " + string(array_length(scenes)) + " | bot_id=" + string(bot_id));
-
-        // Patch supprimé: On autorise désormais le duel en fin de Ch1 Act1 si configuré dans le JSON
-        // if (is_last_scene && bot_id != 0 && bot_id != noone) { ... }
-
-        var is_valid_duel = (bot_id != 0 && string(bot_id) != "0" && bot_id != noone);
-        
-        // HOTFIX: Handle numeric ID 1 (Legacy)
-        if (is_real(bot_id) && bot_id == 1) {
-            if (scene_index > 0) {
-                show_debug_message("### CHECK DUEL V2: Legacy ID 1 detected at scene " + string(scene_index) + ". Converting to Invasion_Gueule_Roche.");
-                bot_id = "Invasion_Gueule_Roche";
-                is_valid_duel = true;
-            } else {
-                show_debug_message("### CHECK DUEL V2: BLOCKED LEGACY bot_id: 1 at Scene 0");
-                is_valid_duel = false;
-            }
-        }
-
-        if (is_valid_duel) {
-             if (!instance_exists(oDuelConfirmation)) {
-                var inst = instance_create_depth(0, 0, -9999, oDuelConfirmation);
-                inst.selected_bot_deck_id = bot_id;
-                
-                // IMPORTANT: Set global variable for display
-                global.selected_bot_deck_id = bot_id;
-                
-                // Save state for Duel Outcome
-                global.duel_resume_scene = scene_index;
-                global.duel_resume_line = line_index; 
-                global.duel_next_scene = scene_index + 1;
-                global.duel_is_last_scene = is_last_scene;
-             }
-             await_scene_click = true;
-             exit; 
-        }
-        
-        // Passage à la scène suivante
-        if (scene_index + 1 < array_length(scenes)) {
-            scene_index += 1;
-            line_index = 0;
-            var sc2 = scenes[scene_index];
-            current.bg_name = sc2.bg;
-            if (variable_struct_exists(sc2, "bg_sound")) current.bg_sound = sc2.bg_sound; else current.bg_sound = "";
-            if (variable_struct_exists(sc2, "bg_sound2")) current.bg_sound2 = sc2.bg_sound2; else current.bg_sound2 = "";
-            prev_speaker1_x = speaker1.x; prev_speaker1_y = speaker1.y;
-            prev_speaker2_x = speaker2.x; prev_speaker2_y = speaker2.y;
-            prev_speaker3_x = speaker3.x; prev_speaker3_y = speaker3.y;
-            prev_object1_x = object1.x;    prev_object1_y = object1.y;
-            prev_object2_x = object2.x;    prev_object2_y = object2.y;
-            current.portrait1_effect = "Aucune";
-            current.portrait2_effect = "Aucune";
-            current.portrait3_effect = "Aucune";
-            current.obj1_effect = "Aucune";
-            current.obj2_effect = "Aucune";
-            current.text_effect = "Aucune";
-            fx_sp1_start_ms = current_time;
-            fx_sp2_start_ms = current_time;
-            fx_sp3_start_ms = current_time;
-            fx_obj1_start_ms = current_time;
-            fx_obj2_start_ms = current_time;
-            fx_text_start_ms = current_time;
-            await_scene_click = false;
-            line_auto_target_ms = -1;
-            current.duel_bot_id = variable_struct_exists(sc2, "duel_bot_id") ? sc2.duel_bot_id : 0;
-            if (is_array(sc2.lines) && array_length(sc2.lines) > 0) {
-                var line_data2 = sc2.lines[line_index];
-                current.speaker = line_data2.speaker;
-                current.text = line_data2.text;
-                if (variable_struct_exists(line_data2, "portrait1_name")) current.portrait1_name = line_data2.portrait1_name;
-                if (variable_struct_exists(line_data2, "portrait2_name")) current.portrait2_name = line_data2.portrait2_name;
-                if (variable_struct_exists(line_data2, "portrait3_name")) current.portrait3_name = line_data2.portrait3_name;
-                if (variable_struct_exists(line_data2, "obj1_name")) current.obj1_name = line_data2.obj1_name;
-                if (variable_struct_exists(line_data2, "obj2_name")) current.obj2_name = line_data2.obj2_name;
-                var len2 = string_length(string(current.text));
-                var cps2 = max(1, text_reveal_cps);
-                var reveal_ms2 = ceil(len2 * 1000 / cps2);
-                var wait_ms2 = wait_after_default_ms;
-                var has_explicit_wait2 = false;
-                if (variable_struct_exists(line_data2, "wait_after_ms")) { wait_ms2 = line_data2.wait_after_ms; has_explicit_wait2 = true; } else if (variable_struct_exists(line_data2, "wait_after")) { wait_ms2 = line_data2.wait_after; has_explicit_wait2 = true; }
-                var anim_ms2 = 0;
-                var dur_base2 = fx_duration_ms;
-                if (current.portrait1_effect != "Aucune" && current.portrait1_effect != "") { var d12 = dur_base2; if (current.portrait1_effect == "SlideGaucheInverse" || current.portrait1_effect == "Slide gauche inversé" || current.portrait1_effect == "SlideDroiteInverse" || current.portrait1_effect == "Slide droite inversé" || current.portrait1_effect == "SlideHautInverse" || current.portrait1_effect == "Slide haut inversé" || current.portrait1_effect == "SlideBasInverse" || current.portrait1_effect == "Slide bas inversé") d12 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, d12); }
-                if (current.portrait2_effect != "Aucune" && current.portrait2_effect != "") { var d22 = dur_base2; if (current.portrait2_effect == "SlideGaucheInverse" || current.portrait2_effect == "Slide gauche inversé" || current.portrait2_effect == "SlideDroiteInverse" || current.portrait2_effect == "Slide droite inversé" || current.portrait2_effect == "SlideHautInverse" || current.portrait2_effect == "Slide haut inversé" || current.portrait2_effect == "SlideBasInverse" || current.portrait2_effect == "Slide bas inversé") d22 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, d22); }
-                if (current.obj1_effect != "Aucune" && current.obj1_effect != "") { var d32 = dur_base2; if (current.obj1_effect == "SlideGaucheInverse" || current.obj1_effect == "Slide gauche inversé" || current.obj1_effect == "SlideDroiteInverse" || current.obj1_effect == "Slide droite inversé" || current.obj1_effect == "SlideHautInverse" || current.obj1_effect == "Slide haut inversé" || current.obj1_effect == "SlideBasInverse" || current.obj1_effect == "Slide bas inversé") d32 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, d32); }
-                if (current.obj2_effect != "Aucune" && current.obj2_effect != "") { var d42 = dur_base2; if (current.obj2_effect == "SlideGaucheInverse" || current.obj2_effect == "Slide gauche inversé" || current.obj2_effect == "SlideDroiteInverse" || current.obj2_effect == "Slide droite inversé" || current.obj2_effect == "SlideHautInverse" || current.obj2_effect == "Slide haut inversé" || current.obj2_effect == "SlideBasInverse" || current.obj2_effect == "Slide bas inversé") d42 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, d42); }
-                if (current.text_effect != "Aucune" && current.text_effect != "") { var dt2 = dur_base2; if (current.text_effect == "SlideGaucheInverse" || current.text_effect == "Slide gauche inversé" || current.text_effect == "SlideDroiteInverse" || current.text_effect == "Slide droite inversé" || current.text_effect == "SlideHautInverse" || current.text_effect == "Slide haut inversé" || current.text_effect == "SlideBasInverse" || current.text_effect == "Slide bas inversé") dt2 *= fx_inverse_multiplier; anim_ms2 = max(anim_ms2, dt2); }
-                if (len2 == 0) line_auto_target_ms = current_time + anim_ms2 + wait_ms2; else line_auto_target_ms = current_time + reveal_ms2 + wait_ms2;
-            } else {
-                current.text = "";
-            }
-            if (variable_struct_exists(sc2, "speaker1_flip")) current.speaker1_flip = sc2.speaker1_flip; else current.speaker1_flip = false;
-            if (variable_struct_exists(sc2, "speaker2_flip")) current.speaker2_flip = sc2.speaker2_flip; else current.speaker2_flip = false;
-            if (variable_struct_exists(sc2, "speaker3_flip")) current.speaker3_flip = sc2.speaker3_flip; else current.speaker3_flip = false;
-            if (variable_struct_exists(sc2, "obj1_flip")) current.obj1_flip = sc2.obj1_flip; else current.obj1_flip = false;
-            if (variable_struct_exists(sc2, "obj2_flip")) current.obj2_flip = sc2.obj2_flip; else current.obj2_flip = false;
-
-            update_bg_audio();
-
-        } else {
-            // End of scenario
-            
-            // Récompense d'Or pour la fin de l'acte (si pas déjà complété)
-            if (!is_act_complete(chapter_id, act_num)) {
-                add_gold(100);
-                show_debug_message("### Récompense Acte : +100 Or");
-            }
-            
-            // Integrer la progression
-            unlock_act_complete(chapter_id, act_num);
-            story_progress_unlock_reward("act_" + string(chapter_id) + "_" + string(act_num));
-            
-            var next_act = act_num + 1;
-            var next_scene = 0;
-            
-            if (act_num >= 4) {
-                unlock_chapter_access(chapter_id + 1);
-                give_chapter_reward(chapter_id);
-                // Fin de chapitre : on reste sur le dernier acte pour ce chapitre
-                next_act = act_num;
-                next_scene = scene_index;
-            }
-
-            story_progress_write_last_scene(chapter_id, next_scene, next_act);
-            if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); bg_sound_asset_current = -1; }
-            if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); bg2_sound_asset_current = -1; }
-            room_goto(rHistoire);
-        }
+        advance_to_next_scene();
+        exit;
     }
 }
-

@@ -146,6 +146,54 @@ if (!variable_global_exists("card_layout")) {
     // Si des fichiers de sauvegarde de layout existent, on pourrait les charger ici
 }
 
+if (!variable_global_exists("get_runtime_font")) {
+    global.__rtf_title_name = "Georgia";
+    global.__rtf_title_bold = true;
+    global.__rtf_text_name = "Georgia";
+    global.__rtf_text_bold = false;
+    global.__rtf_title_sizes = [];
+    global.__rtf_title_fonts = [];
+    global.__rtf_text_sizes = [];
+    global.__rtf_text_fonts = [];
+    
+    global.get_runtime_font = function(kind, size) {
+        size = clamp(round(size), 6, 64);
+        
+        var sizes = (kind == "title") ? global.__rtf_title_sizes : global.__rtf_text_sizes;
+        var fonts = (kind == "title") ? global.__rtf_title_fonts : global.__rtf_text_fonts;
+        
+        var n = array_length(sizes);
+        for (var i = 0; i < n; i++) {
+            if (sizes[i] == size) return fonts[i];
+        }
+        
+        var fn = (kind == "title") ? global.__rtf_title_name : global.__rtf_text_name;
+        var bold = (kind == "title") ? global.__rtf_title_bold : global.__rtf_text_bold;
+        var f = font_add(fn, size, bold, false, 32, 255);
+
+        if (f == -1) {
+            if (os_type == os_windows) {
+                var ttf = "C:\\Windows\\Fonts\\georgia.ttf";
+                if (fn == "Georgia" && bold) ttf = "C:\\Windows\\Fonts\\georgiab.ttf";
+                if (file_exists(ttf)) {
+                    f = font_add(ttf, size, bold, false, 32, 255);
+                }
+            }
+        }
+        
+        if (f != -1) {
+            array_push(sizes, size);
+            array_push(fonts, f);
+            return f;
+        }
+        
+        if (font_exists(fontText)) return fontText;
+        if (font_exists(fontTitle)) return fontTitle;
+        if (font_exists(fontUI)) return fontUI;
+        return -1;
+    };
+}
+
 // Instancier le debugger (caché par défaut, toggle F3)
 if (!instance_exists(oLayoutDebugger)) {
     instance_create_depth(0, 0, -10000, oLayoutDebugger);

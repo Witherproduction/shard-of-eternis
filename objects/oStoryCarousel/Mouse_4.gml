@@ -35,10 +35,22 @@ if (click_start || click_center_panel) {
         exit;
     }
     
-    var last = story_progress_read_last_scene(chap_id);
     var act_to_load = variable_global_exists("current_act") ? max(1, global.current_act) : story_progress_get_resume_act(chap_id);
+    var start_scene = 0;
+    
+    try {
+        var resume_act = story_progress_get_resume_act(chap_id);
+        if (act_to_load == resume_act) {
+            var last = story_progress_read_last_scene(chap_id);
+            if (is_struct(last) && variable_struct_exists(last, "act") && variable_struct_exists(last, "scene_index")) {
+                if (real(last.act) == act_to_load) start_scene = max(0, real(last.scene_index));
+            }
+        }
+    } catch(e) {
+        start_scene = 0;
+    }
     global.current_chapter = chap_id;
     global.current_act = act_to_load;
-    global.story_resume_info = { chapter_id: chap_id, act: act_to_load, scene_index: last.scene_index };
+    global.story_resume_info = { chapter_id: chap_id, act: act_to_load, scene_index: start_scene };
     room_goto(rScenario);
 }

@@ -1,14 +1,52 @@
 var gw = display_get_gui_width();
 var gh = display_get_gui_height();
+var get_font = function(kind, size) {
+    if (variable_global_exists("get_runtime_font")) {
+        var rf = global.get_runtime_font(kind, size);
+        if (rf != -1) return rf;
+    }
+    if (kind == "title") {
+        if (font_exists(fontTitle)) return fontTitle;
+        if (font_exists(fontText)) return fontText;
+        if (font_exists(fontUI)) return fontUI;
+    } else {
+        if (font_exists(fontText)) return fontText;
+        if (font_exists(fontTitle)) return fontTitle;
+        if (font_exists(fontUI)) return fontUI;
+    }
+    return -1;
+};
+var draw_shadow_text = function(_x, _y, _t, _col) {
+    draw_set_color(c_black);
+    draw_text(_x + 2, _y + 2, _t);
+    draw_set_color(_col);
+    draw_text(_x, _y, _t);
+};
+var draw_shadow_text_scaled = function(_x, _y, _t, _sx, _sy, _col) {
+    draw_set_color(c_black);
+    draw_text_transformed(_x + 2, _y + 2, _t, _sx, _sy, 0);
+    draw_set_color(_col);
+    draw_text_transformed(_x, _y, _t, _sx, _sy, 0);
+};
+var mx = device_mouse_x(0);
+var my = device_mouse_y(0);
+var ui_gold = make_color_rgb(230, 200, 120);
 var cw = floor(gw * 2 / 3);
 var ch = floor(gh * 2 / 3);
 var cx = floor((gw - cw) / 2);
 var cy = floor((gh - ch) / 2);
 var pad = 24;
-draw_set_color(make_color_rgb(20, 20, 20));
-draw_rectangle(cx, cy, cx + cw, cy + ch, false);
-draw_set_color(make_color_rgb(230, 200, 120));
-draw_rectangle(cx, cy, cx + cw, cy + ch, true);
+var frame_spr = sCimetiere;
+if (frame_spr != -1) {
+    var fscx = cw / sprite_get_width(frame_spr);
+    var fscy = ch / sprite_get_height(frame_spr);
+    draw_sprite_ext(frame_spr, 0, cx + cw * 0.5, cy + ch * 0.5, fscx, fscy, 0, c_white, 1);
+} else {
+    draw_set_color(make_color_rgb(20, 20, 20));
+    draw_rectangle(cx, cy, cx + cw, cy + ch, false);
+    draw_set_color(ui_gold);
+    draw_rectangle(cx, cy, cx + cw, cy + ch, true);
+}
 var ix = cx + pad;
 var iy = cy + pad;
 var iw = cw - pad * 2;
@@ -32,11 +70,11 @@ for (var i = 0; i < 3; i++) {
     draw_line(cx1, cy2, cx2, cy1);
     var px = bx + bw / 2;
     var py = by + bh / 2;
-    draw_set_font(fontStep);
+    var f_card = get_font("text", 22);
+    if (f_card != -1) draw_set_font(f_card);
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    draw_set_color(make_color_rgb(230, 200, 120));
-    draw_text_transformed(px, py, "placeholder", 0.7, 0.7, 0);
+    draw_shadow_text(px, py, "placeholder", ui_gold);
     var ly = by + bh + 32;
     var lx = bx + bw / 2;
     var label;
@@ -45,47 +83,38 @@ for (var i = 0; i < 3; i++) {
     } else {
         label = "Saison " + string(i + 1) + " (Bientôt)";
     }
-    draw_set_font(fontStep);
+    if (f_card != -1) draw_set_font(f_card);
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    draw_set_color(make_color_rgb(230, 200, 120));
-    draw_text_transformed(lx, ly, label, 0.7, 0.7, 0);
-    var buy_y = ly + 36;
-    var buy_h = 40;
+    draw_shadow_text(lx, ly, label, ui_gold);
+    var buy_y = ly + 51;
+    var buy_h = 55;
     var buy_left = bx + bw * 0.15;
     var buy_right = bx + bw * 0.85;
     var buy_top = buy_y - buy_h * 0.5;
     var buy_bottom = buy_y + buy_h * 0.5;
     var available = (i == 0);
     var can_buy = available && can_afford(cost * buy_quantity);
-    var col_bg = make_color_rgb(40, 40, 40);
-    var col_border = make_color_rgb(120, 120, 120);
-    if (can_buy) {
-        col_bg = make_color_rgb(70, 60, 30);
-        col_border = make_color_rgb(230, 200, 120);
-    }
-    draw_set_color(col_bg);
-    draw_rectangle(buy_left, buy_top, buy_right, buy_bottom, false);
-    draw_set_color(col_border);
-    draw_rectangle(buy_left, buy_top, buy_right, buy_bottom, true);
+    var hover_buy = (mx >= buy_left && mx <= buy_right && my >= buy_top && my <= buy_bottom);
+    var subimg = (sprite_get_number(sButton) > 1 && hover_buy) ? 1 : 0;
+    var btn_w = buy_right - buy_left;
+    var btn_h = buy_bottom - buy_top;
+    var btn_col = can_buy ? c_white : make_color_rgb(120, 120, 120);
+    draw_sprite_stretched_ext(sButton, subimg, buy_left, buy_top, btn_w, btn_h, btn_col, 1);
     var buy_label = "Acheter x" + string(buy_quantity) + " : " + string(cost * buy_quantity) + " PO";
-    draw_set_font(fontStep);
+    var f_buy = get_font("text", 18);
+    if (f_buy != -1) draw_set_font(f_buy);
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    draw_set_color(make_color_rgb(230, 200, 120));
-    draw_text_transformed((buy_left + buy_right) * 0.5, buy_y, buy_label, 0.6, 0.6, 0);
+    draw_shadow_text(floor(((buy_left + buy_right) * 0.5) + 0.5), floor(buy_y + 0.5), buy_label, ui_gold);
     if (i == 0) {
         var qty_w = 180;
         var qty_h = 36;
-        var qty_y = buy_y + 46;
+        var qty_y = buy_y + 60;
         var qty_left = bx + bw * 0.22;
         var qty_right = qty_left + qty_w;
         var qty_top = qty_y - qty_h * 0.5;
         var qty_bottom = qty_y + qty_h * 0.5;
-        draw_set_color(make_color_rgb(buy_qty_edit_mode ? 60 : 40, 40, 40));
-        draw_rectangle(qty_left, qty_top, qty_right, qty_bottom, false);
-        draw_set_color(make_color_rgb(120, 120, 120));
-        draw_rectangle(qty_left, qty_top, qty_right, qty_bottom, true);
         var minus_w = 36;
         var plus_w = 36;
         var minus_x1 = qty_left;
@@ -93,22 +122,41 @@ for (var i = 0; i < 3; i++) {
         var plus_x2 = qty_right;
         var plus_x1 = plus_x2 - plus_w;
         var center_x = (qty_left + qty_right) * 0.5;
-        draw_set_color(make_color_rgb(70, 60, 30));
-        draw_rectangle(minus_x1, qty_top, minus_x2, qty_bottom, false);
-        draw_set_color(make_color_rgb(230, 200, 120));
-        draw_rectangle(minus_x1, qty_top, minus_x2, qty_bottom, true);
-        draw_set_color(make_color_rgb(70, 60, 30));
-        draw_rectangle(plus_x1, qty_top, plus_x2, qty_bottom, false);
-        draw_set_color(make_color_rgb(230, 200, 120));
-        draw_rectangle(plus_x1, qty_top, plus_x2, qty_bottom, true);
-        draw_set_font(fontStep);
+        var hover_minus = (mx >= minus_x1 && mx <= minus_x2 && my >= qty_top && my <= qty_bottom);
+        var hover_plus = (mx >= plus_x1 && mx <= plus_x2 && my >= qty_top && my <= qty_bottom);
+        var center_x1 = minus_x2;
+        var center_x2 = plus_x1;
+        var hover_center = (mx >= center_x1 && mx <= center_x2 && my >= qty_top && my <= qty_bottom);
+        var sub_minus = (sprite_get_number(sButton) > 1 && hover_minus) ? 1 : 0;
+        var sub_plus = (sprite_get_number(sButton) > 1 && hover_plus) ? 1 : 0;
+        var sub_center = (sprite_get_number(sButton) > 1 && (hover_center || buy_qty_edit_mode)) ? 1 : 0;
+        draw_sprite_stretched_ext(sButton, sub_minus, minus_x1, qty_top, minus_w, qty_h, c_white, 1);
+        draw_sprite_stretched_ext(sButton, sub_center, center_x1, qty_top, center_x2 - center_x1, qty_h, c_white, 1);
+        draw_sprite_stretched_ext(sButton, sub_plus, plus_x1, qty_top, plus_w, qty_h, c_white, 1);
+        var qty_text = (buy_qty_edit_mode && string_length(buy_qty_input) > 0) ? buy_qty_input : string(buy_quantity);
+        var f_qty = -1;
+        var sizes = [22, 20, 18, 16, 14, 12];
+        var max_w = (center_x2 - center_x1) - 16;
+        for (var fs = 0; fs < array_length(sizes); fs++) {
+            var cand = (variable_instance_exists(id, "get_qty_font")) ? get_qty_font(sizes[fs]) : get_font("text", sizes[fs]);
+            if (cand == -1) continue;
+            draw_set_font(cand);
+            if (string_width(qty_text) <= max_w) { f_qty = cand; break; }
+        }
+        if (f_qty == -1) {
+            f_qty = (variable_instance_exists(id, "get_qty_font")) ? get_qty_font(12) : get_font("text", 12);
+            if (f_qty != -1) draw_set_font(f_qty);
+        }
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_set_color(make_color_rgb(230, 200, 120));
-        draw_text_transformed(minus_x1 + (minus_w * 0.5), qty_y, "-", 0.8, 0.8, 0);
-        draw_text_transformed(plus_x1 + (plus_w * 0.5), qty_y, "+", 0.8, 0.8, 0);
-        var qty_text = (buy_qty_edit_mode && string_length(buy_qty_input) > 0) ? buy_qty_input : string(buy_quantity);
-        draw_text_transformed(center_x, qty_y, qty_text, 0.7, 0.7, 0);
+        var ty = floor(qty_y + 0.5);
+        draw_shadow_text(floor((minus_x1 + (minus_w * 0.5)) + 0.5), ty, "-", ui_gold);
+        draw_shadow_text(floor((plus_x1 + (plus_w * 0.5)) + 0.5), ty, "+", ui_gold);
+        var tx = floor(center_x + 0.5);
+        draw_set_color(c_black);
+        draw_text(tx + 1, ty + 1, qty_text);
+        draw_set_color(ui_gold);
+        draw_text(tx, ty, qty_text);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
     }
@@ -125,11 +173,11 @@ if (confirm_open) {
     draw_set_color(make_color_rgb(230, 200, 120));
     draw_rectangle(dlg_x1, dlg_y1, dlg_x1 + dlg_w, dlg_y1 + dlg_h, true);
     var t = "Confirmer l'achat de " + string(buy_quantity) + " booster(s) ?";
-    draw_set_font(fontStep);
+    var f_dlg = get_font("text", 20);
+    if (f_dlg != -1) draw_set_font(f_dlg);
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    draw_set_color(make_color_rgb(230, 200, 120));
-    draw_text_transformed(dlg_x1 + dlg_w * 0.5, dlg_y1 + 50, t, 0.7, 0.7, 0);
+    draw_shadow_text(dlg_x1 + dlg_w * 0.5, dlg_y1 + 50, t, ui_gold);
     var btn_w = 140;
     var btn_h = 40;
     var ok_x1 = dlg_x1 + 40;
@@ -144,14 +192,14 @@ if (confirm_open) {
     draw_rectangle(ok_x1, ok_y1, ok_x2, ok_y2, false);
     draw_set_color(make_color_rgb(180, 180, 180));
     draw_rectangle(ok_x1, ok_y1, ok_x2, ok_y2, true);
-    draw_set_color(make_color_rgb(230, 200, 120));
-    draw_text_transformed(ok_x1 + btn_w * 0.5, ok_y1 + btn_h * 0.5, "Valider", 0.6, 0.6, 0);
+    var f_btn = get_font("text", 18);
+    if (f_btn != -1) draw_set_font(f_btn);
+    draw_shadow_text(ok_x1 + btn_w * 0.5, ok_y1 + btn_h * 0.5, "Valider", ui_gold);
     draw_set_color(make_color_rgb(60, 60, 60));
     draw_rectangle(cancel_x1, cancel_y1, cancel_x2, cancel_y2, false);
     draw_set_color(make_color_rgb(180, 180, 180));
     draw_rectangle(cancel_x1, cancel_y1, cancel_x2, cancel_y2, true);
-    draw_set_color(make_color_rgb(230, 200, 120));
-    draw_text_transformed(cancel_x1 + btn_w * 0.5, cancel_y1 + btn_h * 0.5, "Annuler", 0.6, 0.6, 0);
+    draw_shadow_text(cancel_x1 + btn_w * 0.5, cancel_y1 + btn_h * 0.5, "Annuler", ui_gold);
 }
 if (loading_active) {
     var ld_w = 260;
@@ -162,11 +210,11 @@ if (loading_active) {
     draw_rectangle(ldx, ldy, ldx + ld_w, ldy + ld_h, false);
     draw_set_color(make_color_rgb(230, 200, 120));
     draw_rectangle(ldx, ldy, ldx + ld_w, ldy + ld_h, true);
-    draw_set_font(fontStep);
+    var f_wait = get_font("text", 22);
+    if (f_wait != -1) draw_set_font(f_wait);
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    draw_set_color(make_color_rgb(230, 200, 120));
-    draw_text_transformed(ldx + ld_w * 0.5, ldy + 32, "Veuillez patienter", 0.7, 0.7, 0);
+    draw_shadow_text(ldx + ld_w * 0.5, ldy + 32, "Veuillez patienter", ui_gold);
     var cx_ld = ldx + ld_w * 0.5;
     var cy_ld = ldy + ld_h * 0.5 + 10;
     var r_outer = 26;
@@ -373,8 +421,7 @@ if (reveal_active && array_length(reveal_cards) > 0) {
         draw_rectangle(skip_x1, skip_y1, skip_x2, skip_y2, true);
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_set_color(make_color_rgb(230, 200, 120));
-        draw_text_transformed((skip_x1 + skip_x2) * 0.5, (skip_y1 + skip_y2) * 0.5, "Passer", 0.7, 0.7, 0);
+        draw_shadow_text_scaled((skip_x1 + skip_x2) * 0.5, (skip_y1 + skip_y2) * 0.5, "Passer", 0.7, 0.7, ui_gold);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
     } else {
@@ -397,14 +444,12 @@ if (reveal_active && array_length(reveal_cards) > 0) {
         draw_rectangle(left_ax1, left_ay1, left_ax2, left_ay2, true);
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_set_color(make_color_rgb(230, 200, 120));
-        draw_text_transformed((left_ax1 + left_ax2) * 0.5, (left_ay1 + left_ay2) * 0.5, "<", 0.8, 0.8, 0);
+        draw_shadow_text_scaled((left_ax1 + left_ax2) * 0.5, (left_ay1 + left_ay2) * 0.5, "<", 0.8, 0.8, ui_gold);
         draw_set_color(make_color_rgb(70, 60, 30));
         draw_rectangle(right_ax1, right_ay1, right_ax2, right_ay2, false);
         draw_set_color(make_color_rgb(230, 200, 120));
         draw_rectangle(right_ax1, right_ay1, right_ax2, right_ay2, true);
-        draw_set_color(make_color_rgb(230, 200, 120));
-        draw_text_transformed((right_ax1 + right_ax2) * 0.5, (right_ay1 + right_ay2) * 0.5, ">", 0.8, 0.8, 0);
+        draw_shadow_text_scaled((right_ax1 + right_ax2) * 0.5, (right_ay1 + right_ay2) * 0.5, ">", 0.8, 0.8, ui_gold);
         var prev_idx = max(0, reveal_index - 1);
         if (prev_idx < reveal_index) {
             var next_card = reveal_cards[prev_idx];
@@ -433,8 +478,7 @@ if (reveal_active && array_length(reveal_cards) > 0) {
         draw_rectangle(skip_x1, skip_y1, skip_x2, skip_y2, true);
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_set_color(make_color_rgb(230, 200, 120));
-        draw_text_transformed((skip_x1 + skip_x2) * 0.5, (skip_y1 + skip_y2) * 0.5, "Passer", 0.7, 0.7, 0);
+        draw_shadow_text_scaled((skip_x1 + skip_x2) * 0.5, (skip_y1 + skip_y2) * 0.5, "Passer", 0.7, 0.7, ui_gold);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
     }
@@ -453,7 +497,9 @@ if (reveal_active && array_length(reveal_cards) > 0) {
         var desc_x1  = layout.description.x1, desc_y1  = layout.description.y1; var desc_x2  = layout.description.x2, desc_y2  = layout.description.y2;
         var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2;
         var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2;
-        if (font_exists(fontCardText)) draw_set_font(fontCardText);
+        if (font_exists(fontText)) draw_set_font(fontText);
+        else if (font_exists(fontTitle)) draw_set_font(fontTitle);
+        else if (font_exists(fontUI)) draw_set_font(fontUI);
         draw_set_color(c_black);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
@@ -605,10 +651,9 @@ if (reveal_active && array_length(reveal_cards) > 0) {
         draw_rectangle(btn_left, btn_top, btn_right, btn_bottom, false);
         draw_set_color(make_color_rgb(230, 200, 120));
         draw_rectangle(btn_left, btn_top, btn_right, btn_bottom, true);
-        draw_set_font(fontStep);
+        draw_set_font(fontUI);
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_set_color(make_color_rgb(230, 200, 120));
-        draw_text_transformed((btn_left + btn_right) * 0.5, btn_y, "Terminer", 0.7, 0.7, 0);
+        draw_shadow_text_scaled((btn_left + btn_right) * 0.5, btn_y, "Terminer", 0.7, 0.7, ui_gold);
     }
 }

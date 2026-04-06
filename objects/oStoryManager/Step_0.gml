@@ -48,13 +48,16 @@ if (selected_hero_index != -1) {
         var ch_data = get_chapter_data(ch_id);
         var ch_unlocked = is_chapter_unlocked(ch_id);
         
-        var ch_h = 60; // Hauteur barre titre chapitre
+        var ch_h = chapter_btn_h; // Hauteur barre titre chapitre
         var acts_h = 0;
         
         // Si c'est le chapitre sélectionné, on affiche les actes
         if (selected_chapter_id == ch_id) {
-            acts_h = array_length(ch_data.acts) * 40 + 20; // 40px par acte + marge
-            if (ch_unlocked) acts_h += 80; // Espace pour le bouton Start
+            if (ch_unlocked) {
+                acts_h = acts_top_gap + array_length(ch_data.acts) * act_row_step + start_btn_top_gap + start_btn_h + start_btn_bottom_gap;
+            } else {
+                acts_h = 50;
+            }
         }
         
         // Zone de clic pour le titre du chapitre
@@ -90,7 +93,7 @@ if (selected_hero_index != -1) {
         
         // Gestion des Actes (si chapitre sélectionné et débloqué)
         if (selected_chapter_id == ch_id) {
-            var ay = cy + ch_h + 10;
+            var ay = cy + ch_h + acts_top_gap;
             
             if (ch_unlocked) {
                 // Liste des actes
@@ -106,7 +109,7 @@ if (selected_hero_index != -1) {
                     if (act_unlocked) {
                         // Zone de clic acte
                         if (mx >= cx + 20 && mx <= cx + panel_chap_w - 20 &&
-                            my >= ay && my <= ay + 30) {
+                            my >= ay && my <= ay + act_btn_h) {
                             
                             hover_act_index = act_num;
                             
@@ -115,14 +118,14 @@ if (selected_hero_index != -1) {
                             }
                         }
                     }
-                    ay += 40;
+                    ay += act_row_step;
                 }
                 
                 // Bouton Commencer
-                var btn_w = 200;
-                var btn_h = 50;
+                var btn_w = start_btn_w;
+                var btn_h = start_btn_h;
                 var btn_x = cx + panel_chap_w / 2 - btn_w / 2;
-                var btn_y = ay + 20;
+                var btn_y = ay + start_btn_top_gap;
                 
                 btn_start_rect = { x1: btn_x, y1: btn_y, x2: btn_x + btn_w, y2: btn_y + btn_h };
                 
@@ -170,25 +173,21 @@ if (selected_hero_index != -1) {
                         global.current_chapter = safe_chap;
                         global.current_act = safe_act;
 
-                        // VERSION CORRIGÉE : On ne lit PAS le fichier INI ici pour éviter le crash Antivirus
-                        // On force le démarrage au début de l'acte.
-                        // La sauvegarde se fera à la fin de la première scène jouée.
                         var start_scene = 0;
                         
-                        /* 
-                        // CODE DÉSACTIVÉ TEMPORAIREMENT - CAUSE DES CRASHS CHEZ CERTAINS UTILISATEURS
                         try {
                              var resume_act = story_progress_get_resume_act(safe_chap);
                              if (safe_act == resume_act) {
                                  var last = story_progress_read_last_scene(safe_chap);
-                                 if (last.act == safe_act) {
-                                     start_scene = last.scene_index;
+                                 if (is_struct(last) && variable_struct_exists(last, "act") && variable_struct_exists(last, "scene_index")) {
+                                     if (real(last.act) == safe_act) {
+                                         start_scene = max(0, real(last.scene_index));
+                                     }
                                  }
                              }
                         } catch(e) {
                              start_scene = 0;
                         }
-                        */
                         
                         global.story_resume_info = { chapter_id: safe_chap, act: safe_act, scene_index: start_scene };
                         room_goto(rScenario);
@@ -197,6 +196,6 @@ if (selected_hero_index != -1) {
             }
         }
         
-        cy += ch_h + acts_h + 10; // Passer au chapitre suivant
+        cy += ch_h + acts_h + chapter_gap; // Passer au chapitre suivant
     }
 }

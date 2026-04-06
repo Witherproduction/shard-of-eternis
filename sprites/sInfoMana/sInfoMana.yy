@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"Icon",
-    "path":"folders/Sprites/Duel/UI/Icon.yy",
+    "path":"folders/Sprites/interface/UI/Icon.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

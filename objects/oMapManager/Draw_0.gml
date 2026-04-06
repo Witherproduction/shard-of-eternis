@@ -47,6 +47,75 @@ if (location_sprite != -1 && location_alpha > 0) {
         // 2. Soustraire les zones révélées (Pochoirs)
         gpu_set_blendmode(bm_subtract);
         draw_set_color(c_white);
+
+        _cross = function(_ax, _ay, _bx, _by, _cx, _cy) {
+            return (_bx - _ax) * (_cy - _ay) - (_by - _ay) * (_cx - _ax);
+        };
+        _point_in_tri = function(_px, _py, _ax, _ay, _bx, _by, _cx, _cy, _ccw) {
+            var c1 = _cross(_ax, _ay, _bx, _by, _px, _py);
+            var c2 = _cross(_bx, _by, _cx, _cy, _px, _py);
+            var c3 = _cross(_cx, _cy, _ax, _ay, _px, _py);
+            if (_ccw) return (c1 >= 0 && c2 >= 0 && c3 >= 0);
+            return (c1 <= 0 && c2 <= 0 && c3 <= 0);
+        };
+        _triangulate = function(_pts) {
+            var n = array_length(_pts);
+            if (n < 3) return { ok: false };
+            if (_pts[0].x == _pts[n - 1].x && _pts[0].y == _pts[n - 1].y) n -= 1;
+            if (n < 3) return { ok: false };
+
+            var area = 0;
+            for (var i = 0; i < n; i++) {
+                var j = (i + 1) mod n;
+                area += _pts[i].x * _pts[j].y - _pts[j].x * _pts[i].y;
+            }
+            var ccw = area > 0;
+
+            var V = array_create(n);
+            for (var i = 0; i < n; i++) V[i] = i;
+
+            var idx = [];
+            var nv = n;
+            var guard = 0;
+
+            while (nv > 2 && guard < 10000) {
+                var ear_found = false;
+                for (var vi = 0; vi < nv; vi++) {
+                    var i0 = V[(vi + nv - 1) mod nv];
+                    var i1 = V[vi];
+                    var i2 = V[(vi + 1) mod nv];
+
+                    var ax = _pts[i0].x, ay = _pts[i0].y;
+                    var bx = _pts[i1].x, by = _pts[i1].y;
+                    var cxp = _pts[i2].x, cyp = _pts[i2].y;
+
+                    var cr = _cross(ax, ay, bx, by, cxp, cyp);
+                    if (ccw) { if (cr <= 0) continue; } else { if (cr >= 0) continue; }
+
+                    var is_ear = true;
+                    for (var pj = 0; pj < nv; pj++) {
+                        var ip = V[pj];
+                        if (ip == i0 || ip == i1 || ip == i2) continue;
+                        var px = _pts[ip].x, py = _pts[ip].y;
+                        if (_point_in_tri(px, py, ax, ay, bx, by, cxp, cyp, ccw)) { is_ear = false; break; }
+                    }
+                    if (!is_ear) continue;
+
+                    array_push(idx, i0);
+                    array_push(idx, i1);
+                    array_push(idx, i2);
+                    array_delete(V, vi, 1);
+                    nv -= 1;
+                    ear_found = true;
+                    break;
+                }
+                if (!ear_found) break;
+                guard++;
+            }
+
+            if (array_length(idx) < 3) return { ok: false };
+            return { ok: true, count: n, indices: idx };
+        };
         
         for (var i = 0; i < array_length(location_reveal_zones); i++) {
             var zone = location_reveal_zones[i];
@@ -62,14 +131,26 @@ if (location_sprite != -1 && location_alpha > 0) {
                 // Les points sont relatifs au centre (x,y) de l'objet/sprite
                 // Donc sur la surface, on doit ajouter xoff, yoff
                 if (array_length(zone.points) > 2) {
-                    draw_primitive_begin(pr_trianglefan);
-                    // Centre approximatif pour trianglefan (optionnel, ou premier point)
-                    // draw_vertex(xoff + zone.points[0].x, yoff + zone.points[0].y); 
-                    for (var p = 0; p < array_length(zone.points); p++) {
-                        var pt = zone.points[p];
-                        draw_vertex(xoff + pt.x, yoff + pt.y);
+                    var tri = _triangulate(zone.points);
+                    if (tri.ok) {
+                        draw_primitive_begin(pr_trianglelist);
+                        for (var t = 0; t < array_length(tri.indices); t += 3) {
+                            var p0 = zone.points[tri.indices[t]];
+                            var p1 = zone.points[tri.indices[t + 1]];
+                            var p2 = zone.points[tri.indices[t + 2]];
+                            draw_vertex(xoff + p0.x, yoff + p0.y);
+                            draw_vertex(xoff + p1.x, yoff + p1.y);
+                            draw_vertex(xoff + p2.x, yoff + p2.y);
+                        }
+                        draw_primitive_end();
+                    } else {
+                        draw_primitive_begin(pr_trianglefan);
+                        for (var p = 0; p < array_length(zone.points); p++) {
+                            var pt = zone.points[p];
+                            draw_vertex(xoff + pt.x, yoff + pt.y);
+                        }
+                        draw_primitive_end();
                     }
-                    draw_primitive_end();
                 }
             }
         }
@@ -113,4 +194,3 @@ if (location_sprite != -1 && location_alpha > 0) {
         draw_set_color(c_white);
     }
 }
-

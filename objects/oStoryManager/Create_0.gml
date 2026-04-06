@@ -43,6 +43,17 @@ panel_chap_x = 1490; // 1920 - 80 - 350 (Aligné à droite)
 panel_chap_y = 120;
 panel_chap_h = 800;
 
+chapter_btn_h = 70;
+chapter_gap = 10;
+acts_top_gap = 10;
+act_btn_h = 38;
+act_btn_h = 46;
+act_row_step = 56;
+start_btn_w = 200;
+start_btn_h = 60;
+start_btn_top_gap = 20;
+start_btn_bottom_gap = 10;
+
 // Couleurs et Fonts
 col_bg_panel = make_color_rgb(30, 30, 40);
 col_border = make_color_rgb(100, 100, 120);

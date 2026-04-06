@@ -1,6 +1,38 @@
 if (room != rBoutique) exit;
 var click = mouse_check_button_pressed(mb_left);
+var process_buy_qty_input = function() {
+    var s = keyboard_string;
+    if (string_length(s) > 0) {
+        buy_qty_input += s;
+        keyboard_string = "";
+    }
+    var filtered = "";
+    for (var ii = 1; ii <= string_length(buy_qty_input); ii++) {
+        var ch = string_copy(buy_qty_input, ii, 1);
+        if (ord(ch) >= ord("0") && ord(ch) <= ord("9")) {
+            filtered += ch;
+        }
+    }
+    buy_qty_input = filtered;
+    if (keyboard_check_pressed(vk_backspace)) {
+        if (string_length(buy_qty_input) > 0) {
+            buy_qty_input = string_copy(buy_qty_input, 1, string_length(buy_qty_input) - 1);
+        }
+    }
+    if (keyboard_check_pressed(vk_enter)) {
+        var val = real(buy_qty_input);
+        if (val <= 0) val = 1;
+        buy_quantity = clamp(val, 1, 50);
+        buy_qty_input = "";
+        buy_qty_edit_mode = false;
+    }
+    if (keyboard_check_pressed(vk_escape)) {
+        buy_qty_input = "";
+        buy_qty_edit_mode = false;
+    }
+};
 if (!click) {
+    if (buy_qty_edit_mode) { process_buy_qty_input(); }
     if (pack_timer > 0) { pack_timer--; }
     if (reveal_active) { reveal_anim_t++; }
     if (reveal_active) { reveal_t++; }
@@ -306,8 +338,8 @@ for (var i = 0; i < 3; i++) {
     var bx = ix + i * (bw + gap);
     var by = iy;
     var label_y = by + bh + 32;
-    var buy_y = label_y + 36;
-    var buy_h = 40;
+    var buy_y = label_y + 51;
+    var buy_h = 55;
     var buy_left = bx + bw * 0.15;
     var buy_right = bx + bw * 0.85;
     var buy_top = buy_y - buy_h * 0.5;
@@ -327,10 +359,10 @@ if (true) {
     var bx = ix + i * (bw + gap);
     var by = iy;
     var label_y = by + bh + 32;
-    var buy_y = label_y + 36;
+    var buy_y = label_y + 51;
     var qty_w = 180;
     var qty_h = 36;
-    var qty_y = buy_y + 46;
+    var qty_y = buy_y + 60;
     var qty_left = bx + bw * 0.22;
     var qty_right = qty_left + qty_w;
     var qty_top = qty_y - qty_h * 0.5;
@@ -354,39 +386,13 @@ if (true) {
     var center_x1 = minus_x2;
     var center_x2 = plus_x1;
     if (mx >= center_x1 && mx <= center_x2 && my >= qty_top && my <= qty_bottom) {
+        if (!buy_qty_edit_mode) {
+            buy_qty_input = "";
+            keyboard_string = "";
+        }
         buy_qty_edit_mode = true;
         exit;
     }
     buy_qty_edit_mode = false;
 }
-if (buy_qty_edit_mode) {
-    var s = keyboard_string;
-    if (string_length(s) > 0) {
-        buy_qty_input += s;
-        keyboard_string = "";
-    }
-    var filtered = "";
-    for (var ii = 1; ii <= string_length(buy_qty_input); ii++) {
-        var ch = string_copy(buy_qty_input, ii, 1);
-        if (ord(ch) >= ord("0") && ord(ch) <= ord("9")) {
-            filtered += ch;
-        }
-    }
-    buy_qty_input = filtered;
-    if (keyboard_check_pressed(vk_backspace)) {
-        if (string_length(buy_qty_input) > 0) {
-            buy_qty_input = string_copy(buy_qty_input, 1, string_length(buy_qty_input) - 1);
-        }
-    }
-    if (keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_numpad_enter)) {
-        var val = real(buy_qty_input);
-        if (val <= 0) val = 1;
-        buy_quantity = clamp(val, 1, 50);
-        buy_qty_input = "";
-        buy_qty_edit_mode = false;
-    }
-    if (keyboard_check_pressed(vk_escape)) {
-        buy_qty_input = "";
-        buy_qty_edit_mode = false;
-    }
-}
+if (buy_qty_edit_mode) { process_buy_qty_input(); }

@@ -152,27 +152,32 @@ setDuelBackground = function() {
     if (variable_global_exists("selected_bot_deck_id")) {
         // Par défaut, tout le monde utilise sTerrain1
         var bg_sprite = asset_get_index("sTerrain1");
+
+        if (variable_global_exists("current_chapter") && global.current_chapter == 1) {
+            bg_sprite = asset_get_index("sTerrain2");
+        } else {
         
-        // Configuration: Groupes de bots avec des fonds spécifiques
-        // Format: { sprite: "NomSprite", bots: [id1, id2, id3...] }
-        var bg_groups = [
-            {
-                sprite: "sTerrain2",
-                bots: [1, 2, 3, "Invasion_Gueule_Roche", "Essaim_Abyssien", "Bandit_Grand_Chemin"] // Bot 1, 2 et 3 (Chapitre 1) utilisent sTerrain2
-            }
-            // Ajoutez d'autres groupes ici pour d'autres exceptions
-        ];
-        
-        // Recherche si le bot actuel fait partie d'une exception
-        for (var i = 0; i < array_length(bg_groups); i++) {
-            var group = bg_groups[i];
-            var bot_list = group.bots;
+            // Configuration: Groupes de bots avec des fonds spécifiques
+            // Format: { sprite: "NomSprite", bots: [id1, id2, id3...] }
+            var bg_groups = [
+                {
+                    sprite: "sTerrain2",
+                    bots: [1, 2, 3, "Invasion_Gueule_Roche", "Essaim_Abyssien", "Bandit_Grand_Chemin"] // Bot 1, 2 et 3 (Chapitre 1) utilisent sTerrain2
+                }
+                // Ajoutez d'autres groupes ici pour d'autres exceptions
+            ];
             
-            // Vérifie si l'ID du bot est dans la liste de ce groupe
-            for (var j = 0; j < array_length(bot_list); j++) {
-                if (bot_list[j] == global.selected_bot_deck_id) {
-                    bg_sprite = asset_get_index(group.sprite);
-                    break;
+            // Recherche si le bot actuel fait partie d'une exception
+            for (var i = 0; i < array_length(bg_groups); i++) {
+                var group = bg_groups[i];
+                var bot_list = group.bots;
+                
+                // Vérifie si l'ID du bot est dans la liste de ce groupe
+                for (var j = 0; j < array_length(bot_list); j++) {
+                    if (bot_list[j] == global.selected_bot_deck_id) {
+                        bg_sprite = asset_get_index(group.sprite);
+                        break;
+                    }
                 }
             }
         }

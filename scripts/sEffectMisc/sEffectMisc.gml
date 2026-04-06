@@ -32,6 +32,20 @@ function returnToHand(card) {
     h.addCard(card);
     card.zone = "Hand";
     
+    if (variable_instance_exists(card, "buff_contribs")) card.buff_contribs = [];
+    if (variable_instance_exists(card, "temp_attack")) card.temp_attack = 0;
+    if (variable_instance_exists(card, "temp_defense")) card.temp_defense = 0;
+    if (variable_instance_exists(card, "original_attack") && variable_instance_exists(card, "attack")) card.attack = card.original_attack;
+    if (variable_instance_exists(card, "original_PV") && variable_instance_exists(card, "PV")) card.PV = card.original_PV;
+    if (script_exists(asset_get_index("buffRecompute"))) {
+        buffRecompute(card);
+    } else {
+        if (variable_instance_exists(card, "effective_attack") && variable_instance_exists(card, "attack")) card.effective_attack = card.attack;
+        if (variable_instance_exists(card, "effective_defense") && variable_instance_exists(card, "PV")) card.effective_defense = card.PV;
+    }
+    if (variable_instance_exists(card, "max_hp") && variable_instance_exists(card, "PV")) card.max_hp = card.PV;
+    if (variable_instance_exists(card, "current_hp") && variable_instance_exists(card, "max_hp")) card.current_hp = card.max_hp;
+    
     // Create Visual Effect
     var fx = instance_create_layer(_sx, _sy, "UI", oFX_ReturnToHand);
     if (fx != noone) {
@@ -820,4 +834,3 @@ function applyDestroyBySpec(card, effect, context) {
 /// @param {instance} card - La carte qui déclenche l'effet
 /// @param {struct} effect - L'effet contenant les filtres
 /// @returns {bool} - true si au moins une carte détruite
-

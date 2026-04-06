@@ -1,4 +1,5 @@
-﻿var panel_open = instance_exists(oPanelOptions);
+var panel_open = instance_exists(oPanelOptions);
+update_nav_buttons();
 if (input_block_frames > 0) { input_block_frames -= 1; exit; }
 var sc_k = (array_length(scenes) > 0) ? scenes[scene_index] : noone;
 if (!panel_open && keyboard_check_pressed(vk_right) && sc_k != noone) {

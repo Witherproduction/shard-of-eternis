@@ -16,6 +16,37 @@ function draw_slot(r, label) {
 var k = min(room_width / 1920, room_height / 1080);
 var text_pad = 12 * k;
 
+function draw_accueil_button(x1, y1, x2, y2, label, hover) {
+    var w = x2 - x1;
+    var h = y2 - y1;
+    var subimg = 0;
+    if (hover && sprite_get_number(sButton) > 1) subimg = 1;
+    draw_sprite_stretched(sButton, subimg, x1, y1, w, h);
+    
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    var px = max(10, round(16 * k));
+    var f = -1;
+    if (variable_global_exists("get_runtime_font")) f = global.get_runtime_font("title", px);
+    if (f == -1) {
+        if (font_exists(fontTitle)) f = fontTitle;
+        else if (font_exists(fontText)) f = fontText;
+        else if (font_exists(fontUI)) f = fontUI;
+    }
+    if (f != -1) draw_set_font(f);
+    var sc = 1;
+    if (f != -1) {
+        var base_sz = font_get_size(f);
+        if (base_sz > 0) sc = px / base_sz;
+    }
+    var cx = (x1 + x2) * 0.5;
+    var cy = (y1 + y2) * 0.5;
+    draw_set_color(c_black);
+    draw_text_transformed(cx + 2, cy + 2, label, sc, sc, 0);
+    draw_set_color(make_color_rgb(230, 200, 120));
+    draw_text_transformed(cx, cy, label, sc, sc, 0);
+}
+
 function draw_field(x1, y1, x2, y2, label, value, focused, pad) {
     draw_set_color(make_color_rgb(35, 35, 35));
     draw_roundrect(x1, y1, x2, y2, true);
@@ -243,37 +274,13 @@ btn_delete_hover = point_in_rectangle(mouse_x, mouse_y, btn_delete_x1, btn_delet
 btn_load_hover = point_in_rectangle(mouse_x, mouse_y, btn_load_x1, btn_load_y1, btn_load_x2, btn_load_y2);
 btn_quit_hover = point_in_rectangle(mouse_x, mouse_y, btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2);
 
-draw_set_color(btn_save_hover ? make_color_rgb(60, 45, 25) : make_color_rgb(40, 40, 40));
-draw_roundrect(btn_save_x1, btn_save_y1, btn_save_x2, btn_save_y2, false);
-draw_set_color(make_color_rgb(220, 200, 120));
-draw_roundrect(btn_save_x1, btn_save_y1, btn_save_x2, btn_save_y2, true);
-draw_set_halign(fa_center);
-draw_set_valign(fa_middle);
-draw_set_color(c_white);
-draw_text((btn_save_x1 + btn_save_x2) * 0.5, (btn_save_y1 + btn_save_y2) * 0.5, "Enregistrer");
+draw_accueil_button(btn_save_x1, btn_save_y1, btn_save_x2, btn_save_y2, "Enregistrer", btn_save_hover);
+draw_accueil_button(btn_delete_x1, btn_delete_y1, btn_delete_x2, btn_delete_y2, "Supprimer", btn_delete_hover);
+draw_accueil_button(btn_load_x1, btn_load_y1, btn_load_x2, btn_load_y2, "Charger", btn_load_hover);
+draw_accueil_button(btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2, "Quitter", btn_quit_hover);
 
-draw_set_color(btn_delete_hover ? make_color_rgb(60, 45, 25) : make_color_rgb(40, 40, 40));
-draw_roundrect(btn_delete_x1, btn_delete_y1, btn_delete_x2, btn_delete_y2, false);
-draw_set_color(make_color_rgb(220, 200, 120));
-draw_roundrect(btn_delete_x1, btn_delete_y1, btn_delete_x2, btn_delete_y2, true);
-draw_set_color(c_white);
-draw_text((btn_delete_x1 + btn_delete_x2) * 0.5, (btn_delete_y1 + btn_delete_y2) * 0.5, "Supprimer");
-
-draw_set_color(btn_load_hover ? make_color_rgb(60, 45, 25) : make_color_rgb(40, 40, 40));
-draw_roundrect(btn_load_x1, btn_load_y1, btn_load_x2, btn_load_y2, false);
-draw_set_color(make_color_rgb(220, 200, 120));
-draw_roundrect(btn_load_x1, btn_load_y1, btn_load_x2, btn_load_y2, true);
-draw_set_color(c_white);
-draw_text((btn_load_x1 + btn_load_x2) * 0.5, (btn_load_y1 + btn_load_y2) * 0.5, "Charger");
-
-// (Rendu navigation scènes remplacé par Scène [-] [+])
-
-draw_set_color(btn_quit_hover ? make_color_rgb(60, 45, 25) : make_color_rgb(40, 40, 40));
-draw_roundrect(btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2, false);
-draw_set_color(make_color_rgb(220, 200, 120));
-draw_roundrect(btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2, true);
-draw_set_color(c_white);
-draw_text((btn_quit_x1 + btn_quit_x2) * 0.5, (btn_quit_y1 + btn_quit_y2) * 0.5, "Quitter");
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
 
 var small_h = btn_h * 0.8;
 var small_w = btn_w * 0.6;
@@ -512,15 +519,8 @@ btn_anchor_y2 = btn_anchor_y1 + btn_h;
 
 btn_anchor_hover = point_in_rectangle(mouse_x, mouse_y, btn_anchor_x1, btn_anchor_y1, btn_anchor_x2, btn_anchor_y2);
 
-draw_set_color(btn_anchor_hover ? make_color_rgb(60, 45, 25) : make_color_rgb(40, 40, 40));
-draw_roundrect(btn_anchor_x1, btn_anchor_y1, btn_anchor_x2, btn_anchor_y2, false);
-draw_set_color(make_color_rgb(220, 200, 120));
-draw_roundrect(btn_anchor_x1, btn_anchor_y1, btn_anchor_x2, btn_anchor_y2, true);
-draw_set_color(c_white);
-draw_set_halign(fa_center);
-draw_set_valign(fa_middle);
 var anchor_label = anchor_locked ? "Ancré" : "Ancrer";
-draw_text((btn_anchor_x1 + btn_anchor_x2) * 0.5, (btn_anchor_y1 + btn_anchor_y2) * 0.5, anchor_label);
+draw_accueil_button(btn_anchor_x1, btn_anchor_y1, btn_anchor_x2, btn_anchor_y2, anchor_label, btn_anchor_hover);
 
 btn_create_duel_x1 = bl_x;
 btn_create_duel_y1 = bl_y;
@@ -529,13 +529,6 @@ btn_create_duel_y2 = bl_y + btn_h;
 
 btn_create_duel_hover = point_in_rectangle(mouse_x, mouse_y, btn_create_duel_x1, btn_create_duel_y1, btn_create_duel_x2, btn_create_duel_y2);
 
-draw_set_color(btn_create_duel_hover ? make_color_rgb(60, 45, 25) : make_color_rgb(40, 40, 40));
-draw_roundrect(btn_create_duel_x1, btn_create_duel_y1, btn_create_duel_x2, btn_create_duel_y2, false);
-draw_set_color(make_color_rgb(220, 200, 120));
-draw_roundrect(btn_create_duel_x1, btn_create_duel_y1, btn_create_duel_x2, btn_create_duel_y2, true);
-draw_set_color(c_white);
-draw_set_halign(fa_center);
-draw_set_valign(fa_middle);
 var duel_exists = false;
 if (variable_struct_exists(current, "duel_bot_id")) {
     var bid = current.duel_bot_id;
@@ -544,7 +537,7 @@ if (variable_struct_exists(current, "duel_bot_id")) {
     else duel_exists = (bid != 0 && bid != noone);
 }
 var duel_count = duel_exists ? 1 : 0;
-draw_text((btn_create_duel_x1 + btn_create_duel_x2) * 0.5, (btn_create_duel_y1 + btn_create_duel_y2) * 0.5, "Créer Duel (" + string(duel_count) + ")");
+draw_accueil_button(btn_create_duel_x1, btn_create_duel_y1, btn_create_duel_x2, btn_create_duel_y2, "Créer Duel (" + string(duel_count) + ")", btn_create_duel_hover);
 
 obj1_flip_hover = point_in_rectangle(mouse_x, mouse_y, obj1_flip_btn_x1, obj1_flip_btn_y1, obj1_flip_btn_x2, obj1_flip_btn_y2);
 obj2_flip_hover = point_in_rectangle(mouse_x, mouse_y, obj2_flip_btn_x1, obj2_flip_btn_y1, obj2_flip_btn_x2, obj2_flip_btn_y2);
@@ -976,20 +969,14 @@ if (variable_instance_exists(id, "show_duel_window") && show_duel_window) {
     var btn_h_local = 50 * k;
     var btn_y_local = duel_window_y + duel_window_h - 70 * k;
     var btn_save_x = duel_window_x + duel_window_w / 2 - btn_w_local / 2;
-    draw_set_color(c_green);
-    draw_roundrect(btn_save_x, btn_y_local, btn_save_x + btn_w_local, btn_y_local + btn_h_local, false);
-    draw_set_color(c_black);
-    draw_set_halign(fa_center);
-    draw_set_valign(fa_middle);
     var btn_text = duel_exists ? "Modifier" : "Créer";
-    draw_text(btn_save_x + btn_w_local / 2, btn_y_local + btn_h_local / 2, btn_text);
+    var btn_hover = point_in_rectangle(mouse_x, mouse_y, btn_save_x, btn_y_local, btn_save_x + btn_w_local, btn_y_local + btn_h_local);
+    draw_accueil_button(btn_save_x, btn_y_local, btn_save_x + btn_w_local, btn_y_local + btn_h_local, btn_text, btn_hover);
     
     // Delete Duel Button
     if (duel_exists) {
         var btn_del_x = duel_window_x + 30 * k;
-        draw_set_color(c_red);
-        draw_roundrect(btn_del_x, btn_y_local, btn_del_x + btn_w_local, btn_y_local + btn_h_local, false);
-        draw_set_color(c_white);
-        draw_text(btn_del_x + btn_w_local / 2, btn_y_local + btn_h_local / 2, "Supprimer");
+        var btn_del_hover = point_in_rectangle(mouse_x, mouse_y, btn_del_x, btn_y_local, btn_del_x + btn_w_local, btn_y_local + btn_h_local);
+        draw_accueil_button(btn_del_x, btn_y_local, btn_del_x + btn_w_local, btn_y_local + btn_h_local, "Supprimer", btn_del_hover);
     }
 }

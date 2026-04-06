@@ -28,7 +28,7 @@ if (variable_instance_exists(id, "editor_active") && editor_active) {
     }
     
     // UI Texte
-    draw_set_font(fontCardDisplay);
+    draw_set_font(fontTitle);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
     draw_set_color(c_white);

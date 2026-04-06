@@ -3,6 +3,38 @@
 
 // Vérifier si l'animation est terminée
 if (alpha >= targetAlpha) {
+    var k = min(room_width / 1920, room_height / 1080);
+    buttonText = "Continuer";
+    buttonX = room_width * 0.5;
+    buttonY = room_height * 0.5 + 120 * k;
+    
+    var pad_x = 40 * k;
+    var pad_y = 18 * k;
+    var want_sz = max(14, round(34 * k));
+    var f_btn = -1;
+    if (variable_global_exists("get_runtime_font")) {
+        f_btn = global.get_runtime_font("title", want_sz);
+    } else if (font_exists(fontTitle)) {
+        f_btn = fontTitle;
+    } else if (font_exists(fontText)) {
+        f_btn = fontText;
+    } else if (font_exists(fontUI)) {
+        f_btn = fontUI;
+    }
+    if (f_btn != -1) draw_set_font(f_btn);
+    var tx_w = string_width(buttonText);
+    var tx_h = string_height("Ag");
+    
+    buttonWidth = max(200 * k, tx_w + pad_x * 2);
+    buttonHeight = max(50 * k, tx_h + pad_y * 2);
+    
+    if (sprite_exists(sButton)) {
+        var min_w = sprite_get_width(sButton) * 0.9 * k;
+        var min_h = sprite_get_height(sButton) * 0.9 * k;
+        buttonWidth = max(buttonWidth, min_w);
+        buttonHeight = max(buttonHeight, min_h);
+    }
+
     // Calculer les limites du bouton
     var button_left = buttonX - buttonWidth / 2;
     var button_top = buttonY - buttonHeight / 2;
@@ -111,7 +143,13 @@ if (alpha >= targetAlpha) {
                                
                                // Essayer d'appeler la fonction de sauvegarde si elle existe
                                try {
-                                   story_progress_write_last_scene(ch, sc, ac);
+                                   var next_act = ac + 1;
+                                   var next_scene = 0;
+                                   if (ac >= 4) {
+                                       next_act = ac;
+                                       next_scene = sc;
+                                   }
+                                   story_progress_write_last_scene(ch, next_scene, next_act);
                                } catch(e) {
                                    show_debug_message("### Erreur sauvegarde progression: " + string(e));
                                }

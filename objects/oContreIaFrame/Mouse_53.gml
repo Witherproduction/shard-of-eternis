@@ -21,15 +21,19 @@ var scale_x = (sprite_get_width(sDeckBuilder) - 20) / sprite_get_width(sDeckBuil
 
 // Position de départ pour la liste des decks
 var list_start_x = sprite_x + 20;
-var list_start_y = sprite_y + deck_list_y;
+var list_start_y = sprite_y + deck_list_y + 20;
 var list_width = (sprite_get_width(sDeckBuilder) * scale_x) - 40;
+var item_inset = 28;
+var item_gap = 6;
+var item_x = list_start_x + item_inset;
+var item_w = list_width - (item_inset * 2);
 
 // Vérifier si le clic est dans la zone de la liste
 var mouse_x_pos = mouse_x;
 var mouse_y_pos = mouse_y;
 
 if (deck_count > 0) {
-    if (mouse_x_pos >= list_start_x && mouse_x_pos <= list_start_x + list_width) {
+    if (mouse_x_pos >= item_x && mouse_x_pos <= item_x + item_w) {
         // Calculer le nombre de decks visibles
         var visible_count = min(deck_count, max_visible_decks);
         
@@ -38,7 +42,7 @@ if (deck_count > 0) {
             var deck_index = i + scroll_offset;
             if (deck_index >= deck_count) break;
             
-            var item_y = list_start_y + (i * deck_item_height);
+            var item_y = list_start_y + (i * (deck_item_height + item_gap));
             
             // Vérifier si le clic est sur cet élément
             if (mouse_y_pos >= item_y && mouse_y_pos <= item_y + deck_item_height) {

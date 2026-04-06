@@ -158,8 +158,23 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         // Détection carte magique pour masquer coût et ATK/PV
     var is_magic = object_is_ancestor(selectedCard.object_index, oCardMagic) || (variable_instance_exists(selectedCard, "type") && string_lower(string(selectedCard.type)) == "magic");
 
-        // Utiliser la police de carte
-        if (font_exists(fontCardText)) draw_set_font(fontCardText);
+        var base_title_size = 16;
+        if (font_exists(fontTitle)) base_title_size = font_get_size(fontTitle);
+        var base_text_size = 14;
+        if (font_exists(fontText)) base_text_size = font_get_size(fontText);
+        var get_font = function(kind, size) {
+            if (variable_global_exists("get_runtime_font")) return global.get_runtime_font(kind, size);
+            if (kind == "title") {
+                if (font_exists(fontTitle)) return fontTitle;
+                if (font_exists(fontText)) return fontText;
+                if (font_exists(fontUI)) return fontUI;
+            } else {
+                if (font_exists(fontText)) return fontText;
+                if (font_exists(fontTitle)) return fontTitle;
+                if (font_exists(fontUI)) return fontUI;
+            }
+            return -1;
+        };
         draw_set_color(c_black);
 
         // Fonction utilitaire de calcul d'échelle pour une ligne
@@ -198,13 +213,18 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             var mar = 7;
             var rw = (name_x2 - name_x1) * s - pad * 2 - mar * 2;
             var rh = (name_y2 - name_y1) * s - pad * 2;
+            if (font_exists(fontTitle)) draw_set_font(fontTitle);
             var scale = fit_line(tx, 20, rw, rh);
-            scale = round(scale * 20) / 20;
+            var want_px = base_title_size * scale;
+            var want_size = max(8, floor(want_px));
+            var f = get_font("title", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : scale;
             var left = tlx + name_x1 * s + pad + mar;
             var top  = tly + name_y1 * s + pad;
             left = round(left);
             top  = round(top);
-            draw_text_transformed(left, top + 2, tx, scale, scale, 0);
+            draw_text_transformed(left, top + 2, tx, sc2, sc2, 0);
         }
 
     var display_cost = 0;
@@ -242,10 +262,14 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         center_y = round(center_y);
         
         // Use larger font scale for Mana
+        if (font_exists(fontTitle)) draw_set_font(fontTitle);
         var sc = fit_line(tx, 22 * rel, rw, rh);
-        sc = round(sc * 20) / 20;
-        
-        draw_text_transformed(center_x, center_y, tx, sc, sc, 0);
+        var want_px = base_title_size * sc;
+        var want_size = max(8, floor(want_px));
+        var f = get_font("title", want_size);
+        if (f != -1) draw_set_font(f);
+        var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
+        draw_text_transformed(center_x, center_y, tx, sc2, sc2, 0);
         
         // Reset Align
         draw_set_halign(fa_left);
@@ -265,13 +289,18 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             var mar = 7;
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
+            if (font_exists(fontText)) draw_set_font(fontText);
             var scale = fit_line(tx, 16, rw, rh);
-            scale = round(scale * 20) / 20;
+            var want_px = base_text_size * scale;
+            var want_size = max(8, floor(want_px));
+            var f = get_font("text", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : scale;
             var gx = tlx + genre_x1 * s + pad + mar;
             var gy = tly + genre_y1 * s + pad;
             gx = round(gx);
             gy = round(gy);
-            draw_text_transformed(gx, gy + 2, tx, scale, scale, 0);
+            draw_text_transformed(gx, gy + 2, tx, sc2, sc2, 0);
         }
 
         if (variable_instance_exists(selectedCard, "race")) {
@@ -279,13 +308,18 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             var mar = 7;
             var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
             var rh = (arch_y2 - arch_y1) * s - pad * 2;
+            if (font_exists(fontText)) draw_set_font(fontText);
             var scale = fit_line(tx, 16, rw, rh);
-            scale = round(scale * 20) / 20;
+            var want_px = base_text_size * scale;
+            var want_size = max(8, floor(want_px));
+            var f = get_font("text", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : scale;
             var ax = tlx + arch_x1 * s + pad + mar;
             var ay = tly + arch_y1 * s + pad;
             ax = round(ax);
             ay = round(ay);
-            draw_text_transformed(ax, ay + 2, tx, scale, scale, 0);
+            draw_text_transformed(ax, ay + 2, tx, sc2, sc2, 0);
         }
 
         if (variable_instance_exists(selectedCard, "description")) {
@@ -297,6 +331,7 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             var rh = (desc_y2 - desc_y1) * s - pad * 2;
             var left = tlx + desc_x1 * s + pad + mar;
             var top  = tly + desc_y1 * s + pad;
+            if (font_exists(fontText)) draw_set_font(fontText);
             var base_h = string_height("Ag");
             var sc0 = (base_h > 0) ? 20 / base_h : 1;
             var sc = sc0;
@@ -309,11 +344,16 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 sc *= max(0.6, min(0.95, k));
                 sc = min(sc, sc0);
             }
-            sc = round(sc * 20) / 20;
+            var want_px = base_text_size * sc;
+            var want_size = max(8, floor(want_px));
+            var f = get_font("text", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
             left = round(left);
             top  = round(top);
-            var w_eff = round(rw / sc);
-            draw_text_ext_transformed(left, top + 2, tx, base_h, w_eff, sc, sc, 0);
+            var sep = string_height("Ag");
+            var w_eff = round(rw / sc2);
+            draw_text_ext_transformed(left, top + 2, tx, sep, w_eff, sc2, sc2, 0);
         }
 
         if (!is_magic) {
@@ -341,7 +381,12 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 circleA_x = round(circleA_x);
                 circleA_y = round(circleA_y);
                 
-                var scA = 1.2 * rel; // Bigger font
+                if (font_exists(fontTitle)) draw_set_font(fontTitle);
+                var want_px = base_title_size * (1.2 * rel);
+                var want_size = max(8, floor(want_px));
+                var f = get_font("title", want_size);
+                if (f != -1) draw_set_font(f);
+                var scA = (want_size > 0) ? (want_px / want_size) : (1.2 * rel);
 
                 // Draw Outline (Black)
                 var o_dist = 2 * rel;
@@ -387,7 +432,12 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
                 circleD_x = round(circleD_x);
                 circleD_y = round(circleD_y);
                 
-                var scD = 1.2 * rel;
+                if (font_exists(fontTitle)) draw_set_font(fontTitle);
+                var want_px = base_title_size * (1.2 * rel);
+                var want_size = max(8, floor(want_px));
+                var f = get_font("title", want_size);
+                if (f != -1) draw_set_font(f);
+                var scD = (want_size > 0) ? (want_px / want_size) : (1.2 * rel);
                 
                 var o_dist = 2 * rel;
                 draw_set_color(c_black);
@@ -404,6 +454,143 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
             draw_set_valign(fa_top);
             draw_set_color(c_black);
         }
+    }
+
+    var normalize_keyword = function(s) {
+        var t = string_lower(string(s));
+        t = string_replace_all(t, "à", "a"); t = string_replace_all(t, "â", "a"); t = string_replace_all(t, "ä", "a");
+        t = string_replace_all(t, "é", "e"); t = string_replace_all(t, "è", "e"); t = string_replace_all(t, "ê", "e"); t = string_replace_all(t, "ë", "e");
+        t = string_replace_all(t, "î", "i"); t = string_replace_all(t, "ï", "i");
+        t = string_replace_all(t, "ô", "o"); t = string_replace_all(t, "ö", "o");
+        t = string_replace_all(t, "ù", "u"); t = string_replace_all(t, "û", "u"); t = string_replace_all(t, "ü", "u");
+        t = string_replace_all(t, "ç", "c");
+        t = string_replace_all(t, "’", "'"); t = string_replace_all(t, " ", ""); t = string_replace_all(t, "-", "");
+        return t;
+    };
+
+    var effect_defs = {
+        eveil:         { label: "Éveil",        desc: "Se déclenche quand la carte est invoquée." },
+        aube:          { label: "Aube",         desc: "Se déclenche au début du tour." },
+        crepuscule:    { label: "Crépuscule",   desc: "Se déclenche à la fin du tour." },
+        brise:         { label: "Brisé",        desc: "Se déclenche quand la carte est détruite (envoyée au cimetière)." },
+        camouflage:    { label: "Camouflage",   desc: "Ne peut pas être ciblé ni attaqué tant qu'il n'attaque pas." },
+        charge:        { label: "Charge",       desc: "Peut attaquer immédiatement (le tour où il est invoqué)." },
+        percee:        { label: "Percée",       desc: "Ignore la Ligne de Front pour les attaques directes." },
+        provocation:   { label: "Provocation",  desc: "Bloque les attaques directes : doit être attaqué en priorité." },
+        entrave:       { label: "Entrave",      desc: "Empêche la cible d'attaquer pendant un certain temps." },
+        poison:        { label: "Poison",       desc: "Détruit les serviteurs qu'il blesse." },
+        ambidextrie:   { label: "Ambidextrie",  desc: "Peut attaquer deux fois par tour." },
+        illusion:      { label: "Illusion",     desc: "Annule la première destruction subie." },
+        secret:        { label: "Secret",       desc: "Se pose face cachée et se déclenche sous une condition." },
+        aura:          { label: "Aura",         desc: "Effet passif tant que la carte est en jeu." },
+        combo:         { label: "Combo",        desc: "Effet bonus si la condition indiquée est remplie." },
+        pillage:       { label: "Pillage",      desc: "Vole une carte du deck adverse et l'ajoute à votre main." }
+    };
+
+    var found_effect_keys = [];
+
+    if (variable_instance_exists(selectedCard, "tags") && is_array(selectedCard.tags)) {
+        for (var ti = 0; ti < array_length(selectedCard.tags); ti++) {
+            var t0 = selectedCard.tags[ti];
+            var nk = normalize_keyword(t0);
+            var already = false;
+            for (var i = 0; i < array_length(found_effect_keys); i++) {
+                if (found_effect_keys[i] == nk) { already = true; break; }
+            }
+            if (!already) array_push(found_effect_keys, nk);
+        }
+    }
+
+    if (variable_instance_exists(selectedCard, "description")) {
+        var nd = normalize_keyword(selectedCard.description);
+        var keys_to_scan = ["eveil", "aube", "crepuscule", "brise", "camouflage", "charge", "percee", "provocation", "entrave", "poison", "ambidextrie", "illusion", "secret", "aura", "combo", "pillage"];
+        for (var si = 0; si < array_length(keys_to_scan); si++) {
+            var kscan = keys_to_scan[si];
+            if (string_pos(kscan, nd) > 0) {
+                var already = false;
+                for (var i = 0; i < array_length(found_effect_keys); i++) {
+                    if (found_effect_keys[i] == kscan) { already = true; break; }
+                }
+                if (!already) array_push(found_effect_keys, kscan);
+            }
+        }
+    }
+
+    var effect_keys = [];
+    for (var fi = 0; fi < array_length(found_effect_keys); fi++) {
+        var k = found_effect_keys[fi];
+        if (variable_struct_exists(effect_defs, k)) array_push(effect_keys, k);
+    }
+
+    if (array_length(effect_keys) > 0) {
+        var panel_w = card_width + 20;
+        var pad = 14;
+        var panel_x1 = display_x - panel_w * 0.5;
+        panel_x1 = max(20, min(panel_x1, room_width - panel_w - 20));
+        var panel_y1 = display_y + card_height * 0.5 + 20;
+        if (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) {
+            var btn_y_tmp = display_y + card_height * 0.5 + 50;
+            var btn_h_tmp = 44;
+            var btn_bottom = btn_y_tmp + btn_h_tmp * 0.5;
+            panel_y1 = btn_bottom + 12;
+        }
+        panel_y1 = max(20, panel_y1);
+
+        var scale_factor = 0.8;
+        var base_title_size = 16;
+        if (font_exists(fontTitle)) base_title_size = font_get_size(fontTitle);
+        var base_text_size = 14;
+        if (font_exists(fontText)) base_text_size = font_get_size(fontText);
+        
+        var title_font = (variable_global_exists("get_runtime_font")) ? global.get_runtime_font("title", max(8, round(base_title_size * scale_factor))) : fontTitle;
+        var text_font = (variable_global_exists("get_runtime_font")) ? global.get_runtime_font("text", max(8, round(base_text_size * scale_factor))) : fontText;
+        
+        if (text_font != -1) draw_set_font(text_font);
+        var sep = string_height("Ag");
+        var max_w_eff = (panel_w - pad * 2);
+
+        var lines = "";
+        for (var ei = 0; ei < array_length(effect_keys); ei++) {
+            var k = effect_keys[ei];
+            var def = variable_struct_get(effect_defs, k);
+            var line = def.label + " : " + def.desc;
+            lines = (lines == "") ? line : (lines + "\n" + line);
+        }
+
+        var title = "Signification des effets";
+        if (title_font != -1) draw_set_font(title_font);
+        var title_h = string_height(title) + 8;
+        if (text_font != -1) draw_set_font(text_font);
+        var text_h = string_height_ext(lines, sep, max_w_eff);
+        var panel_h = pad * 2 + title_h + text_h + 6;
+
+        var panel_x2 = panel_x1 + panel_w;
+        var panel_y2 = panel_y1 + panel_h;
+        if (panel_y2 > room_height - 20) {
+            var shift = panel_y2 - (room_height - 20);
+            panel_y1 = max(20, panel_y1 - shift);
+            panel_y2 = panel_y1 + panel_h;
+        }
+
+        draw_set_alpha(0.92);
+        draw_set_color(make_color_rgb(20, 20, 20));
+        draw_rectangle(panel_x1, panel_y1, panel_x2, panel_y2, false);
+        draw_set_alpha(1);
+        draw_set_color(make_color_rgb(230, 200, 120));
+        draw_rectangle(panel_x1, panel_y1, panel_x2, panel_y2, true);
+
+        if (title_font != -1) draw_set_font(title_font);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+
+        draw_set_color(make_color_rgb(230, 200, 120));
+        draw_text(panel_x1 + pad, panel_y1 + pad, title);
+
+        if (text_font != -1) draw_set_font(text_font);
+        draw_set_color(c_white);
+        draw_text_ext(panel_x1 + pad, panel_y1 + pad + title_h, lines, sep, max_w_eff);
+
+        draw_set_color(c_black);
     }
 
     if (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) {

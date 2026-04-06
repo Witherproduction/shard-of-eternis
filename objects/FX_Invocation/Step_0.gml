@@ -170,6 +170,12 @@ if (!finished_move) {
                     if (mode == "Summon" || mode == "SpecialSummon") {
                         registerTriggerEvent(TRIGGER_ON_SUMMON, card_real, { summon_mode: mode, owner_is_hero: ownerHero, target: fxEffectTarget });
                         registerTriggerEvent(TRIGGER_ON_MONSTER_SUMMON, card_real, { summon_mode: mode, owner_is_hero: ownerHero, target: fxEffectTarget });
+                        if (mode == "SpecialSummon"
+                            && variable_instance_exists(card_real, "_story_trigger_as_summon")
+                            && card_real._story_trigger_as_summon) {
+                            card_real._story_trigger_as_summon = false;
+                            activateTrigger(card_real, TRIGGER_ON_SUMMON, { summon_mode: "Summon", owner_is_hero: ownerHero, target: fxEffectTarget });
+                        }
                     }
                 } else if (ctype == "Magic") {
                     if (mode == "Summon") {

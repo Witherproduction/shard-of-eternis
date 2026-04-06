@@ -385,12 +385,14 @@ function executeEffect(card, effect, context = {}) {
             if (!hasValidTarget) { return false; }
             // Attacher la carte source à l'effet pour l'utiliser dans le callback
             effect.source_card = card;
+            effect._pending_owner_is_hero = ownerIsHero_ctx;
+            effect._pending_summon_mode = (variable_struct_exists(context, "summon_mode") ? context.summon_mode : "");
             
             // (Effet Floraison obsolète supprimé)
             
             // Définir le callback de sélection de cible (utilise self = struct de l'effet)
             effect.onTargetSelected = function(cardTarget) {
-                var eff = (instance_exists(oSelectManager)) ? oSelectManager.targetingEffectId : noone;
+                var eff = (instance_exists(selectManager)) ? selectManager.targetingEffectId : noone;
                 var src = (is_struct(eff) && variable_struct_exists(eff, "source_card")) ? eff.source_card : noone;
                 var zTarget = (cardTarget != noone && instance_exists(cardTarget) && variable_instance_exists(cardTarget, "zone")) ? cardTarget.zone : "";
                 if (cardTarget != noone && instance_exists(cardTarget) && (zTarget == "Field" || zTarget == "FieldSelected")) {
@@ -419,10 +421,15 @@ function executeEffect(card, effect, context = {}) {
                     // Au lieu d'exécuter directement, on demande une action au contrôleur
                     var effIdx = getEffectIndex(src, eff);
                     if (effIdx != -1 && variable_instance_exists(src, "instance_uid") && variable_instance_exists(cardTarget, "instance_uid")) {
+                        var owner_ctx = (is_struct(eff) && variable_struct_exists(eff, "_pending_owner_is_hero")) ? eff._pending_owner_is_hero
+                                        : ((src != noone && instance_exists(src) && variable_instance_exists(src, "isHeroOwner")) ? src.isHeroOwner : true);
+                        var summon_mode_ctx = (is_struct(eff) && variable_struct_exists(eff, "_pending_summon_mode")) ? eff._pending_summon_mode : "";
                         RequestGameAction(ACTION_ACTIVATE_EFFECT, {
                             source_uid: src.instance_uid,
                             effect_index: effIdx,
-                            target_uid: cardTarget.instance_uid
+                            target_uid: cardTarget.instance_uid,
+                            owner_is_hero: owner_ctx,
+                            summon_mode: summon_mode_ctx
                         });
                         
                         // Nettoyage UI local immédiat (anticipation)
@@ -447,11 +454,11 @@ function executeEffect(card, effect, context = {}) {
                 card.equip_pending = true;
             }
             // Activer le mode ciblage et afficher la flèche depuis la carte source
-        oSelectManager.startTargeting(effect);
-        if (instance_exists(card)) {
-            // show_debug_message("### sEffects: Force creation of targeting arrow for " + string(card.id));
-            oSelectManager.createTargetingArrow(card);
-        }
+            selectManager.startTargeting(effect);
+            if (instance_exists(card)) {
+                // show_debug_message("### sEffects: Force creation of targeting arrow for " + string(card.id));
+                selectManager.createTargetingArrow(card);
+            }
             // Le processus est lancé; l'application se fera après la sélection
             // Important: ne pas signaler une réussite immédiate pour éviter la consommation prématurée des sorts Direct
             return false;
@@ -464,6 +471,13 @@ function executeEffect(card, effect, context = {}) {
         {
             var ownerIsHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
                                : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+            
+            if (card != noone && instance_exists(card)) {
+                var flowPending = variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending;
+                if (flowPending) {
+                    return true;
+                }
+            }
             
             if (variable_struct_exists(effect, "flow") && is_array(effect.flow)) {
                 var L = array_length(effect.flow);

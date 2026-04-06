@@ -32,3 +32,35 @@ loading_min_frames = round(room_speed * 0.7);
 buy_quantity = 1;
 buy_qty_edit_mode = false;
 buy_qty_input = "";
+qty_font_name = "Consolas";
+qty_font_bold = false;
+qty_font_sizes = [];
+qty_font_fonts = [];
+get_qty_font = function(_size) {
+    _size = clamp(round(_size), 8, 64);
+    var n = array_length(qty_font_sizes);
+    for (var i = 0; i < n; i++) {
+        if (qty_font_sizes[i] == _size) return qty_font_fonts[i];
+    }
+    var f = font_add(qty_font_name, _size, qty_font_bold, false, 32, 255);
+    if (f == -1 && os_type == os_windows) {
+        var candidates = ["C:\\Windows\\Fonts\\consola.ttf", "C:\\Windows\\Fonts\\arial.ttf", "C:\\Windows\\Fonts\\tahoma.ttf"];
+        for (var c = 0; c < array_length(candidates); c++) {
+            var p = candidates[c];
+            if (file_exists(p)) {
+                f = font_add(p, _size, qty_font_bold, false, 32, 255);
+                if (f != -1) break;
+            }
+        }
+    }
+    if (f != -1) {
+        array_push(qty_font_sizes, _size);
+        array_push(qty_font_fonts, f);
+        return f;
+    }
+    if (variable_global_exists("get_runtime_font")) return global.get_runtime_font("text", _size);
+    if (font_exists(fontText)) return fontText;
+    if (font_exists(fontTitle)) return fontTitle;
+    if (font_exists(fontUI)) return fontUI;
+    return -1;
+};

@@ -2,9 +2,9 @@ if (variable_global_exists("admin_mode") && global.admin_mode) {
     draw_set_halign(fa_right);
     draw_set_valign(fa_bottom);
     draw_set_color(c_red);
-    // Utiliser une police par défaut si fontCardDisplay n'existe pas, ou fontCardDisplay
-    if (asset_get_index("fontCardDisplay") != -1) {
-        draw_set_font(fontCardDisplay);
+    // Utiliser une police par défaut si fontTitle n'existe pas, ou fontTitle
+    if (asset_get_index("fontTitle") != -1) {
+        draw_set_font(fontTitle);
     }
     
     var gui_w = display_get_gui_width();

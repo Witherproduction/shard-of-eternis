@@ -115,7 +115,7 @@ draw_sprite_ext(uiSprite, 0, windowX + xoff * scaleX, windowY + yoff * scaleY, s
 
 // Texte principal
 draw_set_color(c_white);
-draw_set_font(fontCardDisplay);
+draw_set_font(fontTitle);
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 

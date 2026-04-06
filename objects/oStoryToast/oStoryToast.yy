@@ -11,7 +11,7 @@
   "overriddenProperties":[],
   "parent":{
     "name":"Histoire",
-    "path":"folders/Objets/Histoire.yy"
+    "path":"folders/Objets/Histoire.yy",
   },
   "parentObjectId":null,
   "persistent":false,
@@ -33,5 +33,5 @@
   "solid":false,
   "spriteId":null,
   "spriteMaskId":null,
-  "visible":true
+  "visible":true,
 }

@@ -21,7 +21,7 @@ button_text = "Suivant";
 button_hover = false;
 
 // Police
-font = fontCardDisplay;
+font = fontTitle;
 
 // Méthode pour configurer les étapes
 function setSteps(_steps) {

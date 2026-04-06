@@ -114,6 +114,7 @@ for (var i = 0; i < count; i++) {
 
         if (sprite_exists(sprLocal) && sprite_get_width(sprLocal) > 0 && sprite_get_height(sprLocal) > 0) {
             draw_sprite_ext(sprLocal, cardData.image_index, draw_x, draw_y, s_local, s_local, 0, c_white, 1);
+            gpu_set_texfilter(false);
 
             var s = s_local;
             var spr = sprLocal;
@@ -127,7 +128,7 @@ for (var i = 0; i < count; i++) {
             var atk_x1   = 303, atk_y1   = 594; var atk_x2   = 348, atk_y2   = 609;
             var def_x1   = 383, def_y1   = 594; var def_x2   = 421, def_y2   = 608;
             var is_magic = (variable_struct_exists(cardData, "cardType") && string_lower(string(cardData.cardType)) == "magic");
-            if (font_exists(fontCardText)) draw_set_font(fontCardText);
+            if (font_exists(fontText)) draw_set_font(fontText);
             draw_set_halign(fa_left);
             draw_set_valign(fa_top);
             draw_set_color(c_black);
@@ -311,6 +312,7 @@ for (var i = 0; i < count; i++) {
                 draw_set_color(c_lime);
                 draw_text_transformed(cx_d, cy_d, txd, sc_d, sc_d, 0);
             }
+            gpu_set_texfilter(true);
         }
     }
 }
@@ -329,7 +331,9 @@ draw_rectangle(close_x1, close_y1, close_x2, close_y2, false);
 draw_set_color(c_white);
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
+gpu_set_texfilter(false);
 draw_text((close_x1 + close_x2) * 0.5, (close_y1 + close_y2) * 0.5, "X");
+gpu_set_texfilter(true);
 
 // === Indicateur de scroll ===
 var bar_w = 15;    // Largeur de la barre
@@ -404,7 +408,7 @@ if (selectedCard != noone) {
     var preview_line_height = 16; // Plus petit pour éviter chevauchement
 
     // --- Police et alignement ---
-    draw_set_font(fontCardDisplay);
+    if (font_exists(fontText)) draw_set_font(fontText);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
 
@@ -501,12 +505,14 @@ if (selectedCard != noone) {
     draw_set_alpha(1);
 
     // --- Affichage du texte ligne par ligne ---
+    gpu_set_texfilter(false);
     draw_set_color(c_white);
     for (var i = 0; i < array_length(preview_lines); i++) {
         draw_text(preview_text_x, preview_text_y + i * preview_line_height, preview_lines[i]);
     }
 
     // --- Affiche la carte en grand (après pour qu’elle soit toujours visible) ---
+    gpu_set_texfilter(true);
     if (card.isFaceDown && card.isHeroOwner) {
         // Si la carte est face cachée mais appartient au héros, on affiche sa face visible
         draw_sprite_ext(card.sprite_index, 0, preview_draw_x, preview_draw_y, preview_scale, preview_scale, 0, c_white, 1);
@@ -517,6 +523,7 @@ if (selectedCard != noone) {
     var face_down = (variable_instance_exists(card, "isFaceDown") && card.isFaceDown);
     var can_show_overlay = (!face_down) || (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
     if (can_show_overlay) {
+        gpu_set_texfilter(false);
         var spr = card.sprite_index;
         var s = preview_scale;
         var cw = sprite_get_width(spr) * s;
@@ -531,7 +538,7 @@ if (selectedCard != noone) {
         var atk_x1   = 303, atk_y1   = 594; var atk_x2   = 348, atk_y2   = 609;
         var def_x1   = 383, def_y1   = 594; var def_x2   = 421, def_y2   = 608;
         var is_magic = object_is_ancestor(card.object_index, oCardMagic) || (variable_instance_exists(card, "type") && string_lower(string(card.type)) == "magic");
-        if (font_exists(fontCardText)) draw_set_font(fontCardText);
+        if (font_exists(fontText)) draw_set_font(fontText);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
         draw_set_color(c_black);
@@ -691,6 +698,7 @@ if (selectedCard != noone) {
             var cyD   = round(topD  + max(0, (rhD - hscD) * 0.5));
             draw_text_transformed(cxD, cyD, txD, scD, scD, 0);
         }
+        gpu_set_texfilter(true);
     }
 }
 

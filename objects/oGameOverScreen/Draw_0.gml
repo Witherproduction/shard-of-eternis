@@ -31,8 +31,8 @@ if (alpha > 0.3) {
     draw_set_alpha(textAlpha);
     
     // Définir la police (utiliser une police existante ou par défaut)
-    if (font_exists(fontLP)) {
-        draw_set_font(fontLP);
+    if (font_exists(fontLife)) {
+        draw_set_font(fontLife);
     } else {
         draw_set_font(-1); // Police par défaut
     }
@@ -66,17 +66,44 @@ if (alpha > 0.3) {
         
         // Dessiner le fond du bouton
         draw_set_alpha(1);
-        draw_set_color(current_button_color);
-        draw_rectangle(button_left, button_top, button_right, button_bottom, false);
-        
-        // Dessiner le contour du bouton
-        draw_set_color(c_white);
-        draw_rectangle(button_left, button_top, button_right, button_bottom, true);
+        if (sprite_exists(sButton)) {
+            var subimg = 0;
+            if (buttonHover && sprite_get_number(sButton) > 1) subimg = 1;
+            draw_sprite_stretched(sButton, subimg, button_left, button_top, buttonWidth, buttonHeight);
+        } else {
+            draw_set_color(current_button_color);
+            draw_rectangle(button_left, button_top, button_right, button_bottom, false);
+            draw_set_color(c_white);
+            draw_rectangle(button_left, button_top, button_right, button_bottom, true);
+        }
         
         // Dessiner le texte du bouton
-        draw_set_color(buttonTextColor);
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
+        var k_btn = min(room_width / 1920, room_height / 1080);
+        var want_sz = max(14, round(34 * k_btn));
+        var f_btn = -1;
+        if (variable_global_exists("get_runtime_font")) {
+            var sz = want_sz;
+            f_btn = global.get_runtime_font("title", sz);
+            while (sz > 12 && f_btn != -1) {
+                draw_set_font(f_btn);
+                if (string_width(buttonText) <= (buttonWidth - 40 * k_btn) && string_height("Ag") <= (buttonHeight - 20 * k_btn)) break;
+                sz -= 1;
+                f_btn = global.get_runtime_font("title", sz);
+            }
+        } else if (font_exists(fontTitle)) {
+            f_btn = fontTitle;
+        } else if (font_exists(fontText)) {
+            f_btn = fontText;
+        } else if (font_exists(fontUI)) {
+            f_btn = fontUI;
+        }
+        if (f_btn != -1) draw_set_font(f_btn);
+        
+        draw_set_color(c_black);
+        draw_text(buttonX + 2, buttonY + 2, buttonText);
+        draw_set_color(buttonTextColor);
         draw_text(buttonX, buttonY, buttonText);
     }
     

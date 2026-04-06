@@ -21,8 +21,8 @@ if (mouse_x_pos >= button_left && mouse_x_pos <= button_right &&
     show_debug_message("### oRetour1.Mouse_4 - Clic détecté dans la zone du bouton");
     
     // Vérifier qu'on est dans une room appropriée et déterminer la destination
-    if (room == rCollection || room == rHistoire || room == rMode || room == rCardCreator || 
-        room == rContreIa || room == rDuel || room == rLobby || room == rBoutique) {
+    if (room == rCollection || room == rHistoire || room == rMode || room == rContreIa || 
+        room == rDuel || room == rLobby || room == rBoutique) {
         
         // Nettoyer les variables globales si on quitte rDuel
         if (room == rDuel) {

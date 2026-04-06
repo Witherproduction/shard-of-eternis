@@ -3,8 +3,37 @@
 // Dessiner la vue du lieu (Transition Map -> Lieu)
 // NOTE: Logique déplacée vers oMapManager
 
-draw_set_font(fontCardDisplay);
 draw_set_valign(fa_middle);
+text_col = make_color_rgb(230, 200, 120);
+
+ui_font_16 = -1;
+ui_font_15 = -1;
+ui_font_14 = -1;
+if (variable_global_exists("get_runtime_font")) {
+    ui_font_16 = global.get_runtime_font("title", 16);
+    ui_font_15 = global.get_runtime_font("title", 15);
+    ui_font_14 = global.get_runtime_font("title", 14);
+}
+if (ui_font_16 == -1) {
+    if (font_exists(fontTitle)) ui_font_16 = fontTitle;
+    else if (font_exists(fontText)) ui_font_16 = fontText;
+    else if (font_exists(fontUI)) ui_font_16 = fontUI;
+}
+if (ui_font_15 == -1) ui_font_15 = ui_font_16;
+if (ui_font_14 == -1) ui_font_14 = ui_font_15;
+
+draw_shadow_text_col = function(_x, _y, _t, _col, _font) {
+    var dx = round(_x);
+    var dy = round(_y);
+    if (_font != -1) draw_set_font(_font);
+    draw_set_color(c_black);
+    draw_text(dx + 2, dy + 2, _t);
+    draw_set_color(_col);
+    draw_text(dx, dy, _t);
+};
+draw_shadow_text = function(_x, _y, _t, _font) {
+    draw_shadow_text_col(_x, _y, _t, text_col, _font);
+};
 
 // --- 1. Dessiner le Panel Héros (Gauche) ---
 
@@ -14,8 +43,7 @@ draw_sprite_stretched(sDeckBuilder, 0, panel_hero_x - 10, panel_hero_y - 10, pan
 
 // Titre liste héros
 draw_set_halign(fa_center);
-draw_set_color(col_text_main);
-draw_text(panel_hero_x + panel_hero_w/2, panel_hero_y - 40, "HÉROS");
+draw_shadow_text(panel_hero_x + panel_hero_w/2, panel_hero_y - 40, "HÉROS", ui_font_16);
 
 for (var i = 0; i < array_length(heroes); i++) {
     var h = heroes[i];
@@ -23,18 +51,9 @@ for (var i = 0; i < array_length(heroes); i++) {
     var center_y = item_y + item_hero_h / 2;
     
     // Fond de l'item
-    var bg_col = col_bg_panel;
-    if (selected_hero_index == i) bg_col = col_selected;
-    else if (hover_hero_index == i) bg_col = make_color_rgb(50, 50, 60);
-    
-    draw_set_color(bg_col);
-    draw_roundrect(panel_hero_x, item_y, panel_hero_x + panel_hero_w, item_y + item_hero_h, false);
-    
-    // Bordure si sélectionné
-    if (selected_hero_index == i) {
-        draw_set_color(c_yellow);
-        draw_roundrect(panel_hero_x, item_y, panel_hero_x + panel_hero_w, item_y + item_hero_h, true);
-    }
+    var subimg_hero = 0;
+    if (sprite_get_number(sButton) > 1 && selected_hero_index == i) subimg_hero = 1;
+    draw_sprite_stretched(sButton, subimg_hero, panel_hero_x, item_y, panel_hero_w, item_hero_h);
     
     // Contenu (Portrait + Nom)
     var has_portrait = false;
@@ -63,15 +82,14 @@ for (var i = 0; i < array_length(heroes); i++) {
         draw_circle(panel_hero_x + 60, center_y, 40, false);
     }
     
-    draw_set_color(col_text_main);
     draw_set_halign(fa_left);
-    draw_text(panel_hero_x + 120, center_y, h.name);
+    draw_shadow_text(panel_hero_x + 120, center_y, h.name, ui_font_15);
     
     // Petite description ou info
-    draw_set_font(fontLP);
+    draw_set_font(fontLife);
     draw_set_color(col_text_dim);
     // draw_text_transformed(panel_hero_x + 120, center_y + 25, string(array_length(h.chapters)) + " Chapitre(s)", 0.8, 0.8, 0);
-    draw_set_font(fontCardDisplay);
+    if (ui_font_16 != -1) draw_set_font(ui_font_16);
 }
 
 
@@ -93,29 +111,29 @@ if (selected_hero_index != -1) {
         var ch_data = get_chapter_data(ch_id);
         var ch_unlocked = is_chapter_unlocked(ch_id);
         
-        var ch_h = 60;
+        var ch_h = chapter_btn_h;
         
         // Barre de titre du chapitre
-        var bg_ch_col = (selected_chapter_id == ch_id) ? col_selected : col_bg_panel;
-        if (hover_chapter_id == ch_id && selected_chapter_id != ch_id) bg_ch_col = make_color_rgb(50, 50, 60);
-        
-        draw_set_color(bg_ch_col);
-        draw_roundrect(cx, cy, cx + panel_chap_w, cy + ch_h, false);
+        var subimg_ch = 0;
+        if (sprite_get_number(sButton) > 1 && selected_chapter_id == ch_id) subimg_ch = 1;
+        draw_set_alpha(ch_unlocked ? 1 : 0.6);
+        draw_sprite_stretched(sButton, subimg_ch, cx, cy, panel_chap_w, ch_h);
+        draw_set_alpha(1);
         
         // Texte Titre
         draw_set_halign(fa_left);
-        draw_set_color(ch_unlocked ? col_text_main : c_gray);
-        draw_text(cx + 20, cy + ch_h/2, "Chapitre " + string(i + 1) + " : " + ch_data.title);
+        var ch_text_col = ch_unlocked ? text_col : c_gray;
+        draw_shadow_text_col(cx + 20, cy + ch_h/2, "Chapitre " + string(i + 1) + " : " + ch_data.title, ch_text_col, ui_font_15);
         
         // Cadenas si verrouillé
         if (!ch_unlocked) {
             draw_set_halign(fa_right);
-            draw_text(cx + panel_chap_w - 20, cy + ch_h/2, "Verrouillé");
+            draw_shadow_text_col(cx + panel_chap_w - 20, cy + ch_h/2, "Verrouillé", c_gray, ui_font_15);
         }
         
         // Si sélectionné, on dessine les détails (Actes + Bouton)
         if (selected_chapter_id == ch_id) {
-            var ay = cy + ch_h + 10;
+            var ay = cy + ch_h + acts_top_gap;
             var acts_height = 0;
             
             if (ch_unlocked) {
@@ -131,48 +149,49 @@ if (selected_hero_index != -1) {
                     else if (act_num == 4) act_unlocked = is_act_complete(ch_id, 3);
                     
                     var is_selected_act = (global.current_act == act_num);
-                    var act_col = act_unlocked ? col_text_main : c_dkgray;
+                    var act_col = act_unlocked ? text_col : c_dkgray;
                     
                     if (is_selected_act) act_col = c_lime;
                     else if (hover_act_index == act_num) act_col = c_yellow;
                     
                     if (!act_unlocked) act_txt = "???";
                     
-                    draw_set_halign(fa_left);
-                    draw_set_color(act_col);
-                    draw_text(cx + 40, ay + 15, "Acte " + string(act_num) + " : " + act_txt);
+                    var act_btn_x = cx + 20;
+                    var act_btn_y = ay;
+                    var act_btn_w = panel_chap_w - 40;
+                    var subimg_act = 0;
+                    if (sprite_get_number(sButton) > 1 && is_selected_act) subimg_act = 1;
+                    draw_sprite_stretched(sButton, subimg_act, act_btn_x, act_btn_y, act_btn_w, act_btn_h);
                     
-                    ay += 40;
-                    acts_height += 40;
+                    draw_set_halign(fa_left);
+                    draw_shadow_text_col(cx + 40, ay + act_btn_h / 2, "Acte " + string(act_num) + " : " + act_txt, act_col, ui_font_14);
+                    
+                    ay += act_row_step;
+                    acts_height += act_row_step;
                 }
                 
                 // Bouton Commencer
-                ay += 20;
-                acts_height += 20;
+                ay += start_btn_top_gap;
+                acts_height += start_btn_top_gap;
                 
-                var btn_col = hover_start_btn ? make_color_rgb(60, 40, 40) : make_color_rgb(40, 40, 40);
-                draw_set_color(btn_col);
-                draw_roundrect(btn_start_rect.x1, btn_start_rect.y1, btn_start_rect.x2, btn_start_rect.y2, false);
-                
-                draw_set_color(c_orange);
-                draw_roundrect(btn_start_rect.x1, btn_start_rect.y1, btn_start_rect.x2, btn_start_rect.y2, true);
+                var subimg_start = 0;
+                if (sprite_get_number(sButton) > 1 && hover_start_btn) subimg_start = 1;
+                draw_sprite_stretched(sButton, subimg_start, btn_start_rect.x1, btn_start_rect.y1, btn_start_rect.x2 - btn_start_rect.x1, btn_start_rect.y2 - btn_start_rect.y1);
                 
                 draw_set_halign(fa_center);
-                draw_set_color(c_white);
-                draw_text((btn_start_rect.x1 + btn_start_rect.x2)/2, (btn_start_rect.y1 + btn_start_rect.y2)/2, "COMMENCER");
+                draw_shadow_text((btn_start_rect.x1 + btn_start_rect.x2)/2, (btn_start_rect.y1 + btn_start_rect.y2)/2, "COMMENCER", ui_font_16);
                 
-                acts_height += 80; // Espace bouton
+                acts_height += start_btn_h + start_btn_bottom_gap;
             } else {
                 // Message verrouillé
                 draw_set_halign(fa_center);
-                draw_set_color(c_gray);
-                draw_text(cx + panel_chap_w/2, ay + 20, "Terminez le chapitre précédent pour accéder.");
+                draw_shadow_text_col(cx + panel_chap_w/2, ay + 20, "Terminez le chapitre précédent pour accéder.", c_gray, ui_font_15);
                 acts_height += 50;
             }
             
             cy += acts_height;
         }
         
-        cy += ch_h + 10;
+        cy += ch_h + chapter_gap;
     }
 }

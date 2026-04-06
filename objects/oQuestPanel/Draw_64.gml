@@ -22,6 +22,7 @@ draw_rectangle(x, y, x + width, y + height, true);
 // Titre
 draw_set_halign(fa_center);
 draw_set_valign(fa_top);
+if (font_exists(fontTitle)) draw_set_font(fontTitle);
 // draw_set_font(fnt_text_fr); // Font not found
 draw_set_color(c_white);
 draw_text(x + width / 2, y + 20, "QUÊTES QUOTIDIENNES");
@@ -34,6 +35,7 @@ var close_h = 30;
 draw_set_color(c_red);
 draw_rectangle(close_x, close_y, close_x + close_w, close_y + close_h, false);
 draw_set_color(c_white);
+if (font_exists(fontUI)) draw_set_font(fontUI);
 draw_text(close_x + close_w/2, close_y + 5, "X");
 
 // Register hitbox (simple global vars or just check in step)
@@ -54,7 +56,7 @@ var start_y = y + 100; // Increased from 80
 // Afficher info Reroll
 var reroll_text = qm.reroll_available ? "Reroll disponible: 1/1" : "Reroll utilisé aujourd'hui";
 draw_set_halign(fa_left);
-draw_set_font(fontCardText); // Set font explicitly
+draw_set_font(fontText);
 draw_text(x + 20, y + 60, reroll_text);
 
 // Afficher prochaine reset
@@ -89,7 +91,7 @@ for (var i = 0; i < array_length(slots); i++) {
     // Type Label (A, B, C)
     draw_set_color(c_ltgray);
     draw_set_halign(fa_left);
-    draw_set_font(fontCardText); // Ensure font is set
+    draw_set_font(fontText);
     draw_text(row_x + 10, row_y + 10, "Quête " + slot);
     
     // Description

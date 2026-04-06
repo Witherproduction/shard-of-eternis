@@ -135,12 +135,15 @@ if (!variable_instance_exists(id, "setup_done")) {
                 preferred_deck_id = "tuto_deck_hero";
             } else if (current_chapter == 1) {
                 // Si on affronte James la Calamité (Bot 3), on utilise le deck Alliance de la Forêt
-                if (selected_bot_deck_id == "Bandit_Grand_Chemin") {
+                if (selected_bot_deck_id == "Bandit_Grand_Chemin" || selected_bot_deck_id == 3 || selected_bot_deck_id == "3") {
                     preferred_deck_id = "alliance_foret";
                 } 
                 // Condition spécifique pour le 2ème duel de l'acte 2
                 else if (variable_global_exists("current_act") && global.current_act == 2) {
                     preferred_deck_id = "alliance_foret"; 
+                }
+                else if (selected_bot_deck_id == "Matriarche_Peau_Roc" || selected_bot_deck_id == 4 || selected_bot_deck_id == "4") {
+                    preferred_deck_id = "fureur_sauvage";
                 } else {
                     preferred_deck_id = "rebellion_horde";
                 }

@@ -18,13 +18,17 @@ if (room == rCollection) {
     // Champ de texte sans cadre ni fond
 
     // Style du texte (ombre + crème dorée)
-    var text_shadow_color = make_color_rgb(80, 50, 20);
+    var text_shadow_color = c_black;
     // Texte en crème dans tous les états (plus lisible sur fond brun actif)
     var text_main_color = textColor;
-    var textScale = 0.85;
 
     // Préparer le rendu du texte dans le champ (placeholder si vide)
-    draw_set_font(filterFont);
+    var f = filterFont;
+    if (variable_global_exists("get_runtime_font")) {
+        var rf = global.get_runtime_font("text", 18);
+        if (rf != -1) f = rf;
+    }
+    if (f != -1) draw_set_font(f);
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
     var textX = filterBoxX + 10;
@@ -35,13 +39,13 @@ if (room == rCollection) {
         if (isTyping) {
             // Champ sélectionné: sans ombre
             draw_set_color(text_main_color);
-            draw_text_transformed(textX, textY, "Filtre", textScale, textScale, 0);
+            draw_text(textX, textY, "Filtre");
         } else {
             // Au repos: avec ombre
             draw_set_color(text_shadow_color);
-            draw_text_transformed(textX + 2, textY + 2, "Filtre", textScale, textScale, 0);
+            draw_text(textX + 2, textY + 2, "Filtre");
             draw_set_color(text_main_color);
-            draw_text_transformed(textX, textY, "Filtre", textScale, textScale, 0);
+            draw_text(textX, textY, "Filtre");
         }
     } else {
         var displayText = filterText;
@@ -51,13 +55,13 @@ if (room == rCollection) {
         if (isTyping) {
             // Champ sélectionné: sans ombre
             draw_set_color(text_main_color);
-            draw_text_transformed(textX, textY, displayText, textScale, textScale, 0);
+            draw_text(textX, textY, displayText);
         } else {
             // Au repos: avec ombre
             draw_set_color(text_shadow_color);
-            draw_text_transformed(textX + 2, textY + 2, displayText, textScale, textScale, 0);
+            draw_text(textX + 2, textY + 2, displayText);
             draw_set_color(text_main_color);
-            draw_text_transformed(textX, textY, displayText, textScale, textScale, 0);
+            draw_text(textX, textY, displayText);
         }
     }
 

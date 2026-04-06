@@ -45,13 +45,18 @@ if (spr != -1) {
 
     // Dimensions et placement symétriques des boutons Retour et Abandonner
     var margin = 20;
-    var raise_y = 20; // remonter légèrement pour éviter le bord
+    var raise_y = 210; // remonter pour rester bien dans le cadre
     var btn_w = 120;
     var btn_h = 40;
     var gap = 20; // "trou" au centre du cadre
     var content_center_x = (content_x1 + content_x2) * 0.5;
     var base_y1 = content_y2 - margin - btn_h - raise_y;
     var base_y2 = base_y1 + btn_h;
+    if (base_y2 > content_y2 - margin) {
+        var _dy = base_y2 - (content_y2 - margin);
+        base_y1 -= _dy;
+        base_y2 -= _dy;
+    }
 
     // Bouton Retour (à gauche du centre)
     retour_btn_x2 = content_center_x - gap * 0.5;
@@ -108,18 +113,29 @@ if (spr != -1) {
     var slider_top = content_y1 + 170; // descendre encore plus (140 + 30)
     var offset_x = 20;            // petit décalage horizontal entre le label et la barre
     var label_w = 80;             // largeur réservée pour le libellé
-    var slider_shift_x = 100;     // décalage vers la droite (+50 supplémentaire)
-    var track_w = (content_w - slider_margin_h*2 - label_w - offset_x) * 0.6; // 60% dispo (indépendant du shift)
+    var slider_shift_x = 120;     // décalage vers la droite pour rester dans le cadre
+    var track_w = (content_w - slider_margin_h*2 - label_w - offset_x) * 0.6 * 0.95; // 60% dispo (indépendant du shift)
     var track_h = 6;
     var track_x1 = content_x1 + slider_margin_h + label_w + offset_x + slider_shift_x;
     var track_x2 = track_x1 + track_w;
+    track_w *= 0.95;
+    track_x2 = track_x1 + track_w;
     var track_y  = slider_top;
+    var vol_label_x_loc = content_x1 + slider_margin_h + slider_shift_x;
+    var right_limit = content_x2 - 20;
+    var vol_right = track_x2 + 60;
+    if (vol_right > right_limit) {
+        var _dx = vol_right - right_limit;
+        track_x1 -= _dx;
+        track_x2 -= _dx;
+        vol_label_x_loc -= _dx;
+    }
 
     // Conserver pour Draw
     vol_track_x1 = track_x1;
     vol_track_x2 = track_x2;
     vol_track_y  = track_y;
-    vol_label_x  = content_x1 + slider_margin_h + slider_shift_x;
+    vol_label_x  = vol_label_x_loc;
     vol_label_y  = track_y; // aligner au centre de la barre
 
     // Interaction: clic/drag sur la barre ou le curseur
@@ -164,13 +180,21 @@ if (spr != -1) {
     var dm_label_x_loc = content_x1 + slider_margin_h + slider_shift_x;
     var dm_label_y_loc = dm_top;
     
-    var dm_dropdown_w = 160;
+    var dm_dropdown_w = 160 * 0.95;
     var dm_dropdown_h = 25;
     
     var dm_dropdown_x1_loc = dm_label_x_loc + 120;
     var dm_dropdown_y1_loc = dm_top - dm_dropdown_h * 0.5;
+    dm_dropdown_w *= 1.05;
     var dm_dropdown_x2_loc = dm_dropdown_x1_loc + dm_dropdown_w;
     var dm_dropdown_y2_loc = dm_dropdown_y1_loc + dm_dropdown_h;
+    var dm_right = dm_dropdown_x2_loc + dm_pad;
+    if (dm_right > right_limit) {
+        var _dxm = dm_right - right_limit;
+        dm_label_x_loc -= _dxm;
+        dm_dropdown_x1_loc -= _dxm;
+        dm_dropdown_x2_loc -= _dxm;
+    }
 
     // Conserver pour Draw
     display_mode_label_x = dm_label_x_loc;
@@ -308,12 +332,21 @@ if (spr != -1) {
     var res_top = display_mode_box_y2 + 30; // placer sous le bloc Mode
     var res_label_x_loc = content_x1 + slider_margin_h + slider_shift_x;
     var res_label_y_loc = res_top;
-    var res_dropdown_w = 200;
+    var res_dropdown_w = 200 * 0.95;
     var res_dropdown_h = 25;
     var res_dropdown_x1_loc = res_label_x_loc + 120;
     var res_dropdown_y1_loc = res_top - res_dropdown_h * 0.5;
     var res_dropdown_x2_loc = res_dropdown_x1_loc + res_dropdown_w;
     var res_dropdown_y2_loc = res_dropdown_y1_loc + res_dropdown_h;
+    res_dropdown_w *= 0.95;
+    res_dropdown_x1_loc = res_dropdown_x2_loc - res_dropdown_w;
+    var res_right = res_dropdown_x2_loc + res_pad;
+    if (res_right > right_limit) {
+        var _dxr = res_right - right_limit;
+        res_label_x_loc -= _dxr;
+        res_dropdown_x1_loc -= _dxr;
+        res_dropdown_x2_loc -= _dxr;
+    }
 
     // Conserver pour Draw
     res_label_x = res_label_x_loc;

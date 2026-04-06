@@ -52,6 +52,6 @@ textColor = make_color_rgb(230, 200, 120);   // texte crème dorée
 activeColor = make_color_rgb(120, 90, 45);   // éclaircir en mode actif
 
 // Police
-filterFont = fontCardDisplay;
+filterFont = fontText;
 
 show_debug_message("### oFiltre initialisé");

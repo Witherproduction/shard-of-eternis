@@ -1,4 +1,4 @@
-﻿// === oDeckBuilder - Draw Event ===
+// === oDeckBuilder - Draw Event ===
 // Affichage du cadre de construction de deck
 
 // Cadre principal sans bordure (complètement transparent)
@@ -221,7 +221,7 @@ for (var i = 0; i < visible_lines; i++) {
             display_name += " x" + string(entry.count);
         }
         draw_set_color(c_black);
-        draw_set_font(fontCardDisplay);
+        draw_set_font(fontTitle);
         draw_text(slot_x + 5, slot_y + 2, display_name);
     }
 }

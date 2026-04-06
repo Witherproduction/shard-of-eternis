@@ -204,14 +204,52 @@ if (variable_instance_exists(id, "story_pause_after_enemy_draw") && story_pause_
             if (summonCount < 1) summonCount = 1;
             var mana_cost = (variable_instance_exists(id, "story_pending_summon_cost") ? story_pending_summon_cost : 0);
             var forceCost = (variable_instance_exists(id, "story_pending_summon_force_cost") && story_pending_summon_force_cost);
+            var preferBack = (variable_instance_exists(id, "story_pending_summon_prefer_back") && story_pending_summon_prefer_back);
+            var preferFront = (variable_instance_exists(id, "story_pending_summon_prefer_front") && story_pending_summon_prefer_front);
+            var triggerAsSummon = (variable_instance_exists(id, "story_pending_summon_trigger_as_summon") && story_pending_summon_trigger_as_summon);
             for (var i = 0; i < summonCount; i++) {
-                var slot = getLeftmostFreeMonsterSlot(false);
+                var slot = noone;
+                if (preferBack || preferFront) {
+                    var fm = instance_exists(fieldManagerEnemy) ? fieldManagerEnemy : instance_find(oFieldManagerEnemy, 0);
+                    if (fm != noone && instance_exists(fm)) {
+                        var monsterField = fm.getField("Monster");
+                        if (monsterField != noone && instance_exists(monsterField)) {
+                            var pos = -1;
+                            if (preferBack) {
+                                for (var k = 4; k < min(array_length(monsterField.cards), 8); k++) {
+                                    if (monsterField.cards[k] == 0) { pos = k; break; }
+                                }
+                                if (pos == -1) {
+                                    for (var k2 = 0; k2 < min(array_length(monsterField.cards), 4); k2++) {
+                                        if (monsterField.cards[k2] == 0) { pos = k2; break; }
+                                    }
+                                }
+                            } else { // preferFront
+                                for (var kf = 0; kf < min(array_length(monsterField.cards), 4); kf++) {
+                                    if (monsterField.cards[kf] == 0) { pos = kf; break; }
+                                }
+                                if (pos == -1) {
+                                    for (var kf2 = 4; kf2 < min(array_length(monsterField.cards), 8); kf2++) {
+                                        if (monsterField.cards[kf2] == 0) { pos = kf2; break; }
+                                    }
+                                }
+                            }
+                            if (pos != -1) {
+                                var XY = fm.getPosLocation("Monster", pos);
+                                slot = { x: XY[0], y: XY[1], pos: pos };
+                            }
+                        }
+                    }
+                } else {
+                    slot = getLeftmostFreeMonsterSlot(false);
+                }
                 if (slot == noone) break;
                 var payload = {
                     card_asset_name: story_pending_summon_asset,
                     xy: [slot.x, slot.y, slot.pos],
                     summon_mode: "SpecialSummon"
                 };
+                if (triggerAsSummon) payload.trigger_as_summon = true;
                 if (mana_cost > 0 || forceCost) payload.mana_cost_override = mana_cost;
                 RequestGameAction(ACTION_SUMMON, payload);
             }
@@ -219,6 +257,129 @@ if (variable_instance_exists(id, "story_pause_after_enemy_draw") && story_pause_
             if (variable_instance_exists(id, "story_pending_summon_cost")) story_pending_summon_cost = 0;
             if (variable_instance_exists(id, "story_pending_summon_count")) story_pending_summon_count = 0;
             if (variable_instance_exists(id, "story_pending_summon_force_cost")) story_pending_summon_force_cost = false;
+            if (variable_instance_exists(id, "story_pending_summon_prefer_back")) story_pending_summon_prefer_back = false;
+            if (variable_instance_exists(id, "story_pending_summon_prefer_front")) story_pending_summon_prefer_front = false;
+            if (variable_instance_exists(id, "story_pending_summon_trigger_as_summon")) story_pending_summon_trigger_as_summon = false;
+        }
+        
+        if (variable_instance_exists(id, "story_pending_summon_asset2") && story_pending_summon_asset2 != "") {
+            var summonCount2 = (variable_instance_exists(id, "story_pending_summon_count2") ? story_pending_summon_count2 : 1);
+            if (summonCount2 < 1) summonCount2 = 1;
+            var mana_cost2 = (variable_instance_exists(id, "story_pending_summon_cost2") ? story_pending_summon_cost2 : 0);
+            var forceCost2 = (variable_instance_exists(id, "story_pending_summon_force_cost2") && story_pending_summon_force_cost2);
+            var preferBack2 = (variable_instance_exists(id, "story_pending_summon_prefer_back2") && story_pending_summon_prefer_back2);
+            var preferFront2 = (variable_instance_exists(id, "story_pending_summon_prefer_front2") && story_pending_summon_prefer_front2);
+            for (var j = 0; j < summonCount2; j++) {
+                var slot2 = noone;
+                if (preferBack2 || preferFront2) {
+                    var fm2 = instance_exists(fieldManagerEnemy) ? fieldManagerEnemy : instance_find(oFieldManagerEnemy, 0);
+                    if (fm2 != noone && instance_exists(fm2)) {
+                        var monsterField2 = fm2.getField("Monster");
+                        if (monsterField2 != noone && instance_exists(monsterField2)) {
+                            var pos2 = -1;
+                            if (preferBack2) {
+                                for (var kb = 4; kb < min(array_length(monsterField2.cards), 8); kb++) {
+                                    if (monsterField2.cards[kb] == 0) { pos2 = kb; break; }
+                                }
+                                if (pos2 == -1) {
+                                    for (var kb2 = 0; kb2 < min(array_length(monsterField2.cards), 4); kb2++) {
+                                        if (monsterField2.cards[kb2] == 0) { pos2 = kb2; break; }
+                                    }
+                                }
+                            } else { // preferFront2
+                                for (var kf = 0; kf < min(array_length(monsterField2.cards), 4); kf++) {
+                                    if (monsterField2.cards[kf] == 0) { pos2 = kf; break; }
+                                }
+                                if (pos2 == -1) {
+                                    for (var kf2 = 4; kf2 < min(array_length(monsterField2.cards), 8); kf2++) {
+                                        if (monsterField2.cards[kf2] == 0) { pos2 = kf2; break; }
+                                    }
+                                }
+                            }
+                            if (pos2 != -1) {
+                                var XY2 = fm2.getPosLocation("Monster", pos2);
+                                slot2 = { x: XY2[0], y: XY2[1], pos: pos2 };
+                            }
+                        }
+                    }
+                } else {
+                    slot2 = getLeftmostFreeMonsterSlot(false);
+                }
+                if (slot2 == noone) break;
+                var payload2 = {
+                    card_asset_name: story_pending_summon_asset2,
+                    xy: [slot2.x, slot2.y, slot2.pos],
+                    summon_mode: "SpecialSummon"
+                };
+                if (mana_cost2 > 0 || forceCost2) payload2.mana_cost_override = mana_cost2;
+                RequestGameAction(ACTION_SUMMON, payload2);
+            }
+            story_pending_summon_asset2 = "";
+            if (variable_instance_exists(id, "story_pending_summon_cost2")) story_pending_summon_cost2 = 0;
+            if (variable_instance_exists(id, "story_pending_summon_count2")) story_pending_summon_count2 = 0;
+            if (variable_instance_exists(id, "story_pending_summon_force_cost2")) story_pending_summon_force_cost2 = false;
+            if (variable_instance_exists(id, "story_pending_summon_prefer_back2")) story_pending_summon_prefer_back2 = false;
+            if (variable_instance_exists(id, "story_pending_summon_prefer_front2")) story_pending_summon_prefer_front2 = false;
+        }
+        
+        if (variable_instance_exists(id, "story_pending_summon_asset3") && story_pending_summon_asset3 != "") {
+            var summonCount3 = (variable_instance_exists(id, "story_pending_summon_count3") ? story_pending_summon_count3 : 1);
+            if (summonCount3 < 1) summonCount3 = 1;
+            var mana_cost3 = (variable_instance_exists(id, "story_pending_summon_cost3") ? story_pending_summon_cost3 : 0);
+            var forceCost3 = (variable_instance_exists(id, "story_pending_summon_force_cost3") && story_pending_summon_force_cost3);
+            var preferBack3 = (variable_instance_exists(id, "story_pending_summon_prefer_back3") && story_pending_summon_prefer_back3);
+            var preferFront3 = (variable_instance_exists(id, "story_pending_summon_prefer_front3") && story_pending_summon_prefer_front3);
+            for (var m = 0; m < summonCount3; m++) {
+                var slot3 = noone;
+                if (preferBack3 || preferFront3) {
+                    var fm3 = instance_exists(fieldManagerEnemy) ? fieldManagerEnemy : instance_find(oFieldManagerEnemy, 0);
+                    if (fm3 != noone && instance_exists(fm3)) {
+                        var monsterField3 = fm3.getField("Monster");
+                        if (monsterField3 != noone && instance_exists(monsterField3)) {
+                            var pos3 = -1;
+                            if (preferBack3) {
+                                for (var kb3 = 4; kb3 < min(array_length(monsterField3.cards), 8); kb3++) {
+                                    if (monsterField3.cards[kb3] == 0) { pos3 = kb3; break; }
+                                }
+                                if (pos3 == -1) {
+                                    for (var kb32 = 0; kb32 < min(array_length(monsterField3.cards), 4); kb32++) {
+                                        if (monsterField3.cards[kb32] == 0) { pos3 = kb32; break; }
+                                    }
+                                }
+                            } else { // preferFront3
+                                for (var kf3 = 0; kf3 < min(array_length(monsterField3.cards), 4); kf3++) {
+                                    if (monsterField3.cards[kf3] == 0) { pos3 = kf3; break; }
+                                }
+                                if (pos3 == -1) {
+                                    for (var kf32 = 4; kf32 < min(array_length(monsterField3.cards), 8); kf32++) {
+                                        if (monsterField3.cards[kf32] == 0) { pos3 = kf32; break; }
+                                    }
+                                }
+                            }
+                            if (pos3 != -1) {
+                                var XY3 = fm3.getPosLocation("Monster", pos3);
+                                slot3 = { x: XY3[0], y: XY3[1], pos: pos3 };
+                            }
+                        }
+                    }
+                } else {
+                    slot3 = getLeftmostFreeMonsterSlot(false);
+                }
+                if (slot3 == noone) break;
+                var payload3 = {
+                    card_asset_name: story_pending_summon_asset3,
+                    xy: [slot3.x, slot3.y, slot3.pos],
+                    summon_mode: "SpecialSummon"
+                };
+                if (mana_cost3 > 0 || forceCost3) payload3.mana_cost_override = mana_cost3;
+                RequestGameAction(ACTION_SUMMON, payload3);
+            }
+            story_pending_summon_asset3 = "";
+            if (variable_instance_exists(id, "story_pending_summon_cost3")) story_pending_summon_cost3 = 0;
+            if (variable_instance_exists(id, "story_pending_summon_count3")) story_pending_summon_count3 = 0;
+            if (variable_instance_exists(id, "story_pending_summon_force_cost3")) story_pending_summon_force_cost3 = false;
+            if (variable_instance_exists(id, "story_pending_summon_prefer_back3")) story_pending_summon_prefer_back3 = false;
+            if (variable_instance_exists(id, "story_pending_summon_prefer_front3")) story_pending_summon_prefer_front3 = false;
         }
         
         if (variable_instance_exists(id, "story_pending_add_to_hand_asset") && story_pending_add_to_hand_asset != "") {
@@ -253,6 +414,40 @@ if (variable_instance_exists(id, "story_pause_after_enemy_draw") && story_pause_
                 }
             }
             story_pending_add_to_hand_asset = "";
+        }
+        
+        if (variable_instance_exists(id, "story_pending_add_to_hand_asset2") && story_pending_add_to_hand_asset2 != "") {
+            var handInst2 = handEnemy;
+            if (instance_exists(handInst2)) {
+                var cap2 = (variable_global_exists("MAX_HAND_SIZE") ? global.MAX_HAND_SIZE : 10);
+                var handCount2 = ds_list_size(handInst2.cards);
+                if (handCount2 < cap2) {
+                    var objIdxHand2 = asset_get_index(story_pending_add_to_hand_asset2);
+                    if (objIdxHand2 != -1) {
+                        var newCard2 = instance_create_layer(handInst2.x, handInst2.y, layer_get_id("Instances"), objIdxHand2);
+                        if (newCard2 != noone) {
+                            newCard2.isHeroOwner = false;
+                            newCard2.image_angle = 180;
+                            newCard2.zone = "Hand";
+                            handInst2.addCard(newCard2);
+                            registerTriggerEvent(TRIGGER_ENTER_HAND, newCard2, { owner_is_hero: false });
+                        }
+                    }
+                } else {
+                    var gy2 = graveyardEnemy;
+                    var objIdxBurn2 = asset_get_index(story_pending_add_to_hand_asset2);
+                    if (instance_exists(gy2) && objIdxBurn2 != -1) {
+                        var burnCard2 = instance_create_layer(gy2.x, gy2.y, layer_get_id("Instances"), objIdxBurn2);
+                        if (burnCard2 != noone) {
+                            burnCard2.isHeroOwner = false;
+                            gy2.addToGraveyard(burnCard2, true);
+                            burnCard2.zone = "Graveyard";
+                            instance_destroy(burnCard2);
+                        }
+                    }
+                }
+            }
+            story_pending_add_to_hand_asset2 = "";
         }
     }
     story_pause_after_enemy_draw = false;
@@ -320,6 +515,35 @@ if (!(timerEnabledIA && instance_exists(oStoryToast))) {
                 break;
                 
     		case "Main": 
+                if (variable_instance_exists(id, "story_pending_cast_spell_asset") && story_pending_cast_spell_asset != "") {
+                    var objSpell = asset_get_index(story_pending_cast_spell_asset);
+                    if (objSpell != -1) {
+                        var hE = handEnemy;
+                        if (instance_exists(hE)) {
+                            var spellInst = instance_create_layer(hE.x, hE.y, layer_get_id("Instances"), objSpell);
+                            if (spellInst != noone) {
+                                spellInst.isHeroOwner = false;
+                                spellInst.image_angle = 180;
+                                spellInst.zone = "Hand";
+                                hE.addCard(spellInst);
+                                registerTriggerEvent(TRIGGER_ENTER_HAND, spellInst, { owner_is_hero: false });
+                                
+                                var payloadSpell = {
+                                    card: spellInst,
+                                    xy: [0, 0, -1],
+                                    summon_mode: "Summon"
+                                };
+                                var castCost = (variable_instance_exists(id, "story_pending_cast_spell_cost") ? story_pending_cast_spell_cost : 0);
+                                var castForce = (variable_instance_exists(id, "story_pending_cast_spell_force_cost") && story_pending_cast_spell_force_cost);
+                                if (castCost > 0 || castForce) payloadSpell.mana_cost_override = castCost;
+                                RequestGameAction(ACTION_SUMMON, payloadSpell);
+                            }
+                        }
+                    }
+                    story_pending_cast_spell_asset = "";
+                    if (variable_instance_exists(id, "story_pending_cast_spell_cost")) story_pending_cast_spell_cost = 0;
+                    if (variable_instance_exists(id, "story_pending_cast_spell_force_cost")) story_pending_cast_spell_force_cost = false;
+                }
                 // IA logic simple: Invoque puis attaque puis fin de tour
                 // [HEARTHSTONE] Asynchronous Turn Logic
                 IA.startTurnLogic();

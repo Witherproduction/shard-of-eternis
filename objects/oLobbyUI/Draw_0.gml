@@ -23,6 +23,8 @@ var back_left = back_btn_x - back_btn_w / 2;
 var back_top = back_btn_y - back_btn_h / 2;
 
 draw_sprite_stretched(sButton, 0, back_left, back_top, back_btn_w, back_btn_h);
+draw_set_color(c_black);
+draw_text(back_btn_x + 2, back_btn_y + 2, "Retour");
 draw_set_color(make_color_rgb(230, 200, 120));
 draw_text(back_btn_x, back_btn_y, "Retour");
 
@@ -169,10 +171,14 @@ var join_right = button_join_x + button_width / 2;
 var join_bottom = button_join_y + button_height / 2;
 
 draw_sprite_stretched(sButton, 0, host_left, host_top, button_width, button_height);
+draw_set_color(c_black);
+draw_text(button_host_x + 2, button_host_y + 2, "Héberger");
 draw_set_color(make_color_rgb(230, 200, 120));
 draw_text(button_host_x, button_host_y, "Héberger");
 
 draw_sprite_stretched(sButton, 0, join_left, join_top, button_width, button_height);
+draw_set_color(c_black);
+draw_text(button_join_x + 2, button_join_y + 2, "Rejoindre");
 draw_set_color(make_color_rgb(230, 200, 120));
 draw_text(button_join_x, button_join_y, "Rejoindre");
 
@@ -195,11 +201,10 @@ if (variable_global_exists("NET_IS_HOST") && global.NET_IS_HOST && variable_glob
 
     draw_sprite_stretched(sButton, 0, start_left, start_top, button_width, button_height);
     
-    if (can_start) {
-        draw_set_color(make_color_rgb(230, 200, 120));
-    } else {
-        draw_set_color(c_gray);
-    }
+    var main_col = can_start ? make_color_rgb(230, 200, 120) : c_gray;
+    draw_set_color(c_black);
+    draw_text(button_start_x + 2, button_start_y + 2, "JOUER");
+    draw_set_color(main_col);
     draw_text(button_start_x, button_start_y, "JOUER");
 }
 

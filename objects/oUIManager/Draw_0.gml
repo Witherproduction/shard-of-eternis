@@ -35,7 +35,7 @@ for (var j = 0; j < n; j++) {
     var desc_x1  = 23,  desc_y1  = 438; var desc_x2  = 421, desc_y2  = 592;
     var atk_x1   = 303, atk_y1   = 594; var atk_x2   = 348, atk_y2   = 609;
     var def_x1   = 383, def_y1   = 594; var def_x2   = 421, def_y2   = 608;
-    if (font_exists(fontCardText)) draw_set_font(fontCardText);
+    if (font_exists(fontText)) draw_set_font(fontText);
     draw_set_color(c_black);
     var fit_line = function(text, max_px, rw, rh) {
         var base_line_h = string_height("Ag");

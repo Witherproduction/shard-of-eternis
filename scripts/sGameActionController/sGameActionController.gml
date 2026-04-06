@@ -325,6 +325,10 @@ function _execute_Summon(payload) {
         show_debug_message("ERREUR: payload SUMMON sans carte valide");
         return;
     }
+
+    if (variable_struct_exists(payload, "trigger_as_summon") && payload.trigger_as_summon) {
+        card._story_trigger_as_summon = true;
+    }
     
     // Mise à jour de la position (Terrain, Zone...)
     // ... La logique de placement est gérée par les scripts oGame / FieldManager
@@ -698,6 +702,31 @@ function _execute_ActivateEffect(payload) {
             show_debug_message("ATTENTION: Cible introuvable pour ACTIVATE_EFFECT (UID: " + string(targetUID) + ")");
             // On continue, certains effets peuvent gérer l'absence de cible ou utiliser une cible par défaut
         }
+    }
+
+    if (variable_struct_exists(context, "target") && context.target != noone && instance_exists(context.target)) {
+        var own = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "both";
+        if ((own == "enemy" || own == "ally" || own == "self") && variable_instance_exists(card, "isHeroOwner") && variable_instance_exists(context.target, "isHeroOwner")) {
+            var srcHero = card.isHeroOwner;
+            var tgtHero = context.target.isHeroOwner;
+            var ok = true;
+            if (own == "enemy") ok = (srcHero != tgtHero);
+            else if (own == "ally" || own == "self") ok = (srcHero == tgtHero);
+            if (!ok) {
+                show_debug_message("ACTIVATE_EFFECT rejeté: cible invalide (owner=" + string(own) + ")");
+                return;
+            }
+        }
+    }
+    
+    if (variable_struct_exists(payload, "owner_is_hero")) {
+        context.owner_is_hero = payload.owner_is_hero;
+    } else if (variable_instance_exists(card, "isHeroOwner")) {
+        context.owner_is_hero = card.isHeroOwner;
+    }
+    
+    if (variable_struct_exists(payload, "summon_mode")) {
+        context.summon_mode = payload.summon_mode;
     }
 
     // Exécution de l'effet

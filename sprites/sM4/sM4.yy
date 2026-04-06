@@ -26,7 +26,7 @@
   "origin":4,
   "parent":{
     "name":"Indicator",
-    "path":"folders/Sprites/Duel/UI/Indicator.yy",
+    "path":"folders/Sprites/interface/UI/Indicator.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

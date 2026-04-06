@@ -392,7 +392,9 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
         var desc_x1  = 23,  desc_y1  = 438; var desc_x2  = 421, desc_y2  = 592;
         
         var is_magic = object_is_ancestor(object_index, oCardMagic) || (variable_instance_exists(self, "type") && string_lower(string(type)) == "magic");
-        if (font_exists(fontCardText)) draw_set_font(fontCardText);
+        if (font_exists(fontText)) draw_set_font(fontText);
+        else if (font_exists(fontTitle)) draw_set_font(fontTitle);
+        else if (font_exists(fontUI)) draw_set_font(fontUI);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
         draw_set_color(c_black);
@@ -475,20 +477,50 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             draw_set_color(c_black);
         }
 
-        // Toujours aligner comme en Collection
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
+        
+        gpu_set_texfilter(false);
+        
+        var base_title_size = 16;
+        if (font_exists(fontTitle)) base_title_size = font_get_size(fontTitle);
+        var base_text_size = 14;
+        if (font_exists(fontText)) base_text_size = font_get_size(fontText);
+        var get_font = function(kind, size) {
+            if (variable_global_exists("get_runtime_font")) return global.get_runtime_font(kind, size);
+            if (kind == "title") {
+                if (font_exists(fontTitle)) return fontTitle;
+                if (font_exists(fontText)) return fontText;
+                if (font_exists(fontUI)) return fontUI;
+            } else {
+                if (font_exists(fontText)) return fontText;
+                if (font_exists(fontTitle)) return fontTitle;
+                if (font_exists(fontUI)) return fontUI;
+            }
+            return -1;
+        };
         if (variable_instance_exists(self, "name")) {
             var tx = string(name);
             var rw = (name_x2 - name_x1) * s - pad * 2 - mar * 2;
             var rh = (name_y2 - name_y1) * s - pad * 2;
+            if (font_exists(fontTitle)) draw_set_font(fontTitle);
             var sc = fit_line(tx, 20 * rel, rw, rh);
-            sc = round(sc * 20) / 20;
+            var want_px = base_title_size * sc;
+            var want_size = max(6, floor(want_px));
+            var f = get_font("title", want_size);
+            while (want_size > 6 && f != -1) {
+                draw_set_font(f);
+                if (string_width(tx) <= rw && string_height("Ag") <= rh) break;
+                want_size -= 1;
+                f = get_font("title", want_size);
+            }
+            if (f != -1) draw_set_font(f);
+            var sc2 = 1;
             var left = tlx + name_x1 * s + pad + mar;
             var top  = tly + name_y1 * s + pad;
             left = round(left);
             top  = round(top);
-            draw_text_transformed(left, top + 2, tx, sc, sc, angle_draw);
+            draw_text_transformed(left, top + 2, tx, sc2, sc2, angle_draw);
         }
         // --- MANA COST DISPLAY (Top Right) ---
         var display_cost = 0;
@@ -528,10 +560,20 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             center_y = round(center_y);
             
             // Use larger font scale for Mana
+            if (font_exists(fontTitle)) draw_set_font(fontTitle);
             var sc = fit_line(tx, 22 * rel, rw, rh);
-            sc = round(sc * 20) / 20;
-            
-            draw_text_transformed(center_x, center_y, tx, sc, sc, angle_draw);
+            var want_px = base_title_size * sc;
+            var want_size = max(6, floor(want_px));
+            var f = get_font("title", want_size);
+            while (want_size > 6 && f != -1) {
+                draw_set_font(f);
+                if (string_width(tx) <= rw && string_height("Ag") <= rh) break;
+                want_size -= 1;
+                f = get_font("title", want_size);
+            }
+            if (f != -1) draw_set_font(f);
+            var sc2 = 1;
+            draw_text_transformed(center_x, center_y, tx, sc2, sc2, angle_draw);
             
             // Reset Align
             draw_set_halign(fa_left);
@@ -549,25 +591,35 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
+            if (font_exists(fontText)) draw_set_font(fontText);
             var sc = fit_line(tx, 16 * rel, rw, rh);
-            sc = round(sc * 20) / 20;
+            var want_px = base_text_size * sc;
+            var want_size = max(8, floor(want_px));
+            var f = get_font("text", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
             var left_g = tlx + genre_x1 * s + pad + mar;
             var top_g  = tly + genre_y1 * s + pad;
             left_g = round(left_g);
             top_g  = round(top_g);
-            draw_text_transformed(left_g, top_g + 2, tx, sc, sc, angle_draw);
+            draw_text_transformed(left_g, top_g + 2, tx, sc2, sc2, angle_draw);
         }
         if (variable_instance_exists(self, "race")) {
             var tx = string(race);
             var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
             var rh = (arch_y2 - arch_y1) * s - pad * 2;
+            if (font_exists(fontText)) draw_set_font(fontText);
             var sc = fit_line(tx, 16 * rel, rw, rh);
-            sc = round(sc * 20) / 20;
+            var want_px = base_text_size * sc;
+            var want_size = max(8, floor(want_px));
+            var f = get_font("text", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
             var left_a = tlx + arch_x1 * s + pad + mar;
             var top_a  = tly + arch_y1 * s + pad;
             left_a = round(left_a);
             top_a  = round(top_a);
-            draw_text_transformed(left_a, top_a + 2, tx, sc, sc, angle_draw);
+            draw_text_transformed(left_a, top_a + 2, tx, sc2, sc2, angle_draw);
         }
         // Description supprimée de l'affichage sur la carte (Terrain/Main/Collection)
         // if (variable_instance_exists(self, "description")) { ... }
@@ -597,11 +649,23 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
                 circleA_x = round(circleA_x);
                 circleA_y = round(circleA_y);
                 
-                // Font Size
-                var scA = 1.2 * rel; // Bigger font
+                if (font_exists(fontTitle)) draw_set_font(fontTitle);
+                var rwA = (atk_x2 - atk_x1) * s;
+                var rhA = (atk_y2 - atk_y1) * s;
+                var want_px = base_title_size * (1.2 * rel);
+                var want_size = max(6, floor(want_px));
+                var f = get_font("title", want_size);
+                while (want_size > 6 && f != -1) {
+                    draw_set_font(f);
+                    if (string_width(txA) <= rwA && string_height("Ag") <= rhA) break;
+                    want_size -= 1;
+                    f = get_font("title", want_size);
+                }
+                if (f != -1) draw_set_font(f);
+                var scA = 1;
                 
                 // Draw Outline (Black)
-                var o_dist = 2 * rel;
+                var o_dist = max(1, round(2 * rel));
                 draw_set_color(c_black);
                 draw_text_transformed(circleA_x - o_dist, circleA_y, txA, scA, scA, angle_draw);
                 draw_text_transformed(circleA_x + o_dist, circleA_y, txA, scA, scA, angle_draw);
@@ -648,10 +712,23 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
                 circleD_x = round(circleD_x);
                 circleD_y = round(circleD_y);
                 
-                var scD = 1.2 * rel;
+                if (font_exists(fontTitle)) draw_set_font(fontTitle);
+                var rwD = (def_x2 - def_x1) * s;
+                var rhD = (def_y2 - def_y1) * s;
+                var want_px = base_title_size * (1.2 * rel);
+                var want_size = max(6, floor(want_px));
+                var f = get_font("title", want_size);
+                while (want_size > 6 && f != -1) {
+                    draw_set_font(f);
+                    if (string_width(txD) <= rwD && string_height("Ag") <= rhD) break;
+                    want_size -= 1;
+                    f = get_font("title", want_size);
+                }
+                if (f != -1) draw_set_font(f);
+                var scD = 1;
                 
                 // Draw Outline (Black)
-                var o_dist = 2 * rel;
+                var o_dist = max(1, round(2 * rel));
                 draw_set_color(c_black);
                 draw_text_transformed(circleD_x - o_dist, circleD_y, txD, scD, scD, angle_draw);
                 draw_text_transformed(circleD_x + o_dist, circleD_y, txD, scD, scD, angle_draw);
@@ -668,6 +745,7 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             draw_set_valign(fa_top);
             draw_set_color(c_white);
         }
+        gpu_set_texfilter(true);
         if (use_matrix) {
             matrix_set(matrix_world, prev_world);
         }

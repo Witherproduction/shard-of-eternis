@@ -72,9 +72,9 @@ var current_data = (index < array_length(chapters_data)) ? chapters_data[index] 
 draw_set_alpha(1);
 draw_set_halign(fa_center);
 draw_set_valign(fa_top);
-draw_set_font(fontLP);
+draw_set_font(fontLife);
 draw_text(center_x, top_y - title_offset, "Chapitre " + string(chap_center));
-draw_set_font(fontCardDisplay);
+draw_set_font(fontTitle);
 
 if (unlocked) {
         draw_text(center_x, top_y + 48 * k, current_data.title);

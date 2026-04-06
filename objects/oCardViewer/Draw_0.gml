@@ -40,7 +40,7 @@ if (is_array(cardInstances)) {
             var lx = inst.x;
             var ly = tly + h + margin_under - 2;
             var prev_font2 = -1;
-            var font_idx2 = asset_get_index("fontStep");
+            var font_idx2 = asset_get_index("fontUI");
             if (font_idx2 != -1) {
                 prev_font2 = draw_get_font();
                 draw_set_font(font_idx2);
@@ -106,7 +106,6 @@ var inv_h = 40;
 var inv_x1 = room_width - inv_w - 30; // Position par défaut (sera écrasée par oRetour1)
 var inv_y1 = 32;
 var inv_label = "Mode Invocation";
-var textScale = 0.5;
 
 if (variable_global_exists("collection_invocation_mode") && global.collection_invocation_mode) {
     inv_label = "Invocation Active";
@@ -123,11 +122,26 @@ if (ret != noone && instance_exists(ret)) {
     // Fond bouton via sprite cadre
     draw_sprite_stretched(sButton, 0, inv_x1, inv_y1, inv_w, inv_h);
     // Texte centré
+    var f_inv = -1;
+    if (variable_global_exists("get_runtime_font")) f_inv = global.get_runtime_font("title", 16);
+    else if (font_exists(fontTitle)) f_inv = fontTitle;
+    else if (font_exists(fontText)) f_inv = fontText;
+    else if (font_exists(fontUI)) f_inv = fontUI;
+    if (f_inv != -1) draw_set_font(f_inv);
     var inv_text_color = make_color_rgb(230, 200, 120);
-    draw_set_color(inv_text_color);
+    var inv_sc = 1;
+    if (f_inv != -1) {
+        var inv_base_sz = font_get_size(f_inv);
+        if (inv_base_sz > 0) inv_sc = 16 / inv_base_sz;
+    }
+    draw_set_color(c_black);
     draw_set_halign(fa_center);
-    draw_text_transformed((inv_x1 + inv_x2)/2, (inv_y1 + inv_y2)/2, inv_label, textScale, textScale, 0);
+    draw_set_valign(fa_middle);
+    draw_text_transformed((inv_x1 + inv_x2)/2 + 2, (inv_y1 + inv_y2)/2 + 2, inv_label, inv_sc, inv_sc, 0);
+    draw_set_color(inv_text_color);
+    draw_text_transformed((inv_x1 + inv_x2)/2, (inv_y1 + inv_y2)/2, inv_label, inv_sc, inv_sc, 0);
     draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
 
     // === AFFICHAGE DU PANNEAU DÉTAILLÉ + 3 BOUTONS ===
     // Afficher uniquement quand une carte est selectionnee

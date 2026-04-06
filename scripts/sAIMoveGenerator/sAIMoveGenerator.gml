@@ -122,6 +122,7 @@ function AI_GetLegalMoves_Summon() {
                                 sacrifices: [],
                                 effect_target: targets[t],
                                 effect_type: eType,
+                                effect_owner_hint: targetScope,
                                 has_on_summon_effect: true
                             });
                         }
@@ -132,6 +133,7 @@ function AI_GetLegalMoves_Summon() {
                             card: card,
                             sacrifices: [],
                             effect_type: eType,
+                            effect_owner_hint: targetScope,
                             has_on_summon_effect: true
                         });
                     }
@@ -281,7 +283,7 @@ function AI_AddEffectMoves(card, moves, context) {
         // Gestion de l'owner
         var rawOwner = "both";
         if (variable_struct_exists(effect, "owner")) rawOwner = string_lower(effect.owner);
-        else if (effectType == "pillage") rawOwner = "enemy"; // Default for pillage
+        else if (effectType == "pillage") rawOwner = "enemy";
 
         if (variable_struct_exists(effect, "ally_only") && effect.ally_only) rawOwner = "ally";
         
@@ -363,6 +365,20 @@ function AI_AddEffectMoves(card, moves, context) {
              needsTarget = false; // Sinon, c'est un effet sans cible (ex: Draw)
         }
         
+        var sourceIsHeroOwner = undefined;
+        if (is_struct(card) && variable_struct_exists(card, "isHeroOwner")) sourceIsHeroOwner = card.isHeroOwner;
+        else if (instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) sourceIsHeroOwner = card.isHeroOwner;
+
+        var isHostileTargetedEffect = (
+            effectType == "destroy_target"
+            || effectType == "banish_target"
+            || effectType == "return_to_hand"
+            || effectType == "damage_target"
+            || effectType == "entrave"
+            || effectType == "purge"
+        );
+        var allowFriendlyTargets = (rawOwner == "ally" || rawOwner == "self");
+
         if (needsTarget) {
             for (var pt = 0; pt < array_length(potentialTargets); pt++) {
                 var tCard = potentialTargets[pt];
@@ -379,12 +395,20 @@ function AI_AddEffectMoves(card, moves, context) {
                 var isEnemyTarget = (cOwner != undefined && tOwner != undefined && cOwner != tOwner);
                 if (isEnemyTarget && variable_instance_exists(tCard, "isCamouflage") && tCard.isCamouflage) continue;
 
+                if (isHostileTargetedEffect && !allowFriendlyTargets) {
+                    var tHero = (variable_instance_exists(tCard, "isHeroOwner") ? tCard.isHeroOwner : undefined);
+                    if (sourceIsHeroOwner != undefined && tHero != undefined && sourceIsHeroOwner == tHero) {
+                        continue;
+                    }
+                }
+
                 array_push(moves, {
                     type: "activate_effect", 
                     card: card,
                     target: tCard,
                     effect_index: k, 
                     effect_type: effectType,
+                    owner_hint: rawOwner,
                     is_monster_effect: (card.type == "Monster"),
                     is_equip: (effectType == "equip_select_target")
                 });
@@ -396,6 +420,7 @@ function AI_AddEffectMoves(card, moves, context) {
                 target: noone,
                 effect_index: k,
                 effect_type: effectType,
+                owner_hint: rawOwner,
                 is_monster_effect: (card.type == "Monster")
             });
         }

@@ -18,7 +18,7 @@ function get_hero_decks_chap1() {
                 
                 "oGriffePredateur", "oGriffePredateur", 
                 "oSautPredateur", "oSautPredateur", 
-                "oFeuillageProtecteur", "oFeuillageProtecteur", 
+                "oFeuillageProtecteur", "oPiegeRonce", 
                 
                 // Base Variable (Chapitre 1 - 20 cartes)
                 "oBougimencienTunnelin", "oBougimencienTunnelin", 
@@ -33,6 +33,37 @@ function get_hero_decks_chap1() {
                 "oPatteBriseLarmoyant", "oPatteBriseLarmoyant"
             ] 
         }, 
+        {
+            id: "gardiens_recoltes",
+            name: "Gardiens des Récoltes",
+            description: "Un contre aux pillards : on sécurise le terrain puis on retourne leurs vols contre eux grâce aux Humanoïdes et au pillage.",
+            cards: [
+                "oTarrinox", "oTarrinox",
+                "oTarentuleForet", "oTarentuleForet",
+                "oTortueVagabonde", "oTortueVagabonde",
+                "oLoupGaleux", "oLoupGaleux",
+                "oJeuneLoup", "oJeuneLoup",
+                "oRenardMystique", "oRenardMystique",
+                "oVieilOurs", "oVieilOurs",
+
+                "oGriffePredateur", "oGriffePredateur",
+                "oSautPredateur", "oSautPredateur",
+                "oFeuillageProtecteur", "oPiegeRonce",
+
+                "oTunnelin", "oTunnelin", "oTunnelin",
+                "oMineurTunnelin", "oMineurTunnelin", "oMineurTunnelin",
+                "oBougimencienTunnelin", "oBougimencienTunnelin",
+                "oPortefaix", "oPortefaix",
+                "oVoleurFinelame", "oVoleurFinelame",
+                "oBandit",
+                "oSanglierPeauRoc", "oSanglierPeauRoc",
+                "oVideGousset",
+
+                "oMainFurtive", "oMainFurtive",
+                "oAnneauVoleur",
+                "oSournoiserie"
+            ]
+        },
         { 
             id: "foret_abyssienne", 
             name: "Forêt Abyssienne", 
@@ -49,7 +80,7 @@ function get_hero_decks_chap1() {
                 
                 "oGriffePredateur", "oGriffePredateur", 
                 "oSautPredateur", "oSautPredateur", 
-                "oFeuillageProtecteur", "oFeuillageProtecteur", 
+                "oFeuillageProtecteur", "oPiegeRonce", 
                 
                 // Base Variable (Abyssiens & Synergie - 20 cartes)
                 "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien", 
@@ -83,7 +114,7 @@ function get_hero_decks_chap1() {
                 
                 "oGriffePredateur", "oGriffePredateur", 
                 "oSautPredateur", "oSautPredateur", 
-                "oFeuillageProtecteur", "oFeuillageProtecteur", 
+                "oFeuillageProtecteur", "oPiegeRonce", 
                 
                 // Base Variable (Voleurs & Ombres - 20 cartes)
                 "oGobelinFurtif", "oGobelinFurtif", "oGobelinFurtif",
@@ -102,28 +133,90 @@ function get_hero_decks_chap1() {
             name: "Fureur Sauvage",
             description: "Un deck agressif basé sur les bêtes et la charge des sangliers.",
             cards: [
-                // Base Fixe (Bêtes - 20 cartes)
-                "oTarrinox", "oTarrinox", 
-                "oTarentuleForet", "oTarentuleForet", 
-                "oTortueVagabonde", "oTortueVagabonde", 
-                "oLoupGaleux", "oLoupGaleux", 
-                "oJeuneLoup", "oJeuneLoup", 
-                "oRenardMystique", "oRenardMystique", 
-                "oVieilOurs", "oVieilOurs", 
-                
-                "oGriffePredateur", "oGriffePredateur", 
-                "oSautPredateur", "oSautPredateur", 
-                "oFeuillageProtecteur", "oFeuillageProtecteur",
+                "oTarrinox", "oTarrinox",
+                "oTarentuleForet", "oTarentuleForet",
+                "oTortueVagabonde", "oTortueVagabonde",
+                "oLoupGaleux", "oLoupGaleux",
+                "oJeuneLoup", "oJeuneLoup",
+                "oRenardMystique", "oRenardMystique",
+                "oVieilOurs", "oVieilOurs",
 
-                // Complément Bêtes & Sangliers (20 cartes)
-                "oPeauRocRobuste", "oPeauRocRobuste", "oPeauRocRobuste", // Charge (Rare x3)
-                "oSanglierPeauRoc", "oSanglierPeauRoc", "oSanglierPeauRoc", // Charge (Commun x3)
-                "oFrenesieSauvage", "oFrenesieSauvage", // Buff ATK
-                "oRugissementForet", "oRugissementForet", // Buff PV
-                "oLoupGrisForet", "oLoupGrisForet", "oLoupGrisForet", // Meute (Rare x3)
-                "oRodeurForet", "oRodeurForet", // Invoque Jeune Loup
-                "oAraigneeForestiere", "oAraigneeForestiere", "oAraigneeForestiere", // T1 Venimeux
-                "oCriMeute", "oCriMeute" // Buff Late Game
+                "oGriffePredateur", "oGriffePredateur",
+                "oSautPredateur", "oSautPredateur",
+                "oFeuillageProtecteur", "oPiegeRonce",
+
+                "oTunnelin", "oTunnelin", "oTunnelin",
+                "oMineurTunnelin", "oMineurTunnelin", "oMineurTunnelin",
+                "oBougimencienTunnelin", "oBougimencienTunnelin",
+                "oLoupGrisForet", "oLoupGrisForet", "oLoupGrisForet",
+                "oGeomancienTunnelin", "oGeomancienTunnelin",
+                "oRodeurForet", "oRodeurForet",
+                "oAraigneeForestiere",
+
+                "oRugissementForet", "oRugissementForet",
+                "oFrenesieSauvage",
+                "oRacineEnvahissante"
+            ]
+        },
+        {
+            id: "assaut_forteresse",
+            name: "Assaut de la forteresse",
+            description: "Un assaut frontal mené par les bêtes de la forêt, renforcées par des Abyssiens, des Bandits et des Skarls pour briser les défenses.",
+            cards: [
+                "oTarrinox", "oTarrinox",
+                "oTarentuleForet", "oTarentuleForet",
+                "oTortueVagabonde", "oTortueVagabonde",
+                "oLoupGaleux", "oLoupGaleux",
+                "oJeuneLoup", "oJeuneLoup",
+                "oRenardMystique", "oRenardMystique",
+                "oVieilOurs", "oVieilOurs",
+                "oGriffePredateur", "oGriffePredateur",
+                "oSautPredateur", "oSautPredateur",
+                "oFeuillageProtecteur",
+                "oPiegeRonce",
+
+                "oSkarlChetif", "oSkarlChetif", "oSkarlChetif",
+                "oEstafetteSkarl", "oEstafetteSkarl",
+                "oBandit", "oBandit",
+                "oBanditGuerrier", "oBanditGuerrier",
+                "oVoleurFinelame",
+                "oVideGousset",
+                "oFourrageurAbyssien", "oFourrageurAbyssien", "oFourrageurAbyssien",
+                "oRuisselierAbyssien",
+                "oRodeurAbyssien",
+                "oCoquillageMaree", "oCoquillageMaree",
+                "oProtectionMaree",
+                "oHurlementTribu"
+            ]
+        },
+        {
+            id: "rempart_contre_la_terreur",
+            name: "Rempart contre la terreur",
+            description: "Un rempart de Bêtes épaulé par les Skarls : on occupe le terrain, on encaisse, puis on contre-attaque sur la durée.",
+            cards: [
+                "oTarrinox", "oTarrinox",
+                "oTarentuleForet", "oTarentuleForet",
+                "oTortueVagabonde", "oTortueVagabonde",
+                "oLoupGaleux", "oLoupGaleux",
+                "oJeuneLoup", "oJeuneLoup",
+                "oRenardMystique", "oRenardMystique",
+                "oVieilOurs", "oVieilOurs",
+                "oGriffePredateur", "oGriffePredateur",
+                "oSautPredateur", "oSautPredateur",
+                "oFeuillageProtecteur",
+                "oPiegeRonce",
+                
+                "oSkarlChetif", "oSkarlChetif", "oSkarlChetif",
+                "oEstafetteSkarl", "oEstafetteSkarl", "oEstafetteSkarl",
+                "oLieutenantGorrak",
+                "oLoupGrisForet", "oLoupGrisForet", "oLoupGrisForet",
+                "oJeuneOursForet", "oJeuneOursForet",
+                "oSanglierPeauRoc", "oSanglierPeauRoc",
+                "oRodeurForet", "oRodeurForet",
+                
+                "oRugissementForet", "oRugissementForet",
+                "oCriMeute",
+                "oFrenesieSauvage"
             ]
         }
     ];

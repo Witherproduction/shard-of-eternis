@@ -26,9 +26,20 @@ if (mouse_check_button_pressed(mb_left)) {
             barX = dropdown_x + dropdown_w + spacing;
         }
     }
-    var buttonRadius = 15;
-    var buttonSpacing = 60; // Espacement légèrement réduit pour resserrer les boutons
-    // Centrer les boutons dans la barre
+    var pad = 18;
+    var buttonRadius = min(18, max(12, floor(barHeight * 0.33)));
+    var buttonSpacing = 60;
+    var availableW = barWidth - pad * 2;
+    buttonSpacing = min(buttonSpacing, floor((availableW - 2 * buttonRadius) / 7));
+    if (buttonSpacing < buttonRadius * 2 + 6) {
+        buttonSpacing = buttonRadius * 2 + 6;
+        var need = 7 * buttonSpacing + 2 * buttonRadius;
+        if (need > availableW) {
+            var k = availableW / need;
+            buttonRadius = max(10, floor(buttonRadius * k));
+            buttonSpacing = max(22, floor(buttonSpacing * k));
+        }
+    }
     var totalButtonsWidth = (7 * buttonSpacing) + (2 * buttonRadius);
     var startX = barX + (barWidth - totalButtonsWidth) / 2 + buttonRadius;
     var buttonY = barY + barHeight / 2;
@@ -46,8 +57,8 @@ if (mouse_check_button_pressed(mb_left)) {
         }
         
         // Boutons avec boucle pour simplifier (ajout du tri alphabétique)
-        var buttons = ["attack", "PV", "level", "type", "favorites", "rarity", "alpha"];
-        var buttonLabels = ["Attaque", "PV", "Niveau", "Type", "Favoris", "Rarete", "Alphabetique"];
+        var buttons = ["attack", "PV", "level", "type", "race", "rarity", "alpha"];
+        var buttonLabels = ["Attaque", "PV", "Niveau", "Type", "Race", "Rarete", "Alphabetique"];
         
         for (var i = 0; i < 7; i++) {
             var buttonX = startX + (i * buttonSpacing);

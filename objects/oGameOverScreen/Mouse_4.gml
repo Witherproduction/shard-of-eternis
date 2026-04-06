@@ -100,7 +100,13 @@ if (alpha >= targetAlpha) {
 
                        // Essayer d'appeler la fonction de sauvegarde si elle existe
                        try {
-                           story_progress_write_last_scene(ch, sc, ac);
+                           var next_act = ac + 1;
+                           var next_scene = 0;
+                           if (ac >= 4) {
+                               next_act = ac;
+                               next_scene = sc;
+                           }
+                           story_progress_write_last_scene(ch, next_scene, next_act);
                        } catch(e) {
                            show_debug_message("### Erreur sauvegarde progression: " + string(e));
                        }

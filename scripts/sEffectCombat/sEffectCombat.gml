@@ -425,27 +425,30 @@ function damageAllMonsters(amount, effect) {
     // Check for Visual FX request
     var fx_type = variable_struct_exists(effect, "visual_fx") ? effect.visual_fx : "";
     var elem = variable_struct_exists(effect, "element") ? string_lower(effect.element) : "";
+    var src = noone;
+    if (variable_struct_exists(effect, "source_card")) src = effect.source_card;
+    else if (variable_struct_exists(effect, "source")) src = effect.source;
     
     if (fx_type == "multicible" || elem == "multicible") {
         for (var i = 0; i < array_length(targets); i++) {
             var tgt = targets[i];
             if (tgt == noone || !instance_exists(tgt)) continue;
             
-            var dmgCallback = method({t: tgt, a: amount}, function() {
+            var dmgCallback = method({t: tgt, a: amount, s: src}, function() {
                 if (instance_exists(t)) {
-                    damageCard(t, a);
+                    damageCard(t, a, s);
                 }
             });
             
             if (!is_undefined(animEffectRequestProjectileTarget)) {
-                animEffectRequestProjectileTarget("feu", effect.source_card, tgt, amount, dmgCallback);
+                animEffectRequestProjectileTarget("feu", src, tgt, amount, dmgCallback);
             } else {
                 dmgCallback();
             }
         }
     } else {
         // Default instant behavior
-        for (var i = 0; i < array_length(targets); i++) { damageCard(targets[i], amount); }
+        for (var i = 0; i < array_length(targets); i++) { damageCard(targets[i], amount, src); }
     }
     return true;
 }
