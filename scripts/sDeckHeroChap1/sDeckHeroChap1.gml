@@ -14,7 +14,7 @@ function get_hero_decks_chap1() {
                 "oLoupGaleux", "oLoupGaleux", 
                 "oJeuneLoup", "oJeuneLoup", 
                 "oRenardMystique", "oRenardMystique", 
-                "oVieilOurs", "oVieilOurs", 
+                "oRodeurForet", "oRodeurForet", 
                 
                 "oGriffePredateur", "oGriffePredateur", 
                 "oSautPredateur", "oSautPredateur", 
@@ -44,7 +44,7 @@ function get_hero_decks_chap1() {
                 "oLoupGaleux", "oLoupGaleux",
                 "oJeuneLoup", "oJeuneLoup",
                 "oRenardMystique", "oRenardMystique",
-                "oVieilOurs", "oVieilOurs",
+                "oRodeurForet", "oRodeurForet",
 
                 "oGriffePredateur", "oGriffePredateur",
                 "oSautPredateur", "oSautPredateur",
@@ -76,7 +76,7 @@ function get_hero_decks_chap1() {
                 "oLoupGaleux", "oLoupGaleux", 
                 "oJeuneLoup", "oJeuneLoup", 
                 "oRenardMystique", "oRenardMystique", 
-                "oVieilOurs", "oVieilOurs", 
+                "oRodeurForet", "oRodeurForet", 
                 
                 "oGriffePredateur", "oGriffePredateur", 
                 "oSautPredateur", "oSautPredateur", 
@@ -110,7 +110,7 @@ function get_hero_decks_chap1() {
                 "oLoupGaleux", "oLoupGaleux", 
                 "oJeuneLoup", "oJeuneLoup", 
                 "oRenardMystique", "oRenardMystique", 
-                "oVieilOurs", "oVieilOurs", 
+                "oRodeurForet", "oRodeurForet", 
                 
                 "oGriffePredateur", "oGriffePredateur", 
                 "oSautPredateur", "oSautPredateur", 
@@ -139,7 +139,7 @@ function get_hero_decks_chap1() {
                 "oLoupGaleux", "oLoupGaleux",
                 "oJeuneLoup", "oJeuneLoup",
                 "oRenardMystique", "oRenardMystique",
-                "oVieilOurs", "oVieilOurs",
+                "oRodeurForet", "oRodeurForet",
 
                 "oGriffePredateur", "oGriffePredateur",
                 "oSautPredateur", "oSautPredateur",
@@ -169,7 +169,7 @@ function get_hero_decks_chap1() {
                 "oLoupGaleux", "oLoupGaleux",
                 "oJeuneLoup", "oJeuneLoup",
                 "oRenardMystique", "oRenardMystique",
-                "oVieilOurs", "oVieilOurs",
+                "oRodeurForet", "oRodeurForet",
                 "oGriffePredateur", "oGriffePredateur",
                 "oSautPredateur", "oSautPredateur",
                 "oFeuillageProtecteur",
@@ -200,7 +200,7 @@ function get_hero_decks_chap1() {
                 "oLoupGaleux", "oLoupGaleux",
                 "oJeuneLoup", "oJeuneLoup",
                 "oRenardMystique", "oRenardMystique",
-                "oVieilOurs", "oVieilOurs",
+                "oRodeurForet", "oRodeurForet",
                 "oGriffePredateur", "oGriffePredateur",
                 "oSautPredateur", "oSautPredateur",
                 "oFeuillageProtecteur",

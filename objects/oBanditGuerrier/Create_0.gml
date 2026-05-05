@@ -11,7 +11,7 @@ booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque un bandit à ses cotés."
+description = "Eveil : Invoque un bandit sur un emplacement libre adjacent."
 effects = [
     {
         id: 1,

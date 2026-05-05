@@ -21,27 +21,49 @@ var actn = global.current_act;
 var sceneIndex = global.current_scene_index;
 
 var base_name = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
-var path = "scenarios/ch" + string(chap) + "/" + base_name;
+var candidates = [
+    "scenarios/ch" + string(chap) + "/" + base_name,
+    "datafiles/scenarios/ch" + string(chap) + "/" + base_name,
+    program_directory + "datafiles/scenarios/ch" + string(chap) + "/" + base_name,
+    base_name
+];
 
-if (!file_exists(path)) {
-    path = base_name;
+var data = undefined;
+var chosen = "";
+var data_empty = undefined;
+var chosen_empty = "";
+
+for (var i = 0; i < array_length(candidates); i++) {
+    var p = candidates[i];
+    if (file_exists(p)) {
+        var buff = buffer_load(p);
+        if (buff != -1) {
+            var s = buffer_read(buff, buffer_text);
+            buffer_delete(buff);
+            if (string_length(s) > 0 && string_ord_at(s, 1) == 65279) s = string_delete(s, 1, 1);
+            try {
+                var parsed = json_parse(s);
+                if (is_struct(parsed) && variable_struct_exists(parsed, "scenes") && is_array(parsed.scenes)) {
+                    if (array_length(parsed.scenes) > 0) {
+                        data = parsed;
+                        chosen = p;
+                        break;
+                    } else if (is_undefined(data_empty)) {
+                        data_empty = parsed;
+                        chosen_empty = p;
+                    }
+                }
+            } catch (e) {
+                show_debug_message("ERROR PARSING JSON IN ROOM START: " + string(e) + " path=" + p);
+            }
+        }
+    }
 }
 
-if (file_exists(path)) {
-    var fr = file_text_open_read(path);
-    var s = "";
-    while (!file_text_eof(fr)) { 
-        s += file_text_read_string(fr);
-        file_text_readln(fr); // IMPORTANT: Force next line
-    }
-    file_text_close(fr);
-    
-    var data = undefined;
-    try {
-        data = json_parse(s);
-    } catch(e) {
-        show_debug_message("ERROR PARSING JSON IN ROOM START: " + string(e));
-    }
+if (is_undefined(data) && !is_undefined(data_empty)) {
+    data = data_empty;
+    chosen = chosen_empty;
+}
 
     if (is_struct(data) && variable_struct_exists(data, "scenes")) {
         var scenes = data.scenes;
@@ -86,4 +108,3 @@ if (file_exists(path)) {
             show_debug_message("### rScenario: oScenarioRunner introuvable");
         }
     }
-}

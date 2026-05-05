@@ -1,4 +1,4 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Rôdeur des forêts"
@@ -10,7 +10,7 @@ booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque un 'jeune loup'."
+description = "Eveil : Invoque un 'jeune loup' à coté de lui."
 effects = [
     {
         id: 1,

@@ -742,6 +742,7 @@ if (variable_instance_exists(self, "selected")) {
         provocation:   { label: "Provocation",  desc: "Bloque les attaques directes : doit être attaqué en priorité." },
         entrave:       { label: "Entrave",      desc: "Empêche la cible d'attaquer pendant un certain temps." },
         poison:        { label: "Poison",       desc: "Détruit les serviteurs qu'il blesse." },
+        ponction:      { label: "Ponction",     desc: "Soigne le héros des dégâts infligés par cette carte." },
         ambidextrie:   { label: "Ambidextrie",  desc: "Peut attaquer deux fois par tour." },
         illusion:      { label: "Illusion",     desc: "Annule la première destruction subie." },
         secret:        { label: "Secret",       desc: "Se pose face cachée et se déclenche sous une condition." },
@@ -779,7 +780,7 @@ if (variable_instance_exists(self, "selected")) {
 
     if (variable_instance_exists(card, "description")) {
         var nd = normalize_keyword(card.description);
-        var keys_to_scan = ["eveil", "aube", "crepuscule", "brise", "rupture", "defenseur", "camouflage", "charge", "percee", "provocation", "entrave", "poison", "ambidextrie", "illusion", "secret", "aura", "combo", "pillage"];
+        var keys_to_scan = ["eveil", "aube", "crepuscule", "brise", "rupture", "defenseur", "camouflage", "charge", "percee", "provocation", "entrave", "poison", "ponction", "ambidextrie", "illusion", "secret", "aura", "combo", "pillage"];
         for (var si = 0; si < array_length(keys_to_scan); si++) {
             var kscan = keys_to_scan[si];
             if (string_pos(kscan, nd) > 0) {

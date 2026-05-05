@@ -45,7 +45,7 @@ if (variable_instance_exists(card, "effects")) {
 }
 if (variable_instance_exists(card, "genre")) {
     var gl = string_lower(card.genre);
-    if (gl == "continu" || gl == "continue") { hasContinuous = true; }
+    if (gl == "continu" || gl == "continue" || gl == "terrain") { hasContinuous = true; }
 }
 
 // Si aucun effet manuel, autoriser le flux pour les cartes à effet continu (pose/retournement)
@@ -109,11 +109,11 @@ if (isMagicInHand) {
     }
 
     // --- LOGIQUE SLOT POUR CONTINUS/ARTEFACTS ---
-    // Les sorts continus doivent avoir une place sur le terrain MagicTrap pour persister
     var targetSlot = -1;
     var targetXY = [0, 0];
+    var needsFieldSlot = (hasContinuous || isArtifact);
     
-    if (hasContinuous || isArtifact) {
+    if (needsFieldSlot) {
         show_debug_message("### oEffectButton: Carte Continue/Artéfact -> Recherche de slot MagicTrap");
         var ownerIsHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
         var fieldMgr = ownerIsHero ? fieldManagerHero : fieldManagerEnemy;
@@ -146,11 +146,20 @@ if (isMagicInHand) {
     // On ne doit pas intercepter ici pour éviter de briser le flux (callback sur l'effet et non la carte).
     show_debug_message("### oEffectButton: Délégation du ciblage à executeEffect via ACTION_SUMMON");
 
-    // TOUTES les cartes Magie sont jouées en mode Direct (sans slot sur le terrain)
+    var playMode = "Summon";
+    if (isSecretCheck) {
+        playMode = "Set";
+    }
+    
+    var playXY = [0, 0, -1];
+    if (needsFieldSlot) {
+        playXY = [targetXY[0], targetXY[1], targetSlot];
+    }
+
     var payload = {
         card: card,
-        xy: [0, 0, -1], // Toujours -1 pour indiquer un sort Direct
-        summon_mode: "Summon" // Toujours Summon pour Play
+        xy: playXY,
+        summon_mode: playMode
     };
     if (variable_instance_exists(card, "instance_uid")) {
         payload.card_uid = card.instance_uid;

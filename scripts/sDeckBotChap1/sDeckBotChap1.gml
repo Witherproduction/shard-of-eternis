@@ -249,23 +249,22 @@ function get_bot_decks_chap1() {
             portrait: "sPortraitMatriarchePeauRoc", 
             description: "La Matriarche veille sur sa harde. Elle temporise le début de partie pour écraser ses ennemis sous le poids de ses bêtes géantes.",
             cards: [
-                "oGriffePredateur",
+                "oGriffePredateur", "oGriffePredateur",
                 "oSautPredateur",
                 "oFrenesieSauvage", "oFrenesieSauvage",
                 "oRugissementForet", "oRugissementForet",
                 "oPiegeRonce", "oPiegeRonce",
                 "oCriMeute", "oCriMeute",
-                "oJeuneLoup", "oJeuneLoup", "oRenardMystique",
+                "oJeuneLoup", "oJeuneLoup", "oJeuneLoup", "oRenardMystique", "oRenardMystique",
                 "oLoupGrisForet", "oLoupGrisForet", "oLoupGrisForet",
-                "oSanglierPeauRoc", "oSanglierPeauRoc", "oSanglierPeauRoc",
+                "oSanglierPeauRoc",
                 "oTortueVagabonde", "oTortueVagabonde", "oTortueVagabonde",
                 "oVieilOurs", "oVieilOurs", "oVieilOurs",
                 "oLoupGaleux", "oLoupGaleux",
                 "oJeuneOursForet", "oJeuneOursForet", "oJeuneOursForet",
-                "oRodeurForet", "oRodeurForet",
-                "oPeauRocRobuste", "oPeauRocRobuste", "oPeauRocRobuste",
+                "oRodeurForet", "oRodeurForet", "oRodeurForet", "oRodeurForet",
+                "oPeauRocRobuste",
                 "oTarentuleForet", "oTarentuleForet",
-                "oMatriarchePeauRoc",
                 "oTarrinox", "oTarrinox"
             ]
         },
@@ -803,6 +802,109 @@ function chap1_bot_events_on_progress(game_inst) {
                 var toastB7P4 = instance_create_layer(0, 0, "UI", oStoryToast);
                 toastB7P4.setPortrait("sPortraitGorrak", 96);
                 toastB7P4.setText("Je vais te broyer, petit homme !");
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    if (botID == "Matriarche_Peau_Roc") {
+        var lp4 = instance_find(oLP_Enemy, 0);
+        var lpv4 = (lp4 != noone && variable_instance_exists(lp4, "nbLP")) ? lp4.nbLP : 999999;
+        
+        if (!variable_instance_exists(game_inst, "bot4_script_phase1_done")) game_inst.bot4_script_phase1_done = false;
+        if (!game_inst.bot4_script_phase1_done) {
+            var mustTriggerB4P1 = (lpv4 <= 40) || (game_inst.nbTurn == 8);
+            if (mustTriggerB4P1) {
+                game_inst.bot4_script_phase1_done = true;
+                
+                var canSummonB4P1 = (getLeftmostFreeMonsterSlot(false) != noone);
+                if (lpv4 <= 40 && canSummonB4P1) {
+                    game_inst.story_pending_summon_asset = "oSanglierPeauRoc";
+                    game_inst.story_pending_summon_cost = 0;
+                    game_inst.story_pending_summon_force_cost = true;
+                    game_inst.story_pending_summon_count = 1;
+                    game_inst.story_pending_summon_prefer_front = true;
+                } else {
+                    game_inst.story_pending_add_to_hand_asset = "oSanglierPeauRoc";
+                }
+                
+                if (instance_exists(oStoryToast)) return true;
+                var toastB4P1 = instance_create_layer(0, 0, "UI", oStoryToast);
+                toastB4P1.setPortrait("sPortraitMatriarchePeauRoc", 96);
+                toastB4P1.setText("HNNFF… GRRRR !");
+                return true;
+            }
+        }
+        
+        if (!variable_instance_exists(game_inst, "bot4_script_phase2_done")) game_inst.bot4_script_phase2_done = false;
+        if (!game_inst.bot4_script_phase2_done && game_inst.bot4_script_phase1_done) {
+            var mustTriggerB4P2 = (lpv4 <= 30) || (game_inst.nbTurn == 12);
+            if (mustTriggerB4P2) {
+                game_inst.bot4_script_phase2_done = true;
+                
+                var wantSummonB4P2 = (lpv4 <= 30);
+                var canSummonB4P2 = (getLeftmostFreeMonsterSlot(false) != noone);
+                if (wantSummonB4P2 && canSummonB4P2) {
+                    game_inst.story_pending_summon_asset = "oPeauRocRobuste";
+                    game_inst.story_pending_summon_cost = 0;
+                    game_inst.story_pending_summon_force_cost = true;
+                    game_inst.story_pending_summon_count = 1;
+                    game_inst.story_pending_summon_prefer_back = true;
+                } else {
+                    game_inst.story_pending_add_to_hand_asset = "oPeauRocRobuste";
+                }
+                
+                if (instance_exists(oStoryToast)) return true;
+                var toastB4P2 = instance_create_layer(0, 0, "UI", oStoryToast);
+                toastB4P2.setPortrait("sPortraitMatriarchePeauRoc", 96);
+                toastB4P2.setText("GRRR… *souffle lourd*…");
+                return true;
+            }
+        }
+        
+        if (!variable_instance_exists(game_inst, "bot4_script_phase3_done")) game_inst.bot4_script_phase3_done = false;
+        if (!game_inst.bot4_script_phase3_done && game_inst.bot4_script_phase2_done) {
+            var mustTriggerB4P3 = (lpv4 <= 15) || (game_inst.nbTurn == 16);
+            if (mustTriggerB4P3) {
+                game_inst.bot4_script_phase3_done = true;
+                
+                if (lpv4 <= 15) {
+                    var freeSlots = 0;
+                    var fmE = instance_exists(fieldManagerEnemy) ? fieldManagerEnemy : instance_find(oFieldManagerEnemy, 0);
+                    if (fmE != noone && instance_exists(fmE)) {
+                        var monsterFieldE = fmE.getField("Monster");
+                        if (monsterFieldE != noone && instance_exists(monsterFieldE)) {
+                            for (var iB4 = 0; iB4 < array_length(monsterFieldE.cards); iB4++) {
+                                if (monsterFieldE.cards[iB4] == 0) freeSlots++;
+                            }
+                        }
+                    }
+                    
+                    if (freeSlots >= 2) {
+                        game_inst.story_pending_summon_asset = "oMatriarchePeauRoc";
+                        game_inst.story_pending_summon_cost = 0;
+                        game_inst.story_pending_summon_force_cost = true;
+                        game_inst.story_pending_summon_count = 1;
+                        game_inst.story_pending_summon_prefer_back = true;
+                        
+                        game_inst.story_pending_summon_asset2 = "oSanglierPeauRoc";
+                        game_inst.story_pending_summon_cost2 = 0;
+                        game_inst.story_pending_summon_force_cost2 = true;
+                        game_inst.story_pending_summon_count2 = 1;
+                        game_inst.story_pending_summon_prefer_front2 = true;
+                    } else {
+                        game_inst.story_pending_add_to_hand_asset = "oMatriarchePeauRoc";
+                    }
+                } else {
+                    game_inst.story_pending_add_to_hand_asset = "oMatriarchePeauRoc";
+                }
+                
+                if (instance_exists(oStoryToast)) return true;
+                var toastB4P3 = instance_create_layer(0, 0, "UI", oStoryToast);
+                toastB4P3.setPortrait("sPortraitMatriarchePeauRoc", 96);
+                toastB4P3.setText("*GROUIK*… GRRROONK ! HNNNFF !!");
                 return true;
             }
         }

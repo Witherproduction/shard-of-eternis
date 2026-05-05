@@ -1,6 +1,4 @@
 event_inherited();
-race = "Ombre";  // Hérite des variables et comportement de oCardMagic
-
 // Définit les stats spécifiques de ce sort
 name = "Attaque furtive"
 genre = "Sort"

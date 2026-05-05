@@ -9,16 +9,14 @@ show_debug_message("### oFieldMagicTrapHero.create - after event_inherited")
 
 // [HEARTHSTONE] Magic zones disabled/hidden
 visible = false;
-posLocation = []; 
-/* Legacy positions:
-[
+cards = [0, 0, 0, 0, 0];
+posLocation = [
 	[600, 846],
 	[780, 846],
 	[960, 846],
 	[1142, 846],
 	[1322, 846],
 ];
-*/
 
 
 ///////////////////////////////////////////////////////////////////////

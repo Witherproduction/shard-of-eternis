@@ -1,4 +1,4 @@
-﻿show_debug_message("### oSacrificeSelector.create");
+show_debug_message("### oSacrificeSelector.create");
 
 ///////////////////////////////////////////////////////////////////////
 // Attributs
@@ -45,35 +45,13 @@ initSacrificeSelection = function(monster, position, mode) {
     summonMode = mode;
     selectedSacrifices = [];
     
-    // Détermine le niveau de sacrifice requis
-    requiredLevel = getSacrificeLevel(monster.mana_cost);
+    // Système de sacrifice supprimé: ce sélecteur ne doit plus s'ouvrir.
+    requiredLevel = 0;
+    requiredSacrificeCount = 0;
+    visible = false;
+    global.isSacrificeSelectorOpen = false;
     
-    // Détermine le nombre de sacrifices requis
-    switch(requiredLevel) {
-        case 0:
-            requiredSacrificeCount = 0;
-            break;
-        case 1:
-            requiredSacrificeCount = 1;
-            break;
-        case 2:
-            requiredSacrificeCount = 2; // Toujours 2 sacrifices pour les supérieurs
-            break;
-    }
-    
-    // Vérifie si des sacrifices sont nécessaires
-    if(requiredSacrificeCount > 0) {
-        // Affiche le sélecteur
-        visible = true;
-        // Active le verrou global pour empêcher les autres interactions
-        global.isSacrificeSelectorOpen = true;
-        
-        // Désactive temporairement les autres contrôles
-        // TODO: Désactiver les autres contrôles si nécessaire
-    } else {
-        // Pas de sacrifice requis, procède directement à l'invocation
-        completeSummon();
-    }
+    UIManager.displayIndicator(monsterToSummon);
 };
 
 // Vérifie si un monstre peut être sélectionné comme sacrifice

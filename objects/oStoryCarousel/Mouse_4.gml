@@ -1,4 +1,4 @@
-if (instance_exists(oPanelOptions)) exit;
+if (instance_exists(oPanelOptions) || instance_exists(oQuestPanel)) exit;
 var spr = sprite_panel;
 var sw = (spr != -1) ? sprite_get_width(spr) : target_w_center;
 var sh = (spr != -1) ? sprite_get_height(spr) : target_w_center * (3/2);

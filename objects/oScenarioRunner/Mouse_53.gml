@@ -97,13 +97,7 @@ var advance_to_next_scene = function() {
         update_bg_audio();
 
     } else {
-        if (!is_act_complete(chapter_id, act_num)) {
-            add_gold(100);
-            show_debug_message("### Récompense Acte : +100 Or");
-        }
-        
         unlock_act_complete(chapter_id, act_num);
-        story_progress_unlock_reward("act_" + string(chapter_id) + "_" + string(act_num));
         
         var next_act = act_num + 1;
         var next_scene = 0;

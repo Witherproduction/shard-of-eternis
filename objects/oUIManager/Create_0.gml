@@ -35,24 +35,16 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
     var canNormalSummon = false;
     if (card != noone && instance_exists(card)) {
         if (card.type == "Monster") {
-            // Vérifier s'il y a de la place sur le terrain (sauf si sacrifice nécessaire)
+            // Vérifier s'il y a de la place sur le terrain
             var hasFreeSlot = false;
-            var reqSacrifice = getSacrificeLevel(card.mana_cost);
-            
-            // Si monstre de niveau 1, il faut un slot libre
-            if (card.mana_cost == 1) {
-                var fm = instance_exists(fieldManagerHero) ? fieldManagerHero : instance_find(oFieldManagerHero, 0);
-                if (fm != noone && instance_exists(fm)) {
-                    var monsterField = fm.getField("Monster");
-                    if (monsterField != noone && variable_struct_exists(monsterField, "cards")) {
-                        for (var i = 0; i < array_length(monsterField.cards); i++) {
-                            if (monsterField.cards[i] == 0) { hasFreeSlot = true; break; }
-                        }
+            var fm = instance_exists(fieldManagerHero) ? fieldManagerHero : instance_find(oFieldManagerHero, 0);
+            if (fm != noone && instance_exists(fm)) {
+                var monsterField = fm.getField("Monster");
+                if (monsterField != noone && variable_struct_exists(monsterField, "cards")) {
+                    for (var i = 0; i < array_length(monsterField.cards); i++) {
+                        if (monsterField.cards[i] == 0) { hasFreeSlot = true; break; }
                     }
                 }
-            } else {
-                // Pour les autres niveaux (2, 3, etc.), on affiche les boutons (soit sacrifice, soit autre logique)
-                hasFreeSlot = true;
             }
 
             // HS: Phase Main au lieu de Summon. Pas de limite d'invocation par tour (juste Mana)
@@ -141,6 +133,10 @@ displayAttackButton = function(card) {show_debug_message("### oUIManager.display
     }
     if (!(variable_instance_exists(card, "type") && card.type == "Monster")) {
         show_debug_message("### UIManager.displayAttackButton: carte non-monstre -> bouton non affiché");
+        return;
+    }
+    if (variable_instance_exists(card, "isTerrain") && card.isTerrain) {
+        show_debug_message("### UIManager.displayAttackButton: terrain -> bouton non affiché");
         return;
     }
     if (!(variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner)) {

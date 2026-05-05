@@ -30,7 +30,7 @@ function rect_contains(r, px, py) {
 }
 
  timeline = [];
-  current = { speaker: 1, text: "", bg_name: "", portrait1_name: "", portrait2_name: "", portrait3_name: "", obj1_name: "", obj2_name: "", duel_deck_hero: "", duel_deck_bot: "", bg_sound: "", bg_sound2: "", speaker1_flip: false, speaker2_flip: false, speaker3_flip: false, obj1_flip: false, obj2_flip: false, wait_after_ms: 600, duel_reward_type: "None", duel_reward_value: "" };
+  current = { speaker: 1, text: "", bg_name: "", portrait1_name: "", portrait2_name: "", portrait3_name: "", obj1_name: "", obj2_name: "", duel_deck_hero: "", duel_deck_bot: "", duel_bot_id: 0, duel_player_deck: noone, bg_sound: "", bg_sound2: "", speaker1_flip: false, speaker2_flip: false, speaker3_flip: false, obj1_flip: false, obj2_flip: false, wait_after_ms: 600, duel_reward_type: "None", duel_reward_value: "" };
 input_mode = "";
 str_input = "";
 cursor_pos = 0;
@@ -40,10 +40,15 @@ btn_h = 64 * k;
 btn_margin = 24 * k;
 btn_save_hover = false;
 btn_delete_hover = false;
+btn_export_hover = false;
 btn_save_x1 = 0;
 btn_save_y1 = 0;
 btn_save_x2 = 0;
 btn_save_y2 = 0;
+btn_export_x1 = 0;
+btn_export_y1 = 0;
+btn_export_x2 = 0;
+btn_export_y2 = 0;
 btn_delete_x1 = 0;
 btn_delete_y1 = 0;
 btn_delete_x2 = 0;
@@ -223,6 +228,31 @@ duel_list_scroll_bot = 0;
 // Notification system
 save_notification_timer = 0;
 save_notification_text = "";
+export_notification_timer = 0;
+export_notification_text = "";
+
+scenario_export_project_root = "";
+scenario_export_last_target_path = "";
+scenario_export_last_error = "";
+
+scenario_read_text_file = function(path) {
+    if (!file_exists(path)) return "";
+    var buff = buffer_load(path);
+    if (buff == -1) return "";
+    var content = buffer_read(buff, buffer_text);
+    buffer_delete(buff);
+    if (string_length(content) > 0 && string_ord_at(content, 1) == 65279) content = string_delete(content, 1, 1);
+    return content;
+};
+
+scenario_parse_json_safe = function(s) {
+    try {
+        return json_parse(s);
+    } catch (e) {
+        show_debug_message("### ScenarioCreatorUI: JSON parse error: " + string(e));
+        return undefined;
+    }
+};
 
 // Répétition des touches pour l'édition de texte
 key_repeat_key = -1;
@@ -352,20 +382,41 @@ load_current_act_data = function() {
     var chap = global.current_chapter;
     var actn = global.current_act;
     var base_name = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
-    var path = "scenarios/ch" + string(chap) + "/" + base_name;
-    show_debug_message("### ScenarioCreatorUI: LOAD_CURRENT wd=" + working_directory + " path=" + path);
-    
-    if (!file_exists(path)) {
-        path = base_name;
-        show_debug_message("### ScenarioCreatorUI: LOAD_CURRENT fallback path=" + path);
+    var candidates = [
+        "scenarios/ch" + string(chap) + "/" + base_name,
+        "datafiles/scenarios/ch" + string(chap) + "/" + base_name,
+        program_directory + "datafiles/scenarios/ch" + string(chap) + "/" + base_name,
+        base_name
+    ];
+    var data = undefined;
+    var path = "";
+    var data_empty = undefined;
+    var path_empty = "";
+    for (var i = 0; i < array_length(candidates); i++) {
+        var p = candidates[i];
+        var content = scenario_read_text_file(p);
+        if (content != "") {
+            var parsed = scenario_parse_json_safe(content);
+            if (!is_undefined(parsed)) {
+                var has_scenes = variable_struct_exists(parsed, "scenes") && is_array(parsed.scenes) && array_length(parsed.scenes) > 0;
+                if (has_scenes) {
+                    data = parsed;
+                    path = p;
+                    break;
+                } else if (is_undefined(data_empty)) {
+                    data_empty = parsed;
+                    path_empty = p;
+                }
+            }
+        }
+    }
+    if (is_undefined(data) && !is_undefined(data_empty)) {
+        data = data_empty;
+        path = path_empty;
     }
     
-    if (file_exists(path)) {
-        var fr = file_text_open_read(path);
-        var s = "";
-        while (!file_text_eof(fr)) { s += file_text_read_string(fr); }
-        file_text_close(fr);
-        var data = json_parse(s);
+    if (!is_undefined(data)) {
+        show_debug_message("### ScenarioCreatorUI: LOAD_CURRENT wd=" + working_directory + " path=" + path);
         editor_scenes = data.scenes;
         scene_idx = 0;
         line_idx = 0;
@@ -393,5 +444,45 @@ load_current_act_data = function() {
         current.text = "";
         timeline = [];
     }
+};
+
+scenario_export_normalize_dir = function(p) {
+    p = string_replace_all(string(p), "\\", "/");
+    if (string_length(p) > 0 && string_char_at(p, string_length(p)) != "/") p += "/";
+    return p;
+};
+
+scenario_export_load_settings = function() {
+    ini_open("scenario_export.ini");
+    scenario_export_project_root = ini_read_string("export", "project_root", "");
+    ini_close();
+    scenario_export_project_root = scenario_export_normalize_dir(scenario_export_project_root);
+    return scenario_export_project_root;
+};
+
+scenario_export_save_settings = function(root) {
+    ini_open("scenario_export.ini");
+    ini_write_string("export", "project_root", scenario_export_normalize_dir(root));
+    ini_close();
+    scenario_export_project_root = scenario_export_normalize_dir(root);
+};
+
+scenario_export_to_included_files = function(chap, actn, json_str) {
+    scenario_export_last_error = "";
+    
+    var base_name = "scenario_chapter_" + string(chap) + "_act_" + string(actn) + ".json";
+    directory_create("datafiles");
+    directory_create("datafiles/scenarios");
+    directory_create("datafiles/scenarios/ch" + string(chap));
+    var target = "datafiles/scenarios/ch" + string(chap) + "/" + base_name;
+    var fh = file_text_open_write(target);
+    if (fh < 0) {
+        scenario_export_last_error = "Impossible d'ecrire dans: " + target;
+        return false;
+    }
+    file_text_write_string(fh, json_str);
+    file_text_close(fh);
+    scenario_export_last_target_path = working_directory + target;
+    return file_exists(target);
 };
 

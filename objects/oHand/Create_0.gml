@@ -79,7 +79,7 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
 
     // Résoudre le mode d'invocation même côté IA (UIManager peut être vide)
     var mode_resolved = UIManager.selectedSummonOrSet;
-    var isSecret = (!is_undefined(card.genre) && card.genre == "Secret");
+    var isSecret = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "secret");
     if (is_undefined(mode_resolved) || string(mode_resolved) == "") {
         if (isHeroOwner) {
             // Côté joueur: fallback simple si vide
@@ -116,10 +116,10 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
     }
 
     // [HEARTHSTONE] Bypass slot check for Spells (Magic cards played without slot)
-    var isSpellPlay = (card.type == "Magic" && target_pos == -1);
+    var isSpellPlay = (card.type == "Magic" && (target_pos == -1 || isSecret));
 
     // --- FIX: Empêcher l'activation de Secrets en double ---
-    var isSecretCheck = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "secret");
+    var isSecretCheck = isSecret;
     if (isSecretCheck) {
         var secretListCheck = isHeroOwner ? global.activeSecretsHero : global.activeSecretsEnemy;
         if (variable_global_exists("activeSecretsHero") && ds_exists(secretListCheck, ds_type_list)) {
@@ -230,6 +230,12 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
              card.visible = false;
              card.zone = "Secret";
              
+             var lpInst = isHeroOwner ? instance_find(oLP_Hero, 0) : instance_find(oLP_Enemy, 0);
+             if (lpInst != noone && instance_exists(lpInst)) {
+                 card.x = lpInst.x;
+                 card.y = lpInst.y - 70;
+             }
+             
              // Add to Active Secrets List
              var secretList = isHeroOwner ? global.activeSecretsHero : global.activeSecretsEnemy;
              if (ds_list_find_index(secretList, card) == -1) {
@@ -327,12 +333,13 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
              card.zone = "Hand";
              
              // Refund Mana
-             var cost = variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0;
+             var cost = variable_instance_exists(card, "_last_mana_paid") ? card._last_mana_paid : (variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0);
              if (isHeroOwner) {
                  global.mana_hero += cost;
              } else {
                  global.mana_enemy += cost;
              }
+             if (variable_instance_exists(card, "_last_mana_paid")) { card._last_mana_paid = undefined; }
              
              return false;
         }

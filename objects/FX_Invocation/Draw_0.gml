@@ -14,10 +14,12 @@ var _portal_total  = (variable_instance_exists(self, "ss_portal_total_frames") ?
 if (_draw_portal) {
     var zoom_p = clamp(ss_portal_t / max(1, _zoom_total), 0, 1);
     var zoom_e = zoom_p * zoom_p * (3 - 2 * zoom_p);
-    var sc = (ss_portal_t < _zoom_total) ? (1.25 * zoom_e) : 1.25;
+    var sc = (ss_portal_t < _zoom_total) ? (0.5 * zoom_e) : 0.5;
     var fc_ss = sprite_get_number(ss_sprite_idx);
-    var pp = clamp(ss_portal_t / max(1, _portal_total), 0, 1);
-    var fi_ss = clamp(floor(pp * max(1, fc_ss - 1)), 0, max(0, fc_ss - 1));
+    var fi_ss = 0;
+    if (fc_ss > 1) {
+        fi_ss = (current_time div 100) mod fc_ss;
+    }
     draw_set_alpha(ss_alpha);
     draw_sprite_ext(ss_sprite_idx, fi_ss, ss_x, ss_y, sc, sc, 0, c_white, 1);
 }

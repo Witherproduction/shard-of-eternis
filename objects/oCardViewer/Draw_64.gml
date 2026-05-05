@@ -167,7 +167,7 @@ if (room == rCollection) {
     }
 }
 
-// Animation Feedback Convoquer (sprite sSpecialSummon)
+// Animation Feedback Convoquer (sprite sPortailHeros)
 if (variable_instance_exists(id, "summonAnimState") && summonAnimState > 0) {
     var _alpha = 1;
     var _scale = 1;
@@ -191,7 +191,7 @@ if (variable_instance_exists(id, "summonAnimState") && summonAnimState > 0) {
     var _cx = (_gw / 2) - 300; // Décalé à gauche
     var _cy = _gh / 2;
     
-    var _spr = asset_get_index("sSpecialSummon");
+    var _spr = asset_get_index("sPortailHeros");
     if (_spr != -1) {
         gpu_set_texfilter(true);
         draw_sprite_ext(_spr, 0, _cx, _cy, _scale, _scale, 0, c_white, _alpha);

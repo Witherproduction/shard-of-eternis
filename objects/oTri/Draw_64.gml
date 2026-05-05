@@ -60,23 +60,6 @@ if (f != -1) draw_set_font(f);
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 
-var draw_star = function(_cx, _cy, _r) {
-    var pts = [];
-    for (var ii = 0; ii < 5; ii++) {
-        var ang = -90 + ii * 72;
-        array_push(pts, _cx + lengthdir_x(_r, ang));
-        array_push(pts, _cy + lengthdir_y(_r, ang));
-        ang = -90 + ii * 72 + 36;
-        array_push(pts, _cx + lengthdir_x(_r * 0.45, ang));
-        array_push(pts, _cy + lengthdir_y(_r * 0.45, ang));
-    }
-    for (var jj = 0; jj < array_length(pts); jj += 2) {
-        var nx = pts[(jj + 2) mod array_length(pts)];
-        var ny = pts[(jj + 3) mod array_length(pts)];
-        draw_line(pts[jj], pts[jj + 1], nx, ny);
-    }
-};
-
 for (var i = 0; i < 7; i++) {
     var buttonX = startX + (i * buttonSpacing);
     
@@ -91,125 +74,28 @@ for (var i = 0; i < 7; i++) {
     var sy = buttonY + 2;
     var r = max(6, ir);
     
-    if (mode != "attack") {
-        // Dessiner le cercle du bouton (couleur differente si actif)
-        draw_set_color(isActive ? bubble_active_color : bubble_normal_color);
-        draw_circle(buttonX, buttonY, buttonRadius, false);
-        
-        // Dessiner la bordure
-        draw_set_color(border_color);
-        draw_circle(buttonX, buttonY, buttonRadius, true);
+    draw_set_color(isActive ? bubble_active_color : bubble_normal_color);
+    draw_circle(buttonX, buttonY, buttonRadius, false);
+    draw_set_color(border_color);
+    draw_circle(buttonX, buttonY, buttonRadius, true);
+    
+    var icon_frame = -1;
+    switch (mode) {
+        case "attack": icon_frame = 0; break;
+        case "PV": icon_frame = 1; break;
+        case "level": icon_frame = 2; break;
+        case "type": icon_frame = 3; break;
+        case "race": icon_frame = 4; break;
+        case "rarity": icon_frame = 5; break;
+        case "alpha": icon_frame = 6; break;
     }
     
-    draw_set_color(text_shadow_color);
-    switch (mode) {
-        case "attack":
-            var spr = sTribouton;
-            var sw = sprite_get_width(spr);
-            var sh = sprite_get_height(spr);
-            var sc = (max(1, (buttonRadius * 2 + 2)) / max(sw, sh));
-            draw_sprite_ext(spr, 0, sx, sy, sc, sc, 0, c_black, 1);
-            break;
-        case "PV":
-            var hr = max(3, floor(r * 0.26));
-            var hy = sy - floor(hr * 0.2);
-            draw_circle(sx - hr, hy, hr, false);
-            draw_circle(sx + hr, hy, hr, false);
-            draw_triangle(sx - hr * 2, hy, sx + hr * 2, hy, sx, sy + hr * 2, false);
-            break;
-        case "level":
-            var cr = max(4, floor(r * 0.45));
-            var cx1 = sx;
-            var cy1 = sy - 1;
-            draw_triangle(cx1, cy1 - cr, cx1 - floor(cr * 0.65), cy1, cx1 + floor(cr * 0.65), cy1, false);
-            draw_triangle(cx1, cy1 + cr, cx1 - floor(cr * 0.65), cy1, cx1 + floor(cr * 0.65), cy1, false);
-            break;
-        case "type":
-            var er = max(3, floor(r * 0.28));
-            var off = floor(r * 0.52);
-            draw_triangle(sx, sy - off - er, sx - er, sy - off + er, sx + er, sy - off + er, false);
-            draw_circle(sx + off, sy - 1, er, false);
-            draw_triangle(sx + off, sy + er + 1, sx + off - er, sy, sx + off + er, sy, false);
-            draw_rectangle(sx - er, sy + off - er, sx + er, sy + off + er, false);
-            draw_line(sx - off - er, sy - 2, sx - off + er, sy - 2);
-            draw_line(sx - off - er, sy + 2, sx - off + er, sy + 2);
-            break;
-        case "race":
-            var pr = max(3, floor(r * 0.24));
-            draw_circle(sx, sy - floor(r * 0.45), pr, false);
-            draw_rectangle(sx - floor(r * 0.28), sy - floor(r * 0.15), sx + floor(r * 0.28), sy + floor(r * 0.35), false);
-            draw_line(sx - floor(r * 0.55), sy, sx + floor(r * 0.55), sy);
-            draw_line(sx - floor(r * 0.18), sy + floor(r * 0.35), sx - floor(r * 0.45), sy + floor(r * 0.75));
-            draw_line(sx + floor(r * 0.18), sy + floor(r * 0.35), sx + floor(r * 0.45), sy + floor(r * 0.75));
-            break;
-        case "rarity":
-            draw_star(sx, sy, r);
-            break;
-        case "alpha":
-            var _txt = "A-Z";
-            var maxW = buttonRadius * 2 - 6;
-            var maxH = buttonRadius * 2 - 6;
-            var tw = string_width(_txt);
-            var th = string_height(_txt);
-            var sc = 1;
-            if (tw > 0) sc = min(sc, maxW / tw);
-            if (th > 0) sc = min(sc, maxH / th);
-            sc = min(1, sc);
-            draw_text_transformed(sx, sy, _txt, sc, sc, 0);
-            break;
-    }
-    if (mode != "alpha") {
-        draw_set_color(text_main_color);
-        switch (mode) {
-            case "attack":
-                var spr = sTribouton;
-                var sw = sprite_get_width(spr);
-                var sh = sprite_get_height(spr);
-                var sc = (max(1, (buttonRadius * 2 + 2)) / max(sw, sh));
-                draw_sprite_ext(spr, 0, rx, ry, sc, sc, 0, c_white, 1);
-                break;
-            case "PV":
-                var hr = max(3, floor(r * 0.26));
-                var hy = ry - floor(hr * 0.2);
-                draw_circle(rx - hr, hy, hr, false);
-                draw_circle(rx + hr, hy, hr, false);
-                draw_triangle(rx - hr * 2, hy, rx + hr * 2, hy, rx, ry + hr * 2, false);
-                break;
-            case "level":
-                draw_set_color(make_color_rgb(80, 160, 255));
-                var cr = max(4, floor(r * 0.45));
-                var cx1 = rx;
-                var cy1 = ry - 1;
-                draw_triangle(cx1, cy1 - cr, cx1 - floor(cr * 0.65), cy1, cx1 + floor(cr * 0.65), cy1, false);
-                draw_triangle(cx1, cy1 + cr, cx1 - floor(cr * 0.65), cy1, cx1 + floor(cr * 0.65), cy1, false);
-                break;
-            case "type":
-                var er = max(3, floor(r * 0.28));
-                var off = floor(r * 0.52);
-                draw_set_color(make_color_rgb(240, 90, 60));
-                draw_triangle(rx, ry - off - er, rx - er, ry - off + er, rx + er, ry - off + er, false);
-                draw_set_color(make_color_rgb(80, 160, 255));
-                draw_circle(rx + off, ry - 1, er, false);
-                draw_triangle(rx + off, ry + er + 1, rx + off - er, ry, rx + off + er, ry, false);
-                draw_set_color(make_color_rgb(130, 190, 90));
-                draw_rectangle(rx - er, ry + off - er, rx + er, ry + off + er, false);
-                draw_set_color(make_color_rgb(220, 220, 220));
-                draw_line(rx - off - er, ry - 2, rx - off + er, ry - 2);
-                draw_line(rx - off - er, ry + 2, rx - off + er, ry + 2);
-                break;
-            case "race":
-                var pr = max(3, floor(r * 0.24));
-                draw_circle(rx, ry - floor(r * 0.45), pr, false);
-                draw_rectangle(rx - floor(r * 0.28), ry - floor(r * 0.15), rx + floor(r * 0.28), ry + floor(r * 0.35), false);
-                draw_line(rx - floor(r * 0.55), ry, rx + floor(r * 0.55), ry);
-                draw_line(rx - floor(r * 0.18), ry + floor(r * 0.35), rx - floor(r * 0.45), ry + floor(r * 0.75));
-                draw_line(rx + floor(r * 0.18), ry + floor(r * 0.35), rx + floor(r * 0.45), ry + floor(r * 0.75));
-                break;
-            case "rarity":
-                draw_star(rx, ry, r);
-                break;
-        }
-    }
+    var spr = sTribouton;
+    var sw = sprite_get_width(spr);
+    var sh = sprite_get_height(spr);
+    var sc = (max(1, (buttonRadius * 2 + 2)) / max(sw, sh));
+    draw_sprite_ext(spr, icon_frame, sx, sy, sc, sc, 0, c_black, 1);
+    draw_sprite_ext(spr, icon_frame, rx, ry, sc, sc, 0, c_white, 1);
 }
 
 // Dessiner le bouton d'inversion de tri
@@ -219,22 +105,12 @@ draw_circle(invertButtonX, buttonY, buttonRadius, false);
 draw_set_color(border_color);
 draw_circle(invertButtonX, buttonY, buttonRadius, true);
 
-// Dessiner le symbole d'inversion (flèche haut/bas)
-if (global.sort_descending) {
-    draw_set_color(text_shadow_color);
-    draw_line(invertButtonX - 5 + 2, buttonY - 5 + 2, invertButtonX + 2, buttonY + 5 + 2);
-    draw_line(invertButtonX + 5 + 2, buttonY - 5 + 2, invertButtonX + 2, buttonY + 5 + 2);
-    draw_set_color(text_main_color);
-    draw_line(invertButtonX - 5, buttonY - 5, invertButtonX, buttonY + 5);
-    draw_line(invertButtonX + 5, buttonY - 5, invertButtonX, buttonY + 5);
-} else {
-    draw_set_color(text_shadow_color);
-    draw_line(invertButtonX - 5 + 2, buttonY + 5 + 2, invertButtonX + 2, buttonY - 5 + 2);
-    draw_line(invertButtonX + 5 + 2, buttonY + 5 + 2, invertButtonX + 2, buttonY - 5 + 2);
-    draw_set_color(text_main_color);
-    draw_line(invertButtonX - 5, buttonY + 5, invertButtonX, buttonY - 5);
-    draw_line(invertButtonX + 5, buttonY + 5, invertButtonX, buttonY - 5);
-}
+var spr_inv = sTribouton;
+var sw_inv = sprite_get_width(spr_inv);
+var sh_inv = sprite_get_height(spr_inv);
+var sc_inv = (max(1, (buttonRadius * 2 + 2)) / max(sw_inv, sh_inv));
+draw_sprite_ext(spr_inv, 7, invertButtonX + 2, buttonY + 2, sc_inv, sc_inv, 0, c_black, 1);
+draw_sprite_ext(spr_inv, 7, invertButtonX, buttonY, sc_inv, sc_inv, 0, c_white, 1);
 // Remettre les parametres par defaut
 draw_set_color(c_white);
 draw_set_halign(fa_left);

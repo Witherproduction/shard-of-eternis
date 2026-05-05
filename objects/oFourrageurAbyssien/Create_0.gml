@@ -11,7 +11,7 @@ booster = "Retour des Archontes"
 rarity = "commun"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque un 'Courreur Abyssien'à coté de lui."
+description = "Eveil : Invoque un 'Courreur Abyssien'sur un emplacement libre adjacent."
 effects = [
     {
         id: 1,

@@ -266,7 +266,7 @@ if (reveal_active && array_length(reveal_cards) > 0) {
     var left_x2 = ix + left_w;
     var right_x1 = left_x2;
     var right_x2 = ix + panel_w;
-    var spr_idx = asset_get_index("sSpecialSummon");
+    var spr_idx = asset_get_index("sPortailHeros");
     var sx = ix + panel_w * 0.10;
     var sy = iy + panel_h * 0.5;
     var sc = max(0, portal_scale);

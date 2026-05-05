@@ -375,6 +375,90 @@ function activateSecretsOnMonsterSummon(summoned) {
     }
 }
 
+function activateSecretsOnSpellCast(spellCard) {
+    if (!instance_exists(spellCard)) return;
+    var casterIsHero = variable_instance_exists(spellCard, "isHeroOwner") ? spellCard.isHeroOwner : true;
+    var defendingIsHero = !casterIsHero;
+    var spellName = (instance_exists(spellCard) && variable_instance_exists(spellCard, "name")) ? spellCard.name : object_get_name(spellCard.object_index);
+    show_debug_message("### Secrets: ON_SPELL_CAST pour '" + string(spellName) + "' casterIsHero=" + string(casterIsHero));
+    
+    var activatedNames = [];
+    
+    var secretList = defendingIsHero ? global.activeSecretsHero : global.activeSecretsEnemy;
+    if (!ds_exists(secretList, ds_type_list)) return;
+    
+    var size = ds_list_size(secretList);
+    for (var k = 0; k < size; k++) {
+        var secretCard = ds_list_find_value(secretList, k);
+        if (!instance_exists(secretCard)) continue;
+        
+        with (secretCard) {
+            if (!variable_instance_exists(self, "genre") || string_lower(genre) != string_lower("Secret")) continue;
+            if (!variable_instance_exists(self, "effects") || array_length(effects) <= 0) continue;
+            
+            var chosenEffect = noone;
+            for (var i = 0; i < array_length(effects); i++) {
+                var e = effects[i];
+                if (!is_struct(e)) continue;
+                var requireOnSpell = false;
+                if (variable_struct_exists(e, "secret_activation") && variable_struct_exists(e.secret_activation, "on_spell_cast")) {
+                    requireOnSpell = e.secret_activation.on_spell_cast;
+                }
+                if (!requireOnSpell) continue;
+                chosenEffect = e; break;
+            }
+            if (chosenEffect == noone) continue;
+            
+            var cardName = variable_instance_exists(self, "name") ? self.name : object_get_name(object_index);
+            var alreadyActivated = false;
+            for (var j = 0; j < array_length(activatedNames); j++) {
+                if (activatedNames[j] == cardName) { alreadyActivated = true; break; }
+            }
+            if (alreadyActivated) continue;
+            array_push(activatedNames, cardName);
+            
+            isFaceDown = false;
+            visible = true;
+            image_index = 0;
+            x = room_width / 2;
+            y = room_height / 2;
+            depth = -2000;
+            
+            var etype = variable_struct_exists(chosenEffect, "effect_type") ? chosenEffect.effect_type : "unknown";
+            show_debug_message("### Secrets: activation '" + string(cardName) + "' sur cast '" + string(spellName) + "' (effet=" + string(etype) + ")");
+            
+            var ctx = { source: spellCard };
+            
+            var effIndex = -1;
+            if (variable_instance_exists(self, "effects") && is_array(effects)) {
+                for (var kk = 0; kk < array_length(effects); kk++) {
+                    if (effects[kk] == chosenEffect) { effIndex = kk; break; }
+                }
+            }
+            
+            if (effIndex != -1 && variable_instance_exists(self, "instance_uid")) {
+                var payload = {
+                    source_uid: self.instance_uid,
+                    effect_index: effIndex
+                };
+                RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
+            } else {
+                var ok = executeEffect(self, chosenEffect, ctx);
+                show_debug_message("### Secrets: effet exécuté=" + string(ok) + "; destruction");
+                
+                var _idx = ds_list_find_index(secretList, id);
+                if (_idx != -1) {
+                    ds_list_delete(secretList, _idx);
+                    size--;
+                    k--;
+                }
+                
+                destroyCard(id);
+            }
+        }
+    }
+}
+
 /// Activation des Secrets lors d'une tentative de destruction par un effet
 function activateSecretsOnDestroyAttempt(target, source) {
     if (target == noone || !instance_exists(target)) return false;

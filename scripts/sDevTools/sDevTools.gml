@@ -8,12 +8,14 @@ function regenerate_database_from_objects() {
     var new_db = {};
     var count = 0;
     
-    // On suppose que les index d'objets sont contigus ou presque.
-    // On scanne une large plage pour être sûr.
-    var max_scan = 10000; 
+    var hard_limit = 2000000;
+    var max_misses = 200000;
+    var misses = 0;
+    var i = 0;
     
-    for (var i = 0; i < max_scan; i++) {
+    while (i < hard_limit && misses < max_misses) {
         if (object_exists(i)) {
+            misses = 0;
             // Vérifier si c'est un enfant de oCardParent (et pas oCardParent lui-même)
             if (object_is_ancestor(i, oCardParent)) {
                 var obj_name = object_get_name(i);
@@ -27,6 +29,12 @@ function regenerate_database_from_objects() {
                 
                 if (inst != noone) {
                     try {
+                        var b_check = "";
+                        if (variable_instance_exists(inst, "booster")) b_check = string(inst.booster);
+                        if (b_check == "") {
+                            continue;
+                        }
+                        
                         // Extraction des données
                         var card_data = {};
                         
@@ -100,13 +108,25 @@ function regenerate_database_from_objects() {
                     }
                 }
             }
+        } else {
+            misses++;
         }
+        i++;
     }
     
     show_debug_message("### SCAN TERMINÉ : " + string(count) + " cartes trouvées. ###");
+    global.dev_last_regen_scan = i;
+    global.dev_last_regen_count = count;
+    global.dev_last_regen_written = false;
     
     // Sauvegarde dans le fichier
     if (count > 0) {
+        var db_inst_mem = instance_find(oDataBase, 0);
+        if (db_inst_mem != noone) {
+            db_inst_mem.cardDatabase = new_db;
+            show_debug_message("### Instance oDataBase mise à jour à chaud ###");
+        }
+        
         var db_struct = {
             version: "2.0 (Auto-Gen)",
             cards_database: new_db,
@@ -117,20 +137,14 @@ function regenerate_database_from_objects() {
         var json_str = json_stringify(db_struct);
         
         // Ecriture forcée
+        directory_create("datafiles");
         var path = CARDS_DATABASE_SAVE_FILE; // datafiles/cards_database.json
         var f = file_text_open_write(path);
         if (f != -1) {
             file_text_write_string(f, json_str);
             file_text_close(f);
+            global.dev_last_regen_written = true;
             show_debug_message("### DATABASE RÉGÉNÉRÉE ET SAUVEGARDÉE DANS " + path + " ###");
-            
-            // Mise à jour de l'instance oDataBase courante si elle existe
-            var db_inst = instance_find(oDataBase, 0);
-            if (db_inst != noone) {
-                db_inst.cardDatabase = new_db;
-                show_debug_message("### Instance oDataBase mise à jour à chaud ###");
-            }
-            
             return true;
         }
     }

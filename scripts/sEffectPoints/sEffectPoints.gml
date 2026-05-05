@@ -146,8 +146,11 @@ function sEffectPoints(card, effect, context) {
             }
             
             // Define callback to apply damage at impact
-            var damageCallback = method({targetIsHero: tgtHero, value: val}, function() {
+            var damageCallback = method({targetIsHero: tgtHero, value: val, card: card, srcHero: srcHero}, function() {
                 if (!is_undefined(loseLPFor)) { loseLPFor(targetIsHero, value); }
+                if (!is_undefined(cardHasPonction) && !is_undefined(gainLPFor) && value > 0 && cardHasPonction(card)) {
+                    gainLPFor(srcHero, value);
+                }
             });
 
             if (!is_undefined(animEffectRequestProjectileTarget) && targetInstance != noone) {
@@ -175,16 +178,16 @@ function sEffectPoints(card, effect, context) {
                 else if (card != noone && instance_exists(card) && variable_instance_exists(card, "element")) elem = string_lower(card.element);
                 
                 // Définition du callback pour appliquer les dégâts à l'impact
-                var damageCallback = method({target: targetLocal, value: val}, function() {
+                var damageCallback = method({target: targetLocal, value: val, card: card}, function() {
                     if (target != noone && instance_exists(target)) {
-                         damageCard(target, value);
+                         damageCard(target, value, card);
                     }
                 });
 
                 if (!is_undefined(animEffectRequestProjectileTarget)) { 
                     animEffectRequestProjectileTarget(elem, card, targetLocal, val, damageCallback); 
                 } else {
-                    damageCard(targetLocal, val);
+                    damageCard(targetLocal, val, card);
                 }
                 return true; // Retourne true car l'effet est initié (visuellement ou immédiatement)
             } else { return healCard(targetLocal, val); }
@@ -198,13 +201,13 @@ function sEffectPoints(card, effect, context) {
             var targetsArr = getTargetsByFilter(effect);
             if (array_length(targetsArr) <= 0) { return false; }
             if (selectAll) {
-                for (var ipe = 0; ipe < array_length(targetsArr); ipe++) { if (op == "damage") { damageCard(targetsArr[ipe], val); } else { healCard(targetsArr[ipe], val); } }
+                for (var ipe = 0; ipe < array_length(targetsArr); ipe++) { if (op == "damage") { damageCard(targetsArr[ipe], val, card); } else { healCard(targetsArr[ipe], val); } }
                 return true;
             } else {
                 var cnt = 1;
                 if (variable_struct_exists(effect, "count")) cnt = effect.count;
                 var n = min(cnt, array_length(targetsArr));
-                for (var jpe = 0; jpe < n; jpe++) { if (op == "damage") { damageCard(targetsArr[jpe], val); } else { healCard(targetsArr[jpe], val); } }
+                for (var jpe = 0; jpe < n; jpe++) { if (op == "damage") { damageCard(targetsArr[jpe], val, card); } else { healCard(targetsArr[jpe], val); } }
                 return true;
             }
         }

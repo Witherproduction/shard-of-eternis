@@ -114,7 +114,7 @@ getCardsByRarity = function(rarity) {
     
     // NETTOYAGE CACHE FORCE : Pour s'assurer que la nouvelle DB générée est bien chargée
     // On supprime le fichier du cache AppData pour forcer la copie depuis les Included Files
-    if (file_exists(CARDS_DATABASE_SAVE_FILE)) {
+    if (variable_global_exists("dev_force_db_cache_clear") && global.dev_force_db_cache_clear && file_exists(CARDS_DATABASE_SAVE_FILE)) {
         file_delete(CARDS_DATABASE_SAVE_FILE);
         show_debug_message("### DEV: Cache DB supprimé pour forcer la mise à jour.");
     }
@@ -141,6 +141,14 @@ getCardsByRarity = function(rarity) {
     }
     
     // Essayer de charger la base de données sauvegardée d'abord
+    if (variable_global_exists("dev_regen_db_on_boot") && global.dev_regen_db_on_boot) {
+        directory_create("datafiles");
+        if (script_exists(asset_get_index("regenerate_database_from_objects"))) {
+            regenerate_database_from_objects();
+        } else {
+            show_debug_message("### DEV: Auto-regen activée mais script regenerate_database_from_objects introuvable (sDevTools pas dans le projet).");
+        }
+    }
     var database_loaded = load_cards_database_from_file();
     
     if (!database_loaded) {

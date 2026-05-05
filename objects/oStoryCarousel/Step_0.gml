@@ -1,4 +1,4 @@
-if (instance_exists(oPanelOptions)) exit;
+if (instance_exists(oPanelOptions) || instance_exists(oQuestPanel)) exit;
 
 var left_trigger = keyboard_check_pressed(vk_left) || mouse_wheel_up();
 var right_trigger = keyboard_check_pressed(vk_right) || mouse_wheel_down();

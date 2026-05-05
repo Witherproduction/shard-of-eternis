@@ -110,14 +110,6 @@ if (alpha >= targetAlpha) {
                          unlock_bot(global.selected_bot_deck_id);
                      }
 
-                     if (variable_global_exists("current_chapter") && variable_global_exists("current_act")) {
-                         if (global.current_chapter == 1 && global.current_act == 2) {
-                             if (variable_global_exists("selected_bot_deck_id") && (global.selected_bot_deck_id == 2 || global.selected_bot_deck_id == "Essaim_Abyssien")) {
-                                 story_progress_unlock_reward("chap1_act2_duel1_win");
-                             }
-                         }
-                     }
-
                      if (variable_global_exists("duel_next_scene") && variable_global_exists("duel_is_last_scene")) {
                           if (global.duel_is_last_scene) {
                                // Fin du scénario (Dernière scène)
@@ -127,12 +119,6 @@ if (alpha >= targetAlpha) {
                                var ch = variable_global_exists("current_chapter") ? global.current_chapter : 1;
                                var ac = variable_global_exists("current_act") ? global.current_act : 1;
                                var sc = variable_global_exists("duel_resume_scene") ? global.duel_resume_scene : 0;
-                               
-                               // Récompense d'Or pour la fin de l'acte (si pas déjà complété)
-                               if (!is_act_complete(ch, ac)) {
-                                   add_gold(100);
-                                   show_debug_message("### Récompense Acte : +100 Or");
-                               }
                                
                                // Integrer la progression
                                unlock_act_complete(ch, ac);

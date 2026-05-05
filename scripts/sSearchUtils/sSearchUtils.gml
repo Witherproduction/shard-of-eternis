@@ -7,6 +7,13 @@ function _cardMatchesCriteria(card, criteria) {
     var card_data = is_struct(card) ? card : (instance_exists(card) ? card : noone);
     if (card_data == noone) return false;
 
+    var isTerrain = false;
+    if (is_struct(card_data)) {
+        if (variable_struct_exists(card_data, "isTerrain") && card_data.isTerrain) isTerrain = true;
+    } else if (instance_exists(card_data)) {
+        if (variable_instance_exists(card_data, "isTerrain") && card_data.isTerrain) isTerrain = true;
+    }
+
     if (variable_struct_exists(criteria, "name")) {
         var name_to_check = is_struct(card_data) ? (variable_struct_exists(card_data, "name") ? card_data.name : "") : (variable_instance_exists(card_data, "name") ? card_data.name : "");
         if (name_to_check != criteria.name) return false;
@@ -38,18 +45,32 @@ function _cardMatchesCriteria(card, criteria) {
         }
     }
     
+    if (variable_struct_exists(criteria, "is_terrain")) {
+        var wantTerrain = criteria.is_terrain;
+        if (wantTerrain && !isTerrain) return false;
+        if (!wantTerrain && isTerrain) return false;
+    }
 
     if (variable_struct_exists(criteria, "type")) {
         var type_to_check = is_struct(card_data)
             ? (variable_struct_exists(card_data, "cardType") ? card_data.cardType : (variable_struct_exists(card_data, "type") ? card_data.type : ""))
             : (variable_instance_exists(card_data, "type") ? card_data.type : "");
-        if (string_lower(type_to_check) != string_lower(criteria.type)) return false;
+        var wantTypeLower = string_lower(string(criteria.type));
+        var gotTypeLower = string_lower(string(type_to_check));
+        if (wantTypeLower == "monster" && isTerrain && !(variable_struct_exists(criteria, "is_terrain") && criteria.is_terrain)) return false;
+        if (gotTypeLower != wantTypeLower) return false;
     }
     if (variable_struct_exists(criteria, "genre")) {
         var genre_to_check = is_struct(card_data)
             ? (variable_struct_exists(card_data, "genre") ? card_data.genre : "")
             : (variable_instance_exists(card_data, "genre") ? card_data.genre : "");
         if (string_lower(genre_to_check) != string_lower(criteria.genre)) return false;
+    }
+    if (variable_struct_exists(criteria, "race")) {
+        var race_to_check = is_struct(card_data)
+            ? (variable_struct_exists(card_data, "race") ? card_data.race : "")
+            : (variable_instance_exists(card_data, "race") ? card_data.race : "");
+        if (string_lower(race_to_check) != string_lower(criteria.race)) return false;
     }
 
     // Nouveau critère: star_eq (niveau exact)
@@ -77,6 +98,30 @@ function _cardMatchesCriteria(card, criteria) {
             if (variable_instance_exists(card_data, "isCamouflage") && card_data.isCamouflage) isCamou = true;
         }
         if (isCamou) return false;
+    }
+    
+    if (variable_struct_exists(criteria, "is_injured")) {
+        var wantInjured = criteria.is_injured;
+        var injured = false;
+        
+        var has_current_hp = is_struct(card_data) ? variable_struct_exists(card_data, "current_hp") : variable_instance_exists(card_data, "current_hp");
+        var has_max_hp = is_struct(card_data) ? variable_struct_exists(card_data, "max_hp") : variable_instance_exists(card_data, "max_hp");
+        if (has_current_hp && has_max_hp) {
+            var chp = is_struct(card_data) ? card_data.current_hp : card_data.current_hp;
+            var mhp = is_struct(card_data) ? card_data.max_hp : card_data.max_hp;
+            injured = (chp < mhp);
+        } else {
+            var has_pv = is_struct(card_data) ? variable_struct_exists(card_data, "PV") : variable_instance_exists(card_data, "PV");
+            var has_def = is_struct(card_data) ? variable_struct_exists(card_data, "original_defense") : variable_instance_exists(card_data, "original_defense");
+            if (has_pv && has_def) {
+                var pv = is_struct(card_data) ? card_data.PV : card_data.PV;
+                var def0 = is_struct(card_data) ? card_data.original_defense : card_data.original_defense;
+                injured = (pv < def0);
+            }
+        }
+        
+        if (wantInjured && !injured) return false;
+        if (!wantInjured && injured) return false;
     }
 
 // Ajouter d'autres vérifications de critères ici (type, attribut, etc.)

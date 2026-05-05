@@ -93,23 +93,6 @@ function region_get_zones_ForetDesVoleur() {
              ], 1.15, -0.05, 0)
         },
         {
-            // Zone Acte 2 (Après le 1er duel / Mi-Acte)
-            // Note : Il faudra appeler story_progress_unlock_reward("chap1_act2_duel1_win") dans le scénario après la victoire
-            condition_check: function() { return story_progress_is_reward_unlocked("chap1_act2_duel1_win"); },
-            points: region_poly_scale_shift([ 
-                 {x:-45, y:-115}, 
-                 {x:-46, y:-103}, 
-                 {x:-96, y:-92}, 
-                 {x:-98, y:-2}, 
-                 {x:-156, y:62}, 
-                 {x:-357, y:51}, 
-                 {x:-396, y:-311}, 
-                 {x:-195, y:-384}, 
-                 {x:-73, y:-373}, 
-                 {x:-45, y:-104} 
-             ], 1.20, -0.05, 0)
-        },
-        {
             // Zone Acte 3 (Fin Chapitre 1 Acte 2)
             condition_check: function() { return is_act_complete(1, 2); },
             points: [ 

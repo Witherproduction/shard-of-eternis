@@ -1,5 +1,5 @@
 event_inherited();
-if (instance_exists(oPanelOptions)) { exit; }
+if (instance_exists(oPanelOptions) || instance_exists(oQuestPanel)) { exit; }
 if (room != rAcceuil) { exit; }
 if (mouse_check_button_pressed(mb_left)) {
     var mouse_x_pos = mouse_x;

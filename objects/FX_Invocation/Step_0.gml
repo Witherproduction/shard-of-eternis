@@ -58,8 +58,7 @@ if (!finished_move) {
     var ease = progress * progress * (3 - 2 * progress);
 
     if (variable_instance_exists(self, "summon_mode") && summon_mode == "SpecialSummon" && !_ss_init_done) {
-        var spr_idx = asset_get_index("sSpécialSummon");
-        if (spr_idx == -1) spr_idx = asset_get_index("sSpecialSummon");
+        var spr_idx = asset_get_index("sPortailHeros");
         if (spr_idx != -1) { ss_sprite_idx = spr_idx; }
         ss_x = 220;
         ss_y = room_height * 0.5;

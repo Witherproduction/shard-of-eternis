@@ -39,7 +39,22 @@ getPosLocation = function(type, position) {show_debug_message("### oFieldManager
         show_debug_message("### ERREUR: getPosLocation: terrain introuvable pour type=" + string(type));
         return [0, 0];
     }
-    return field.posLocation[position];
+    if (!variable_instance_exists(field, "posLocation") || !is_array(field.posLocation)) {
+        show_debug_message("### ERREUR: getPosLocation: posLocation invalide pour type=" + string(type));
+        return [0, 0];
+    }
+    var idx = position;
+    if (is_string(idx)) idx = real(idx);
+    if (!is_real(idx)) idx = 0;
+    idx = floor(idx);
+    var len = array_length(field.posLocation);
+    if (len <= 0) {
+        show_debug_message("### ERREUR: getPosLocation: posLocation vide pour type=" + string(type));
+        return [0, 0];
+    }
+    if (idx < 0) idx = 0;
+    if (idx >= len) idx = len - 1;
+    return field.posLocation[idx];
 }
 #endregion
 

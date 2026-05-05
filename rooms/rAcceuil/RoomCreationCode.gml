@@ -4,11 +4,6 @@ if (!instance_exists(oGlobalManager)) {
     instance_create_depth(0, 0, 0, oGlobalManager);
 }
 
-// Initialisation du gestionnaire de map (pour l'affichage du continent/masque)
-if (!instance_exists(oMapManager)) {
-    instance_create_depth(0, 0, 0, oMapManager);
-}
-
 // Initialisation du Quest Manager (Persistant)
 if (!instance_exists(oQuestManager)) {
     instance_create_depth(0, 0, 0, oQuestManager);

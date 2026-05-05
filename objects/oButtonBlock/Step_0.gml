@@ -2,7 +2,7 @@
 // Garde globale pour bloquer les interactions des boutons si oPanelOptions est ouvert
 
 // Bloquer toutes les interactions si le panneau d'options est ouvert
-if (instance_exists(oPanelOptions)) {
+if (instance_exists(oPanelOptions) || instance_exists(oQuestPanel)) {
     exit;
 }
 

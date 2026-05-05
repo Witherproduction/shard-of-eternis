@@ -10,7 +10,7 @@ booster = "Retour des Archontes"
 rarity = "epique"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Brisé : Invoque 2 'Araignée forestière'."
+description = "Brisé : Invoque 2 'Araignée forestière'sur les emplacements adjacents de cette carte."
 effects = [
     {
         id: 1,

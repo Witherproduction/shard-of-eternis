@@ -346,6 +346,34 @@ function _execute_Summon(payload) {
     var currentMana = ownerIsHero ? global.mana_hero : global.mana_enemy;
     var cost = variable_struct_exists(payload, "mana_cost_override") ? real(payload.mana_cost_override)
         : (variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0);
+        
+    if (card != noone && instance_exists(card) && variable_instance_exists(card, "type") && string_lower(card.type) == "monster") {
+        var sm = variable_struct_exists(payload, "summon_mode") ? string_lower(string(payload.summon_mode)) : "summon";
+        var z = variable_instance_exists(card, "zone") ? string_lower(string(card.zone)) : "";
+        var fromHand = (z == "hand" || z == "handselected");
+        if (sm == "summon" && fromHand && instance_exists(game) && variable_instance_exists(game, "nbTurn")) {
+            var bonus = 0;
+            var bonusTurn = -1;
+            var bonusUsed = true;
+            if (ownerIsHero) {
+                bonus = variable_global_exists("next_played_monster_cost_bonus_hero") ? global.next_played_monster_cost_bonus_hero : 0;
+                bonusTurn = variable_global_exists("next_played_monster_cost_bonus_hero_turn") ? global.next_played_monster_cost_bonus_hero_turn : -1;
+                bonusUsed = variable_global_exists("next_played_monster_cost_bonus_hero_used") ? global.next_played_monster_cost_bonus_hero_used : true;
+            } else {
+                bonus = variable_global_exists("next_played_monster_cost_bonus_enemy") ? global.next_played_monster_cost_bonus_enemy : 0;
+                bonusTurn = variable_global_exists("next_played_monster_cost_bonus_enemy_turn") ? global.next_played_monster_cost_bonus_enemy_turn : -1;
+                bonusUsed = variable_global_exists("next_played_monster_cost_bonus_enemy_used") ? global.next_played_monster_cost_bonus_enemy_used : true;
+            }
+            if (bonus > 0 && bonusTurn == game.nbTurn && !bonusUsed) {
+                cost += bonus;
+                if (ownerIsHero) {
+                    global.next_played_monster_cost_bonus_hero_used = true;
+                } else {
+                    global.next_played_monster_cost_bonus_enemy_used = true;
+                }
+            }
+        }
+    }
     
     if (currentMana < cost) {
         show_debug_message("ERREUR: Mana insuffisant pour invoquer " + object_get_name(card.object_index) + " (" + string(currentMana) + "/" + string(cost) + ")");
@@ -361,6 +389,9 @@ function _execute_Summon(payload) {
         }
     } else {
         global.mana_enemy -= cost;
+    }
+    if (instance_exists(card)) {
+        card._last_mana_paid = cost;
     }
     show_debug_message("### Mana consumed: " + string(cost) + ". Remaining: " + string(ownerIsHero ? global.mana_hero : global.mana_enemy));
     // ----------------------------------------
@@ -501,6 +532,7 @@ function _execute_Attack(payload) {
                 for (var i = 0; i < array_length(enemyMonsters); i++) {
                     var em = enemyMonsters[i];
                     if (em != 0 && instance_exists(em)) {
+                        if (variable_instance_exists(em, "isTerrain") && em.isTerrain) continue;
                         var isCamo = (variable_instance_exists(em, "isCamouflage") && em.isCamouflage);
                         // HS Logic: Taunt OR Front Line (0-3) blocks direct attacks
                         var isTaunt = (variable_instance_exists(em, "has_taunt") && em.has_taunt);
@@ -534,6 +566,10 @@ function _execute_Attack(payload) {
                 oQuestManager.notify_event("attack", 1, { source: attacker, target: noone });
             }
         } else {
+            if (target != noone && instance_exists(target) && variable_instance_exists(target, "isTerrain") && target.isTerrain) {
+                show_debug_message("### Attack rejected: target is a Terrain");
+                return;
+            }
             with (dm) tryAttack(target);
             
             // Quest System Notification: Attack (Target)
@@ -560,6 +596,7 @@ function _execute_Attack(payload) {
                 for (var i = 0; i < array_length(heroMonsters); i++) {
                     var hm = heroMonsters[i];
                     if (hm != 0 && instance_exists(hm)) {
+                         if (variable_instance_exists(hm, "isTerrain") && hm.isTerrain) continue;
                          var isCamo = (variable_instance_exists(hm, "isCamouflage") && hm.isCamouflage);
                          var isTaunt = (variable_instance_exists(hm, "has_taunt") && hm.has_taunt);
                          var isFrontLine = (variable_instance_exists(hm, "fieldPosition") && hm.fieldPosition >= 0 && hm.fieldPosition <= 3);
@@ -582,6 +619,10 @@ function _execute_Attack(payload) {
         } else {
             if (target == noone || !instance_exists(target)) {
                 show_debug_message("ERREUR: Cible invalide pour ATTACK IA (vs monstre)");
+                return;
+            }
+            if (variable_instance_exists(target, "isTerrain") && target.isTerrain) {
+                show_debug_message("### AI Attack rejected: target is a Terrain");
                 return;
             }
             with (dm) initiateAttackMonsterEnemy(attacker, target);

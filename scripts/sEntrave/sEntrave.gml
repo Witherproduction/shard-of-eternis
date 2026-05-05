@@ -16,6 +16,8 @@ function sEntrave(card, effect, context) {
     // Déterminer les champs cibles dynamiquement
     var fieldAlly = isHero ? fieldMonsterHero : fieldMonsterEnemy;
     var fieldEnemy = isHero ? fieldMonsterEnemy : fieldMonsterHero;
+    var frontLineOnly = (variable_struct_exists(effect, "front_line_only") && effect.front_line_only);
+    var backLineOnly = (variable_struct_exists(effect, "back_line_only") && effect.back_line_only);
 
     if (scopeB == "single") {
         var tgtA = target;
@@ -25,6 +27,11 @@ function sEntrave(card, effect, context) {
         }
 
         if (tgtA != noone && instance_exists(tgtA)) {
+            if (frontLineOnly || backLineOnly) {
+                if (!variable_instance_exists(tgtA, "fieldPosition")) { return false; }
+                if (frontLineOnly && (tgtA.fieldPosition < 0 || tgtA.fieldPosition > 3)) { return false; }
+                if (backLineOnly && (tgtA.fieldPosition < 4 || tgtA.fieldPosition > 7)) { return false; }
+            }
             var ownerT = (variable_instance_exists(tgtA, "isHeroOwner") ? tgtA.isHeroOwner : activeIsHero);
             var durA = baseDur + ((ownerT == activeIsHero) ? 1 : 0);
             tgtA.entrave_block_attack = true;
@@ -39,6 +46,11 @@ function sEntrave(card, effect, context) {
             for (var hi = 0; hi < array_length(arrH); hi++) {
                 var ch = arrH[hi];
                 if (ch != 0 && instance_exists(ch) && (variable_instance_exists(ch, "zone") && (ch.zone == "Field" || ch.zone == "FieldSelected"))) {
+                    if (frontLineOnly || backLineOnly) {
+                        if (!variable_instance_exists(ch, "fieldPosition")) continue;
+                        if (frontLineOnly && (ch.fieldPosition < 0 || ch.fieldPosition > 3)) continue;
+                        if (backLineOnly && (ch.fieldPosition < 4 || ch.fieldPosition > 7)) continue;
+                    }
                     var ownerH = (variable_instance_exists(ch, "isHeroOwner") ? ch.isHeroOwner : activeIsHero);
                     var durH = baseDur + ((ownerH == activeIsHero) ? 1 : 0);
                     ch.entrave_block_attack = true;
@@ -54,6 +66,11 @@ function sEntrave(card, effect, context) {
             for (var ei = 0; ei < array_length(arrE); ei++) {
                 var ce = arrE[ei];
                 if (ce != 0 && instance_exists(ce) && (variable_instance_exists(ce, "zone") && (ce.zone == "Field" || ce.zone == "FieldSelected"))) {
+                    if (frontLineOnly || backLineOnly) {
+                        if (!variable_instance_exists(ce, "fieldPosition")) continue;
+                        if (frontLineOnly && (ce.fieldPosition < 0 || ce.fieldPosition > 3)) continue;
+                        if (backLineOnly && (ce.fieldPosition < 4 || ce.fieldPosition > 7)) continue;
+                    }
                     var ownerE = (variable_instance_exists(ce, "isHeroOwner") ? ce.isHeroOwner : !activeIsHero);
                     var durE = baseDur + ((ownerE == activeIsHero) ? 1 : 0);
                     ce.entrave_block_attack = true;

@@ -2,6 +2,9 @@
 if (variable_instance_exists(id, "save_notification_timer") && save_notification_timer > 0) {
     save_notification_timer--;
 }
+if (variable_instance_exists(id, "export_notification_timer") && export_notification_timer > 0) {
+    export_notification_timer--;
+}
 
 var k = min(room_width / 1920, room_height / 1080);
 
@@ -430,6 +433,10 @@ if (false) {}
 if (mouse_check_button_pressed(mb_left)) {
     var mx = mouse_x; var my = mouse_y;
     if (point_in_rectangle(mx, my, btn_save_x1, btn_save_y1, btn_save_x2, btn_save_y2)) {
+        if (array_length(editor_scenes) == 0 && array_length(timeline) == 0 && string(current.text) == "") {
+            export_notification_text = "Acte vide: rien a sauvegarder.";
+            export_notification_timer = 240;
+        } else {
         var tl = timeline;
         if (array_length(tl) == 0 && current.text != "") {
             var line_fallback = { speaker: current.speaker, text: current.text, portrait1_name: current.portrait1_name, portrait2_name: current.portrait2_name, portrait3_name: current.portrait3_name, obj1_name: current.obj1_name, obj2_name: current.obj2_name, wait_after_ms: current.wait_after_ms, portrait1_effect: selected_effect_portrait1, portrait2_effect: selected_effect_portrait2, portrait3_effect: selected_effect_portrait3, obj1_effect: selected_effect_obj1, obj2_effect: selected_effect_obj2, text_effect: selected_effect_text, speaker1_flip: current.speaker1_flip, speaker2_flip: current.speaker2_flip, speaker3_flip: current.speaker3_flip, obj1_flip: current.obj1_flip, obj2_flip: current.obj2_flip, speaker1_x: speaker1.x, speaker1_y: speaker1.y, speaker1_w: speaker1.w, speaker1_h: speaker1.h, speaker2_x: speaker2.x, speaker2_y: speaker2.y, speaker2_w: speaker2.w, speaker2_h: speaker2.h, speaker3_x: speaker3.x, speaker3_y: speaker3.y, speaker3_w: speaker3.w, speaker3_h: speaker3.h, obj1_x: object1.x, obj1_y: object1.y, obj1_w: object1.w, obj1_h: object1.h, obj2_x: object2.x, obj2_y: object2.y, obj2_w: object2.w, obj2_h: object2.h, textbox_x: textbox.x, textbox_y: textbox.y };
@@ -508,6 +515,89 @@ if (mouse_check_button_pressed(mb_left)) {
         var f2 = file_text_open_write(full_path2);
         file_text_write_string(f2, json2);
         file_text_close(f2);
+        }
+    } else if (point_in_rectangle(mx, my, btn_export_x1, btn_export_y1, btn_export_x2, btn_export_y2)) {
+        if (array_length(editor_scenes) == 0 && array_length(timeline) == 0 && string(current.text) == "") {
+            export_notification_text = "Acte vide: rien a exporter.";
+            export_notification_timer = 240;
+        } else {
+        var tl_e = timeline;
+        if (array_length(tl_e) == 0 && current.text != "") {
+            var line_fallback_e = { speaker: current.speaker, text: current.text, portrait1_name: current.portrait1_name, portrait2_name: current.portrait2_name, portrait3_name: current.portrait3_name, obj1_name: current.obj1_name, obj2_name: current.obj2_name, wait_after_ms: current.wait_after_ms, portrait1_effect: selected_effect_portrait1, portrait2_effect: selected_effect_portrait2, portrait3_effect: selected_effect_portrait3, obj1_effect: selected_effect_obj1, obj2_effect: selected_effect_obj2, text_effect: selected_effect_text, speaker1_flip: current.speaker1_flip, speaker2_flip: current.speaker2_flip, speaker3_flip: current.speaker3_flip, obj1_flip: current.obj1_flip, obj2_flip: current.obj2_flip, speaker1_x: speaker1.x, speaker1_y: speaker1.y, speaker1_w: speaker1.w, speaker1_h: speaker1.h, speaker2_x: speaker2.x, speaker2_y: speaker2.y, speaker2_w: speaker2.w, speaker2_h: speaker2.h, speaker3_x: speaker3.x, speaker3_y: speaker3.y, speaker3_w: speaker3.w, speaker3_h: speaker3.h, obj1_x: object1.x, obj1_y: object1.y, obj1_w: object1.w, obj1_h: object1.h, obj2_x: object2.x, obj2_y: object2.y, obj2_w: object2.w, obj2_h: object2.h, textbox_x: textbox.x, textbox_y: textbox.y };
+            tl_e = [ line_fallback_e ];
+        }
+        if (array_length(tl_e) > 0 && line_idx >= 0) {
+            var ln_save_e = tl_e[line_idx];
+            ln_save_e.text = string(current.text);
+            ln_save_e.speaker = current.speaker;
+            ln_save_e.portrait1_name = current.portrait1_name;
+            ln_save_e.portrait2_name = current.portrait2_name;
+            ln_save_e.portrait3_name = current.portrait3_name;
+            ln_save_e.obj1_name = current.obj1_name;
+            ln_save_e.obj2_name = current.obj2_name;
+            ln_save_e.wait_after_ms = current.wait_after_ms;
+            ln_save_e.portrait1_effect = selected_effect_portrait1;
+            ln_save_e.portrait2_effect = selected_effect_portrait2;
+            ln_save_e.portrait3_effect = selected_effect_portrait3;
+            ln_save_e.obj1_effect = selected_effect_obj1;
+            ln_save_e.obj2_effect = selected_effect_obj2;
+            ln_save_e.text_effect = selected_effect_text;
+            ln_save_e.speaker1_flip = current.speaker1_flip;
+            ln_save_e.speaker2_flip = current.speaker2_flip;
+            ln_save_e.speaker3_flip = current.speaker3_flip;
+            ln_save_e.obj1_flip = current.obj1_flip;
+            ln_save_e.obj2_flip = current.obj2_flip;
+            ln_save_e.speaker1_x = speaker1.x; ln_save_e.speaker1_y = speaker1.y; ln_save_e.speaker1_w = speaker1.w; ln_save_e.speaker1_h = speaker1.h;
+            ln_save_e.speaker2_x = speaker2.x; ln_save_e.speaker2_y = speaker2.y; ln_save_e.speaker2_w = speaker2.w; ln_save_e.speaker2_h = speaker2.h;
+            ln_save_e.speaker3_x = speaker3.x; ln_save_e.speaker3_y = speaker3.y; ln_save_e.speaker3_w = speaker3.w; ln_save_e.speaker3_h = speaker3.h;
+            ln_save_e.obj1_x = object1.x; ln_save_e.obj1_y = object1.y; ln_save_e.obj1_w = object1.w; ln_save_e.obj1_h = object1.h;
+            ln_save_e.obj2_x = object2.x; ln_save_e.obj2_y = object2.y; ln_save_e.obj2_w = object2.w; ln_save_e.obj2_h = object2.h;
+            ln_save_e.textbox_x = textbox.x; ln_save_e.textbox_y = textbox.y;
+            tl_e[line_idx] = ln_save_e;
+            timeline = tl_e;
+        }
+        var chap2_e = global.current_chapter; if (is_undefined(chap2_e)) chap2_e = 1;
+        var actn2_e = global.current_act; if (is_undefined(actn2_e)) actn2_e = 1;
+        var scenes_out_e = editor_scenes;
+        if (array_length(scenes_out_e) == 0) {
+            var scene_new_e = { id: "editor_scene", bg: current.bg_name, bg_sound: current.bg_sound, bg_sound2: current.bg_sound2, speaker1_flip: current.speaker1_flip, speaker2_flip: current.speaker2_flip, speaker3_flip: current.speaker3_flip, obj1_flip: current.obj1_flip, obj2_flip: current.obj2_flip, lines: tl_e, duel_bot_id: current.duel_bot_id, duel_player_deck: current.duel_player_deck };
+            scenes_out_e = [ scene_new_e ];
+            editor_scenes = scenes_out_e;
+            scene_idx = 0;
+            line_idx = 0;
+        } else {
+            var si_e = scene_idx; if (si_e >= 0) { editor_scenes[si_e].bg = current.bg_name; editor_scenes[si_e].bg_sound = current.bg_sound; editor_scenes[si_e].bg_sound2 = current.bg_sound2; editor_scenes[si_e].duel_bot_id = current.duel_bot_id; editor_scenes[si_e].duel_player_deck = current.duel_player_deck; }
+            if (si_e >= 0) {
+                editor_scenes[si_e].speaker1_flip = current.speaker1_flip;
+                editor_scenes[si_e].speaker2_flip = current.speaker2_flip;
+                editor_scenes[si_e].speaker3_flip = current.speaker3_flip;
+                editor_scenes[si_e].obj1_flip = current.obj1_flip;
+                editor_scenes[si_e].obj2_flip = current.obj2_flip;
+                editor_scenes[si_e].lines = timeline;
+                if (array_length(editor_scenes[si_e].lines) == 0 && current.text != "") {
+                    var line_fb2_e = { speaker: current.speaker, text: current.text, portrait1_name: current.portrait1_name, portrait2_name: current.portrait2_name, portrait3_name: current.portrait3_name, obj1_name: current.obj1_name, obj2_name: current.obj2_name, wait_after_ms: current.wait_after_ms, portrait1_effect: selected_effect_portrait1, portrait2_effect: selected_effect_portrait2, portrait3_effect: selected_effect_portrait3, obj1_effect: selected_effect_obj1, obj2_effect: selected_effect_obj2, text_effect: selected_effect_text, speaker1_flip: current.speaker1_flip, speaker2_flip: current.speaker2_flip, speaker3_flip: current.speaker3_flip, obj1_flip: current.obj1_flip, obj2_flip: current.obj2_flip, speaker1_x: speaker1.x, speaker1_y: speaker1.y, speaker1_w: speaker1.w, speaker1_h: speaker1.h, speaker2_x: speaker2.x, speaker2_y: speaker2.y, speaker2_w: speaker2.w, speaker2_h: speaker2.h, speaker3_x: speaker3.x, speaker3_y: speaker3.y, speaker3_w: speaker3.w, speaker3_h: speaker3.h, obj1_x: object1.x, obj1_y: object1.y, obj1_w: object1.w, obj1_h: object1.h, obj2_x: object2.x, obj2_y: object2.y, obj2_w: object2.w, obj2_h: object2.h, textbox_x: textbox.x, textbox_y: textbox.y };
+                    editor_scenes[si_e].lines = [ line_fb2_e ];
+                }
+            }
+        }
+        var scen2_e = { chapter_id: chap2_e, act: actn2_e, scenes: scenes_out_e };
+        var json2_e = json_stringify(scen2_e);
+        var base_name2_e = "scenario_chapter_" + string(chap2_e) + "_act_" + string(actn2_e) + ".json";
+        show_debug_message("### ScenarioCreatorUI: EXPORT wd=" + working_directory + " base=" + base_name2_e);
+        var ok_export = scenario_export_to_included_files(chap2_e, actn2_e, json2_e);
+        export_notification_timer = 240;
+        if (ok_export) {
+            export_notification_text = "Export OK:\n" + scenario_export_last_target_path;
+            show_debug_message("### ScenarioCreatorUI: EXPORT OK -> " + scenario_export_last_target_path);
+        } else {
+            if (variable_instance_exists(id, "scenario_export_last_error") && scenario_export_last_error != "") {
+                export_notification_text = scenario_export_last_error;
+            } else {
+                export_notification_text = "Export echoue.";
+            }
+            show_debug_message("### ScenarioCreatorUI: EXPORT FAILED");
+        }
+        }
     } else if (point_in_rectangle(mx, my, btn_delete_x1, btn_delete_y1, btn_delete_x2, btn_delete_y2)) {
         if (array_length(editor_scenes) > 0 && scene_idx >= 0) {
             var n_del = array_length(editor_scenes);
@@ -531,18 +621,40 @@ if (mouse_check_button_pressed(mb_left)) {
         var chap3 = global.current_chapter; if (is_undefined(chap3)) chap3 = 1;
         var actn3 = global.current_act; if (is_undefined(actn3)) actn3 = 1;
         var base_name3 = "scenario_chapter_" + string(chap3) + "_act_" + string(actn3) + ".json";
-        var path = "scenarios/ch" + string(chap3) + "/" + base_name3;
-        show_debug_message("### ScenarioCreatorUI: LOAD wd=" + working_directory + " path=" + path);
-        if (!file_exists(path)) {
-            path = base_name3;
-            show_debug_message("### ScenarioCreatorUI: LOAD fallback path=" + path);
+        var candidates3 = [
+            "scenarios/ch" + string(chap3) + "/" + base_name3,
+            "datafiles/scenarios/ch" + string(chap3) + "/" + base_name3,
+            program_directory + "datafiles/scenarios/ch" + string(chap3) + "/" + base_name3,
+            base_name3
+        ];
+        var data = undefined;
+        var path = "";
+        var data_empty = undefined;
+        var path_empty = "";
+        for (var i3 = 0; i3 < array_length(candidates3); i3++) {
+            var p3 = candidates3[i3];
+            var content3 = scenario_read_text_file(p3);
+            if (content3 != "") {
+                var parsed3 = scenario_parse_json_safe(content3);
+                if (!is_undefined(parsed3)) {
+                    var has_scenes3 = variable_struct_exists(parsed3, "scenes") && is_array(parsed3.scenes) && array_length(parsed3.scenes) > 0;
+                    if (has_scenes3) {
+                        data = parsed3;
+                        path = p3;
+                        break;
+                    } else if (is_undefined(data_empty)) {
+                        data_empty = parsed3;
+                        path_empty = p3;
+                    }
+                }
+            }
         }
-        if (file_exists(path)) {
-            var fr = file_text_open_read(path);
-            var s = "";
-            while (!file_text_eof(fr)) { s += file_text_read_string(fr); }
-            file_text_close(fr);
-            var data = json_parse(s);
+        if (is_undefined(data) && !is_undefined(data_empty)) {
+            data = data_empty;
+            path = path_empty;
+        }
+        show_debug_message("### ScenarioCreatorUI: LOAD wd=" + working_directory + " path=" + path);
+        if (!is_undefined(data)) {
             editor_scenes = data.scenes;
             scene_idx = 0;
             line_idx = 0;
@@ -647,6 +759,11 @@ if (mouse_check_button_pressed(mb_left)) {
                     current.text = "";
                 }
             }
+            export_notification_text = "Charge: " + path;
+            export_notification_timer = 240;
+        } else {
+            export_notification_text = "Aucun fichier scenario trouve.";
+            export_notification_timer = 240;
         }
     } else if (point_in_rectangle(mx, my, btn_scene_minus_x1, btn_scene_minus_y1, btn_scene_minus_x2, btn_scene_minus_y2)) {
         if (array_length(editor_scenes) > 0) {

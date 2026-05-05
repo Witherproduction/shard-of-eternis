@@ -92,38 +92,56 @@ if (variable_global_exists("scenario_loaded_data") && is_struct(global.scenario_
     }
 } else {
     var base_name = "scenario_chapter_" + string(chapter_id) + "_act_" + string(act_num) + ".json";
-    var path = "scenarios/ch" + string(chapter_id) + "/" + base_name;
+    var candidates = [
+        "scenarios/ch" + string(chapter_id) + "/" + base_name,
+        "datafiles/scenarios/ch" + string(chapter_id) + "/" + base_name,
+        program_directory + "datafiles/scenarios/ch" + string(chapter_id) + "/" + base_name,
+        base_name
+    ];
     
-    show_debug_message("### ScenarioRunner: Attempting to load " + path);
+    var data2 = undefined;
+    var chosen = "";
+    var data_empty = undefined;
+    var chosen_empty = "";
     
-    if (!file_exists(path)) {
-        show_debug_message("### ScenarioRunner: File not found at " + path + ". Trying fallback to " + base_name);
-        path = base_name;
+    for (var i = 0; i < array_length(candidates); i++) {
+        var p = candidates[i];
+        if (file_exists(p)) {
+            var buff = buffer_load(p);
+            if (buff != -1) {
+                var s = buffer_read(buff, buffer_text);
+                buffer_delete(buff);
+                if (string_length(s) > 0 && string_ord_at(s, 1) == 65279) s = string_delete(s, 1, 1);
+                try {
+                    var parsed = json_parse(s);
+                    if (is_struct(parsed) && variable_struct_exists(parsed, "scenes") && is_array(parsed.scenes)) {
+                        if (array_length(parsed.scenes) > 0) {
+                            data2 = parsed;
+                            chosen = p;
+                            break;
+                        } else if (is_undefined(data_empty)) {
+                            data_empty = parsed;
+                            chosen_empty = p;
+                        }
+                    }
+                } catch (e) {
+                    show_debug_message("ERROR PARSING SCENARIO JSON: " + string(e) + " path=" + p);
+                }
+            }
+        }
     }
     
-    if (file_exists(path)) {
-        show_debug_message("### ScenarioRunner: Loading scenario from " + path);
-        var fr = file_text_open_read(path);
-        var s = "";
-        while (!file_text_eof(fr)) { 
-            s += file_text_read_string(fr);
-            file_text_readln(fr); // IMPORTANT: Force next line to avoid infinite loop
-        }
-        file_text_close(fr);
-        try {
-            var data2 = json_parse(s);
-            if (is_struct(data2) && variable_struct_exists(data2, "scenes")) {
-                scenes = data2.scenes;
-                scene_index = clamp(scene_index, 0, max(0, array_length(scenes)-1));
-                show_debug_message("### ScenarioRunner: Successfully loaded " + string(array_length(scenes)) + " scenes.");
-            } else {
-                show_debug_message("### ScenarioRunner: JSON parsed but invalid structure (missing 'scenes').");
-            }
-        } catch(e) {
-            show_debug_message("ERROR PARSING SCENARIO JSON: " + string(e));
-        }
+    if (is_undefined(data2) && !is_undefined(data_empty)) {
+        data2 = data_empty;
+        chosen = chosen_empty;
+    }
+    
+    if (!is_undefined(data2) && is_struct(data2) && variable_struct_exists(data2, "scenes")) {
+        scenes = data2.scenes;
+        scene_index = clamp(scene_index, 0, max(0, array_length(scenes) - 1));
+        show_debug_message("### ScenarioRunner: Loaded " + string(array_length(scenes)) + " scenes from " + chosen);
     } else {
-        show_debug_message("### ScenarioRunner: CRITICAL - Scenario file not found anywhere!");
+        show_debug_message("### ScenarioRunner: CRITICAL - Scenario file not found or invalid.");
     }
 }
 

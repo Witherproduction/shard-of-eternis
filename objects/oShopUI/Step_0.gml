@@ -52,12 +52,12 @@ if (!click) {
     if (portal_state == 1) {
         var grow_frames = 18;
         var p = clamp(reveal_t / grow_frames, 0, 1);
-        portal_scale = lerp(0, 1.5, p);
+        portal_scale = lerp(0, 0.8, p);
         if (reveal_t >= grow_frames) { portal_state = 0; reveal_t = 0; reveal_stage = 0; }
     } else if (portal_state == 6) {
         var shrink_frames = 18;
         var p2 = clamp(reveal_t / shrink_frames, 0, 1);
-        portal_scale = lerp(1.5, 0, p2);
+        portal_scale = lerp(0.8, 0, p2);
         if (reveal_t >= shrink_frames) { portal_state = 0; reveal_t = 0; }
     }
     exit;

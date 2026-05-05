@@ -620,7 +620,7 @@ function selectCardByName(cardName) {
     return false;
 }
 
-// Animation Convoquer (sSpecialSummon ZoomIn -> Hold -> ZoomOut)
+// Animation Convoquer (sPortailHeros ZoomIn -> Hold -> ZoomOut)
 summonAnimState = 0; // 0: None, 1: Zoom In, 2: Hold, 3: Zoom Out
 summonAnimTimer = 0;
 summonAnimDurationIn = 30;   // 0.5s Zoom In

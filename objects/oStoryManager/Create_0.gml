@@ -79,8 +79,3 @@ function update_resume_act() {
 
 // Appel initial
 update_resume_act();
-
-// Instanciation du MapManager
-if (!instance_exists(oMapManager)) {
-    instance_create_depth(0, 0, depth, oMapManager);
-}

@@ -4,7 +4,7 @@
 event_inherited();
 
 // Garde directe pour s'assurer du blocage
-if (instance_exists(oPanelOptions)) {
+if (instance_exists(oPanelOptions) || instance_exists(oQuestPanel)) {
     exit;
 }
 

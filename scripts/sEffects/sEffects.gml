@@ -21,6 +21,29 @@
 #macro EFFECT_BUFF "buff"
 #macro EFFECT_POISON "poison"
 #macro EFFECT_STEALTH "stealth"
+#macro EFFECT_PONCTION "ponction"
+#macro EFFECT_INCREASE_HAND_COST "increase_hand_cost"
+#macro EFFECT_SET_NEXT_PLAYED_MONSTER_COST_BONUS "set_next_played_monster_cost_bonus"
+#macro EFFECT_TERRAIN_TICK "terrain_tick"
+#macro EFFECT_EGIDE "egide"
+#macro EFFECT_PERCEE "percee"
+#macro EFFECT_REPOUSSEMENT "repoussement"
+#macro EFFECT_TARGET_FACING "target_facing"
+#macro EFFECT_APPLY_DOT "apply_dot"
+#macro EFFECT_DOT_TICK "dot_tick"
+#macro EFFECT_TRACK_GRAVEYARD_PRESENCE "track_graveyard_presence"
+#macro EFFECT_SET_SELF_BUFF_CONTRIB "set_self_buff_contrib"
+#macro EFFECT_CONDITIONAL_FLOW "conditional_flow"
+#macro EFFECT_REMOVE_SELF_BUFF_CONTRIBS "remove_self_buff_contribs"
+#macro EFFECT_MARK_ATTACK_DAMAGE "mark_attack_damage"
+#macro EFFECT_ADD_RANDOM_TO_HAND "add_random_to_hand"
+#macro EFFECT_DAMAGE_ALL_PER_ALLY_COUNT "damage_all_per_ally_count"
+#macro EFFECT_RANDOM_PROJECTILES "random_projectiles"
+#macro EFFECT_TRACK_FIELD_PRESENCE "track_field_presence"
+#macro EFFECT_TRACK_SELF_PROPERTY_BOOL "track_self_property_bool"
+#macro EFFECT_CLEAVE_ADJACENT "cleave_adjacent"
+#macro EFFECT_SET_SELF_ATTACK_PER_GRAVEYARD_COUNT "set_self_attack_per_graveyard_count"
+#macro EFFECT_COUNT_APPLY "count_apply"
 
 // Effets de ciblage
 #macro EFFECT_DESTROY_TARGET "destroy_target"           // Détruire une cible
@@ -35,6 +58,7 @@
 // Effets de zone
 #macro EFFECT_DESTROY_ALL "destroy_all"                 // Détruire tous les monstres
 #macro EFFECT_DAMAGE_ALL "damage_all"                   // Dégâts à tous
+#macro EFFECT_DAMAGE_ALL_REPEAT_PER_DEATHS_THIS_TURN "damage_all_repeat_per_deaths_this_turn"
 #macro EFFECT_HEAL_ALL "heal_all"                       // Soins à tous
 
 // Effets de manipulation de deck
@@ -86,11 +110,14 @@
 // Effets d’aura de champ (nouveaux)
 #macro EFFECT_AURA_ALL_MONSTERS_DEBUFF "aura_all_monsters_debuff"   // Aura: debuff ATK/PV pour tous les monstres sur le terrain
 #macro EFFECT_AURA_CLEANUP_SOURCE "aura_cleanup_source"   // Nettoyage d’aura: retirer les contributions d’une source
+#macro EFFECT_AURA_DAMAGE_REDUCTION "aura_damage_reduction"
+#macro EFFECT_AURA_DAMAGE_TAKEN_BONUS "aura_damage_taken_bonus"
 #macro EFFECT_POINTS "points_effect"
 #macro EFFECT_ATTACK_DIRECT "attack_direct"
 #macro EFFECT_DECK_REORDER_TOP3 "deck_top3_reorder"
 #macro EFFECT_PILLAGE "pillage"
 #macro EFFECT_GENERIC_FLOW "generic_flow"
+#macro EFFECT_SACRIFICE_TARGET "sacrifice_target"
 
 // === FONCTION PRINCIPALE D'EXÉCUTION DES EFFETS ===
 
@@ -106,6 +133,7 @@ function isTargetingRequired(effect) {
     
     // Liste des effets nécessitant une cible manuelle
     if (etype == EFFECT_DESTROY_TARGET ||
+        etype == EFFECT_SACRIFICE_TARGET ||
         etype == EFFECT_EQUIP_SELECT_TARGET ||
         etype == EFFECT_ENTRAVE ||
         etype == EFFECT_RETURN_TO_HAND ||
@@ -131,6 +159,60 @@ function isTargetingRequired(effect) {
     if (variable_struct_exists(effect, "select_mode") && effect.select_mode == "random") return false;
     
     return false;
+}
+
+function _countFieldByCriteria(fieldCardsArray, includeFaceDown, criteria, objectNames) {
+    var count = 0;
+    if (!is_array(fieldCardsArray)) return 0;
+    var hasCrit = is_struct(criteria) && script_exists(asset_get_index("_cardMatchesCriteria"));
+    var hasNames = is_array(objectNames) && array_length(objectNames) > 0;
+    for (var i = 0; i < array_length(fieldCardsArray); i++) {
+        var c0 = fieldCardsArray[i];
+        if (c0 == 0 || !instance_exists(c0)) continue;
+        var z0 = variable_instance_exists(c0, "zone") ? string_lower(c0.zone) : "";
+        if (!(z0 == "field" || z0 == "fieldselected")) continue;
+        if (!includeFaceDown && variable_instance_exists(c0, "isFaceDown") && c0.isFaceDown) continue;
+        
+        var ok = true;
+        if (hasNames) {
+            ok = false;
+            var on0 = object_get_name(c0.object_index);
+            for (var j = 0; j < array_length(objectNames); j++) {
+                if (on0 == string(objectNames[j])) { ok = true; break; }
+            }
+        }
+        if (ok && hasCrit) {
+            if (!_cardMatchesCriteria(c0, criteria)) ok = false;
+        }
+        if (ok) count += 1;
+    }
+    return count;
+}
+
+function _countGraveyardByCriteria(graveyardArray, criteria, objectNames) {
+    var count = 0;
+    if (!is_array(graveyardArray)) return 0;
+    var hasCrit = is_struct(criteria) && script_exists(asset_get_index("_cardMatchesCriteria"));
+    var hasNames = is_array(objectNames) && array_length(objectNames) > 0;
+    for (var i = 0; i < array_length(graveyardArray); i++) {
+        var g0 = graveyardArray[i];
+        if (g0 == noone) continue;
+        var ok = true;
+        if (hasNames) {
+            ok = false;
+            if (variable_struct_exists(g0, "object_index")) {
+                var on0 = object_get_name(g0.object_index);
+                for (var j = 0; j < array_length(objectNames); j++) {
+                    if (on0 == string(objectNames[j])) { ok = true; break; }
+                }
+            }
+        }
+        if (ok && hasCrit) {
+            if (!_cardMatchesCriteria(g0, criteria)) ok = false;
+        }
+        if (ok) count += 1;
+    }
+    return count;
 }
 
 function checkCondition(condition, card, context) {
@@ -263,10 +345,12 @@ function executeEffect(card, effect, context = {}) {
     var scope_for_target = string_lower(variable_struct_exists(effect, "scope") ? effect.scope : "single");
     var needsTarget = (
                        effectType == EFFECT_DESTROY_TARGET
+                       || effectType == EFFECT_SACRIFICE_TARGET
                        || effectType == EFFECT_BANISH_TARGET
                        || effectType == EFFECT_DAMAGE_TARGET
                        || effectType == EFFECT_RETURN_TO_HAND
                        || effectType == EFFECT_EQUIP_SELECT_TARGET
+                       || effectType == EFFECT_MARK_ATTACK_DAMAGE
                        || (effectType == EFFECT_SUMMON && string_lower(variable_struct_exists(effect, "summon_mode") ? effect.summon_mode : "") == "copy_target")
                        || (effectType == EFFECT_BUFF && scope_for_target == "single")
                        || (effectType == EFFECT_ENTRAVE && scope_for_target == "single")
@@ -321,6 +405,34 @@ function executeEffect(card, effect, context = {}) {
                             }
                         }
                     }
+                }
+            } else if (effectType == EFFECT_SACRIFICE_TARGET) {
+                hasValidTarget = false;
+                var critS = variable_struct_exists(effect, "criteria") ? effect.criteria : noone;
+                var hasCritS = is_struct(critS) && script_exists(asset_get_index("_cardMatchesCriteria"));
+                var ownS = string_lower(variable_struct_exists(effect, "owner") ? effect.owner : "ally");
+                var wantHeroS = undefined;
+                if (ownS == "ally" || ownS == "self" || ownS == "hero") wantHeroS = ownerIsHero_ctx;
+                else if (ownS == "enemy") wantHeroS = !ownerIsHero_ctx;
+                
+                var _scanArrForSacrifice = function(arrScan) {
+                    if (!is_array(arrScan)) return false;
+                    for (var iiS = 0; iiS < array_length(arrScan); iiS++) {
+                        var cS = arrScan[iiS];
+                        if (cS == 0 || !instance_exists(cS)) continue;
+                        var zS = variable_instance_exists(cS, "zone") ? string_lower(cS.zone) : "";
+                        if (!(zS == "field" || zS == "fieldselected")) continue;
+                        if (variable_instance_exists(cS, "isTerrain") && cS.isTerrain) continue;
+                        if (hasCritS) { if (!_cardMatchesCriteria(cS, critS)) continue; }
+                        return true;
+                    }
+                    return false;
+                };
+                
+                if (is_bool(wantHeroS)) {
+                    hasValidTarget = _scanArrForSacrifice(wantHeroS ? fieldMonsterHero.cards : fieldMonsterEnemy.cards);
+                } else {
+                    hasValidTarget = _scanArrForSacrifice(fieldMonsterHero.cards) || _scanArrForSacrifice(fieldMonsterEnemy.cards);
                 }
             } else if (effectType == EFFECT_DESTROY_TARGET || effectType == EFFECT_BANISH_TARGET || effectType == EFFECT_RETURN_TO_HAND || effectType == EFFECT_DAMAGE_TARGET || effectType == EFFECT_PURGE || (effectType == EFFECT_SUMMON && string_lower(variable_struct_exists(effect, "summon_mode") ? effect.summon_mode : "") == "copy_target")) {
                 hasValidTarget = false;
@@ -685,9 +797,908 @@ function executeEffect(card, effect, context = {}) {
                 return true;
             }
             return false;
+
+        case EFFECT_PONCTION:
+            if (card != noone && instance_exists(card)) {
+                card.hasPonction = true;
+                return true;
+            }
+            return false;
+
+        case EFFECT_EGIDE:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            var scope = variable_struct_exists(effect, "scope") ? string_lower(effect.scope) : "single";
+            var ownerSide = variable_struct_exists(effect, "owner") ? string_lower(effect.owner) : "ally";
+            var crit = variable_struct_exists(effect, "criteria") ? effect.criteria : noone;
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            
+            if (scope == "all") {
+                var arr = (ownerSide == "enemy") ? (srcHero ? fieldMonsterEnemy.cards : fieldMonsterHero.cards)
+                                                 : (srcHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards);
+                var applied = false;
+                for (var i = 0; i < array_length(arr); i++) {
+                    var c0 = arr[i];
+                    if (c0 == 0 || !instance_exists(c0)) continue;
+                    var z0 = variable_instance_exists(c0, "zone") ? string_lower(c0.zone) : "";
+                    if (!(z0 == "field" || z0 == "fieldselected")) continue;
+                    if (is_struct(crit) && script_exists(asset_get_index("_cardMatchesCriteria"))) {
+                        if (!_cardMatchesCriteria(c0, crit)) continue;
+                    }
+                    c0.hasEgide = true;
+                    applied = true;
+                }
+                return applied;
+            }
+            
+            var tgt = (variable_struct_exists(context, "target") && instance_exists(context.target)) ? context.target : card;
+            if (is_struct(crit) && script_exists(asset_get_index("_cardMatchesCriteria"))) {
+                if (!_cardMatchesCriteria(tgt, crit)) return false;
+            }
+            tgt.hasEgide = true;
+            return true;
+        }
+            
+        case EFFECT_PERCEE:
+            if (card != noone && instance_exists(card)) {
+                card.isPercee = true;
+                return true;
+            }
+            return false;
+            
+        case EFFECT_REPOUSSEMENT:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            var defender = variable_struct_exists(context, "defender") ? context.defender : noone;
+            if (defender != noone && instance_exists(defender) && !is_undefined(tryRepoussement)) {
+                return tryRepoussement(card, defender);
+            }
+            card.hasRepoussement = true;
+            return true;
+        }
+
+        case EFFECT_CLEAVE_ADJACENT:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (is_undefined(damageCard)) return false;
+            if (variable_struct_exists(context, "direct_attack") && context.direct_attack) return false;
+            
+            var dmg = variable_struct_exists(effect, "value") ? effect.value
+                      : (variable_struct_exists(effect, "damage") ? effect.damage : 1);
+            dmg = max(0, dmg);
+            if (dmg <= 0) return true;
+            
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            
+            var ownerSide = variable_struct_exists(effect, "owner") ? string_lower(string(effect.owner)) : "enemy";
+            var targetHero = srcHero;
+            if (ownerSide == "ally") targetHero = srcHero;
+            else if (ownerSide == "enemy") targetHero = !srcHero;
+            
+            var arr = targetHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards;
+            var pos = -1;
+            if (variable_struct_exists(context, "defender_field_position")) {
+                pos = context.defender_field_position;
+            } else if (variable_struct_exists(context, "defender")) {
+                var def = context.defender;
+                if (def != noone && instance_exists(def) && variable_instance_exists(def, "fieldPosition")) {
+                    pos = def.fieldPosition;
+                }
+            }
+            if (pos < 0) return false;
+            var row = floor(pos / 4);
+            var col = pos mod 4;
+            if (col < 0) col = 0;
+            
+            var any = false;
+            if (col > 0) {
+                var pL = row * 4 + (col - 1);
+                if (pL >= 0 && pL < array_length(arr)) {
+                    var tL = arr[pL];
+                    if (tL != 0 && instance_exists(tL)) { damageCard(tL, dmg, card); any = true; }
+                }
+            }
+            if (col < 3) {
+                var pR = row * 4 + (col + 1);
+                if (pR >= 0 && pR < array_length(arr)) {
+                    var tR = arr[pR];
+                    if (tR != 0 && instance_exists(tR)) { damageCard(tR, dmg, card); any = true; }
+                }
+            }
+            return any;
+        }
+
+        case EFFECT_SET_SELF_ATTACK_PER_GRAVEYARD_COUNT:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            
+            var countCrit = variable_struct_exists(effect, "count_criteria") ? effect.count_criteria : noone;
+            if (!is_struct(countCrit)) return false;
+            
+            var graveyard = srcHero ? graveyardHero : graveyardEnemy;
+            var garr = (instance_exists(graveyard) && variable_instance_exists(graveyard, "cards")) ? graveyard.cards : [];
+            var countObjNames = variable_struct_exists(effect, "count_object_names") ? effect.count_object_names : [];
+            var count = _countGraveyardByCriteria(garr, countCrit, countObjNames);
+            
+            var per = variable_struct_exists(effect, "per") ? effect.per : (variable_struct_exists(effect, "value") ? effect.value : 1);
+            var base = variable_struct_exists(effect, "base_attack") ? effect.base_attack : (variable_struct_exists(effect, "base") ? effect.base : (variable_struct_exists(card, "original_attack") ? card.original_attack : card.attack));
+            per = max(0, per);
+            base = max(0, base);
+            
+            var newAtk = base + (per * count);
+            card.attack = newAtk;
+            if (!is_undefined(buffRecompute)) buffRecompute(card);
+            return true;
+        }
+        
+        case EFFECT_COUNT_APPLY:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            
+            var countSource = variable_struct_exists(effect, "count_source") ? string_lower(string(effect.count_source)) : "field";
+            var countOwner = variable_struct_exists(effect, "count_owner") ? string_lower(string(effect.count_owner)) : "ally";
+            var countHero = srcHero;
+            if (countOwner == "ally") countHero = srcHero;
+            else if (countOwner == "enemy") countHero = !srcHero;
+            
+            var countCrit = variable_struct_exists(effect, "count_criteria") ? effect.count_criteria : noone;
+            var countObjNames = variable_struct_exists(effect, "count_object_names") ? effect.count_object_names : [];
+            var includeFD = variable_struct_exists(effect, "include_face_down_in_count") ? effect.include_face_down_in_count : false;
+            
+            var count = 0;
+            if (countSource == "graveyard") {
+                var graveyard = countHero ? graveyardHero : graveyardEnemy;
+                var garr = (instance_exists(graveyard) && variable_instance_exists(graveyard, "cards")) ? graveyard.cards : [];
+                count = _countGraveyardByCriteria(garr, countCrit, countObjNames);
+            } else {
+                var arr = countHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards;
+                count = _countFieldByCriteria(arr, includeFD, countCrit, countObjNames);
+            }
+            
+            var per = variable_struct_exists(effect, "per") ? effect.per : (variable_struct_exists(effect, "value") ? effect.value : 1);
+            var base = variable_struct_exists(effect, "base") ? effect.base
+                       : (variable_struct_exists(effect, "base_value") ? effect.base_value
+                       : (variable_struct_exists(effect, "base_attack") ? effect.base_attack : 0));
+            per = max(0, per);
+            base = max(0, base);
+            var total = base + (per * count);
+            
+            var applyMode = variable_struct_exists(effect, "apply_mode") ? string_lower(string(effect.apply_mode)) : "damage_all";
+            if (applyMode == "set_self_attack") {
+                card.attack = total;
+                if (!is_undefined(buffRecompute)) buffRecompute(card);
+                return true;
+            }
+            
+            if (applyMode == "damage_all") {
+                if (total <= 0) return true;
+                if (is_undefined(damageAllMonsters)) return false;
+                var dmgSpec = {
+                    owner: (variable_struct_exists(effect, "owner") ? effect.owner : "enemy"),
+                    target_zone: (variable_struct_exists(effect, "target_zone") ? effect.target_zone : "field"),
+                    monster_type: (variable_struct_exists(effect, "monster_type") ? effect.monster_type : "Monster"),
+                    criteria: (variable_struct_exists(effect, "criteria") ? effect.criteria : noone),
+                    source_card: card
+                };
+                if (variable_struct_exists(effect, "visual_fx")) dmgSpec.visual_fx = effect.visual_fx;
+                if (variable_struct_exists(effect, "element")) dmgSpec.element = effect.element;
+                return damageAllMonsters(total, dmgSpec);
+            }
+            
+            return false;
+        }
+        
+        case EFFECT_TARGET_FACING:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (!variable_instance_exists(card, "fieldPosition")) return false;
+            var pos = card.fieldPosition;
+            if (pos < 0) return false;
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            var fmOpp = srcHero ? instance_find(oFieldManagerEnemy, 0) : instance_find(oFieldManagerHero, 0);
+            if (fmOpp == noone || !instance_exists(fmOpp) || !variable_instance_exists(fmOpp, "getField")) return false;
+            var fieldOpp = fmOpp.getField("Monster");
+            if (fieldOpp == noone || !instance_exists(fieldOpp) || !variable_struct_exists(fieldOpp, "cards")) return false;
+            var col = pos mod 4;
+            if (col < 0) col = 0;
+            var idxFront = col;
+            var idxBack = col + 4;
+            if (idxFront >= array_length(fieldOpp.cards)) return false;
+            var tgt = fieldOpp.cards[idxFront];
+            if ((tgt == 0 || !instance_exists(tgt)) && idxBack < array_length(fieldOpp.cards)) {
+                tgt = fieldOpp.cards[idxBack];
+            }
+            
+            if (tgt == 0 || !instance_exists(tgt)) {
+                if (variable_struct_exists(effect, "fallback_flow")) {
+                    var ctxF = { owner_is_hero: (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : srcHero), attacker: card, defender: noone, target: noone };
+                    var flowF = effect.fallback_flow;
+                    if (is_array(flowF)) {
+                        for (var fi = 0; fi < array_length(flowF); fi++) {
+                            var stf = flowF[fi];
+                            if (is_struct(stf) && variable_struct_exists(stf, "effect_type")) executeEffect(card, stf, ctxF);
+                        }
+                    } else if (is_struct(flowF) && variable_struct_exists(flowF, "effect_type")) {
+                        executeEffect(card, flowF, ctxF);
+                    }
+                    return true;
+                }
+                return false;
+            }
+            
+            var ctx2 = { owner_is_hero: (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : srcHero), target: tgt, defender: tgt, attacker: card };
+            var flow = variable_struct_exists(effect, "flow") ? effect.flow : noone;
+            if (is_array(flow)) {
+                for (var i = 0; i < array_length(flow); i++) {
+                    var st = flow[i];
+                    if (is_struct(st) && variable_struct_exists(st, "effect_type")) executeEffect(card, st, ctx2);
+                }
+            } else if (is_struct(flow) && variable_struct_exists(flow, "effect_type")) {
+                executeEffect(card, flow, ctx2);
+            }
+            return true;
+        }
+        
+        case EFFECT_APPLY_DOT:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (!variable_struct_exists(context, "target") || context.target == noone || !instance_exists(context.target)) return false;
+            var tgt = context.target;
+            if (!variable_instance_exists(tgt, "effects") || !is_array(tgt.effects)) tgt.effects = [];
+            
+            var dmg = 1;
+            if (variable_struct_exists(effect, "value")) dmg = effect.value;
+            else if (variable_struct_exists(effect, "damage")) dmg = effect.damage;
+            else if (variable_struct_exists(effect, "amount")) dmg = effect.amount;
+            dmg = max(0, dmg);
+            
+            var turns = 1;
+            if (variable_struct_exists(effect, "turns")) turns = effect.turns;
+            else if (variable_struct_exists(effect, "duration")) turns = effect.duration;
+            else if (variable_struct_exists(effect, "count")) turns = effect.count;
+            turns = max(0, turns);
+            
+            if (!variable_global_exists("dot_effect_next_id")) global.dot_effect_next_id = 1000;
+            var dotKey = string(card.id) + ":" + string(global.dot_effect_next_id);
+            global.dot_effect_next_id += 1;
+            
+            if (!is_undefined(dotAdd)) dotAdd(tgt, dotKey, dmg, turns, card);
+            
+            array_push(tgt.effects, { id: global.dot_effect_next_id + 1, trigger: TRIGGER_END_TURN, effect_type: EFFECT_DOT_TICK, dot_key: dotKey, conditions: { owner_turn: true } });
+            global.dot_effect_next_id += 1;
+            return true;
+        }
+        
+        case EFFECT_DOT_TICK:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (!variable_struct_exists(effect, "dot_key")) { effect.negated = true; return false; }
+            if (is_undefined(dotTick)) { effect.negated = true; return false; }
+            var rem = dotTick(card, effect.dot_key);
+            if (rem <= 0) { effect.negated = true; }
+            return (rem >= 0);
+        }
+        
+        case EFFECT_TRACK_GRAVEYARD_PRESENCE:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            if (is_undefined(_findInGraveyard)) return false;
+            
+            var trackerKey = variable_struct_exists(effect, "tracker_key") ? string(effect.tracker_key) : "tracker";
+            var checks = variable_struct_exists(effect, "checks") ? effect.checks : [];
+            if (!is_array(checks) || array_length(checks) <= 0) return false;
+            
+            if (!variable_instance_exists(card, "tracker_flags") || !is_struct(card.tracker_flags)) card.tracker_flags = {};
+            var flags = {};
+            for (var i = 0; i < array_length(checks); i++) {
+                var chk = checks[i];
+                if (!is_struct(chk)) continue;
+                var key = variable_struct_exists(chk, "key") ? string(chk.key) : "";
+                var obj = variable_struct_exists(chk, "object_name") ? string(chk.object_name) : "";
+                if (key == "" || obj == "") continue;
+                flags[$ key] = (_findInGraveyard(srcHero, { object_name: obj }) != noone);
+            }
+            card.tracker_flags[$ trackerKey] = flags;
+            
+            var ids = variable_struct_exists(effect, "activate_effect_ids") ? effect.activate_effect_ids : [];
+            if (is_array(ids) && variable_instance_exists(card, "effects") && is_array(card.effects)) {
+                for (var j = 0; j < array_length(ids); j++) {
+                    var wantId = ids[j];
+                    var effFound = noone;
+                    for (var k = 0; k < array_length(card.effects); k++) {
+                        var e0 = card.effects[k];
+                        if (is_struct(e0) && variable_struct_exists(e0, "id") && e0.id == wantId) { effFound = e0; break; }
+                    }
+                    if (!is_struct(effFound)) continue;
+                    var active = true;
+                    if (variable_struct_exists(effFound, "presence_key")) {
+                        var pkey = string(effFound.presence_key);
+                        active = (variable_struct_exists(flags, pkey) && flags[$ pkey]);
+                    } else if (variable_struct_exists(effFound, "presence_all_keys")) {
+                        var allK = effFound.presence_all_keys;
+                        if (is_array(allK)) {
+                            for (var a = 0; a < array_length(allK); a++) {
+                                var ak = string(allK[a]);
+                                if (!(variable_struct_exists(flags, ak) && flags[$ ak])) { active = false; break; }
+                            }
+                        }
+                    } else if (variable_struct_exists(effFound, "presence_any_keys")) {
+                        var anyK = effFound.presence_any_keys;
+                        active = false;
+                        if (is_array(anyK)) {
+                            for (var b = 0; b < array_length(anyK); b++) {
+                                var bk = string(anyK[b]);
+                                if (variable_struct_exists(flags, bk) && flags[$ bk]) { active = true; break; }
+                            }
+                        }
+                    }
+                    executeEffect(card, effFound, { owner_is_hero: srcHero, active: active, tracker_key: trackerKey, tracker_flags: flags });
+                }
+            }
+            return true;
+        }
+
+        case EFFECT_TRACK_FIELD_PRESENCE:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            
+            var trackerKey = variable_struct_exists(effect, "tracker_key") ? string(effect.tracker_key) : "tracker";
+            var checks = variable_struct_exists(effect, "checks") ? effect.checks : [];
+            if (!is_array(checks) || array_length(checks) <= 0) return false;
+            
+            if (!variable_instance_exists(card, "tracker_flags") || !is_struct(card.tracker_flags)) card.tracker_flags = {};
+            var flags = {};
+            
+            var ownerSide = variable_struct_exists(effect, "owner") ? string_lower(string(effect.owner)) : "ally";
+            var checkHero = (ownerSide == "enemy") ? !srcHero : srcHero;
+            var arr = checkHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards;
+            
+            for (var i = 0; i < array_length(checks); i++) {
+                var chk = checks[i];
+                if (!is_struct(chk)) continue;
+                var key = variable_struct_exists(chk, "key") ? string(chk.key) : "";
+                var obj = variable_struct_exists(chk, "object_name") ? string(chk.object_name) : "";
+                if (key == "" || obj == "") continue;
+                
+                var found = false;
+                for (var j = 0; j < array_length(arr); j++) {
+                    var c0 = arr[j];
+                    if (c0 == 0 || !instance_exists(c0)) continue;
+                    var z0 = variable_instance_exists(c0, "zone") ? string_lower(c0.zone) : "";
+                    if (!(z0 == "field" || z0 == "fieldselected")) continue;
+                    if (object_get_name(c0.object_index) == obj) { found = true; break; }
+                }
+                flags[$ key] = found;
+            }
+            
+            card.tracker_flags[$ trackerKey] = flags;
+            
+            var ids = variable_struct_exists(effect, "activate_effect_ids") ? effect.activate_effect_ids : [];
+            if (is_array(ids) && variable_instance_exists(card, "effects") && is_array(card.effects)) {
+                for (var jj = 0; jj < array_length(ids); jj++) {
+                    var wantId = ids[jj];
+                    var effFound = noone;
+                    for (var k = 0; k < array_length(card.effects); k++) {
+                        var e0 = card.effects[k];
+                        if (is_struct(e0) && variable_struct_exists(e0, "id") && e0.id == wantId) { effFound = e0; break; }
+                    }
+                    if (!is_struct(effFound)) continue;
+                    var active = true;
+                    if (variable_struct_exists(effFound, "presence_key")) {
+                        var pkey = string(effFound.presence_key);
+                        active = (variable_struct_exists(flags, pkey) && flags[$ pkey]);
+                    } else if (variable_struct_exists(effFound, "presence_all_keys")) {
+                        var allK = effFound.presence_all_keys;
+                        if (is_array(allK)) {
+                            for (var a = 0; a < array_length(allK); a++) {
+                                var ak = string(allK[a]);
+                                if (!(variable_struct_exists(flags, ak) && flags[$ ak])) { active = false; break; }
+                            }
+                        }
+                    } else if (variable_struct_exists(effFound, "presence_any_keys")) {
+                        var anyK = effFound.presence_any_keys;
+                        active = false;
+                        if (is_array(anyK)) {
+                            for (var b = 0; b < array_length(anyK); b++) {
+                                var bk = string(anyK[b]);
+                                if (variable_struct_exists(flags, bk) && flags[$ bk]) { active = true; break; }
+                            }
+                        }
+                    }
+                    executeEffect(card, effFound, { owner_is_hero: srcHero, active: active, tracker_key: trackerKey, tracker_flags: flags });
+                }
+            }
+            
+            return true;
+        }
+
+        case EFFECT_TRACK_SELF_PROPERTY_BOOL:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            
+            var trackerKey = variable_struct_exists(effect, "tracker_key") ? string(effect.tracker_key) : "tracker";
+            var prop = variable_struct_exists(effect, "property") ? string(effect.property) : "";
+            if (prop == "") return false;
+            var flagKey = variable_struct_exists(effect, "key") ? string(effect.key) : prop;
+            
+            var val = false;
+            if (variable_instance_exists(card, prop)) {
+                val = variable_instance_get(card, prop);
+            }
+            val = (val == true);
+            
+            if (!variable_instance_exists(card, "tracker_flags") || !is_struct(card.tracker_flags)) card.tracker_flags = {};
+            var flags = {};
+            flags[$ flagKey] = val;
+            card.tracker_flags[$ trackerKey] = flags;
+            
+            var ids = variable_struct_exists(effect, "activate_effect_ids") ? effect.activate_effect_ids : [];
+            if (is_array(ids) && variable_instance_exists(card, "effects") && is_array(card.effects)) {
+                for (var jj = 0; jj < array_length(ids); jj++) {
+                    var wantId = ids[jj];
+                    var effFound = noone;
+                    for (var k = 0; k < array_length(card.effects); k++) {
+                        var e0 = card.effects[k];
+                        if (is_struct(e0) && variable_struct_exists(e0, "id") && e0.id == wantId) { effFound = e0; break; }
+                    }
+                    if (!is_struct(effFound)) continue;
+                    var active = val;
+                    if (variable_struct_exists(effFound, "presence_key")) {
+                        var pkey = string(effFound.presence_key);
+                        active = (variable_struct_exists(flags, pkey) && flags[$ pkey]);
+                    }
+                    executeEffect(card, effFound, { owner_is_hero: srcHero, active: active, tracker_key: trackerKey, tracker_flags: flags });
+                }
+            }
+            
+            return true;
+        }
+        
+        case EFFECT_SET_SELF_BUFF_CONTRIB:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (is_undefined(buffSetContribution) || is_undefined(buffRemoveContribution) || is_undefined(buffRecompute)) return false;
+            var active = variable_struct_exists(context, "active") ? context.active : true;
+            if (!variable_struct_exists(context, "active") && variable_struct_exists(effect, "active_if_self_property")) {
+                var prop = string(effect.active_if_self_property);
+                if (prop != "" && variable_instance_exists(card, prop)) {
+                    active = variable_instance_get(card, prop);
+                } else {
+                    active = false;
+                }
+            }
+            var baseKey = variable_struct_exists(effect, "contrib_key") ? string(effect.contrib_key) : "contrib";
+            var atk = variable_struct_exists(effect, "atk") ? effect.atk : (variable_struct_exists(effect, "value") ? effect.value : 0);
+            var pv = variable_struct_exists(effect, "PV") ? effect.PV : (variable_struct_exists(effect, "def") ? effect.def : 0);
+            var key = baseKey + ":" + string(card.id);
+            if (active) buffSetContribution(card, key, atk, pv); else buffRemoveContribution(card, key);
+            buffRecompute(card);
+            return true;
+        }
+
+        case EFFECT_CONDITIONAL_FLOW:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            var cond = variable_struct_exists(effect, "cond") ? effect.cond : noone;
+            var ok = true;
+            if (is_struct(cond) && variable_struct_exists(cond, "type")) {
+                var t = string_lower(string(cond.type));
+                if (t == "context_active") {
+                    ok = variable_struct_exists(context, "active") && context.active;
+                }
+                if (t == "target_alive") {
+                    if (!variable_struct_exists(context, "target") || context.target == noone || !instance_exists(context.target)) {
+                        ok = false;
+                    } else {
+                        var t0 = context.target;
+                        if (variable_instance_exists(t0, "current_hp")) ok = (t0.current_hp > 0);
+                        else if (variable_instance_exists(t0, "nbLP")) ok = (t0.nbLP > 0);
+                        else ok = true;
+                    }
+                }
+                if (t == "tracker_flags") {
+                    if (!variable_instance_exists(card, "tracker_flags") || !is_struct(card.tracker_flags)) ok = false;
+                    var tk = variable_struct_exists(cond, "tracker_key") ? string(cond.tracker_key) : "";
+                    if (ok && (tk == "" || !variable_struct_exists(card.tracker_flags, tk))) ok = false;
+                    var flags = ok ? card.tracker_flags[$ tk] : {};
+                    if (ok && variable_struct_exists(cond, "all")) {
+                        var allArr = cond.all;
+                        if (is_array(allArr)) {
+                            for (var i = 0; i < array_length(allArr); i++) {
+                                var k = string(allArr[i]);
+                                if (!(variable_struct_exists(flags, k) && flags[$ k])) { ok = false; break; }
+                            }
+                        }
+                    }
+                    if (ok && variable_struct_exists(cond, "any")) {
+                        var anyArr = cond.any;
+                        ok = false;
+                        if (is_array(anyArr)) {
+                            for (var j = 0; j < array_length(anyArr); j++) {
+                                var k2 = string(anyArr[j]);
+                                if (variable_struct_exists(flags, k2) && flags[$ k2]) { ok = true; break; }
+                            }
+                        }
+                    }
+                }
+            }
+            if (!ok) return false;
+            var flow = variable_struct_exists(effect, "flow") ? effect.flow : noone;
+            var ctx2 = context;
+            if (is_array(flow)) {
+                for (var f = 0; f < array_length(flow); f++) {
+                    var st = flow[f];
+                    if (is_struct(st) && variable_struct_exists(st, "effect_type")) executeEffect(card, st, ctx2);
+                }
+            } else if (is_struct(flow) && variable_struct_exists(flow, "effect_type")) {
+                executeEffect(card, flow, ctx2);
+            }
+            return true;
+        }
+        
+        case EFFECT_REMOVE_SELF_BUFF_CONTRIBS:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (is_undefined(buffRemoveContribution) || is_undefined(buffRecompute)) return false;
+            var keys = variable_struct_exists(effect, "contrib_keys") ? effect.contrib_keys : [];
+            if (is_array(keys)) {
+                for (var i = 0; i < array_length(keys); i++) {
+                    buffRemoveContribution(card, string(keys[i]) + ":" + string(card.id));
+                }
+            }
+            buffRecompute(card);
+            return true;
+        }
+        
+        case EFFECT_MARK_ATTACK_DAMAGE:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (!variable_struct_exists(context, "target") || context.target == noone || !instance_exists(context.target)) return false;
+            if (!instance_exists(game)) return false;
+            var tgt = context.target;
+            
+            var amount = variable_struct_exists(effect, "value") ? effect.value
+                        : (variable_struct_exists(effect, "amount") ? effect.amount : 1);
+            amount = max(0, amount);
+            if (amount == 0) return true;
+            
+            var srcHero = (variable_struct_exists(context, "owner_is_hero"))
+                          ? context.owner_is_hero
+                          : ((variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner) ? true : false);
+            var localIndex = variable_instance_exists(game, "local_player_index") ? game.local_player_index : 0;
+            var srcOwnerIndex = srcHero ? localIndex : (1 - localIndex);
+            
+            var expireDelta = -1;
+            if (variable_struct_exists(effect, "expire_turn_delta")) {
+                expireDelta = max(0, effect.expire_turn_delta);
+            } else if (variable_struct_exists(effect, "duration_mode")) {
+                var mode = string_lower(string(effect.duration_mode));
+                if (mode == "until_next_owner_turn") {
+                    expireDelta = (game.player_current == srcOwnerIndex) ? 2 : 1;
+                } else if (mode == "until_end_of_next_owner_turn") {
+                    expireDelta = (game.player_current == srcOwnerIndex) ? 3 : 2;
+                } else if (mode == "until_end_of_turn" || mode == "until_end_of_current_turn") {
+                    expireDelta = 1;
+                }
+            }
+            if (expireDelta < 0) {
+                expireDelta = (game.player_current == srcOwnerIndex) ? 2 : 1;
+            }
+            var expireTurn = game.nbTurn + expireDelta;
+            
+            if (!variable_instance_exists(tgt, "attack_damage_bonus_sources") || !is_array(tgt.attack_damage_bonus_sources)) tgt.attack_damage_bonus_sources = [];
+            var key = "mark_attack:" + string(card.id) + ":" + string(variable_struct_exists(effect, "id") ? effect.id : 0);
+            var found = false;
+            for (var i = 0; i < array_length(tgt.attack_damage_bonus_sources); i++) {
+                var s = tgt.attack_damage_bonus_sources[i];
+                if (is_struct(s) && variable_struct_exists(s, "key") && string(s.key) == key) {
+                    s.amount = max(s.amount, amount);
+                    s.expire_turn = max(s.expire_turn, expireTurn);
+                    tgt.attack_damage_bonus_sources[i] = s;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) array_push(tgt.attack_damage_bonus_sources, { key: key, amount: amount, expire_turn: expireTurn });
+            return true;
+        }
+        
+        case EFFECT_ADD_RANDOM_TO_HAND:
+        {
+            var ownerIsHero_h = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
+                                 : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+            var handInst_h = ownerIsHero_h ? handHero : handEnemy;
+            if (!instance_exists(handInst_h)) return false;
+            
+            var candidates = variable_struct_exists(effect, "object_names") ? effect.object_names : [];
+            if (!is_array(candidates) || array_length(candidates) <= 0) return false;
+            var pick = candidates[irandom(array_length(candidates) - 1)];
+            var idx_on = asset_get_index(pick);
+            if (idx_on == -1) return false;
+            
+            var inst = instance_create_layer(handInst_h.x, handInst_h.y, layer_get_id("Instances"), idx_on);
+            if (inst == noone) return false;
+            inst.isHeroOwner = ownerIsHero_h;
+            inst.image_angle = ownerIsHero_h ? 0 : 180;
+            if (variable_instance_exists(inst, "zone")) inst.zone = "Hand"; else inst.zone = "Hand";
+            handInst_h.addCard(inst);
+            var ctx_h = { owner_is_hero: ownerIsHero_h };
+            registerTriggerEvent(TRIGGER_ENTER_HAND, inst, ctx_h);
+            return true;
+        }
+        
+        case EFFECT_DAMAGE_ALL_PER_ALLY_COUNT:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (is_undefined(damageAllMonsters)) return false;
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            
+            var countOwner = variable_struct_exists(effect, "count_owner") ? string_lower(string(effect.count_owner)) : "ally";
+            var countHero = srcHero;
+            if (countOwner == "ally") countHero = srcHero;
+            else if (countOwner == "enemy") countHero = !srcHero;
+            var arr = countHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards;
+            
+            var includeFD = variable_struct_exists(effect, "include_face_down_in_count") ? effect.include_face_down_in_count : false;
+            var countCrit = variable_struct_exists(effect, "count_criteria") ? effect.count_criteria : noone;
+            var countObjNames = variable_struct_exists(effect, "count_object_names") ? effect.count_object_names : [];
+            var count = _countFieldByCriteria(arr, includeFD, countCrit, countObjNames);
+            
+            var per = variable_struct_exists(effect, "value") ? effect.value : 1;
+            var base = variable_struct_exists(effect, "base_value") ? effect.base_value : 0;
+            per = max(0, per);
+            base = max(0, base);
+            var total = base + (per * count);
+            if (total <= 0) return true;
+            
+            var dmgSpec = {
+                owner: (variable_struct_exists(effect, "owner") ? effect.owner : "enemy"),
+                target_zone: (variable_struct_exists(effect, "target_zone") ? effect.target_zone : "field"),
+                monster_type: (variable_struct_exists(effect, "monster_type") ? effect.monster_type : "Monster"),
+                criteria: (variable_struct_exists(effect, "criteria") ? effect.criteria : noone),
+                source_card: card
+            };
+            if (variable_struct_exists(effect, "visual_fx")) dmgSpec.visual_fx = effect.visual_fx;
+            if (variable_struct_exists(effect, "element")) dmgSpec.element = effect.element;
+            
+            return damageAllMonsters(total, dmgSpec);
+        }
+
+        case EFFECT_RANDOM_PROJECTILES:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            if (is_undefined(animEffectRequestProjectileTarget)) return false;
+            if (is_undefined(damageCard)) return false;
+            if (!instance_exists(game)) return false;
+
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            var enemyHero = srcHero ? instance_find(oLP_Enemy, 0) : instance_find(oLP_Hero, 0);
+
+            var dmg = variable_struct_exists(effect, "damage") ? effect.damage
+                      : (variable_struct_exists(effect, "value") ? effect.value : 1);
+            dmg = max(0, dmg);
+            if (dmg <= 0) return true;
+
+            var count = variable_struct_exists(effect, "count") ? effect.count
+                       : (variable_struct_exists(effect, "projectiles") ? effect.projectiles : 1);
+            count = max(0, count);
+            if (count <= 0) return true;
+
+            var bonus = 0;
+            if (variable_struct_exists(effect, "bonus_count")) bonus = effect.bonus_count;
+            else if (variable_struct_exists(effect, "bonus_projectiles")) bonus = effect.bonus_projectiles;
+            bonus = max(0, bonus);
+
+            if (bonus > 0 && variable_struct_exists(effect, "bonus_if_ally_object_names")) {
+                var names = effect.bonus_if_ally_object_names;
+                if (is_array(names) && array_length(names) > 0) {
+                    var arr = srcHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards;
+                    var found = false;
+                    for (var i = 0; i < array_length(arr); i++) {
+                        var c0 = arr[i];
+                        if (c0 == 0 || !instance_exists(c0)) continue;
+                        var z0 = variable_instance_exists(c0, "zone") ? string_lower(c0.zone) : "";
+                        if (!(z0 == "field" || z0 == "fieldselected")) continue;
+                        var on0 = object_get_name(c0.object_index);
+                        for (var j = 0; j < array_length(names); j++) {
+                            if (on0 == string(names[j])) { found = true; break; }
+                        }
+                        if (found) break;
+                    }
+                    if (found) count += bonus;
+                }
+            }
+            
+            var bonusDmg = 0;
+            if (variable_struct_exists(effect, "bonus_damage")) bonusDmg = effect.bonus_damage;
+            else if (variable_struct_exists(effect, "bonus_value")) bonusDmg = effect.bonus_value;
+            bonusDmg = max(0, bonusDmg);
+            if (bonusDmg > 0 && variable_struct_exists(effect, "bonus_damage_if_ally_object_names")) {
+                var namesD = effect.bonus_damage_if_ally_object_names;
+                if (is_array(namesD) && array_length(namesD) > 0) {
+                    var arrD = srcHero ? fieldMonsterHero.cards : fieldMonsterEnemy.cards;
+                    var foundD = false;
+                    for (var di = 0; di < array_length(arrD); di++) {
+                        var cd = arrD[di];
+                        if (cd == 0 || !instance_exists(cd)) continue;
+                        var zd = variable_instance_exists(cd, "zone") ? string_lower(cd.zone) : "";
+                        if (!(zd == "field" || zd == "fieldselected")) continue;
+                        var onD = object_get_name(cd.object_index);
+                        for (var dj = 0; dj < array_length(namesD); dj++) {
+                            if (onD == string(namesD[dj])) { foundD = true; break; }
+                        }
+                        if (foundD) break;
+                    }
+                    if (foundD) dmg += bonusDmg;
+                }
+            }
+
+            var element = variable_struct_exists(effect, "element") ? effect.element : "feu";
+
+            for (var p = 0; p < count; p++) {
+                var targets = [];
+
+                var arrE = srcHero ? fieldMonsterEnemy.cards : fieldMonsterHero.cards;
+                for (var k = 0; k < array_length(arrE); k++) {
+                    var t0 = arrE[k];
+                    if (t0 == 0 || !instance_exists(t0)) continue;
+                    var zt = variable_instance_exists(t0, "zone") ? string_lower(t0.zone) : "";
+                    if (!(zt == "field" || zt == "fieldselected")) continue;
+                    array_push(targets, t0);
+                }
+
+                if (variable_struct_exists(effect, "include_enemy_hero") ? effect.include_enemy_hero : true) {
+                    if (enemyHero != noone && instance_exists(enemyHero)) array_push(targets, enemyHero);
+                }
+
+                if (array_length(targets) <= 0) break;
+                var tgt = targets[irandom(array_length(targets) - 1)];
+                if (tgt == noone || !instance_exists(tgt)) continue;
+
+                var cb = method({ s: card, t: tgt, a: dmg, h: enemyHero, sh: srcHero }, function() {
+                    if (!instance_exists(s) || !instance_exists(t)) return;
+                    if (t == h && instance_exists(game)) {
+                        var lpInst = sh ? instance_find(oLP_Enemy, 0) : instance_find(oLP_Hero, 0);
+                        if (lpInst != noone && instance_exists(lpInst) && variable_instance_exists(lpInst, "nbLP")) {
+                            lpInst.nbLP -= a;
+                        }
+                    } else {
+                        damageCard(t, a, s);
+                    }
+                });
+
+                animEffectRequestProjectileTarget(string(element), card, tgt, dmg, cb);
+            }
+
+            return true;
+        }
+
+        case EFFECT_INCREASE_HAND_COST:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            var srcHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+
+            var ownerSide = variable_struct_exists(effect, "owner") ? string_lower(string(effect.owner)) : "enemy";
+            var targetIsHero = !srcHero;
+            if (ownerSide == "ally") targetIsHero = srcHero;
+            else if (ownerSide == "enemy") targetIsHero = !srcHero;
+
+            var handInst = targetIsHero ? handHero : handEnemy;
+            if (!instance_exists(handInst)) return false;
+            if (!variable_instance_exists(handInst, "cards")) return false;
+            if (!ds_exists(handInst.cards, ds_type_list)) return false;
+
+            var sz = ds_list_size(handInst.cards);
+            if (sz <= 0) return false;
+
+            var amount = 1;
+            if (variable_struct_exists(effect, "value")) amount = effect.value;
+            else if (variable_struct_exists(effect, "amount")) amount = effect.amount;
+            else if (variable_struct_exists(effect, "cost_increase")) amount = effect.cost_increase;
+            amount = max(0, amount);
+            if (amount == 0) return true;
+
+            var target = ds_list_find_value(handInst.cards, irandom(sz - 1));
+            if (target == noone || !instance_exists(target)) return false;
+
+            if (variable_instance_exists(target, "mana_cost")) target.mana_cost += amount;
+            if (variable_instance_exists(target, "cost")) target.cost = target.mana_cost;
+            if (variable_instance_exists(handInst, "updateDisplay")) handInst.updateDisplay();
+            return true;
+        }
+
+        case EFFECT_SET_NEXT_PLAYED_MONSTER_COST_BONUS:
+        {
+            if (!instance_exists(game)) return false;
+            var srcHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            
+            var ownerSide = variable_struct_exists(effect, "owner") ? string_lower(string(effect.owner)) : "enemy";
+            var targetIsHero = !srcHero;
+            if (ownerSide == "ally") targetIsHero = srcHero;
+            else if (ownerSide == "enemy") targetIsHero = !srcHero;
+            else if (ownerSide == "both") { }
+            
+            var amount = 1;
+            if (variable_struct_exists(effect, "value")) amount = effect.value;
+            else if (variable_struct_exists(effect, "amount")) amount = effect.amount;
+            amount = max(0, amount);
+            
+            var applyTo = function(tgtHero) {
+                if (tgtHero) {
+                    if (!variable_global_exists("next_played_monster_cost_bonus_hero")) global.next_played_monster_cost_bonus_hero = 0;
+                    if (!variable_global_exists("next_played_monster_cost_bonus_hero_turn")) global.next_played_monster_cost_bonus_hero_turn = 0;
+                    if (!variable_global_exists("next_played_monster_cost_bonus_hero_used")) global.next_played_monster_cost_bonus_hero_used = false;
+                    global.next_played_monster_cost_bonus_hero = max(global.next_played_monster_cost_bonus_hero, amount);
+                    global.next_played_monster_cost_bonus_hero_turn = game.nbTurn;
+                    global.next_played_monster_cost_bonus_hero_used = false;
+                } else {
+                    if (!variable_global_exists("next_played_monster_cost_bonus_enemy")) global.next_played_monster_cost_bonus_enemy = 0;
+                    if (!variable_global_exists("next_played_monster_cost_bonus_enemy_turn")) global.next_played_monster_cost_bonus_enemy_turn = 0;
+                    if (!variable_global_exists("next_played_monster_cost_bonus_enemy_used")) global.next_played_monster_cost_bonus_enemy_used = false;
+                    global.next_played_monster_cost_bonus_enemy = max(global.next_played_monster_cost_bonus_enemy, amount);
+                    global.next_played_monster_cost_bonus_enemy_turn = game.nbTurn;
+                    global.next_played_monster_cost_bonus_enemy_used = false;
+                }
+            };
+            
+            if (ownerSide == "both") {
+                applyTo(true);
+                applyTo(false);
+                return true;
+            }
+            applyTo(targetIsHero);
+            return true;
+        }
+
+        case EFFECT_TERRAIN_TICK:
+        {
+            if (card == noone || !instance_exists(card)) return false;
+            var initTurns = variable_struct_exists(effect, "turns") ? effect.turns : (variable_struct_exists(effect, "value") ? effect.value : 3);
+            initTurns = max(1, initTurns);
+            if (!variable_instance_exists(card, "terrain_turns_remaining") || card.terrain_turns_remaining == undefined) {
+                card.terrain_turns_remaining = initTurns;
+                return true;
+            }
+            card.terrain_turns_remaining = max(0, card.terrain_turns_remaining - 1);
+            if (card.terrain_turns_remaining <= 0) {
+                return destroyCard(card);
+            }
+            return true;
+        }
             
         case EFFECT_LOSE_ATTACK:
-            return modifyAttack(card, -value, true);
+        {
+            var t = target;
+            if (t == noone && variable_struct_exists(effect, "select_mode") && effect.select_mode == "random") {
+                if (script_exists(getTargetsByFilter)) {
+                    var candidates = getTargetsByFilter(effect);
+                    if (is_array(candidates) && array_length(candidates) > 0) {
+                        t = candidates[irandom(array_length(candidates) - 1)];
+                    }
+                }
+            }
+            if (t == noone) t = card;
+            if (t == noone) return false;
+            return modifyAttack(t, -value, true);
+        }
             
         // Débuff permanent d'ATK (peut cibler la carte ou la cible fournie)
         case EFFECT_LOSE_ATTACK_PERMANENT:
@@ -876,9 +1887,15 @@ function executeEffect(card, effect, context = {}) {
 
             if (variable_struct_exists(eff, "criteria")) {
                 var critB = eff.criteria;
+                var isTerrain = (variable_instance_exists(tgt2, "isTerrain") && tgt2.isTerrain);
+                if (variable_struct_exists(critB, "is_terrain")) {
+                    var wantTerrain = critB.is_terrain;
+                    if (wantTerrain && !isTerrain) okc = false;
+                    if (!wantTerrain && isTerrain) okc = false;
+                }
                 if (variable_struct_exists(critB, "type")) {
                     var wt = string_lower(critB.type);
-                    var isMon = object_is_ancestor(tgt2.object_index, oCardMonster) || (variable_instance_exists(tgt2, "type") && string_lower(tgt2.type) == "monster");
+                    var isMon = (object_is_ancestor(tgt2.object_index, oCardMonster) || (variable_instance_exists(tgt2, "type") && string_lower(tgt2.type) == "monster")) && !isTerrain;
                     if (debug_trace) show_debug_message("Type Check: Wanted=" + wt + " IsMon=" + string(isMon));
                     if (wt == "monster" && !isMon) okc = false;
                 }
@@ -905,6 +1922,11 @@ function executeEffect(card, effect, context = {}) {
                     var ta = variable_instance_exists(tgt2, "archetype") ? string_lower(string(tgt2.archetype)) : "";
                     if (debug_trace) show_debug_message("Archetype Check: Wanted=" + wa + " Got=" + ta);
                     if (wa != "" && ta != wa) okc = false;
+                }
+                if (variable_struct_exists(critB, "race")) {
+                    var wr = string_lower(string(critB.race));
+                    var tr = variable_instance_exists(tgt2, "race") ? string_lower(string(tgt2.race)) : "";
+                    if (wr != "" && tr != wr) okc = false;
                 }
                 if (variable_struct_exists(critB, "name_contains")) {
                     var wn = string_lower(string(critB.name_contains));
@@ -1018,6 +2040,16 @@ function executeEffect(card, effect, context = {}) {
                 } else {
                     var excludeSelfC = (variable_struct_exists(effect, "criteria") && variable_struct_exists(effect.criteria, "exclude_self")) ? effect.criteria.exclude_self : false;
                     tgt = excludeSelfC ? noone : card;
+                    
+                    if (variable_struct_exists(effect, "select_mode") && effect.select_mode == "random") {
+                        tgt = noone;
+                        if (script_exists(getTargetsByFilter)) {
+                            var candidatesB = getTargetsByFilter(effect);
+                            if (is_array(candidatesB) && array_length(candidatesB) > 0) {
+                                tgt = candidatesB[irandom(array_length(candidatesB) - 1)];
+                            }
+                        }
+                    }
                     
                     // Auto-ciblage IA: si aucune cible fournie pour un buff "single", choisir une cible valide sur le terrain
                     // (utile pour les sorts de buff joués par l'IA qui sinon tentent de se cibler eux-mêmes)
@@ -1287,6 +2319,41 @@ function executeEffect(card, effect, context = {}) {
             
         case EFFECT_DESTROY_SELF:
             return destroyCard(card);
+
+        case EFFECT_SACRIFICE_TARGET:
+        {
+            if (target == noone || !instance_exists(target)) return false;
+            var srcHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
+                          : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+            if (!(variable_instance_exists(target, "isHeroOwner") && target.isHeroOwner == srcHero)) {
+                return false;
+            }
+            if (!(variable_instance_exists(target, "zone") && (target.zone == "Field" || target.zone == "FieldSelected"))) {
+                return false;
+            }
+            if (variable_instance_exists(target, "isTerrain") && target.isTerrain) {
+                return false;
+            }
+            var okSac = destroyCard(target, card);
+            if (okSac) {
+                var ctxSac = { owner_is_hero: srcHero, from_sacrifice_target: true };
+                if (variable_struct_exists(context, "attacker") && instance_exists(context.attacker)) { ctxSac.attacker = context.attacker; }
+                if (variable_struct_exists(context, "defender") && instance_exists(context.defender)) { ctxSac.defender = context.defender; }
+                
+                if (variable_struct_exists(effect, "flow") && is_array(effect.flow)) {
+                    var LSac = array_length(effect.flow);
+                    for (var iSac = 0; iSac < LSac; iSac++) {
+                        var stepSac = effect.flow[iSac];
+                        if (is_struct(stepSac) && variable_struct_exists(stepSac, "effect_type")) { executeEffect(card, stepSac, ctxSac); }
+                    }
+                } else if (variable_struct_exists(effect, "flow") && is_struct(effect.flow)) {
+                    executeEffect(card, effect.flow, ctxSac);
+                } else if (variable_struct_exists(effect, "flow_next") && is_struct(effect.flow_next)) {
+                    executeEffect(card, effect.flow_next, ctxSac);
+                }
+            }
+            return okSac;
+        }
             
         case EFFECT_BANISH_TARGET:
             if (target != noone) return banishCard(target);
@@ -1307,28 +2374,52 @@ function executeEffect(card, effect, context = {}) {
             break;
 
         case EFFECT_PURGE:
-            // Implémentation de la Purge (Silence)
+        {
+            var scope = variable_struct_exists(effect, "scope") ? string_lower(effect.scope) : "single";
+            var okAny = false;
+            if (!script_exists(asset_get_index("purgeUnit"))) return false;
+            
+            if (scope == "all") {
+                if (!script_exists(getTargetsByFilter)) return false;
+                var candidates = getTargetsByFilter(effect);
+                if (!is_array(candidates) || array_length(candidates) <= 0) return false;
+                
+                var posFilter = variable_struct_exists(effect, "field_position_in") ? effect.field_position_in : noone;
+                
+                for (var i = 0; i < array_length(candidates); i++) {
+                    var tgt = candidates[i];
+                    if (tgt == noone || !instance_exists(tgt)) continue;
+                    if (posFilter != noone) {
+                        if (!variable_instance_exists(tgt, "fieldPosition")) continue;
+                        var fp = tgt.fieldPosition;
+                        var okPos = false;
+                        if (is_array(posFilter)) {
+                            for (var p = 0; p < array_length(posFilter); p++) { if (fp == posFilter[p]) { okPos = true; break; } }
+                        } else {
+                            okPos = (fp == posFilter);
+                        }
+                        if (!okPos) continue;
+                    }
+                    if (purgeUnit(tgt)) okAny = true;
+                }
+                return okAny;
+            }
+            
             if (target == noone && variable_struct_exists(effect, "select_mode") && effect.select_mode == "random") {
                 if (script_exists(getTargetsByFilter)) {
-                    var candidates = getTargetsByFilter(effect);
-                    if (is_array(candidates) && array_length(candidates) > 0) {
-                        var rndIdx = irandom(array_length(candidates) - 1);
-                        target = candidates[rndIdx];
+                    var candidates2 = getTargetsByFilter(effect);
+                    if (is_array(candidates2) && array_length(candidates2) > 0) {
+                        var rndIdx = irandom(array_length(candidates2) - 1);
+                        target = candidates2[rndIdx];
                     }
                 }
             }
             
             if (target != noone && instance_exists(target)) {
-                if (script_exists(asset_get_index("purgeUnit"))) {
-                    var okP = purgeUnit(target);
-                    if (okP) {
-                        // Feedback visuel optionnel
-                        show_debug_message("### Unit Purged: " + string(target.id));
-                        return true;
-                    }
-                }
+                okAny = purgeUnit(target);
             }
-            return false;
+            return okAny;
+        }
         case EFFECT_REVEAL_HAND:
         {
             if (card == noone || !instance_exists(card)) return false;
@@ -1401,7 +2492,17 @@ function executeEffect(card, effect, context = {}) {
         case EFFECT_DAMAGE_ALL:
         {
             var val_dmg = variable_struct_exists(effect, "value") ? effect.value : 0;
+            if (!variable_struct_exists(effect, "source_card")) effect.source_card = card;
             return damageAllMonsters(val_dmg, effect);
+        }
+        case EFFECT_DAMAGE_ALL_REPEAT_PER_DEATHS_THIS_TURN:
+        {
+            var base_dmg = variable_struct_exists(effect, "value") ? effect.value : 0;
+            var deaths = (variable_global_exists("minions_died_this_turn")) ? global.minions_died_this_turn : 0;
+            deaths = max(0, deaths);
+            var total_dmg = base_dmg * (1 + deaths);
+            if (!variable_struct_exists(effect, "source_card")) effect.source_card = card;
+            return damageAllMonsters(total_dmg, effect);
         }
         case EFFECT_HEAL_ALL:
         {
@@ -1662,6 +2763,16 @@ function executeEffect(card, effect, context = {}) {
             return applyAllMonstersAuraDebuff(card, effect);
         }
         
+        case EFFECT_AURA_DAMAGE_REDUCTION:
+        {
+            return applyAllMonstersDamageReductionAura(card, effect);
+        }
+        
+        case EFFECT_AURA_DAMAGE_TAKEN_BONUS:
+        {
+            return applyAllMonstersDamageTakenBonusAura(card, effect);
+        }
+        
         case EFFECT_AURA_CLEANUP_SOURCE:
         {
             return cleanupAuraSource(card, effect);
@@ -1754,6 +2865,44 @@ function executeEffect(card, effect, context = {}) {
                 return applied;
             }
             return false;
+        }
+        case EFFECT_IMMUNITY:
+        {
+            if (!instance_exists(game)) return false;
+            var srcHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
+            if (variable_struct_exists(context, "owner_is_hero")) srcHero = context.owner_is_hero;
+            var localIndex = variable_instance_exists(game, "local_player_index") ? game.local_player_index : 0;
+            var srcOwnerIndex = srcHero ? localIndex : (1 - localIndex);
+            
+            var expireDelta = -1;
+            if (variable_struct_exists(effect, "expire_turn_delta")) {
+                expireDelta = max(0, effect.expire_turn_delta);
+            } else if (variable_struct_exists(effect, "duration_mode")) {
+                var mode = string_lower(string(effect.duration_mode));
+                if (mode == "until_next_owner_turn") {
+                    expireDelta = (game.player_current == srcOwnerIndex) ? 2 : 1;
+                } else if (mode == "until_end_of_next_owner_turn") {
+                    expireDelta = (game.player_current == srcOwnerIndex) ? 3 : 2;
+                } else if (mode == "until_end_of_turn" || mode == "until_end_of_current_turn") {
+                    expireDelta = 1;
+                }
+            }
+            if (expireDelta < 0) {
+                expireDelta = (game.player_current == srcOwnerIndex) ? 2 : 1;
+            }
+            
+            var untilTurn = game.nbTurn + expireDelta;
+            var ownerSide = variable_struct_exists(effect, "owner") ? string_lower(string(effect.owner)) : "ally";
+            
+            if (ownerSide == "both") {
+                _setLpDamageImmunity(true, untilTurn);
+                _setLpDamageImmunity(false, untilTurn);
+                return true;
+            }
+            
+            var tgtHero = srcHero;
+            if (ownerSide == "enemy") tgtHero = !srcHero;
+            return _setLpDamageImmunity(tgtHero, untilTurn);
         }
         case EFFECT_CAMOUFLAGE:
         {
@@ -1859,11 +3008,37 @@ function clearTargetingMarkers() {
     }
 }
 
+function _getLpDamageImmunityUntil(ownerIsHero) {
+    if (ownerIsHero) {
+        return variable_global_exists("lp_damage_immune_hero_until") ? global.lp_damage_immune_hero_until : 0;
+    }
+    return variable_global_exists("lp_damage_immune_enemy_until") ? global.lp_damage_immune_enemy_until : 0;
+}
+
+function _isLpDamageImmune(ownerIsHero) {
+    if (!instance_exists(game) || !variable_instance_exists(game, "nbTurn")) return false;
+    var untilTurn = _getLpDamageImmunityUntil(ownerIsHero);
+    return (untilTurn > game.nbTurn);
+}
+
+function _setLpDamageImmunity(ownerIsHero, untilTurn) {
+    untilTurn = max(0, untilTurn);
+    if (ownerIsHero) {
+        if (!variable_global_exists("lp_damage_immune_hero_until")) global.lp_damage_immune_hero_until = 0;
+        global.lp_damage_immune_hero_until = max(global.lp_damage_immune_hero_until, untilTurn);
+    } else {
+        if (!variable_global_exists("lp_damage_immune_enemy_until")) global.lp_damage_immune_enemy_until = 0;
+        global.lp_damage_immune_enemy_until = max(global.lp_damage_immune_enemy_until, untilTurn);
+    }
+    return true;
+}
+
 /// @function loseLP(amount)
 /// @description Fait perdre des LP au joueur
 /// @param {real} amount - Montant de LP à perdre
 /// @returns {bool} - Succès de l'opération
 function loseLP(amount) {
+    if (_isLpDamageImmune(true)) return false;
     var lpInst = instance_find(oLP_Hero, 0);
     if (lpInst != noone) {
         var oldLP = lpInst.nbLP;
@@ -1923,6 +3098,11 @@ function loseLPFor(ownerIsHero, amount) {
     show_debug_message("### loseLPFor DEBUG ###");
     show_debug_message("- ownerIsHero: " + string(ownerIsHero));
     show_debug_message("- amount: " + string(amount));
+    
+    if (_isLpDamageImmune(ownerIsHero)) {
+        show_debug_message("- LP damage prevented (immunity)");
+        return false;
+    }
     
     if (ownerIsHero) {
         show_debug_message("- Targeting HERO LP");

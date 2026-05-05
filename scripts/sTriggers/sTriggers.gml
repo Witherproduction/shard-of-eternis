@@ -166,6 +166,9 @@ function checkTrigger(card, triggerType, context = {}) {
 /// @returns {bool} - True si les conditions sont remplies
 
 function checkTriggerConditions(card, effect, context) {
+    if (is_struct(effect) && variable_struct_exists(effect, "negated") && effect.negated) {
+        return false;
+    }
 
     if (((variable_instance_exists(card, "type") && string_lower(card.type) == "monster")
         || object_is_ancestor(card.object_index, oCardMonster))
@@ -300,6 +303,11 @@ function checkTriggerConditions(card, effect, context) {
                 return false;
             }
         }
+        if (variable_struct_exists(conditions, "defender_is_self") && conditions.defender_is_self) {
+            if (!variable_struct_exists(context, "defender") || context.defender == noone || context.defender != card) {
+                return false;
+            }
+        }
         if (variable_struct_exists(conditions, "attacker_is_equipped_target") && conditions.attacker_is_equipped_target) {
             var atk_eq = variable_struct_exists(context, "attacker") ? context.attacker : noone;
             var eq_tgt = (instance_exists(card) && variable_instance_exists(card, "equipped_target")) ? card.equipped_target : noone;
@@ -382,6 +390,15 @@ function checkTriggerConditions(card, effect, context) {
             var nmSrc = variable_instance_exists(src, "name") ? string(src.name) : object_get_name(src.object_index);
             var wantSub = string(conditions.source_name_contains);
             if (string_pos(wantSub, nmSrc) <= 0) { return false; }
+        }
+        
+        // Source type equals (ex: "Monster")
+        if (variable_struct_exists(conditions, "source_type")) {
+            if (!variable_struct_exists(context, "source")) { return false; }
+            var srcT = context.source;
+            if (srcT == noone || !instance_exists(srcT)) { return false; }
+            var srcType = variable_instance_exists(srcT, "type") ? string(srcT.type) : "";
+            if (string_lower(srcType) != string_lower(string(conditions.source_type))) { return false; }
         }
 
         // Source genre equals
@@ -983,6 +1000,11 @@ function getHandSize() {
 
 function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
     // Debug global supprimé: garder la console focalisée sur les artéfacts
+    
+    if (triggerType == TRIGGER_START_TURN) {
+        if (!variable_global_exists("minions_died_this_turn")) global.minions_died_this_turn = 0;
+        global.minions_died_this_turn = 0;
+    }
 
     // Source sûre (sourceCard valide ou carte détruite fournie dans le contexte)
     var srcCardSafe = noone;
@@ -999,6 +1021,9 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
     if (srcCardSafe != noone) {
 
         context.source = srcCardSafe;
+        if (!variable_struct_exists(context, "owner_is_hero") && variable_instance_exists(srcCardSafe, "isHeroOwner")) {
+            context.owner_is_hero = srcCardSafe.isHeroOwner;
+        }
 
         // Désactiver l'aura pour les triggers liés à la destruction/cimetière
 
@@ -1061,6 +1086,13 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
     if (triggerType == TRIGGER_ON_MONSTER_SUMMON) {
         if (sourceCard != noone && instance_exists(sourceCard)) {
             activateSecretsOnMonsterSummon(sourceCard);
+        }
+    }
+    
+    // Spécifique: activer les Secrets lors du lancement d'un sort
+    if (triggerType == TRIGGER_ON_SPELL_CAST) {
+        if (sourceCard != noone && instance_exists(sourceCard) && script_exists(asset_get_index("activateSecretsOnSpellCast"))) {
+            activateSecretsOnSpellCast(sourceCard);
         }
     }
 

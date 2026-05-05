@@ -25,7 +25,8 @@ function draw_accueil_button(x1, y1, x2, y2, label, hover) {
     
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    var px = max(10, round(16 * k));
+    var k_scale = min(room_width / 1920, room_height / 1080);
+    var px = max(10, round(16 * k_scale));
     var f = -1;
     if (variable_global_exists("get_runtime_font")) f = global.get_runtime_font("title", px);
     if (f == -1) {
@@ -258,6 +259,12 @@ btn_save_x2 = col_x2;
 btn_save_y2 = btn_save_y1 + btn_h;
 col_y = btn_save_y2 + btn_margin;
 
+btn_export_x1 = col_x1;
+btn_export_y1 = col_y;
+btn_export_x2 = col_x2;
+btn_export_y2 = btn_export_y1 + btn_h;
+col_y = btn_export_y2 + btn_margin;
+
 btn_delete_x1 = col_x1;
 btn_delete_y1 = col_y;
 btn_delete_x2 = col_x2;
@@ -270,17 +277,54 @@ btn_quit_x2 = col_x2;
 btn_quit_y2 = btn_quit_y1 + btn_h;
 
 btn_save_hover = point_in_rectangle(mouse_x, mouse_y, btn_save_x1, btn_save_y1, btn_save_x2, btn_save_y2);
+btn_export_hover = point_in_rectangle(mouse_x, mouse_y, btn_export_x1, btn_export_y1, btn_export_x2, btn_export_y2);
 btn_delete_hover = point_in_rectangle(mouse_x, mouse_y, btn_delete_x1, btn_delete_y1, btn_delete_x2, btn_delete_y2);
 btn_load_hover = point_in_rectangle(mouse_x, mouse_y, btn_load_x1, btn_load_y1, btn_load_x2, btn_load_y2);
 btn_quit_hover = point_in_rectangle(mouse_x, mouse_y, btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2);
 
 draw_accueil_button(btn_save_x1, btn_save_y1, btn_save_x2, btn_save_y2, "Enregistrer", btn_save_hover);
+draw_accueil_button(btn_export_x1, btn_export_y1, btn_export_x2, btn_export_y2, "Exporter", btn_export_hover);
 draw_accueil_button(btn_delete_x1, btn_delete_y1, btn_delete_x2, btn_delete_y2, "Supprimer", btn_delete_hover);
 draw_accueil_button(btn_load_x1, btn_load_y1, btn_load_x2, btn_load_y2, "Charger", btn_load_hover);
 draw_accueil_button(btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2, "Quitter", btn_quit_hover);
 
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
+
+var msg = "";
+if (export_notification_timer > 0 && export_notification_text != "") {
+    msg = export_notification_text;
+} else if (save_notification_timer > 0 && save_notification_text != "") {
+    msg = save_notification_text;
+}
+
+if (msg != "") {
+    var pad = 22 * k;
+    var tw = max(600 * k, room_width * 0.82);
+    var max_tw = room_width - btn_margin * 2;
+    tw = min(tw, max_tw);
+    var sep = 22 * k;
+    var text_w = max(10, tw - pad * 2);
+    var th = string_height_ext(msg, sep, text_w) + pad * 2;
+    
+    var cx = room_width * 0.5;
+    var cy = room_height * 0.5;
+    var rx1 = cx - tw * 0.5;
+    var rx2 = cx + tw * 0.5;
+    var ry1 = cy - th * 0.5;
+    var ry2 = cy + th * 0.5;
+    
+    draw_set_alpha(0.85);
+    draw_set_color(c_black);
+    draw_rectangle(rx1, ry1, rx2, ry2, false);
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_top);
+    draw_text_ext(cx, ry1 + pad, msg, sep, text_w);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+}
 
 var small_h = btn_h * 0.8;
 var small_w = btn_w * 0.6;

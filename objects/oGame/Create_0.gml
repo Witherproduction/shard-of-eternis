@@ -154,15 +154,15 @@ setDuelBackground = function() {
         var bg_sprite = asset_get_index("sTerrain1");
 
         if (variable_global_exists("current_chapter") && global.current_chapter == 1) {
-            bg_sprite = asset_get_index("sTerrain2");
+            bg_sprite = asset_get_index("sTerrain");
         } else {
         
             // Configuration: Groupes de bots avec des fonds spécifiques
             // Format: { sprite: "NomSprite", bots: [id1, id2, id3...] }
             var bg_groups = [
                 {
-                    sprite: "sTerrain2",
-                    bots: [1, 2, 3, "Invasion_Gueule_Roche", "Essaim_Abyssien", "Bandit_Grand_Chemin"] // Bot 1, 2 et 3 (Chapitre 1) utilisent sTerrain2
+                    sprite: "sTerrain",
+                    bots: [1, 2, 3, "Invasion_Gueule_Roche", "Essaim_Abyssien", "Bandit_Grand_Chemin"]
                 }
                 // Ajoutez d'autres groupes ici pour d'autres exceptions
             ];

@@ -205,6 +205,20 @@ function specialSummonNamed(card, effect, context) {
     if (objectName != "") criteria.object_name = objectName;
 
     var found = findCard(ownerIsHero, criteria, allowedSources);
+    var randomSelect = (variable_struct_exists(effect, "select_mode") && string_lower(string(effect.select_mode)) == "random");
+    if (randomSelect && script_exists(asset_get_index("_findAllInSource"))) {
+        for (var si = 0; si < array_length(allowedSources); si++) {
+            var srcName = string(allowedSources[si]);
+            var matches = _findAllInSource(ownerIsHero, srcName, criteria);
+            if (is_array(matches) && array_length(matches) > 0) {
+                var pick = matches[irandom(array_length(matches) - 1)];
+                if (is_struct(pick) && variable_struct_exists(pick, "card") && variable_struct_exists(pick, "index")) {
+                    found = { card: pick.card, source: srcName, data: pick };
+                    break;
+                }
+            }
+        }
+    }
     var fieldMgr = slot.fieldMgr;
     var pos = slot.pos;
     var X = slot.x;

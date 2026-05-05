@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"acte4",
-    "path":"folders/Sprites/Histoire/Chapitre 1/acte4.yy",
+    "name":"Skarl",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte4/Skarl.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

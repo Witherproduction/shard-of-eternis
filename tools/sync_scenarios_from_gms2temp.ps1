@@ -14,6 +14,11 @@ if (-not (Test-Path $TempRoot)) {
     throw "TempRoot introuvable: $TempRoot"
 }
 
+$scenarioRootCandidates = @(
+    "scenarios",
+    "datafiles\scenarios"
+)
+
 $candidates = Get-ChildItem -Path $TempRoot -Directory -Filter "shard_of_eternis_*_VM" -ErrorAction SilentlyContinue
 if (-not $candidates -or $candidates.Count -eq 0) {
     throw "Aucun dossier GMS2TEMP trouvé pour 'shard_of_eternis_*_VM' dans: $TempRoot"
@@ -31,41 +36,52 @@ $bestScenarioRoot = $null
 $bestStamp = [DateTime]::MinValue
 
 foreach ($cand in $candidates) {
-    $scenarioRoot = Join-Path $cand.FullName "scenarios"
-    if (-not (Test-Path $scenarioRoot)) { continue }
+    foreach ($rootRel in $scenarioRootCandidates) {
+        $scenarioRoot = Join-Path $cand.FullName $rootRel
+        if (-not (Test-Path $scenarioRoot)) { continue }
 
-    $latestJson = Get-ChildItem -Path $scenarioRoot -Recurse -File -Filter "*.json" -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
+        $latestJson = Get-ChildItem -Path $scenarioRoot -Recurse -File -Filter "*.json" -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
 
-    if ($null -eq $latestJson) { continue }
+        if ($null -eq $latestJson) { continue }
 
-    if ($latestJson.LastWriteTime -gt $bestStamp) {
-        $best = $cand
-        $bestScenarioRoot = $scenarioRoot
-        $bestStamp = $latestJson.LastWriteTime
+        if ($latestJson.LastWriteTime -gt $bestStamp) {
+            $best = $cand
+            $bestScenarioRoot = $scenarioRoot
+            $bestStamp = $latestJson.LastWriteTime
+        }
     }
 }
 
 if ($null -eq $best) {
-    throw "Aucun dossier GMS2TEMP avec des JSON trouvés (scenarios\\**\\*.json) dans: $TempRoot"
+    throw "Aucun dossier GMS2TEMP avec des JSON trouvés (scenarios\\**\\*.json ou datafiles\\scenarios\\**\\*.json) dans: $TempRoot"
 }
 
 $srcRoot = $bestScenarioRoot
 $chosenSourceLabel = "GMS2TEMP"
 $chosenStamp = $bestStamp
 
-$userScenarioRoot = Join-Path $UserDataRoot "scenarios"
 $userLatestJson = $null
-if (Test-Path $userScenarioRoot) {
-    $userLatestJson = Get-ChildItem -Path $userScenarioRoot -Recurse -File -Filter "*.json" -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTime -Descending |
-        Select-Object -First 1
+$userScenarioRoot = $null
+foreach ($rootRel in $scenarioRootCandidates) {
+    $root = Join-Path $UserDataRoot $rootRel
+    if (Test-Path $root) {
+        $latest = Get-ChildItem -Path $root -Recurse -File -Filter "*.json" -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+        if ($null -ne $latest) {
+            if ($null -eq $userLatestJson -or $latest.LastWriteTime -gt $userLatestJson.LastWriteTime) {
+                $userLatestJson = $latest
+                $userScenarioRoot = $root
+            }
+        }
+    }
 }
 
 if ($Source -eq "APPDATA") {
-    if (-not (Test-Path $userScenarioRoot)) {
-        throw "Source=APPDATA mais dossier introuvable: $userScenarioRoot"
+    if ([string]::IsNullOrWhiteSpace($userScenarioRoot) -or -not (Test-Path $userScenarioRoot)) {
+        throw "Source=APPDATA mais aucun dossier 'scenarios' trouvé dans: $UserDataRoot"
     }
     $srcRoot = $userScenarioRoot
     $chosenSourceLabel = "APPDATA"

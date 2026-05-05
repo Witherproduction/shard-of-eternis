@@ -489,10 +489,24 @@ function purgeUnit(targetUnit) {
     if (variable_instance_exists(targetUnit, "is_ward")) targetUnit.is_ward = false;
     if (variable_instance_exists(targetUnit, "is_lethal")) targetUnit.is_lethal = false;
     if (variable_instance_exists(targetUnit, "has_guard")) targetUnit.has_guard = false;
+    if (variable_instance_exists(targetUnit, "isPercee")) targetUnit.isPercee = false;
+    if (variable_instance_exists(targetUnit, "hasRepoussement")) targetUnit.hasRepoussement = false;
+    if (variable_instance_exists(targetUnit, "isRepoussement")) targetUnit.isRepoussement = false;
+    if (variable_instance_exists(targetUnit, "hasEgide")) targetUnit.hasEgide = false;
+    if (variable_instance_exists(targetUnit, "isEgide")) targetUnit.isEgide = false;
+    if (variable_instance_exists(targetUnit, "attack_damage_bonus_sources")) targetUnit.attack_damage_bonus_sources = [];
+    if (variable_instance_exists(targetUnit, "hasPonction")) targetUnit.hasPonction = false;
+    if (variable_instance_exists(targetUnit, "has_charge")) targetUnit.has_charge = false;
+    if (variable_instance_exists(targetUnit, "isAmbidextrous")) targetUnit.isAmbidextrous = false;
+    if (variable_instance_exists(targetUnit, "isPoisoner")) targetUnit.isPoisoner = false;
     
     // 3. Retirer les protections
     if (variable_instance_exists(targetUnit, "protection_sources")) targetUnit.protection_sources = [];
     if (variable_instance_exists(targetUnit, "protection_from_destroy")) targetUnit.protection_from_destroy = false;
+    if (variable_instance_exists(targetUnit, "damage_reduction_sources")) targetUnit.damage_reduction_sources = [];
+    if (variable_instance_exists(targetUnit, "damage_taken_bonus_sources")) targetUnit.damage_taken_bonus_sources = [];
+    if (variable_instance_exists(targetUnit, "damage_reduction")) targetUnit.damage_reduction = 0;
+    if (variable_instance_exists(targetUnit, "damage_taken_bonus")) targetUnit.damage_taken_bonus = 0;
     
     // 4. Retirer les buffs temporaires (Optionnel, mais logique pour un Silence complet)
     // On nettoie les contributions de buffs et les stats temporaires
@@ -501,6 +515,25 @@ function purgeUnit(targetUnit) {
     }
     if (variable_instance_exists(targetUnit, "temp_attack")) targetUnit.temp_attack = 0;
     if (variable_instance_exists(targetUnit, "temp_defense")) targetUnit.temp_defense = 0;
+    if (variable_instance_exists(targetUnit, "tracker_flags")) targetUnit.tracker_flags = {};
+    if (variable_instance_exists(targetUnit, "dot_states")) targetUnit.dot_states = [];
+    if (variable_instance_exists(targetUnit, "entrave_turns_remaining")) targetUnit.entrave_turns_remaining = 0;
+    if (variable_instance_exists(targetUnit, "entrave_block_attack")) targetUnit.entrave_block_attack = false;
+    if (variable_instance_exists(targetUnit, "entrave_block_position")) targetUnit.entrave_block_position = false;
+    if (variable_instance_exists(targetUnit, "keepCamouflageTurn")) targetUnit.keepCamouflageTurn = -1;
+    
+    if (variable_instance_exists(targetUnit, "original_attack") && variable_instance_exists(targetUnit, "attack")) {
+        targetUnit.attack = targetUnit.original_attack;
+    }
+    if (variable_instance_exists(targetUnit, "original_PV") && variable_instance_exists(targetUnit, "PV")) {
+        targetUnit.PV = targetUnit.original_PV;
+    }
+    if (variable_instance_exists(targetUnit, "max_hp") && variable_instance_exists(targetUnit, "PV")) {
+        targetUnit.max_hp = targetUnit.PV;
+    }
+    if (variable_instance_exists(targetUnit, "current_hp") && variable_instance_exists(targetUnit, "max_hp")) {
+        targetUnit.current_hp = min(targetUnit.current_hp, targetUnit.max_hp);
+    }
     
     // 5. Recalculer les stats (reviendra aux stats de base)
     if (script_exists(asset_get_index("buffRecompute"))) {

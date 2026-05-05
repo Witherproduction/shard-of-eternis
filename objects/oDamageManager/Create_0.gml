@@ -175,11 +175,14 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
         cardEnemy.image_angle = (cardEnemy.isHeroOwner ? 90 : 270);
     }
     
+    var defenderFieldPos = (cardEnemy != noone && instance_exists(cardEnemy) && variable_instance_exists(cardEnemy, "fieldPosition")) ? cardEnemy.fieldPosition : -1;
+    
     // Enregistrer les événements de combat
     registerTriggerEvent(TRIGGER_ON_ATTACK, cardHero, { 
         attacker: cardHero, 
         defender: cardEnemy, 
         defender_orientation: "Attack", 
+        defender_field_position: defenderFieldPos,
         direct_attack: false 
     });
     
@@ -214,8 +217,20 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
 
     // 1. Dégâts simultanés (Persistent Damage)
     // On utilise damageCard qui gère current_hp -= amount et la destruction si <= 0
-    if (effHeroAtk > 0) damageCard(cardEnemy, effHeroAtk);
-    if (effEnemyAtk > 0) damageCard(cardHero, effEnemyAtk);
+    if (effHeroAtk > 0) {
+        var bonusDmgE = (!is_undefined(getAttackDamageTakenBonus)) ? getAttackDamageTakenBonus(cardEnemy) : 0;
+        damageCard(cardEnemy, effHeroAtk + bonusDmgE, cardHero);
+    }
+    if (effEnemyAtk > 0) {
+        var bonusDmgH = (!is_undefined(getAttackDamageTakenBonus)) ? getAttackDamageTakenBonus(cardHero) : 0;
+        damageCard(cardHero, effEnemyAtk + bonusDmgH, cardEnemy);
+    }
+
+    // Repoussement: si l'attaquant a le mot-clé, décale la cible de la front line vers la ligne de retrait (même colonne) si un slot est libre
+    if (instance_exists(cardHero) && instance_exists(cardEnemy) && effHeroAtk > 0 && !is_undefined(tryRepoussement) && !is_undefined(cardHasRepoussement) && cardHasRepoussement(cardHero)) {
+        tryRepoussement(cardHero, cardEnemy);
+    }
+
     
     // 2. Gestion du Poison (si dégâts > 0 et survivant)
     var heroIsPoisoner = (variable_instance_exists(cardHero, "isPoisoner") && cardHero.isPoisoner);
@@ -232,6 +247,18 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
          destroyCard(cardHero, cardEnemy);
     }
     // --------------------------------
+    
+    if (instance_exists(cardHero)) {
+        var defExistsAfter = instance_exists(cardEnemy);
+        registerTriggerEvent(TRIGGER_AFTER_ATTACK, cardHero, {
+            attacker: cardHero,
+            defender: defExistsAfter ? cardEnemy : noone,
+            target: defExistsAfter ? cardEnemy : noone,
+            defender_orientation: "Attack",
+            defender_field_position: defenderFieldPos,
+            direct_attack: false
+        });
+    }
     
     // Marquer l'attaque comme utilisée
     if (instance_exists(cardHero)) {
@@ -300,7 +327,16 @@ resolveAttackDirect = function(cardHero) {
     }
     
     var damage = (variable_instance_exists(cardHero, "effective_attack") ? cardHero.effective_attack : cardHero.attack);
-    LP_Enemy_Instance.nbLP -= damage;
+    var didDamage = false;
+    if (!is_undefined(loseLPFor)) {
+        didDamage = loseLPFor(false, damage);
+    } else {
+        LP_Enemy_Instance.nbLP = max(0, LP_Enemy_Instance.nbLP - damage);
+        didDamage = (damage > 0);
+    }
+    if (!is_undefined(cardHasPonction) && !is_undefined(gainLPFor) && didDamage && damage > 0 && cardHasPonction(cardHero)) {
+        gainLPFor(true, damage);
+    }
     
     
     // Marquer l'attaque comme utilisée
@@ -463,8 +499,8 @@ resolveAttackMonsterEnemy = function(attacker, defender) {
     var effDefenderAtk = variable_struct_exists(defender, "effective_attack") ? defender.effective_attack : defender.attack;
     
     // 1. Dégâts simultanés (Persistent Damage)
-    if (effAttackerAtk > 0) damageCard(defender, effAttackerAtk);
-    if (effDefenderAtk > 0) damageCard(attacker, effDefenderAtk);
+    if (effAttackerAtk > 0) damageCard(defender, effAttackerAtk, attacker);
+    if (effDefenderAtk > 0) damageCard(attacker, effDefenderAtk, defender);
     
     // 2. Gestion du Poison
     if (instance_exists(defender) && effAttackerAtk > 0 && variable_struct_exists(attacker, "isPoisoner") && attacker.isPoisoner) {
@@ -547,8 +583,17 @@ resolveAttackDirectEnemy = function(cardEnemy) {
     var effEnemyAtk = (variable_struct_exists(cardEnemy, "effective_attack") ? cardEnemy.effective_attack : (variable_instance_exists(cardEnemy, "attack") ? cardEnemy.attack : 0));
     var damage = max(0, effEnemyAtk);
     show_debug_message("### resolveAttackDirectEnemy: ATK=" + string(effEnemyAtk) + " dmg=" + string(damage));
-    LP_Hero_Instance.nbLP -= damage;
+    var didDamage = false;
+    if (!is_undefined(loseLPFor)) {
+        didDamage = loseLPFor(true, damage);
+    } else {
+        LP_Hero_Instance.nbLP = max(0, LP_Hero_Instance.nbLP - damage);
+        didDamage = (damage > 0);
+    }
     show_debug_message("### resolveAttackDirectEnemy: LP_Hero now=" + string(LP_Hero_Instance.nbLP));
+    if (!is_undefined(cardHasPonction) && !is_undefined(gainLPFor) && didDamage && damage > 0 && cardHasPonction(cardEnemy)) {
+        gainLPFor(false, damage);
+    }
     
     // Marquer l'attaque côté ennemi - DÉPLACÉ DANS initiateAttackDirectEnemy
 

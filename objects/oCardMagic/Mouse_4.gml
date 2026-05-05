@@ -122,7 +122,7 @@ if (instance_exists(game)) {
 if (isMyTurn && (game.phase[game.phase_current] == "Attack" || game.phase[game.phase_current] == "Main")) {
 
     // Si aucune carte sélectionnée, on sélectionne celle-ci (si c'est un monstre du héros)
-    if (selectManager.selected == noone && isHeroOwner && zone == "Field" && type == "Monster") {
+    if (selectManager.selected == noone && isHeroOwner && zone == "Field" && type == "Monster" && !(variable_instance_exists(id, "isTerrain") && isTerrain)) {
         selectManager.trySelect(id);
         return;
     }
@@ -132,7 +132,7 @@ if (isMyTurn && (game.phase[game.phase_current] == "Attack" || game.phase[game.p
         var selectedCard = selectManager.selected;
         
         // Si on clique sur un monstre ennemi sur le terrain
-        if (!isHeroOwner && type == "Monster" && zone == "Field") {
+        if (!isHeroOwner && type == "Monster" && zone == "Field" && !(variable_instance_exists(id, "isTerrain") && isTerrain)) {
             show_debug_message("### Cible sélectionnée pour l'attaque: " + name);
             var payload = {};
             payload.attacker = selectedCard;
@@ -148,7 +148,7 @@ if (isMyTurn && (game.phase[game.phase_current] == "Attack" || game.phase[game.p
         }
         
         // Si on clique sur son propre monstre => changer sélection (désélectionner la précédente, sélectionner la nouvelle)
-        if (isHeroOwner && type == "Monster" && zone == "Field") {
+        if (isHeroOwner && type == "Monster" && zone == "Field" && !(variable_instance_exists(id, "isTerrain") && isTerrain)) {
             selectManager.trySelect(id);
             return;
         }

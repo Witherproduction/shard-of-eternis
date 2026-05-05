@@ -85,12 +85,6 @@ if (alpha >= targetAlpha) {
                        var ac = variable_global_exists("current_act") ? global.current_act : 1;
                        var sc = variable_global_exists("duel_resume_scene") ? global.duel_resume_scene : 0;
                        
-                       // Récompense d'Or pour la fin de l'acte (si pas déjà complété)
-                       if (!is_act_complete(ch, ac)) {
-                           add_gold(100);
-                           show_debug_message("### Récompense Acte : +100 Or");
-                       }
-                       
                        // Integrer la progression
                        unlock_act_complete(ch, ac);
                        if (ac >= 4) {

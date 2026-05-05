@@ -2,9 +2,9 @@
   "$GMSprite":"v2",
   "%Name":"sTroneHautRempart",
   "bboxMode":0,
-  "bbox_bottom":717,
+  "bbox_bottom":767,
   "bbox_left":0,
-  "bbox_right":1322,
+  "bbox_right":1292,
   "bbox_top":0,
   "collisionKind":1,
   "collisionTolerance":0,
@@ -12,14 +12,14 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"7d6b493a-30f7-444f-b116-2776178a9ebb","name":"7d6b493a-30f7-444f-b116-2776178a9ebb","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8d66ebcb-a4b0-4f26-8725-462050caa7e6","name":"8d66ebcb-a4b0-4f26-8725-462050caa7e6","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
-  "height":718,
+  "height":768,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"ddde0e62-057b-43e7-b2b3-7cec05226bd0","blendMode":0,"displayName":"default","isLocked":false,"name":"ddde0e62-057b-43e7-b2b3-7cec05226bd0","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"cc1aa56c-646c-4614-8d67-3896642cb6fb","blendMode":0,"displayName":"default","isLocked":false,"name":"cc1aa56c-646c-4614-8d67-3896642cb6fb","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"sTroneHautRempart",
   "nineSlice":null,
@@ -69,8 +69,8 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7d6b493a-30f7-444f-b116-2776178a9ebb","path":"sprites/sTroneHautRempart/sTroneHautRempart.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"d25be5be-db99-4382-abbe-19ae86d6e466","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8d66ebcb-a4b0-4f26-8725-462050caa7e6","path":"sprites/sTroneHautRempart/sTroneHautRempart.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"95a675ff-7f46-43fe-9ee4-c34b2e8cdfe9","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
@@ -86,5 +86,5 @@
   },
   "type":0,
   "VTile":false,
-  "width":1323,
+  "width":1293,
 }

@@ -10,7 +10,7 @@ booster = "Retour des Archontes"
 rarity = "legendaire"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Invoque 'Catherine fumerol' et 'Yvan le costaud'"
+description = "Eveil : Invoque 'Catherine fumerol' sur la ligne de retrait et 'Yvan le costaud'sur la ligne de front"
 effects = [
     {
         id: 1,

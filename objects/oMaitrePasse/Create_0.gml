@@ -9,7 +9,7 @@ booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Crépuscule : Invoque un Humanoïde de coût 3 ou moins depuis votre main." 
+description = "Crépuscule : Invoque un Humanoïde de coût 3 ou moins depuis votre main sur un emplacement alétoire." 
 effects = [
     {
         id: 1,

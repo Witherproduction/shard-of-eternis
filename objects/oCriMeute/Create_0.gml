@@ -1,10 +1,11 @@
 event_inherited();
-race = "Nature";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort
 name = "Cri de la meute"
 mana_cost = 5;
 genre = "Sort"
+race = "Nature";
+tags = ["Nature", "Bête"];
 rarity = "commun"
 booster = "Retour des Archontes"
 is_player_card = true;
@@ -23,4 +24,4 @@ effects = [
         PV: 3
     }
 ]
-tags = ["Nature", "Bête"];
+

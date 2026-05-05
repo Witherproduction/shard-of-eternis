@@ -1,6 +1,6 @@
 // === oButtonScenarioCreator - Step Event ===
 event_inherited();
-if (instance_exists(oPanelOptions)) { exit; }
+if (instance_exists(oPanelOptions) || instance_exists(oQuestPanel)) { exit; }
 if (room != rAcceuil) exit;
 
 // Admin mode check

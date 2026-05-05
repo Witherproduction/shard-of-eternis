@@ -624,8 +624,53 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
         // Description supprimée de l'affichage sur la carte (Terrain/Main/Collection)
         // if (variable_instance_exists(self, "description")) { ... }
 
+        var isTerrainCard = (variable_instance_exists(self, "isTerrain") && isTerrain);
+        
+        if (isTerrainCard) {
+            var turnsLeft = (variable_instance_exists(self, "terrain_turns_remaining") && terrain_turns_remaining != undefined) ? terrain_turns_remaining : 0;
+            var txT = string(max(0, turnsLeft));
+            
+            var t_x1 = layout.hp.x1, t_y1 = layout.hp.y1; var t_x2 = layout.hp.x2, t_y2 = layout.hp.y2;
+            draw_set_halign(fa_center);
+            draw_set_valign(fa_middle);
+            
+            var cxT = tlx + (t_x1 + (t_x2 - t_x1) / 2) * s;
+            var cyT = tly + (t_y1 + (t_y2 - t_y1) / 2) * s;
+            cxT = round(cxT);
+            cyT = round(cyT);
+            
+            if (font_exists(fontTitle)) draw_set_font(fontTitle);
+            var rwT = (t_x2 - t_x1) * s;
+            var rhT = (t_y2 - t_y1) * s;
+            var want_pxT = base_title_size * (1.2 * rel);
+            var want_sizeT = max(6, floor(want_pxT));
+            var fT = get_font("title", want_sizeT);
+            while (want_sizeT > 6 && fT != -1) {
+                draw_set_font(fT);
+                if (string_width(txT) <= rwT && string_height("Ag") <= rhT) break;
+                want_sizeT -= 1;
+                fT = get_font("title", want_sizeT);
+            }
+            if (fT != -1) draw_set_font(fT);
+            var scT = 1;
+            
+            var o_distT = max(1, round(2 * rel));
+            draw_set_color(c_black);
+            draw_text_transformed(cxT - o_distT, cyT, txT, scT, scT, angle_draw);
+            draw_text_transformed(cxT + o_distT, cyT, txT, scT, scT, angle_draw);
+            draw_text_transformed(cxT, cyT - o_distT, txT, scT, scT, angle_draw);
+            draw_text_transformed(cxT, cyT + o_distT, txT, scT, scT, angle_draw);
+            
+            draw_set_color(make_color_rgb(255, 215, 0));
+            draw_text_transformed(cxT, cyT, txT, scT, scT, angle_draw);
+            
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_top);
+            draw_set_color(c_white);
+        }
+        
         // ATK/HP overlay (Hearthstone Style)
-        if (!is_magic) {
+        if (!is_magic && !isTerrainCard) {
             // New Positions from Global Layout
             var atk_x1 = layout.atk.x1, atk_y1 = layout.atk.y1; var atk_x2 = layout.atk.x2, atk_y2 = layout.atk.y2;
             var def_x1 = layout.hp.x1, def_y1 = layout.hp.y1; var def_x2 = layout.hp.x2, def_y2 = layout.hp.y2;

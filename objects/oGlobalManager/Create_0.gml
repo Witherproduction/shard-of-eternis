@@ -129,6 +129,12 @@ if (!variable_global_exists("previous_room_before_duel")) {
 if (!variable_global_exists("admin_mode")) {
     global.admin_mode = false;
 }
+if (!variable_global_exists("dev_regen_db_on_boot")) {
+    global.dev_regen_db_on_boot = false;
+}
+if (!variable_global_exists("dev_force_db_cache_clear")) {
+    global.dev_force_db_cache_clear = false;
+}
 
 // === CONFIGURATION LAYOUT CARTE ===
 // Coordonnées de base (Scale 1.0, coin haut-gauche 0,0)
@@ -194,7 +200,5 @@ if (!variable_global_exists("get_runtime_font")) {
     };
 }
 
-// Instancier le debugger (caché par défaut, toggle F3)
-if (!instance_exists(oLayoutDebugger)) {
-    instance_create_depth(0, 0, -10000, oLayoutDebugger);
-}
+global.show_green_frames = false;
+global.debug_selected_field = "";

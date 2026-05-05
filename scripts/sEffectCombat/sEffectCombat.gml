@@ -101,19 +101,214 @@ function setDefense(card, value) {
     return true;
 }
 
+function cardHasPonction(card) {
+    if (card == noone) return false;
+    var isStruct = is_struct(card);
+    var isInst = (!isStruct && instance_exists(card));
+    if (!isStruct && !isInst) return false;
+    
+    if (isInst) {
+        if (variable_instance_exists(card, "isPonction") && card.isPonction) return true;
+        if (variable_instance_exists(card, "hasPonction") && card.hasPonction) return true;
+        if (variable_instance_exists(card, "tags") && is_array(card.tags)) {
+            for (var i = 0; i < array_length(card.tags); i++) {
+                if (string_lower(string(card.tags[i])) == "ponction") return true;
+            }
+        }
+        if (variable_instance_exists(card, "description") && string_pos("ponction", string_lower(string(card.description))) > 0) return true;
+        return false;
+    }
+    
+    if (variable_struct_exists(card, "isPonction") && card.isPonction) return true;
+    if (variable_struct_exists(card, "hasPonction") && card.hasPonction) return true;
+    if (variable_struct_exists(card, "tags") && is_array(card.tags)) {
+        for (var i = 0; i < array_length(card.tags); i++) {
+            if (string_lower(string(card.tags[i])) == "ponction") return true;
+        }
+    }
+    if (variable_struct_exists(card, "description") && string_pos("ponction", string_lower(string(card.description))) > 0) return true;
+    return false;
+}
+
+function cardHasEgide(card) {
+    if (card == noone) return false;
+    if (is_struct(card)) {
+        if (variable_struct_exists(card, "isEgide") && card.isEgide) return true;
+        if (variable_struct_exists(card, "hasEgide") && card.hasEgide) return true;
+        return false;
+    }
+    if (!instance_exists(card)) return false;
+    if (variable_instance_exists(card, "isEgide") && card.isEgide) return true;
+    if (variable_instance_exists(card, "hasEgide") && card.hasEgide) return true;
+    return false;
+}
+
+function cardHasRepoussement(card) {
+    if (card == noone) return false;
+    var isStruct = is_struct(card);
+    var isInst = (!isStruct && instance_exists(card));
+    if (!isStruct && !isInst) return false;
+    
+    if (isInst) {
+        if (variable_instance_exists(card, "isRepoussement") && card.isRepoussement) return true;
+        if (variable_instance_exists(card, "hasRepoussement") && card.hasRepoussement) return true;
+        if (variable_instance_exists(card, "tags") && is_array(card.tags)) {
+            for (var i = 0; i < array_length(card.tags); i++) {
+                if (string_lower(string(card.tags[i])) == "repoussement") return true;
+            }
+        }
+        if (variable_instance_exists(card, "description") && string_pos("repoussement", string_lower(string(card.description))) > 0) return true;
+        return false;
+    }
+    
+    if (variable_struct_exists(card, "isRepoussement") && card.isRepoussement) return true;
+    if (variable_struct_exists(card, "hasRepoussement") && card.hasRepoussement) return true;
+    if (variable_struct_exists(card, "tags") && is_array(card.tags)) {
+        for (var j = 0; j < array_length(card.tags); j++) {
+            if (string_lower(string(card.tags[j])) == "repoussement") return true;
+        }
+    }
+    if (variable_struct_exists(card, "description") && string_pos("repoussement", string_lower(string(card.description))) > 0) return true;
+    return false;
+}
+
+function tryRepoussement(attacker, defender) {
+    if (attacker == noone || !instance_exists(attacker)) return false;
+    if (defender == noone || !instance_exists(defender)) return false;
+    if (!cardHasRepoussement(attacker)) return false;
+    if (!variable_instance_exists(defender, "fieldPosition")) return false;
+    var fromPos = defender.fieldPosition;
+    if (fromPos < 0 || fromPos > 3) return false; // seulement front -> retrait
+    var toPos = fromPos + 4;
+    
+    var fm = defender.isHeroOwner ? instance_find(oFieldManagerHero, 0) : instance_find(oFieldManagerEnemy, 0);
+    if (fm == noone || !instance_exists(fm) || !variable_instance_exists(fm, "getField")) return false;
+    var field = fm.getField("Monster");
+    if (field == noone || !instance_exists(field) || !variable_struct_exists(field, "cards")) return false;
+    if (toPos < 0 || toPos >= array_length(field.cards)) return false;
+    if (field.cards[toPos] != 0) return false; // slot de retrait occupé
+    
+    if (fromPos >= 0 && fromPos < array_length(field.cards) && field.cards[fromPos] == defender) field.cards[fromPos] = 0;
+    field.cards[toPos] = defender;
+    defender.fieldPosition = toPos;
+    
+    if (variable_instance_exists(fm, "getPosLocation")) {
+        var XY = fm.getPosLocation("Monster", toPos);
+        if (is_array(XY) && array_length(XY) >= 2) {
+            defender.x = XY[0];
+            defender.y = XY[1];
+        }
+    }
+    return true;
+}
+
+function dotAdd(target, key, damage, turns, source = noone) {
+    if (target == noone || !instance_exists(target)) return false;
+    if (!variable_instance_exists(target, "dot_states") || !is_array(target.dot_states)) target.dot_states = [];
+    var idx = -1;
+    for (var i = 0; i < array_length(target.dot_states); i++) {
+        var st = target.dot_states[i];
+        if (is_struct(st) && variable_struct_exists(st, "key") && string(st.key) == string(key)) { idx = i; break; }
+    }
+    var src = (source != noone && instance_exists(source)) ? source : noone;
+    if (idx == -1) {
+        array_push(target.dot_states, { key: string(key), damage: max(0, damage), remaining: max(0, turns), source: src });
+        return true;
+    }
+    var cur = target.dot_states[idx];
+    cur.damage = max(cur.damage, max(0, damage));
+    cur.remaining = max(cur.remaining, max(0, turns));
+    cur.source = src;
+    target.dot_states[idx] = cur;
+    return true;
+}
+
+function dotTick(target, key) {
+    if (target == noone || !instance_exists(target)) return -1;
+    if (!variable_instance_exists(target, "dot_states") || !is_array(target.dot_states)) return -1;
+    var idx = -1;
+    for (var i = 0; i < array_length(target.dot_states); i++) {
+        var st = target.dot_states[i];
+        if (is_struct(st) && variable_struct_exists(st, "key") && string(st.key) == string(key)) { idx = i; break; }
+    }
+    if (idx == -1) return -1;
+    var cur = target.dot_states[idx];
+    if (!variable_struct_exists(cur, "remaining") || cur.remaining <= 0) {
+        array_delete(target.dot_states, idx, 1);
+        return 0;
+    }
+    var dmg = variable_struct_exists(cur, "damage") ? cur.damage : 0;
+    var src = (variable_struct_exists(cur, "source") && cur.source != noone && instance_exists(cur.source)) ? cur.source : noone;
+    if (dmg > 0) damageCard(target, dmg, src);
+    cur.remaining -= 1;
+    if (cur.remaining <= 0) {
+        array_delete(target.dot_states, idx, 1);
+        return 0;
+    }
+    target.dot_states[idx] = cur;
+    return cur.remaining;
+}
+
+function getAttackDamageTakenBonus(target) {
+    if (target == noone || !instance_exists(target)) return 0;
+    if (!instance_exists(game) || !variable_instance_exists(game, "nbTurn")) return 0;
+    if (!variable_instance_exists(target, "attack_damage_bonus_sources") || !is_array(target.attack_damage_bonus_sources)) return 0;
+    var curTurn = game.nbTurn;
+    var sum = 0;
+    var filtered = [];
+    for (var i = 0; i < array_length(target.attack_damage_bonus_sources); i++) {
+        var s = target.attack_damage_bonus_sources[i];
+        if (!is_struct(s)) continue;
+        var expireTurn = 0;
+        if (variable_struct_exists(s, "expire_turn")) expireTurn = s.expire_turn;
+        if (curTurn >= expireTurn) continue;
+        var amt = 0;
+        if (variable_struct_exists(s, "amount")) amt = s.amount;
+        sum += max(0, amt);
+        array_push(filtered, s);
+    }
+    target.attack_damage_bonus_sources = filtered;
+    return sum;
+}
+
 // === Dégâts et soins ===
 /// @function damageCard(card, amount, source)
 function damageCard(card, amount, source = noone) {
     if (card == noone) return false;
-    registerTriggerEvent(TRIGGER_ON_DAMAGE, card, { damage: amount, source: card });
+    if (!variable_instance_exists(card, "nbLP") && amount > 0 && !is_undefined(cardHasEgide) && cardHasEgide(card)) {
+        if (is_struct(card)) {
+            if (variable_struct_exists(card, "hasEgide")) card.hasEgide = false;
+            if (variable_struct_exists(card, "isEgide")) card.isEgide = false;
+        } else if (instance_exists(card)) {
+            if (variable_instance_exists(card, "hasEgide")) card.hasEgide = false;
+            if (variable_instance_exists(card, "isEgide")) card.isEgide = false;
+        }
+        return true;
+    }
+    registerTriggerEvent(TRIGGER_ON_DAMAGE, card, { damage: amount, source: source });
     
     // Quest System Notification
     if (instance_exists(oQuestManager)) {
         oQuestManager.notify_event("deal_damage", amount, { source: source, target: card });
     }
     
+    var isLpObject = variable_instance_exists(card, "nbLP") || (is_struct(card) && variable_struct_exists(card, "nbLP"));
+    if (!isLpObject && amount > 0) {
+        var dt = 0;
+        var dr = 0;
+        if (is_struct(card)) {
+            if (variable_struct_exists(card, "damage_taken_bonus")) dt = card.damage_taken_bonus;
+            if (variable_struct_exists(card, "damage_reduction")) dr = card.damage_reduction;
+        } else if (instance_exists(card)) {
+            if (variable_instance_exists(card, "damage_taken_bonus")) dt = card.damage_taken_bonus;
+            if (variable_instance_exists(card, "damage_reduction")) dr = card.damage_reduction;
+        }
+        if (dt > 0) amount += dt;
+        if (dr > 0) amount = max(1, amount - dr);
+    }
+    
     // Support for LP Objects (Hero/Enemy)
-    if (variable_instance_exists(card, "nbLP")) {
+    if (isLpObject) {
         var oldLP = card.nbLP;
         card.nbLP = max(0, card.nbLP - amount);
         var newLP = card.nbLP;
@@ -133,6 +328,16 @@ function damageCard(card, amount, source = noone) {
             owner_is_hero: ownerIsHero
         });
         
+        if (!is_undefined(cardHasPonction) && !is_undefined(gainLPFor) && amount > 0 && source != noone && cardHasPonction(source)) {
+            var srcOwnerIsHeroLP = true;
+            if (is_struct(source)) {
+                if (variable_struct_exists(source, "isHeroOwner")) srcOwnerIsHeroLP = source.isHeroOwner;
+            } else if (instance_exists(source)) {
+                if (variable_instance_exists(source, "isHeroOwner")) srcOwnerIsHeroLP = source.isHeroOwner;
+            }
+            gainLPFor(srcOwnerIsHeroLP, amount);
+        }
+        
         if (newLP <= 0) {
              // Handle Victory/Defeat if needed, usually handled by Game Manager check
              show_debug_message("### Victory/Defeat via damageCard on LP Object");
@@ -146,6 +351,15 @@ function damageCard(card, amount, source = noone) {
     
     if (has_current_hp) {
         card.current_hp -= amount;
+        if (!is_undefined(cardHasPonction) && !is_undefined(gainLPFor) && amount > 0 && source != noone && cardHasPonction(source)) {
+            var srcOwnerIsHeroCHP = true;
+            if (is_struct(source)) {
+                if (variable_struct_exists(source, "isHeroOwner")) srcOwnerIsHeroCHP = source.isHeroOwner;
+            } else if (instance_exists(source)) {
+                if (variable_instance_exists(source, "isHeroOwner")) srcOwnerIsHeroCHP = source.isHeroOwner;
+            }
+            gainLPFor(srcOwnerIsHeroCHP, amount);
+        }
         if (card.current_hp <= 0) { destroyCard(card); }
     } else {
         var has_pv = variable_struct_exists(card, "PV");
@@ -153,6 +367,15 @@ function damageCard(card, amount, source = noone) {
         
         if (has_pv) {
             card.PV -= amount;
+            if (!is_undefined(cardHasPonction) && !is_undefined(gainLPFor) && amount > 0 && source != noone && cardHasPonction(source)) {
+                var srcOwnerIsHeroPV = true;
+                if (is_struct(source)) {
+                    if (variable_struct_exists(source, "isHeroOwner")) srcOwnerIsHeroPV = source.isHeroOwner;
+                } else if (instance_exists(source)) {
+                    if (variable_instance_exists(source, "isHeroOwner")) srcOwnerIsHeroPV = source.isHeroOwner;
+                }
+                gainLPFor(srcOwnerIsHeroPV, amount);
+            }
             if (card.PV <= 0) { destroyCard(card); }
         }
     }
@@ -246,6 +469,16 @@ function destroyCard(card, source = noone) {
                      // If HasIllusion is somehow true here, we should probably return false (prevent destruction).
                      // But let's just use the same logic: consume and prevent.
         return false; 
+    }
+    
+    if (!variable_global_exists("minions_died_this_turn")) global.minions_died_this_turn = 0;
+    if (instance_exists(card)) {
+        var zdt = variable_instance_exists(card, "zone") ? string_lower(card.zone) : "";
+        var isFieldDeath = (zdt == "field" || zdt == "fieldselected");
+        var isTerrain = (variable_instance_exists(card, "isTerrain") && card.isTerrain);
+        var cType = variable_instance_exists(card, "type") ? string_lower(string(card.type)) : "";
+        var isMinion = (cType == "monster") && !isTerrain && isFieldDeath;
+        if (isMinion) global.minions_died_this_turn += 1;
     }
     registerTriggerEvent(TRIGGER_ON_DESTROY, card, ctx);
 

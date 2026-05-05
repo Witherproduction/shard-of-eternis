@@ -26,6 +26,43 @@ if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_press
     room_restart();
 }
 
+if (variable_global_exists("admin_mode") && global.admin_mode) {
+    if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_pressed(ord("D"))) {
+        directory_create("datafiles");
+        var ok = false;
+        if (script_exists(asset_get_index("regenerate_database_from_objects"))) {
+            ok = regenerate_database_from_objects();
+        } else {
+            show_debug_message("### DEV: regenerate_database_from_objects introuvable (script non présent dans le projet GameMaker).");
+            show_message("Script dev introuvable: ajoute sDevTools dans le projet.");
+        }
+        var db = instance_find(oDataBase, 0);
+        var cnt = 0;
+        if (db != noone && instance_exists(db) && variable_struct_exists(db, "cardDatabase")) {
+            cnt = variable_struct_names_count(db.cardDatabase);
+        }
+        if (instance_exists(oCardViewer)) {
+            with (oCardViewer) {
+                if (is_callable(displayFilteredCards)) displayFilteredCards();
+                if (is_callable(rebuildDropdown)) rebuildDropdown();
+                if (is_callable(displayFilteredCards)) displayFilteredCards();
+            }
+        }
+        var scanned = variable_global_exists("dev_last_regen_scan") ? global.dev_last_regen_scan : -1;
+        var found = variable_global_exists("dev_last_regen_count") ? global.dev_last_regen_count : -1;
+        var wrote = variable_global_exists("dev_last_regen_written") ? global.dev_last_regen_written : false;
+        show_debug_message("### DEV: DB regen ok=" + string(ok) + " scanned=" + string(scanned) + " found=" + string(found) + " wrote=" + string(wrote) + " db_cards=" + string(cnt));
+        show_message("DB regen ok=" + string(ok) + " found=" + string(found) + " db=" + string(cnt));
+    }
+    
+    if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_pressed(ord("B"))) {
+        if (!variable_global_exists("dev_regen_db_on_boot")) global.dev_regen_db_on_boot = false;
+        global.dev_regen_db_on_boot = !global.dev_regen_db_on_boot;
+        show_debug_message("### DEV: dev_regen_db_on_boot=" + string(global.dev_regen_db_on_boot));
+        show_message("Auto régénération DB au démarrage: " + string(global.dev_regen_db_on_boot));
+    }
+}
+
 // === FORCAGE DES RÉGLAGES VIDÉO (DÉMARRAGE) ===
 // Ajout Or (Debug): F2 -> +1000 pièces d'or
 if (keyboard_check_pressed(vk_f2)) {

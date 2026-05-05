@@ -5,7 +5,7 @@
 event_inherited();
 
 // Garde directe pour bloquer les clics quand le panneau d'options est ouvert
-if (instance_exists(oPanelOptions)) { exit; }
+if (instance_exists(oPanelOptions) || instance_exists(oQuestPanel)) { exit; }
 
 // Vérifier si on est dans la room d'accueil
 if (room != rAcceuil) {
