@@ -50,7 +50,7 @@ if (variable_instance_exists(self, "selected")) {
     var tlx = draw_x - sprite_w * 0.5;
     var tly = draw_y - sprite_h * 0.5;
     var s = scale;
-    var rel = scale / 0.6; // Ratio par rapport à la collection
+    rel = scale / 0.6; // Ratio par rapport à la collection
 
     // Fond semi-transparent derrière la carte
     draw_set_alpha(0.8);
@@ -191,17 +191,21 @@ if (variable_instance_exists(self, "selected")) {
         var rh_m = (star_y2 - star_y1) * s;
         var cx_m = tlx + (star_x1 + (star_x2-star_x1)/2) * s;
         var cy_m = tly + (star_y1 + (star_y2-star_y1)/2) * s;
+        // Viewer gauche duel: mana un poil plus a gauche
+        cx_m -= 2;
         var sc_m = fit_line(string(manaVal), 22 * rel, rw_m, rh_m);
-        var want_px = base_title_size * sc_m;
-        var want_size = max(8, floor(want_px));
-        var f = get_font("title", want_size);
+        want_px = base_title_size * sc_m;
+        want_size = max(8, floor(want_px));
+        f = get_font("title", want_size);
         if (f != -1) draw_set_font(f);
-        var sc2 = (want_size > 0) ? (want_px / want_size) : sc_m;
+        sc2 = (want_size > 0) ? (want_px / want_size) : sc_m;
         draw_text_transformed(round(cx_m), round(cy_m), string(manaVal), sc2, sc2, 0);
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
     }
 
+    var genre_font_size = -1;
+    var genre_scale_draw = 1;
     // --- GENRE ---
     if (variable_instance_exists(card, "genre") && string_length(string_trim(card.genre)) > 0) {
         var tx_g = string(card.genre);
@@ -215,11 +219,13 @@ if (variable_instance_exists(self, "selected")) {
         var rw_g = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
         var rh_g = (genre_y2 - genre_y1) * s - pad * 2;
         var sc_g = fit_line(tx_g, 16 * rel, rw_g, rh_g);
-        var want_px = base_text_size * sc_g;
-        var want_size = max(8, floor(want_px));
-        var f = get_font("text", want_size);
+        want_px = base_text_size * sc_g;
+        want_size = max(8, floor(want_px));
+        genre_font_size = want_size;
+        f = get_font("text", want_size);
         if (f != -1) draw_set_font(f);
-        var sc2 = (want_size > 0) ? (want_px / want_size) : sc_g;
+        sc2 = (want_size > 0) ? (want_px / want_size) : sc_g;
+        genre_scale_draw = sc2;
         draw_text_transformed(round(tlx + genre_x1 * s + pad + mar), round(tly + genre_y1 * s + pad + 2), tx_g, sc2, sc2, 0);
     }
 
@@ -228,13 +234,15 @@ if (variable_instance_exists(self, "selected")) {
         var tx_a = string(card.race);
         var rw_a = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
         var rh_a = (arch_y2 - arch_y1) * s - pad * 2;
+        // Race: meme base que le genre, puis reduction FIXE du rendu
         var sc_a = fit_line(tx_a, 16 * rel, rw_a, rh_a);
-        var want_px = base_text_size * sc_a;
-        var want_size = max(8, floor(want_px));
-        var f = get_font("text", want_size);
+        want_px = base_text_size * sc_a;
+        want_size = max(8, floor(want_px));
+        if (genre_font_size > 0) want_size = genre_font_size;
+        f = get_font("text", want_size);
         if (f != -1) draw_set_font(f);
-        var sc2 = (want_size > 0) ? (want_px / want_size) : sc_a;
-        draw_text_transformed(round(tlx + arch_x1 * s + pad + mar), round(tly + arch_y1 * s + pad + 2), tx_a, sc2, sc2, 0);
+        sc2 = genre_scale_draw * 0.82;
+        draw_text_transformed(round(tlx + arch_x1 * s + pad + mar), round(tly + arch_y1 * s + pad + 1), tx_a, sc2, sc2, 0);
     }
 
     // --- STATS (ATK/HP) ---
@@ -248,16 +256,16 @@ if (variable_instance_exists(self, "selected")) {
         var origA = (variable_instance_exists(card, "original_attack")) ? card.original_attack : atkVal;
         var colA = c_lime; // Always Green per user request
         
-        var cx_a = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s;
-        var cy_a = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s;
+        var cx_a = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s - 1;
+        var cy_a = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s - 1;
         
-        var want_px = base_title_size * (1.2 * rel);
-        var want_size = max(8, floor(want_px));
-        var f = get_font("title", want_size);
+        want_px = base_title_size * (1.2 * rel);
+        want_size = max(8, floor(want_px));
+        f = get_font("title", want_size);
         if (f != -1) draw_set_font(f);
         var sc_atk = (want_size > 0) ? (want_px / want_size) : (1.2 * rel);
         // Outline
-        var o_dist = 2 * rel;
+        o_dist = 2 * rel;
         draw_set_color(c_black);
         draw_text_transformed(round(cx_a - o_dist), round(cy_a), string(atkVal), sc_atk, sc_atk, 0);
         draw_text_transformed(round(cx_a + o_dist), round(cy_a), string(atkVal), sc_atk, sc_atk, 0);
@@ -274,10 +282,10 @@ if (variable_instance_exists(self, "selected")) {
         
         var hpColor = c_lime; // Always Green per user request
         
-        var cx_h = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
-        var cy_h = tly + (def_y1 + (def_y2-def_y1)/2) * s;
+        var cx_h = tlx + (def_x1 + (def_x2-def_x1)/2) * s - 1;
+        var cy_h = tly + (def_y1 + (def_y2-def_y1)/2) * s - 1;
         
-        var o_dist = 2 * rel;
+        o_dist = 2 * rel;
         draw_set_color(c_black);
         draw_text_transformed(round(cx_h - o_dist), round(cy_h), string(hpVal), sc_atk, sc_atk, 0);
         draw_text_transformed(round(cx_h + o_dist), round(cy_h), string(hpVal), sc_atk, sc_atk, 0);
@@ -302,11 +310,6 @@ if (variable_instance_exists(self, "selected")) {
     if (variable_instance_exists(card, "charge") && card.charge) keywords += "[Charge] ";
     if (keywords != "") full_desc += keywords + "\n";
     
-    // Rareté
-    if (variable_instance_exists(card, "rarity")) {
-        full_desc += "Rareté: " + string(card.rarity) + "\n";
-    }
-
     // Description texte
     if (variable_instance_exists(card, "description")) {
         full_desc += string(card.description);
@@ -322,9 +325,10 @@ if (variable_instance_exists(self, "selected")) {
     // On utilise une méthode simplifiée: draw_text_ext dans une surface ou clipping
     // Mais pour rester simple sans surface:
     if (font_exists(fontText)) draw_set_font(fontText);
-    var want_px = 20 * rel;
-    var want_size = max(6, floor(want_px));
-    var f = get_font("text", want_size);
+    // Description: texte encore plus petit
+    want_px = 14 * rel;
+    want_size = max(6, floor(want_px));
+    f = get_font("text", want_size);
     if (f != -1) draw_set_font(f);
     var desc_scale = (want_size > 0) ? (want_px / want_size) : 1;
     desc_scale = min(desc_scale, 1.0);
@@ -393,329 +397,7 @@ if (variable_instance_exists(self, "selected")) {
 
     gpu_set_texfilter(true);
 
-    // --- Affiche la carte en grand (après pour qu’elle soit toujours visible) ---
-    if (card.isFaceDown && card.isHeroOwner) {
-        draw_sprite_ext(card.sprite_index, 0, draw_x, draw_y, scale, scale, 0, c_white, 1);
-    } else {
-        draw_sprite_ext(card.sprite_index, card.image_index, draw_x, draw_y, scale, scale, 0, c_white, 1);
-    }
-
-    // --- Overlay texte sur la carte (zones précises, aligné Collection) ---
-    {
-        gpu_set_texfilter(false);
-        var spr = card.sprite_index;
-        // Utiliser la même échelle que la carte pour l'overlay texte
-        var s = scale;
-        var cw = sprite_get_width(spr) * s;
-        var ch = sprite_get_height(spr) * s;
-        var tlx = draw_x - cw * 0.5;
-        var tly = draw_y - ch * 0.5;
-
-        // Détection carte magique pour masquer coût et ATK/PV
-        var is_magic = object_is_ancestor(card.object_index, oCardMagic) || (variable_instance_exists(card, "type") && string_lower(string(card.type)) == "magic");
-
-        // Coordonnées des zones (référence scale 1.0) - Utilisation du Layout Global
-        var layout = global.card_layout;
-        var name_x1 = layout.name.x1,  name_y1 = layout.name.y1;  var name_x2 = layout.name.x2, name_y2 = layout.name.y2;
-        var star_x1 = layout.mana.x1, star_y1 = layout.mana.y1;  var star_x2 = layout.mana.x2, star_y2 = layout.mana.y2;
-        var genre_x1 = layout.genre.x1, genre_y1 = layout.genre.y1; var genre_x2 = layout.genre.x2, genre_y2 = layout.genre.y2;
-        var arch_x1  = layout.archetype.x1, arch_y1  = layout.archetype.y1; var arch_x2  = layout.archetype.x2, arch_y2  = layout.archetype.y2;
-        var desc_x1  = layout.description.x1, desc_y1  = layout.description.y1; var desc_x2  = layout.description.x2, desc_y2  = layout.description.y2;
-        var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2;
-        var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2;
-
-        // Police et couleur
-        if (font_exists(fontText)) draw_set_font(fontText);
-        else if (font_exists(fontTitle)) draw_set_font(fontTitle);
-        else if (font_exists(fontUI)) draw_set_font(fontUI);
-        draw_set_color(c_black);
-
-        // Helpers d’échelle
-        var fit_line = function(text, max_px, rw, rh) {
-            var base_line_h = string_height("Ag");
-            var w0 = string_width(text);
-            var h0 = base_line_h;
-            var s_max = (h0 > 0) ? max_px / h0 : 1;
-            var s_w = (w0 > 0) ? rw / w0 : s_max;
-            var s_h = (h0 > 0) ? rh / h0 : s_max;
-            return min(s_max, s_w, s_h);
-        };
-
-        var fit_block = function(text, max_px, rw, rh) {
-            var base_line_h = string_height("Ag");
-            var s = (base_line_h > 0) ? max_px / base_line_h : 1;
-            for (var it = 0; it < 3; it++) {
-                var sep = base_line_h;               // séparation à l'échelle 1
-                var w_eff = (s > 0) ? (rw / s) : rw; // largeur efficace à scale 1
-                var h = string_height_ext(text, sep, w_eff);
-                if (h <= 0) break;
-                var s_h = rh / h;                    // cible: h*s <= rh
-                s = min(s, s_h);
-            }
-            return s;
-        };
-
-        var pad = 0;
-        
-        var base_title_size = 16;
-        if (font_exists(fontTitle)) base_title_size = font_get_size(fontTitle);
-        var base_text_size = 14;
-        if (font_exists(fontText)) base_text_size = font_get_size(fontText);
-        var get_font = function(kind, size) {
-            if (variable_global_exists("get_runtime_font")) return global.get_runtime_font(kind, size);
-            if (kind == "title") {
-                if (font_exists(fontTitle)) return fontTitle;
-                if (font_exists(fontText)) return fontText;
-                if (font_exists(fontUI)) return fontUI;
-            } else {
-                if (font_exists(fontText)) return fontText;
-                if (font_exists(fontTitle)) return fontTitle;
-                if (font_exists(fontUI)) return fontUI;
-            }
-            return -1;
-        };
-
-        // NAME (centré verticalement dans sa zone, avec décalage +2px)
-        if (variable_instance_exists(card, "name")) {
-            if (font_exists(fontTitle)) draw_set_font(fontTitle);
-            else if (font_exists(fontText)) draw_set_font(fontText);
-            else if (font_exists(fontUI)) draw_set_font(fontUI);
-            var tx = string(card.name);
-            var mar = 7;
-            var rw = (name_x2 - name_x1) * s - pad * 2 - mar * 2;
-            var rh = (name_y2 - name_y1) * s - pad * 2;
-            var scale_tx = fit_line(tx, 20, rw, rh);
-            var want_px = base_title_size * scale_tx;
-            var want_size = max(8, floor(want_px));
-            var f = get_font("title", want_size);
-            if (f != -1) draw_set_font(f);
-            var sc2 = (want_size > 0) ? (want_px / want_size) : scale_tx;
-            var left = tlx + name_x1 * s + pad + mar;
-            var top  = tly + name_y1 * s + pad;
-            var base_line_h = string_height("Ag");
-            var hsc = base_line_h * sc2;
-            left = round(left);
-            var cy = top + max(0, (rh - hsc) * 0.5) + 2;
-            cy = round(cy);
-            draw_text_transformed(left, cy, tx, sc2, sc2, 0);
-            if (font_exists(fontText)) draw_set_font(fontText);
-            else if (font_exists(fontTitle)) draw_set_font(fontTitle);
-            else if (font_exists(fontUI)) draw_set_font(fontUI);
-        }
-
-        // mana_cost (coût)
-        if (variable_instance_exists(card, "mana_cost")) {
-            if (font_exists(fontTitle)) draw_set_font(fontTitle);
-            else if (font_exists(fontText)) draw_set_font(fontText);
-            else if (font_exists(fontUI)) draw_set_font(fontUI);
-            var tx = string(card.mana_cost);
-            var rw = (star_x2 - star_x1) * s - pad * 2;
-            var rh = (star_y2 - star_y1) * s - pad * 2;
-            var scale_tx = fit_line(tx, 20, rw, rh);
-            var want_px = base_title_size * scale_tx;
-            var want_size = max(8, floor(want_px));
-            var f = get_font("title", want_size);
-            if (f != -1) draw_set_font(f);
-            var sc2 = (want_size > 0) ? (want_px / want_size) : scale_tx;
-            var left = tlx + star_x1 * s + pad;
-            var top  = tly + star_y1 * s + pad;
-            var wsc  = string_width(tx) * sc2;
-            var cx   = left + max(0, (rw - wsc) * 0.5);
-            cx = round(cx);
-            top = round(top);
-            draw_text_transformed(cx, top + 2, tx, sc2, sc2, 0);
-            if (font_exists(fontText)) draw_set_font(fontText);
-            else if (font_exists(fontTitle)) draw_set_font(fontTitle);
-            else if (font_exists(fontUI)) draw_set_font(fontUI);
-        }
-
-        draw_set_halign(fa_left);
-        draw_set_valign(fa_top);
-
-        // GENRE
-        if (variable_instance_exists(card, "genre")) {
-            var tx = string_trim(string(card.genre));
-            if (string_length(tx) <= 0) { tx = ""; }
-            
-            var mar = 7;
-            var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
-            var rh = (genre_y2 - genre_y1) * s - pad * 2;
-            
-            if (tx != "") {
-                if (font_exists(fontText)) draw_set_font(fontText);
-                else if (font_exists(fontTitle)) draw_set_font(fontTitle);
-                else if (font_exists(fontUI)) draw_set_font(fontUI);
-                
-                var scale_tx = fit_line(tx, 16 * rel, rw, rh);
-                var want_px = base_text_size * scale_tx;
-                var want_size = max(6, floor(want_px));
-                var f = get_font("text", want_size);
-                if (f != -1) draw_set_font(f);
-                var sc2 = (want_size > 0) ? (want_px / want_size) : scale_tx;
-                
-                var gx = tlx + genre_x1 * s + pad + mar;
-                var gy = tly + genre_y1 * s + pad;
-                gx = round(gx);
-                gy = round(gy);
-                var hsc = string_height("Ag") * sc2;
-                var cy = gy + max(0, (rh - hsc) * 0.5) + 2;
-                cy = round(cy);
-                draw_text_transformed(gx, cy, tx, sc2, sc2, 0);
-            }
-        }
-
-        // RACE (formerly ARCHETYPE location)
-        if (variable_instance_exists(card, "race")) {
-            var tx = string_trim(string(card.race));
-            if (string_length(tx) <= 0) { tx = ""; }
-            var mar = 7;
-            var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
-            var rh = (arch_y2 - arch_y1) * s - pad * 2;
-            
-            if (tx != "") {
-                if (font_exists(fontText)) draw_set_font(fontText);
-                else if (font_exists(fontTitle)) draw_set_font(fontTitle);
-                else if (font_exists(fontUI)) draw_set_font(fontUI);
-                
-                var scale_tx = fit_line(tx, 16 * rel, rw, rh);
-                var want_px = base_text_size * scale_tx;
-                var want_size = max(6, floor(want_px));
-                var f = get_font("text", want_size);
-                if (f != -1) draw_set_font(f);
-                var sc2 = (want_size > 0) ? (want_px / want_size) : scale_tx;
-                
-                var ax = tlx + arch_x1 * s + pad + mar;
-                var ay = tly + arch_y1 * s + pad;
-                ax = round(ax);
-                ay = round(ay);
-                var hsc = string_height("Ag") * sc2;
-                var cy = ay + max(0, (rh - hsc) * 0.5) + 2;
-                cy = round(cy);
-                draw_text_transformed(ax, cy, tx, sc2, sc2, 0);
-            }
-        }
-
-        // DESCRIPTION (wrap natif, mêmes réglages que Collection)
-        if (variable_instance_exists(card, "description")) {
-            if (font_exists(fontText)) draw_set_font(fontText);
-            else if (font_exists(fontTitle)) draw_set_font(fontTitle);
-            else if (font_exists(fontUI)) draw_set_font(fontUI);
-            draw_set_halign(fa_left);
-            draw_set_valign(fa_top);
-            var tx = string(card.description);
-            var mar = 7;
-            var rw = (desc_x2 - desc_x1) * s - pad * 2 - mar * 2;
-            var rh = (desc_y2 - desc_y1) * s - pad * 2;
-            var left = tlx + desc_x1 * s + pad + mar;
-            var top  = tly + desc_y1 * s + pad;
-            var base_h = string_height("Ag");
-            var sc0 = (base_h > 0) ? 20 / base_h : 1;
-            var sc = sc0;
-            for (var ii = 0; ii < 8; ii++) {
-                var w_pre = (sc > 0) ? (rw / sc) : rw;
-                var h_un = string_height_ext(tx, base_h, w_pre);
-                var h_sc = h_un * sc;
-                if (h_sc <= rh) break;
-                var k = rh / max(1, h_sc);
-                sc *= max(0.6, min(0.95, k));
-                sc = min(sc, sc0);
-            }
-            var want_px = base_text_size * sc;
-            var want_size = max(8, floor(want_px));
-            var f = get_font("text", want_size);
-            if (f != -1) draw_set_font(f);
-            var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
-            left = round(left);
-            top  = round(top);
-            var sep = string_height("Ag");
-            var w_eff = round(rw / sc2);
-            draw_text_ext_transformed(left, top + 2, tx, sep, w_eff, sc2, sc2, 0);
-        }
-
-        // ATK
-        if (!is_magic && variable_instance_exists(card, "attack")) {
-            if (font_exists(fontTitle)) draw_set_font(fontTitle);
-            else if (font_exists(fontText)) draw_set_font(fontText);
-            else if (font_exists(fontUI)) draw_set_font(fontUI);
-            var atkVal = card.attack;
-            var origA = (variable_instance_exists(card, "original_attack")) ? card.original_attack : atkVal;
-            var colA = c_lime; // Always Green per user request
-            var tx = string(atkVal);
-            
-            // Centered alignment
-            draw_set_halign(fa_center);
-            draw_set_valign(fa_middle);
-            
-            var want_px = base_title_size * (1.2 * rel);
-            var want_size = max(8, floor(want_px));
-            var f = get_font("title", want_size);
-            if (f != -1) draw_set_font(f);
-            var scale_tx = (want_size > 0) ? (want_px / want_size) : (1.2 * rel);
-            
-            var cx = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s;
-            var cy = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s;
-            cx = round(cx);
-            cy = round(cy);
-            
-            // Outline
-            var o_dist = 2 * rel;
-            draw_set_color(c_black);
-            draw_text_transformed(cx - o_dist, cy, tx, scale_tx, scale_tx, 0);
-            draw_text_transformed(cx + o_dist, cy, tx, scale_tx, scale_tx, 0);
-            draw_text_transformed(cx, cy - o_dist, tx, scale_tx, scale_tx, 0);
-            draw_text_transformed(cx, cy + o_dist, tx, scale_tx, scale_tx, 0);
-            
-            draw_set_color(colA);
-            draw_text_transformed(cx, cy, tx, scale_tx, scale_tx, 0);
-            
-            // Reset alignment
-            draw_set_halign(fa_left);
-            draw_set_valign(fa_top);
-        }
-
-        // PV
-        if (!is_magic && variable_instance_exists(card, "PV")) {
-            if (font_exists(fontTitle)) draw_set_font(fontTitle);
-            else if (font_exists(fontText)) draw_set_font(fontText);
-            else if (font_exists(fontUI)) draw_set_font(fontUI);
-            var hpVal = (variable_instance_exists(card, "current_hp")) ? card.current_hp : card.PV;
-            var hpMax = (variable_instance_exists(card, "max_hp")) ? card.max_hp : hpVal;
-            var origPV = (variable_instance_exists(card, "original_PV")) ? card.original_PV : hpMax;
-            
-            var hpColor = c_lime; // Always Green per user request
-            var tx = string(hpVal);
-            
-            // Centered alignment
-            draw_set_halign(fa_center);
-            draw_set_valign(fa_middle);
-            
-            var want_px = base_title_size * (1.2 * rel);
-            var want_size = max(8, floor(want_px));
-            var f = get_font("title", want_size);
-            if (f != -1) draw_set_font(f);
-            var scale_tx = (want_size > 0) ? (want_px / want_size) : (1.2 * rel);
-            
-            var cx = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
-            var cy = tly + (def_y1 + (def_y2-def_y1)/2) * s;
-            cx = round(cx);
-            cy = round(cy);
-            
-            // Outline
-            var o_dist = 2 * rel;
-            draw_set_color(c_black);
-            draw_text_transformed(cx - o_dist, cy, tx, scale_tx, scale_tx, 0);
-            draw_text_transformed(cx + o_dist, cy, tx, scale_tx, scale_tx, 0);
-            draw_text_transformed(cx, cy - o_dist, tx, scale_tx, scale_tx, 0);
-            draw_text_transformed(cx, cy + o_dist, tx, scale_tx, scale_tx, 0);
-            
-            draw_set_color(hpColor);
-            draw_text_transformed(cx, cy, tx, scale_tx, scale_tx, 0);
-            
-            // Reset alignment
-            draw_set_halign(fa_left);
-            draw_set_valign(fa_top);
-        }
-    }
+    // Ne pas redessiner la carte ici: ce redraw recouvrait tout le texte du viewer duel.
 
     var normalize_keyword = function(s) {
         var t = string_lower(string(s));
@@ -801,38 +483,38 @@ if (variable_instance_exists(self, "selected")) {
 
     if (array_length(effect_keys) > 0) {
         var panel_w = sprite_w + 20;
-        var pad = 14;
+        var pad_effects = 14;
         var panel_x1 = draw_x - panel_w * 0.5;
         panel_x1 = max(20, min(panel_x1, room_width - panel_w - 20));
         var panel_y1 = draw_y + sprite_h * 0.5 + 20;
         panel_y1 = max(20, panel_y1);
 
         var scale_factor = 0.8;
-        var base_title_size = 16;
-        if (font_exists(fontTitle)) base_title_size = font_get_size(fontTitle);
-        var base_text_size = 14;
-        if (font_exists(fontText)) base_text_size = font_get_size(fontText);
+        var effects_base_title_size = 16;
+        if (font_exists(fontTitle)) effects_base_title_size = font_get_size(fontTitle);
+        var effects_base_text_size = 14;
+        if (font_exists(fontText)) effects_base_text_size = font_get_size(fontText);
         
-        var title_font = (variable_global_exists("get_runtime_font")) ? global.get_runtime_font("title", max(8, round(base_title_size * scale_factor))) : fontTitle;
-        var text_font = (variable_global_exists("get_runtime_font")) ? global.get_runtime_font("text", max(8, round(base_text_size * scale_factor))) : fontText;
+        var title_font = (variable_global_exists("get_runtime_font")) ? global.get_runtime_font("title", max(8, round(effects_base_title_size * scale_factor))) : fontTitle;
+        var text_font = (variable_global_exists("get_runtime_font")) ? global.get_runtime_font("text", max(8, round(effects_base_text_size * scale_factor))) : fontText;
         
         if (text_font != -1) draw_set_font(text_font);
         var sep = string_height("Ag");
-        var max_w_eff = (panel_w - pad * 2);
+        var max_w_eff = (panel_w - pad_effects * 2);
 
-        var lines = "";
+        var effect_lines = "";
         for (var li = 0; li < array_length(effect_keys); li++) {
             var k = effect_keys[li];
             var def = variable_struct_get(effect_defs, k);
             var line = def.label + " : " + def.desc;
-            lines = (lines == "") ? line : (lines + "\n" + line);
+            effect_lines = (effect_lines == "") ? line : (effect_lines + "\n" + line);
         }
 
         var title = "Signification des effets";
-        var text_h = string_height_ext(lines, sep, max_w_eff);
+        var text_h = string_height_ext(effect_lines, sep, max_w_eff);
         if (title_font != -1) draw_set_font(title_font);
         var title_h = string_height(title) + 8;
-        var panel_h = pad * 2 + title_h + text_h + 6;
+        var panel_h = pad_effects * 2 + title_h + text_h + 6;
 
         var panel_x2 = panel_x1 + panel_w;
         var panel_y2 = panel_y1 + panel_h;
@@ -854,11 +536,11 @@ if (variable_instance_exists(self, "selected")) {
         draw_set_valign(fa_top);
 
         draw_set_color(make_color_rgb(230, 200, 120));
-        draw_text(panel_x1 + pad, panel_y1 + pad, title);
+        draw_text(panel_x1 + pad_effects, panel_y1 + pad_effects, title);
 
         if (text_font != -1) draw_set_font(text_font);
         draw_set_color(c_white);
-        draw_text_ext(panel_x1 + pad, panel_y1 + pad + title_h, lines, sep, max_w_eff);
+        draw_text_ext(panel_x1 + pad_effects, panel_y1 + pad_effects + title_h, effect_lines, sep, max_w_eff);
 
         draw_set_color(c_black);
     }

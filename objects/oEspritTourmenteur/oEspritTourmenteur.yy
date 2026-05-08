@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sEspritTourmenteur",
+    "path":"sprites/sEspritTourmenteur/sEspritTourmenteur.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

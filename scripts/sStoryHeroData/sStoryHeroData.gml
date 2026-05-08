@@ -14,7 +14,14 @@ function get_story_heroes() {
             name: "Kaelen",
             description: "",
             portrait: "sPortraitKaelen",
-            chapters: [1, 2, 3, 4, 5] // Chapitres de l'histoire principale
+            chapters: [1] // Kaelen n'a actuellement que son chapitre 1
+        },
+        {
+            id: "vespera",
+            name: "Vespera",
+            description: "",
+            portrait: "sPortraitIntro",
+            chapters: [2] // Chapitre 1 de Vespera (considéré comme chapitre 2 en jeu)
         }
     ];
 }
@@ -35,8 +42,8 @@ function get_chapter_data(chapter_id) {
         },
         {
             id: 2,
-            title: "Les plaines gelées",
-            acts: ["Le froid mordant", "Traces dans la neige", "Le gardien de glace", "Coeur gelé"]
+            title: "Les landes du sépulcre",
+            acts: ["Acte 1"]
         },
         {
             id: 3,
@@ -53,6 +60,7 @@ function get_chapter_data(chapter_id) {
             title: "Le néant",
             acts: ["Obscurité", "Murmures", "Confrontation", "Eternité"]
         }
+        
     ];
     
     if (chapter_id >= 0 && chapter_id < array_length(all_chapters)) {

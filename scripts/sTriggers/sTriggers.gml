@@ -618,7 +618,7 @@ function checkTriggerConditions(card, effect, context) {
             var sm = conditions.summon_mode;
             if (is_array(sm)) {
                 var ok = false;
-                for (var i = 0; i < array_length_1d(sm); i++) {
+                for (var i = 0; i < array_length(sm); i++) {
                     if (sm[i] == cm) { ok = true; break; }
                 }
                 if (!ok) { return false; }
@@ -1092,7 +1092,7 @@ function registerTriggerEvent(triggerType, sourceCard = noone, context = {}) {
     // Spécifique: activer les Secrets lors du lancement d'un sort
     if (triggerType == TRIGGER_ON_SPELL_CAST) {
         if (sourceCard != noone && instance_exists(sourceCard) && script_exists(asset_get_index("activateSecretsOnSpellCast"))) {
-            activateSecretsOnSpellCast(sourceCard);
+            activateSecretsOnSpellCast(sourceCard, context);
         }
     }
 

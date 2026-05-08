@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sEclaireurSangPur",
+    "path":"sprites/sEclaireurSangPur/sEclaireurSangPur.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

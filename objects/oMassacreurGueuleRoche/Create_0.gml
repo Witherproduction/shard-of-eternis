@@ -2,8 +2,8 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Massacreur Gueule-Roche"
-attack = 9;
-PV = 9;
+attack = 8;
+PV = 8;
 mana_cost = 8;
 genre = "Humanoïde"
 booster = "Retour des Archontes"

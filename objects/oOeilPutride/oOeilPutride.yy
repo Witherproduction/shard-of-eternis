@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sOeilPutride",
+    "path":"sprites/sOeilPutride/sOeilPutride.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

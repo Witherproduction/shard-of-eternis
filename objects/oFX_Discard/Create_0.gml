@@ -9,12 +9,13 @@
 
 start_x = x;
 start_y = y;
+var game_fps = game_get_speed(gamespeed_fps);
 
 // Durée par défaut ~2.1s
-var default_frames = 2.1 * room_speed;
+var default_frames = 2.1 * game_fps;
 duration = default_frames;
 if (variable_instance_exists(self, "duration_ms")) {
-    duration = max(1, (duration_ms / 1000.0) * room_speed);
+    duration = max(1, (duration_ms / 1000.0) * game_fps);
 }
 
 // Courbe fantôme
@@ -38,7 +39,7 @@ _t = 0;
 _wait = 0;
 start_delay_frames = 0;
 if (variable_instance_exists(self, "start_delay_ms")) {
-    start_delay_frames = max(0, (start_delay_ms / 1000.0) * room_speed);
+    start_delay_frames = max(0, (start_delay_ms / 1000.0) * game_fps);
 }
 
 // Params de sprite
@@ -68,7 +69,7 @@ discard_scale_y = 1;
 snd_discard = asset_get_index("FireDiscard");
 snd_discard_id = -1;
 if (snd_discard != -1) {
-    var dur_ms = round((duration / room_speed) * 1000);
+    var dur_ms = round((duration / game_fps) * 1000);
     var pitchD = clamp(3000.0 / max(1, dur_ms), 0.5, 3.0);
     snd_discard_id = audio_play_sound(snd_discard, 0, false);
     if (snd_discard_id != -1) { audio_sound_pitch(snd_discard_id, pitchD); }

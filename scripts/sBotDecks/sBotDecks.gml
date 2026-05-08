@@ -1,4 +1,4 @@
-﻿// === Script de stockage des decks des bots ===
+// === Script de stockage des decks des bots ===
 // Ce script contient les fonctions utilitaires pour la création des decks bots.
 // Les données sont maintenant centralisées dans sStoryDeckManager.gml et les fichiers JSON.
 

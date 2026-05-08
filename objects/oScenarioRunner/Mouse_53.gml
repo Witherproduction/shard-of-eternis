@@ -1,5 +1,56 @@
 if (instance_exists(oPanelOptions)) exit;
 
+if (variable_instance_exists(id, "end_act_popup_active") && end_act_popup_active) {
+    var pw = 700;
+    var ph = 280;
+    var px1 = (room_width - pw) * 0.5;
+    var py1 = (room_height - ph) * 0.5;
+    var py2 = py1 + ph;
+    var btn_w = 260;
+    var btn_h = 56;
+    var gap_btn = 20;
+    var btn1_x1 = px1 + (pw - (btn_w * 2 + gap_btn)) * 0.5;
+    var btn1_y1 = py2 - btn_h - 30;
+    var btn1_x2 = btn1_x1 + btn_w;
+    var btn1_y2 = btn1_y1 + btn_h;
+    var btn2_x1 = btn1_x2 + gap_btn;
+    var btn2_y1 = btn1_y1;
+    var btn2_x2 = btn2_x1 + btn_w;
+    var btn2_y2 = btn2_y1 + btn_h;
+
+    // Bouton gauche: acte suivant (si disponible)
+    if (end_act_popup_has_next && point_in_rectangle(mouse_x, mouse_y, btn1_x1, btn1_y1, btn1_x2, btn1_y2)) {
+        global.current_act = end_act_popup_next_act;
+        global.current_scene_index = 0;
+        global.sc_load_line_index = -1;
+        global.story_resume_info = {
+            chapter_id: chapter_id,
+            act: end_act_popup_next_act,
+            scene_index: 0
+        };
+        // Nettoyer les données de chargement éventuelles pour éviter de reprendre un ancien index.
+        global.scenario_loaded_data = noone;
+        global.scenario_loaded_index = 0;
+        story_progress_write_last_scene(chapter_id, 0, end_act_popup_next_act);
+        if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); bg_sound_asset_current = -1; }
+        if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); bg2_sound_asset_current = -1; }
+        room_goto(rScenario);
+        exit;
+    }
+
+    // Bouton droite: retour menu histoire
+    if (point_in_rectangle(mouse_x, mouse_y, btn2_x1, btn2_y1, btn2_x2, btn2_y2)) {
+        story_progress_write_last_scene(chapter_id, scene_index, act_num);
+        if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); bg_sound_asset_current = -1; }
+        if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); bg2_sound_asset_current = -1; }
+        room_goto(rHistoire);
+        exit;
+    }
+
+    // Bloquer les clics en dessous de la popup
+    exit;
+}
+
 var advance_to_next_scene = function() {
     var sc_curr = scenes[scene_index];
     var bot_id = 0;
@@ -98,22 +149,194 @@ var advance_to_next_scene = function() {
 
     } else {
         unlock_act_complete(chapter_id, act_num);
-        
+
         var next_act = act_num + 1;
-        var next_scene = 0;
-        
-        if (act_num >= 4) {
-            unlock_chapter_access(chapter_id + 1);
-            give_chapter_reward(chapter_id);
-            next_act = act_num;
-            next_scene = scene_index;
+        var can_go_next_act = false;
+        if (act_num < 4) {
+            var next_base = "scenario_chapter_" + string(chapter_id) + "_act_" + string(next_act) + ".json";
+            var next_candidates = [
+                "scenarios/ch" + string(chapter_id) + "/" + next_base,
+                "datafiles/scenarios/ch" + string(chapter_id) + "/" + next_base,
+                program_directory + "datafiles/scenarios/ch" + string(chapter_id) + "/" + next_base,
+                next_base
+            ];
+            for (var ni = 0; ni < array_length(next_candidates); ni++) {
+                if (file_exists(next_candidates[ni])) {
+                    can_go_next_act = true;
+                    break;
+                }
+            }
         }
 
-        story_progress_write_last_scene(chapter_id, next_scene, next_act);
-        if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); bg_sound_asset_current = -1; }
-        if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); bg2_sound_asset_current = -1; }
-        room_goto(rHistoire);
+        if (act_num >= 4 || !can_go_next_act) {
+            unlock_chapter_access(chapter_id + 1);
+            give_chapter_reward(chapter_id);
+        }
+
+        end_act_popup_active = true;
+        end_act_popup_has_next = can_go_next_act;
+        end_act_popup_next_act = next_act;
+        end_act_popup_title = can_go_next_act ? "Acte terminé" : "Chapitre terminé";
+        auto_mode = false;
+        await_scene_click = true;
     }
+};
+
+var go_to_previous_story_step = function() {
+    if (array_length(scenes) == 0) exit;
+
+    var target_scene = scene_index;
+    var target_line = line_index - 1;
+
+    // Navigation logic: Previous Line OR Previous Scene (Last Line)
+    if (target_line < 0) {
+        if (target_scene > 0) {
+            target_scene -= 1;
+            var sc_prev = scenes[target_scene];
+            if (is_array(sc_prev.lines)) {
+                target_line = array_length(sc_prev.lines) - 1;
+                if (target_line < 0) target_line = 0;
+            } else {
+                target_line = 0;
+            }
+        } else {
+            // Start of story -> Exit to menu
+            story_progress_write_last_scene(chapter_id, scene_index, act_num);
+            if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); bg_sound_asset_current = -1; }
+            if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); bg2_sound_asset_current = -1; }
+            room_goto(rHistoire);
+            exit;
+        }
+    }
+
+    // Apply Target Indices
+    scene_index = target_scene;
+    line_index = target_line;
+    var sc = scenes[scene_index];
+
+    // --- 1. Reset State to Scene Defaults ---
+    current.bg_name = variable_struct_exists(sc, "bg") ? sc.bg : "";
+    current.bg_sound = variable_struct_exists(sc, "bg_sound") ? sc.bg_sound : "";
+    current.bg_sound2 = variable_struct_exists(sc, "bg_sound2") ? sc.bg_sound2 : "";
+    current.portrait1_name = variable_struct_exists(sc, "portrait1_name") ? sc.portrait1_name : "";
+    current.portrait2_name = variable_struct_exists(sc, "portrait2_name") ? sc.portrait2_name : "";
+    current.portrait3_name = variable_struct_exists(sc, "portrait3_name") ? sc.portrait3_name : "";
+    current.obj1_name = variable_struct_exists(sc, "obj1_name") ? sc.obj1_name : "";
+    current.obj2_name = variable_struct_exists(sc, "obj2_name") ? sc.obj2_name : "";
+    current.speaker1_flip = variable_struct_exists(sc, "speaker1_flip") ? sc.speaker1_flip : false;
+    current.speaker2_flip = variable_struct_exists(sc, "speaker2_flip") ? sc.speaker2_flip : false;
+    current.speaker3_flip = variable_struct_exists(sc, "speaker3_flip") ? sc.speaker3_flip : false;
+    current.obj1_flip = variable_struct_exists(sc, "obj1_flip") ? sc.obj1_flip : false;
+    current.obj2_flip = variable_struct_exists(sc, "obj2_flip") ? sc.obj2_flip : false;
+    current.duel_bot_id = variable_struct_exists(sc, "duel_bot_id") ? sc.duel_bot_id : 0;
+
+    // Reset Effects
+    current.portrait1_effect = "Aucune";
+    current.portrait2_effect = "Aucune";
+    current.portrait3_effect = "Aucune";
+    current.obj1_effect = "Aucune";
+    current.obj2_effect = "Aucune";
+    current.text_effect = "Aucune";
+
+    // --- 2. Replay History (Lines 0 to current line_index) ---
+    if (is_array(sc.lines)) {
+        for (var i = 0; i <= line_index; i++) {
+            if (i >= array_length(sc.lines)) break;
+            var line_data = sc.lines[i];
+
+            prev_speaker1_x = speaker1.x; prev_speaker1_y = speaker1.y;
+            prev_speaker2_x = speaker2.x; prev_speaker2_y = speaker2.y;
+            prev_speaker3_x = speaker3.x; prev_speaker3_y = speaker3.y;
+            prev_object1_x = object1.x;    prev_object1_y = object1.y;
+            prev_object2_x = object2.x;    prev_object2_y = object2.y;
+
+            current.speaker = line_data.speaker;
+            current.text = line_data.text;
+
+            if (variable_struct_exists(line_data, "portrait1_name")) current.portrait1_name = line_data.portrait1_name;
+            if (variable_struct_exists(line_data, "portrait2_name")) current.portrait2_name = line_data.portrait2_name;
+            if (variable_struct_exists(line_data, "portrait3_name")) current.portrait3_name = line_data.portrait3_name;
+            if (variable_struct_exists(line_data, "obj1_name")) current.obj1_name = line_data.obj1_name;
+            if (variable_struct_exists(line_data, "obj2_name")) current.obj2_name = line_data.obj2_name;
+            if (variable_struct_exists(line_data, "bg")) current.bg_name = line_data.bg;
+            if (variable_struct_exists(line_data, "bg_sound")) current.bg_sound = line_data.bg_sound;
+            if (variable_struct_exists(line_data, "bg_sound2")) current.bg_sound2 = line_data.bg_sound2;
+
+            if (variable_struct_exists(line_data, "portrait1_effect")) current.portrait1_effect = line_data.portrait1_effect;
+            if (variable_struct_exists(line_data, "portrait2_effect")) current.portrait2_effect = line_data.portrait2_effect;
+            if (variable_struct_exists(line_data, "portrait3_effect")) current.portrait3_effect = line_data.portrait3_effect;
+            if (variable_struct_exists(line_data, "obj1_effect")) current.obj1_effect = line_data.obj1_effect;
+            if (variable_struct_exists(line_data, "obj2_effect")) current.obj2_effect = line_data.obj2_effect;
+            if (variable_struct_exists(line_data, "text_effect")) current.text_effect = line_data.text_effect;
+
+            if (variable_struct_exists(line_data, "speaker1_flip")) current.speaker1_flip = line_data.speaker1_flip;
+            if (variable_struct_exists(line_data, "speaker2_flip")) current.speaker2_flip = line_data.speaker2_flip;
+            if (variable_struct_exists(line_data, "speaker3_flip")) current.speaker3_flip = line_data.speaker3_flip;
+            if (variable_struct_exists(line_data, "obj1_flip")) current.obj1_flip = line_data.obj1_flip;
+            if (variable_struct_exists(line_data, "obj2_flip")) current.obj2_flip = line_data.obj2_flip;
+
+            var kref = 1;
+            if (variable_struct_exists(line_data, "speaker1_x")) speaker1.x = line_data.speaker1_x * kref;
+            if (variable_struct_exists(line_data, "speaker1_y")) speaker1.y = line_data.speaker1_y * kref;
+            if (variable_struct_exists(line_data, "speaker1_w")) speaker1.w = line_data.speaker1_w * kref;
+            if (variable_struct_exists(line_data, "speaker1_h")) speaker1.h = line_data.speaker1_h * kref;
+            if (variable_struct_exists(line_data, "speaker2_x")) speaker2.x = line_data.speaker2_x * kref;
+            if (variable_struct_exists(line_data, "speaker2_y")) speaker2.y = line_data.speaker2_y * kref;
+            if (variable_struct_exists(line_data, "speaker2_w")) speaker2.w = line_data.speaker2_w * kref;
+            if (variable_struct_exists(line_data, "speaker2_h")) speaker2.h = line_data.speaker2_h * kref;
+            if (variable_struct_exists(line_data, "speaker3_x")) speaker3.x = line_data.speaker3_x * kref;
+            if (variable_struct_exists(line_data, "speaker3_y")) speaker3.y = line_data.speaker3_y * kref;
+            if (variable_struct_exists(line_data, "speaker3_w")) speaker3.w = line_data.speaker3_w * kref;
+            if (variable_struct_exists(line_data, "speaker3_h")) speaker3.h = line_data.speaker3_h * kref;
+            if (variable_struct_exists(line_data, "obj1_x")) object1.x = line_data.obj1_x * kref;
+            if (variable_struct_exists(line_data, "obj1_y")) object1.y = line_data.obj1_y * kref;
+            if (variable_struct_exists(line_data, "obj1_w")) object1.w = line_data.obj1_w * kref;
+            if (variable_struct_exists(line_data, "obj1_h")) object1.h = line_data.obj1_h * kref;
+            if (variable_struct_exists(line_data, "obj2_x")) object2.x = line_data.obj2_x * kref;
+            if (variable_struct_exists(line_data, "obj2_y")) object2.y = line_data.obj2_y * kref;
+            if (variable_struct_exists(line_data, "obj2_w")) object2.w = line_data.obj2_w * kref;
+            if (variable_struct_exists(line_data, "obj2_h")) object2.h = line_data.obj2_h * kref;
+            if (variable_struct_exists(line_data, "textbox_x")) textbox.x = line_data.textbox_x * kref;
+            if (variable_struct_exists(line_data, "textbox_y")) textbox.y = line_data.textbox_y * kref;
+        }
+    }
+
+    // --- 3. Refresh System State ---
+    fx_sp1_start_ms = current_time;
+    fx_sp2_start_ms = current_time;
+    fx_sp3_start_ms = current_time;
+    fx_obj1_start_ms = current_time;
+    fx_obj2_start_ms = current_time;
+    fx_text_start_ms = current_time;
+    await_scene_click = false;
+    line_auto_target_ms = -1;
+
+    var len = string_length(string(current.text));
+    var cps = max(1, text_reveal_cps);
+    var reveal_ms = ceil(len * 1000 / cps);
+    var wait_ms = wait_after_default_ms;
+
+    var new_bg_asset = asset_get_index(current.bg_sound);
+    if (new_bg_asset == bg_sound_asset_current) {
+    } else if (new_bg_asset != -1) {
+        if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); }
+        audio_play_sound(new_bg_asset, 0, true);
+        bg_sound_asset_current = new_bg_asset;
+    } else {
+        if (bg_sound_asset_current != -1) { audio_stop_sound(bg_sound_asset_current); bg_sound_asset_current = -1; }
+    }
+
+    var new_bg2_asset = asset_get_index(current.bg_sound2);
+    if (new_bg2_asset == bg2_sound_asset_current) {
+    } else if (new_bg2_asset != -1) {
+        if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); }
+        audio_play_sound(new_bg2_asset, 0, true);
+        bg2_sound_asset_current = new_bg2_asset;
+    } else {
+        if (bg2_sound_asset_current != -1) { audio_stop_sound(bg2_sound_asset_current); bg2_sound_asset_current = -1; }
+    }
+
+    story_progress_write_last_scene(chapter_id, scene_index, act_num);
 };
 
 if (point_in_rectangle(mouse_x, mouse_y, btn_quit_x1, btn_quit_y1, btn_quit_x2, btn_quit_y2)) {
@@ -139,12 +362,13 @@ if (point_in_rectangle(mouse_x, mouse_y, btn_skip_x1, btn_skip_y1, btn_skip_x2, 
 // Gestion du bouton Auto
 if (point_in_rectangle(mouse_x, mouse_y, btn_auto_x1, btn_auto_y1, btn_auto_x2, btn_auto_y2)) {
     auto_mode = !auto_mode;
+    global.story_auto_mode = auto_mode;
     exit;
 }
 
 // Gestion du bouton Précédent
 if (point_in_rectangle(mouse_x, mouse_y, btn_prev_x1, btn_prev_y1, btn_prev_x2, btn_prev_y2)) {
-    event_perform(ev_mouse, ev_global_right_press);
+    go_to_previous_story_step();
     exit;
 }
 

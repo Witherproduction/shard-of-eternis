@@ -1,4 +1,4 @@
-﻿event_inherited();
+event_inherited();
 race = "Tunnelin";  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre

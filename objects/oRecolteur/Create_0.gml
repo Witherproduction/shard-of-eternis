@@ -4,7 +4,7 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 name = "Le Récolteur"
 attack = 6;
 PV = 7;
-mana_cost = 7;
+mana_cost = 8;
 genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "legendaire"

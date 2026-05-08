@@ -62,10 +62,8 @@ function AI_SelectBestMove(moves) {
                     // Check Object Name as fallback
                     var cObjName = object_get_name(move.card.object_index);
                     
-                    var condRule = variable_struct_exists(customRules.conditional_play, cName) ? variable_struct_get(customRules.conditional_play, cName) : undefined;
-                    if (condRule == undefined) {
-                        condRule = variable_struct_exists(customRules.conditional_play, cObjName) ? variable_struct_get(customRules.conditional_play, cObjName) : undefined;
-                    }
+                    var condRule = (variable_struct_exists(customRules.conditional_play, cName) ? variable_struct_get(customRules.conditional_play, cName) : undefined)
+                                ?? (variable_struct_exists(customRules.conditional_play, cObjName) ? variable_struct_get(customRules.conditional_play, cObjName) : undefined);
 
                     if (condRule != undefined) {
                         if (variable_struct_exists(condRule, "requires_on_board")) {

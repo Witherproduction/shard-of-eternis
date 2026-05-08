@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sKodiakPestifere",
+    "path":"sprites/sKodiakPestifere/sKodiakPestifere.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

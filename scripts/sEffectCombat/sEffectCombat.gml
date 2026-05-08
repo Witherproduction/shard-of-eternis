@@ -273,8 +273,28 @@ function getAttackDamageTakenBonus(target) {
 
 // === Dégâts et soins ===
 /// @function damageCard(card, amount, source)
-function damageCard(card, amount, source = noone) {
+function damageCard(card, amount, source = noone, _ignore_redirect = false) {
     if (card == noone) return false;
+    if (!_ignore_redirect && amount > 0 && instance_exists(card) && !variable_instance_exists(card, "nbLP")) {
+        if (variable_instance_exists(card, "damage_redirect_sources") && is_array(card.damage_redirect_sources) && array_length(card.damage_redirect_sources) > 0) {
+            var redirectTarget = noone;
+            for (var rd = 0; rd < array_length(card.damage_redirect_sources); rd++) {
+                var redirectData = card.damage_redirect_sources[rd];
+                if (!is_struct(redirectData) || !variable_struct_exists(redirectData, "source_id")) continue;
+                var sourceId = redirectData.source_id;
+                if (instance_exists(sourceId) && sourceId != card) {
+                    var zrd = variable_instance_exists(sourceId, "zone") ? string_lower(string(sourceId.zone)) : "";
+                    if (zrd == "field" || zrd == "fieldselected") {
+                        redirectTarget = sourceId;
+                        break;
+                    }
+                }
+            }
+            if (redirectTarget != noone) {
+                return damageCard(redirectTarget, amount, source, true);
+            }
+        }
+    }
     if (!variable_instance_exists(card, "nbLP") && amount > 0 && !is_undefined(cardHasEgide) && cardHasEgide(card)) {
         if (is_struct(card)) {
             if (variable_struct_exists(card, "hasEgide")) card.hasEgide = false;
@@ -351,6 +371,13 @@ function damageCard(card, amount, source = noone) {
     
     if (has_current_hp) {
         card.current_hp -= amount;
+        if (amount > 0 && variable_instance_exists(card, "mark_draw_on_damage_owner_is_hero")) {
+            var drawOwnerOnDamageCHP = card.mark_draw_on_damage_owner_is_hero;
+            var deckInstOnDamageCHP = drawOwnerOnDamageCHP ? deckHero : deckEnemy;
+            if (instance_exists(deckInstOnDamageCHP) && variable_instance_exists(deckInstOnDamageCHP, "pick")) {
+                deckInstOnDamageCHP.pick();
+            }
+        }
         if (!is_undefined(cardHasPonction) && !is_undefined(gainLPFor) && amount > 0 && source != noone && cardHasPonction(source)) {
             var srcOwnerIsHeroCHP = true;
             if (is_struct(source)) {
@@ -367,6 +394,13 @@ function damageCard(card, amount, source = noone) {
         
         if (has_pv) {
             card.PV -= amount;
+            if (amount > 0 && variable_instance_exists(card, "mark_draw_on_damage_owner_is_hero")) {
+                var drawOwnerOnDamagePV = card.mark_draw_on_damage_owner_is_hero;
+                var deckInstOnDamagePV = drawOwnerOnDamagePV ? deckHero : deckEnemy;
+                if (instance_exists(deckInstOnDamagePV) && variable_instance_exists(deckInstOnDamagePV, "pick")) {
+                    deckInstOnDamagePV.pick();
+                }
+            }
             if (!is_undefined(cardHasPonction) && !is_undefined(gainLPFor) && amount > 0 && source != noone && cardHasPonction(source)) {
                 var srcOwnerIsHeroPV = true;
                 if (is_struct(source)) {
@@ -463,11 +497,6 @@ function destroyCard(card, source = noone) {
         card.HasIllusion = false;
         if (variable_instance_exists(card, "PV") && card.PV <= 0) { card.PV = 1; }
         if (variable_instance_exists(card, "current_hp") && card.current_hp <= 0) { card.current_hp = 1; }
-        return true; // Return true here means "handled/prevented" in this context? Wait, destroyCard usually returns false if prevented.
-                     // The block above returns false.
-                     // If we are here, it means we passed the first check.
-                     // If HasIllusion is somehow true here, we should probably return false (prevent destruction).
-                     // But let's just use the same logic: consume and prevent.
         return false; 
     }
     
@@ -479,6 +508,27 @@ function destroyCard(card, source = noone) {
         var cType = variable_instance_exists(card, "type") ? string_lower(string(card.type)) : "";
         var isMinion = (cType == "monster") && !isTerrain && isFieldDeath;
         if (isMinion) global.minions_died_this_turn += 1;
+        if (isMinion && !is_undefined(activateSecretsOnEnemyDeath)) {
+            activateSecretsOnEnemyDeath(card, source);
+        }
+
+        // Serment du croisé: si une unité marquée tue un monstre ce tour, piocher 1 carte (une seule fois)
+        if (isMinion && source != noone && instance_exists(source) && instance_exists(game)
+            && variable_instance_exists(source, "mark_draw_on_kill_turn")
+            && variable_instance_exists(source, "mark_draw_on_kill_owner_is_hero")) {
+            var killMarkedTurn = source.mark_draw_on_kill_turn;
+            var drawOwnerOnKill = source.mark_draw_on_kill_owner_is_hero;
+            var srcOwnerOnKill = variable_instance_exists(source, "isHeroOwner") ? source.isHeroOwner : drawOwnerOnKill;
+            var targetOwnerOnKill = variable_instance_exists(card, "isHeroOwner") ? card.isHeroOwner : !srcOwnerOnKill;
+            if (killMarkedTurn == game.nbTurn && srcOwnerOnKill != targetOwnerOnKill) {
+                var deckInstKill = drawOwnerOnKill ? deckHero : deckEnemy;
+                if (instance_exists(deckInstKill) && variable_instance_exists(deckInstKill, "pick")) {
+                    deckInstKill.pick();
+                }
+                source.mark_draw_on_kill_turn = undefined;
+                source.mark_draw_on_kill_owner_is_hero = undefined;
+            }
+        }
     }
     registerTriggerEvent(TRIGGER_ON_DESTROY, card, ctx);
 
@@ -613,7 +663,7 @@ function destroyCard(card, source = noone) {
                 card.sprite_index = sprInvisible;
                 card._wait_destroy_on_tempo = true;
             } else {
-                var delay_destroy = (variable_instance_exists(card, "_delay_instance_destroy_for_poison") && card._delay_instance_destroy_for_poison);
+                delay_destroy = (variable_instance_exists(card, "_delay_instance_destroy_for_poison") && card._delay_instance_destroy_for_poison);
                 if (!delay_destroy) {
                     instance_destroy(card);
                 }
@@ -636,7 +686,7 @@ function spawnPoisonFX(target, source) {
         fx.visible = true;
         fx.image_xscale = 1;
         fx.image_yscale = 1;
-        if (!variable_instance_exists(fx, "duration_steps")) fx.duration_steps = max(1, round(room_speed * 1.0));
+        if (!variable_instance_exists(fx, "duration_steps")) fx.duration_steps = max(1, round(game_get_speed(gamespeed_fps) * 1.0));
         if (!variable_instance_exists(fx, "color")) fx.color = make_color_rgb(60, 200, 80);
         var spr_poison = asset_get_index("sPoison");
         if (spr_poison != -1) {

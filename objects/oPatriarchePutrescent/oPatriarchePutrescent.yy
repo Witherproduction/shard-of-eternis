@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sPatriarchePutrescent",
+    "path":"sprites/sPatriarchePutrescent/sPatriarchePutrescent.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

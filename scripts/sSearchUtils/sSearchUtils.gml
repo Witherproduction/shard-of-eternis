@@ -285,6 +285,17 @@ function _transferSelectedCards(ownerIsHero, selectedData, destination, shuffleA
                         }
                     }
                     handInst.addCard(card);
+                    // Optionnel: ajuster le coût de la carte récupérée (ex: Exhumation rapide)
+                    var costDelta = 0;
+                    if (variable_struct_exists(effect, "cost_delta")) {
+                        costDelta = real(effect.cost_delta);
+                    } else if (variable_struct_exists(effect, "cost_increase")) {
+                        costDelta = real(effect.cost_increase);
+                    }
+                    if (costDelta != 0 && instance_exists(card) && variable_instance_exists(card, "mana_cost")) {
+                        card.mana_cost = max(0, card.mana_cost + costDelta);
+                        if (variable_instance_exists(card, "cost")) card.cost = card.mana_cost;
+                    }
                     var ctx = { owner_is_hero: ownerIsHero };
                     if (source == "Deck") ctx.from_deck = deckInst;
                     else if (source == "Graveyard") ctx.from_graveyard = gyInst;
@@ -358,7 +369,7 @@ function _transferSelectedCards(ownerIsHero, selectedData, destination, shuffleA
 
                         // Chainer l'apparition centrale (aura) et le slide 500ms après la fin de l'aura, en conservant self = initiatorCard
                         global.fx_aura_next_on_complete = method(initiatorCard, function() {
-                            var framesDelay2 = max(1, round((500 / 1000.0) * room_speed));
+                            var framesDelay2 = max(1, round((500 / 1000.0) * game_get_speed(gamespeed_fps)));
                             call_later(framesDelay2, time_source_units_frames, method(self, function() {
                                 // Spawn du ghost à la position du cimetière
                                 var fx = instance_create_depth((variable_instance_exists(self, "_fx_spawn_x") ? self._fx_spawn_x : room_width*0.5), (variable_instance_exists(self, "_fx_spawn_y") ? self._fx_spawn_y : room_height*0.5), -100000, oFX_Draw);
@@ -603,7 +614,7 @@ function applySearchBySpec(card, effect, context) {
             card._pending_shuffle_after = shuffleAfter;
             card._pending_effect_struct = effect;
         }
-        var framesDelay = max(1, round((500 / 1000.0) * room_speed));
+        var framesDelay = max(1, round((500 / 1000.0) * game_get_speed(gamespeed_fps)));
         call_later(framesDelay, time_source_units_frames, method(card, function() {
             if (!instance_exists(self)) { return; }
             var own_local = variable_instance_exists(self, "_pending_owner_is_hero") ? self._pending_owner_is_hero : true;
@@ -729,9 +740,7 @@ function _findInField(ownerIsHero, criteria) {
 /// @function findCard(ownerIsHero, criteria, allowedSources) -> { card, source, data }
 /// @description Recherche une carte avec priorité Deck > Graveyard > Hand > Field.
 function findCard(ownerIsHero, criteria, allowedSources) {
-    if (allowedSources == undefined) {
-        allowedSources = ["Deck", "Graveyard", "Hand", "Field"];
-    }
+    allowedSources = allowedSources ?? ["Deck", "Graveyard", "Hand", "Field"];
     var sourcesToCheck = ["Deck", "Graveyard", "Hand", "Field"];
 
     for (var i = 0; i < array_length(sourcesToCheck); i++) {

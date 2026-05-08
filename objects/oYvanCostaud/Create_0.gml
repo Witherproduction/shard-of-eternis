@@ -10,7 +10,7 @@ booster = "Retour des Archontes"
 rarity = "legendaire"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Tant que cette carte est sur le terrain, 'Catherine Fumerol' ne peut pas être détruit"
+description = "Tant que cette carte est sur le terrain, 'Catherine Fumerol' redirige vers cette carte les dégâts qu'elle doit subir"
 effects = [
     {
         id: 1,
@@ -18,7 +18,8 @@ effects = [
         effect_type: EFFECT_PROTECTION,
         scope: "aura",
         owner: "ally",
-        criteria: { object_name: "oCatherineFumerol" }
+        criteria: { object_name: "oCatherineFumerol" },
+        redirect_damage_to_source: true
     },
     {
         id: 99,

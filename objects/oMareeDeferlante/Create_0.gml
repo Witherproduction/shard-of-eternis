@@ -1,4 +1,4 @@
-﻿event_inherited();
+event_inherited();
 race = "Eau";  // Hérite des variables et comportement de oCardMagic
 
 // Définit les stats spécifiques de ce sort

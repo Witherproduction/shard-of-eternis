@@ -15,4 +15,4 @@ is_player_card = true; // Définit explicitement cette carte comme appartenant a
 description = "Loup de guerre qui peut servir aussi de monture aux Orcs"
 
 
-tags = ["Bête", "Gueule-roche", "Provocation"];
+tags = ["Bête", "Gueule-roche"];

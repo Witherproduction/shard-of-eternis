@@ -2,7 +2,7 @@ event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Patte-brisé larmoyant"
-attack = 5;
+attack = 4;
 PV = 9;
 mana_cost = 6;
 genre = "Bête"

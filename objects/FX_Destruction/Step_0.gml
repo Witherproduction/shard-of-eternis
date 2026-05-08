@@ -43,7 +43,8 @@ if (!initialized) {
 }
 
 _t += 1;
-var dur_steps = max(1, round((duration_ms / 1000.0) * room_speed));
+var game_fps = game_get_speed(gamespeed_fps);
+var dur_steps = max(1, round((duration_ms / 1000.0) * game_fps));
 var p = clamp(_t / dur_steps, 0, 1);
 
 // Ease-out (séparation qui s’accélère) 

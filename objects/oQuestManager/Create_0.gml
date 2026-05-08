@@ -26,6 +26,54 @@ function get_formatted_date_str(_date) {
     return _y + "-" + _m + "-" + _d;
 }
 
+function quest_ctor_available() {
+    return script_exists(asset_get_index("Quest"));
+}
+
+function create_quest_safe(_id, _type, _desc, _target, _reward) {
+    if (quest_ctor_available()) {
+        return new Quest(_id, _type, _desc, _target, _reward);
+    }
+    // Fallback robuste si le constructeur Quest est absent.
+    return {
+        id: _id,
+        type: _type,
+        description: _desc,
+        target_amount: max(1, _target),
+        reward_amount: max(0, _reward),
+        current_progress: 0,
+        claimed: false,
+        update_progress: function(_amount) {
+            if (claimed) return false;
+            var before = current_progress;
+            current_progress = min(target_amount, current_progress + max(0, _amount));
+            return current_progress != before;
+        },
+        is_completed: function() {
+            return current_progress >= target_amount;
+        },
+        to_save_struct: function() {
+            return {
+                id: id,
+                type: type,
+                desc: description,
+                target: target_amount,
+                reward: reward_amount,
+                progress: current_progress,
+                claimed: claimed
+            };
+        },
+        load_from_struct: function(_s) {
+            if (variable_struct_exists(_s, "progress")) current_progress = _s.progress;
+            if (variable_struct_exists(_s, "claimed")) claimed = _s.claimed;
+            if (variable_struct_exists(_s, "target")) target_amount = max(1, _s.target);
+            if (variable_struct_exists(_s, "reward")) reward_amount = max(0, _s.reward);
+            if (variable_struct_exists(_s, "desc")) description = _s.desc;
+            if (variable_struct_exists(_s, "type")) type = _s.type;
+        }
+    };
+}
+
 function init_quests() {
     // Tenter de charger depuis la sauvegarde globale
     if (variable_global_exists("progression_data") && variable_struct_exists(global.progression_data, "daily_quests")) {
@@ -107,19 +155,19 @@ function perform_daily_reset() {
 
 function generate_new_quests() {
     // Slot A : Toujours Win 3 - Reward 60
-    quest_slots.A = new Quest("win_3", "A", "Gagner 3 parties", 3, 60);
+    quest_slots.A = create_quest_safe("win_3", "A", "Gagner 3 parties", 3, 60);
     
     // Slot B : Random Type B
     var id_b = get_random_quest_id_by_type("B");
     var def_b = get_quest_database()[$ id_b];
     // Force reward to 25 for Type B
-    quest_slots.B = new Quest(id_b, "B", def_b.desc, def_b.target, 25);
+    quest_slots.B = create_quest_safe(id_b, "B", def_b.desc, def_b.target, 25);
     
     // Slot C : Random Type C
     var id_c = get_random_quest_id_by_type("C");
     var def_c = get_quest_database()[$ id_c];
     // Force reward to 25 for Type C
-    quest_slots.C = new Quest(id_c, "C", def_c.desc, def_c.target, 25);
+    quest_slots.C = create_quest_safe(id_c, "C", def_c.desc, def_c.target, 25);
 }
 
 function reroll_quest(_slot_key) { // "B" ou "C"
@@ -135,7 +183,7 @@ function reroll_quest(_slot_key) { // "B" ou "C"
     
     var def = get_quest_database()[$ new_id];
     var reward_val = 25; // Force 25 for rerolled quests B/C
-    quest_slots[$ _slot_key] = new Quest(new_id, _slot_key, def.desc, def.target, reward_val);
+    quest_slots[$ _slot_key] = create_quest_safe(new_id, _slot_key, def.desc, def.target, reward_val);
     
     reroll_available = false;
     save_quest_data();
@@ -176,11 +224,10 @@ function save_quest_data() {
     global.progression_data.daily_quests = data;
     
     // Sauvegarder physiquement via le ProgressionManager
-    if (variable_instance_exists(oGlobalManager, "save_progression")) {
-        // oGlobalManager ne gère pas la save directement, c'est sProgressionManager
+    if (script_exists(asset_get_index("progression_save"))) {
         progression_save();
     } else {
-        progression_save();
+        show_debug_message("### progression_save introuvable: daily_quests gardé en mémoire");
     }
 }
 
@@ -198,7 +245,7 @@ function load_quest_data(_data) {
             var def = _db[$ _q_struct.id];
             if (def == undefined) return noone; // Quête n'existe plus dans la DB
             
-            var q = new Quest(_q_struct.id, def.type, def.desc, def.target, def.reward);
+            var q = create_quest_safe(_q_struct.id, def.type, def.desc, def.target, def.reward);
             q.load_from_struct(_q_struct);
             return q;
         };
@@ -209,16 +256,16 @@ function load_quest_data(_data) {
     }
     
     // Si des slots sont vides (bug ou 1ère fois partielle), on remplit
-    if (quest_slots.A == noone) quest_slots.A = new Quest("win_3", "A", "Gagner 3 parties", 3, 100);
+    if (quest_slots.A == noone) quest_slots.A = create_quest_safe("win_3", "A", "Gagner 3 parties", 3, 100);
     if (quest_slots.B == noone) {
         var id_b = get_random_quest_id_by_type("B");
         var def_b = get_quest_database()[$ id_b];
-        quest_slots.B = new Quest(id_b, "B", def_b.desc, def_b.target, def_b.reward);
+        quest_slots.B = create_quest_safe(id_b, "B", def_b.desc, def_b.target, def_b.reward);
     }
     if (quest_slots.C == noone) {
         var id_c = get_random_quest_id_by_type("C");
         var def_c = get_quest_database()[$ id_c];
-        quest_slots.C = new Quest(id_c, "C", def_c.desc, def_c.target, def_c.reward);
+        quest_slots.C = create_quest_safe(id_c, "C", def_c.desc, def_c.target, def_c.reward);
     }
 }
 

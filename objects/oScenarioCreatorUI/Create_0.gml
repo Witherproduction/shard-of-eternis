@@ -5,7 +5,7 @@ if (!variable_global_exists("current_act")) global.current_act = 1;
  speaker1 = { x: room_width * 0.25, y: room_height * 0.55, w: 420 * k, h: 640 * k };
  speaker2 = { x: room_width * 0.75, y: room_height * 0.55, w: 420 * k, h: 640 * k };
  speaker3 = { x: room_width * 0.50, y: room_height * 0.55, w: 420 * k, h: 640 * k };
-textbox  = { x: room_width * 0.5,  y: room_height * 0.88, w: 1200 * k, h: 220 * k, margin: 24 * k };
+textbox  = { x: 1012, y: 967.4, w: 1200 * k, h: 220 * k, margin: 24 * k };
 object1  = { x: room_width * 0.35, y: room_height * 0.30, w: 300 * k, h: 300 * k };
 object2  = { x: room_width * 0.65, y: room_height * 0.30, w: 300 * k, h: 300 * k };
 

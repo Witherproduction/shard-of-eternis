@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sGuetteuseConduit",
+    "path":"sprites/sGuetteuseConduit/sGuetteuseConduit.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

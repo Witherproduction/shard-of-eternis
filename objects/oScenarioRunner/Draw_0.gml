@@ -361,5 +361,61 @@ if (auto_mode) {
     }
 }
 
+if (variable_instance_exists(id, "end_act_popup_active") && end_act_popup_active) {
+    var pw = 700;
+    var ph = 280;
+    var px1 = (room_width - pw) * 0.5;
+    var py1 = (room_height - ph) * 0.5;
+    var px2 = px1 + pw;
+    var py2 = py1 + ph;
+    var btn_w = 260;
+    var btn_h = 56;
+    var gap_btn = 20;
+    var btn1_x1 = px1 + (pw - (btn_w * 2 + gap_btn)) * 0.5;
+    var btn1_y1 = py2 - btn_h - 30;
+    var btn1_x2 = btn1_x1 + btn_w;
+    var btn1_y2 = btn1_y1 + btn_h;
+    var btn2_x1 = btn1_x2 + gap_btn;
+    var btn2_y1 = btn1_y1;
+    var btn2_x2 = btn2_x1 + btn_w;
+    var btn2_y2 = btn2_y1 + btn_h;
+
+    // Voile
+    draw_set_alpha(0.75);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, room_width, room_height, false);
+    draw_set_alpha(1);
+
+    // Panel
+    draw_set_color(make_color_rgb(35, 35, 45));
+    draw_roundrect(px1, py1, px2, py2, false);
+    draw_set_color(make_color_rgb(220, 200, 120));
+    draw_roundrect(px1, py1, px2, py2, true);
+
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_set_color(c_white);
+    if (font_exists(fontTitle)) draw_set_font(fontTitle);
+    draw_text((px1 + px2) * 0.5, py1 + 50, end_act_popup_title);
+
+    if (font_exists(fontText)) draw_set_font(fontText);
+    var body_txt = end_act_popup_has_next
+        ? "Veux-tu passer a l'acte suivant\nou retourner au menu Histoire ?"
+        : "Il n'y a pas d'acte suivant disponible.\nRetourner au menu Histoire ?";
+    draw_text((px1 + px2) * 0.5, py1 + 125, body_txt);
+
+    var hover_next_act = end_act_popup_has_next && point_in_rectangle(mouse_x, mouse_y, btn1_x1, btn1_y1, btn1_x2, btn1_y2);
+    var hover_menu = point_in_rectangle(mouse_x, mouse_y, btn2_x1, btn2_y1, btn2_x2, btn2_y2);
+
+    draw_menu_button(btn1_x1, btn1_y1, btn1_x2, btn1_y2, "Acte suivant", hover_next_act);
+    if (!end_act_popup_has_next) {
+        draw_set_alpha(0.45);
+        draw_set_color(c_black);
+        draw_roundrect(btn1_x1, btn1_y1, btn1_x2, btn1_y2, false);
+        draw_set_alpha(1);
+    }
+    draw_menu_button(btn2_x1, btn2_y1, btn2_x2, btn2_y2, "Menu Histoire", hover_menu);
+}
+
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);

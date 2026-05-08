@@ -37,13 +37,11 @@ function getRelativeSummonSlot(ownerIsHero, sourceCard, criteria) {
     // Pour "front" et "back" définis dans le switch role, ils utilisent srcCol pour la priorité, donc ils ont besoin de fieldPosition.
     // Seul "random" est purement agnostique de la source.
     
+    var srcPos = -1;
     if (requiresSourcePos) {
         if (!variable_instance_exists(sourceCard, "fieldPosition")) return noone;
-        var srcPos = sourceCard.fieldPosition;
+        srcPos = sourceCard.fieldPosition;
         if (srcPos == -1) return noone; // Pas sur le terrain
-    } else {
-        // Dummy values pour éviter crash, non utilisées par random
-        var srcPos = -1;
     }
     
     var fieldMgr = ownerIsHero ? fieldManagerHero : fieldManagerEnemy;
@@ -258,7 +256,11 @@ function specialSummonNamed(card, effect, context) {
     // Selon la source trouvée, retirer et invoquer
     if (found != noone && found.source == "Hand") {
         UIManager.selectedSummonOrSet = "SpecialSummon";
-        var summoned = (ownerIsHero ? handHero : handEnemy).summon(found.card, [X, Y, pos]);
+        var handInst = ownerIsHero ? handHero : handEnemy;
+        var summoned = false;
+        if (instance_exists(handInst) && variable_instance_exists(handInst, "summon")) {
+            summoned = handInst.summon(found.card, [X, Y, pos]);
+        }
         UIManager.selectedSummonOrSet = "";
         cardToSummon = found.card;
     } else if (found != noone && found.source == "Deck") {

@@ -32,7 +32,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sPiegeCharognard",
+    "path":"sprites/sPiegeCharognard/sPiegeCharognard.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

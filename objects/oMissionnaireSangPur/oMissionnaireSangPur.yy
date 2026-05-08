@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sMissionnaireSangPur",
+    "path":"sprites/sMissionnaireSangPur/sMissionnaireSangPur.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

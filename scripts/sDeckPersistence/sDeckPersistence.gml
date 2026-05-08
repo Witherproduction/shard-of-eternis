@@ -745,9 +745,10 @@ function remove_card_from_favorites(card_name) {
 function get_max_copies_for_card(cardName, object_id) {
     var DEFAULT_MAX = 3;
     var maxCopies = DEFAULT_MAX;
+    var card = noone;
     var db = getDatabase();
     if (db != noone && instance_exists(db)) {
-        var card = noone;
+        card = noone;
         if (object_id != "") {
             var allCards = dbGetAllCards();
             for (var i = 0; i < array_length(allCards); i++) {
@@ -800,7 +801,7 @@ function get_max_copies_for_card(cardName, object_id) {
 
     // 3) Dernier recours: champ 'limited' dans la base JSON (si présent), sinon 3
     if (db != noone && instance_exists(db)) {
-        var card = noone;
+        card = noone;
         var matches = dbGetCardsByName(cardName);
         for (var m = 0; m < array_length(matches); m++) {
             if (variable_struct_exists(matches[m], "name") && matches[m].name == cardName) {
@@ -921,7 +922,7 @@ function add_selected_card_to_deck() {
             show_debug_message("### DeckBuilder: limite atteinte (" + string(MAX_COPIES) + ") pour '" + cardName + "'. Ajout refusé.");
             if (variable_global_exists("debug_message")) {
                 global.debug_message = "Limite de " + string(MAX_COPIES) + " exemplaires atteinte pour " + cardName;
-                global.debug_timer = room_speed * 2;
+                global.debug_timer = game_get_speed(gamespeed_fps) * 2;
             }
             other.added_ok = false;
         } else {

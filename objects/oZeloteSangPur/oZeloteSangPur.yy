@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sZeloteSangPur",
+    "path":"sprites/sZeloteSangPur/sZeloteSangPur.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

@@ -957,7 +957,7 @@ function chap1_bot_events_on_progress(game_inst) {
                 var wantSummon3 = (lpv3 <= 30);
                 var canSummon3 = (getLeftmostFreeMonsterSlot(false) != noone);
 
-                if (wantSummon3 && canSummon3) {
+                if (wantSummon3 && canSummon3) {  
                     game_inst.story_pending_summon_asset = "oEnvahisseurGueuleRoche";
                     game_inst.story_pending_summon_cost = 0;
                     game_inst.story_pending_summon_force_cost = true;

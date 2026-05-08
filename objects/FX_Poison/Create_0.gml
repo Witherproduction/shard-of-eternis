@@ -12,7 +12,8 @@ if (variable_instance_exists(self, "depth_override")) {
 start_time = current_time;
 duration_ms = 1000;
 progress = 0;
-if (!variable_instance_exists(self, "duration_steps")) duration_steps = max(1, round(room_speed * 1.0));
+var game_fps = game_get_speed(gamespeed_fps);
+if (!variable_instance_exists(self, "duration_steps")) duration_steps = max(1, round(game_fps * 1.0));
 if (!variable_instance_exists(self, "color")) color = make_color_rgb(60, 200, 80);
 
 alpha_start = 1;

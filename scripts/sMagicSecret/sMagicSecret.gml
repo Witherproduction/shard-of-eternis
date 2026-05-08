@@ -110,8 +110,8 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
             
             var effIndex = -1;
             if (variable_instance_exists(self, "effects") && is_array(effects)) {
-                for(var k=0; k<array_length(effects); k++) {
-                    if (effects[k] == chosenEffect) { effIndex = k; break; }
+                for (var eff_k = 0; eff_k < array_length(effects); eff_k++) {
+                    if (effects[eff_k] == chosenEffect) { effIndex = eff_k; break; }
                 }
             }
             
@@ -126,6 +126,11 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
                  RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
             } else {
                 executeEffect(self, chosenEffect, ctx);
+                if (variable_struct_exists(chosenEffect, "redirect_attack_to_target") && chosenEffect.redirect_attack_to_target) {
+                    if (variable_struct_exists(ctx, "target") && ctx.target != noone && instance_exists(ctx.target)) {
+                        redirectDefender = ctx.target;
+                    }
+                }
                 if (variable_struct_exists(chosenEffect, "redirect_attack_to_summoned") && chosenEffect.redirect_attack_to_summoned) {
                     if (variable_struct_exists(ctx, "summoned") && ctx.summoned != noone && instance_exists(ctx.summoned)) {
                         redirectDefender = ctx.summoned;
@@ -242,8 +247,8 @@ function activateSecretsOnAttack(attacker, defender) {
             
             var effIndex = -1;
             if (variable_instance_exists(self, "effects") && is_array(effects)) {
-                for(var k=0; k<array_length(effects); k++) {
-                    if (effects[k] == chosenEffect) { effIndex = k; break; }
+                for (var eff_k = 0; eff_k < array_length(effects); eff_k++) {
+                    if (effects[eff_k] == chosenEffect) { effIndex = eff_k; break; }
                 }
             }
             
@@ -339,8 +344,8 @@ function activateSecretsOnMonsterSummon(summoned) {
             
             var effIndex = -1;
             if (variable_instance_exists(self, "effects") && is_array(effects)) {
-                for(var k=0; k<array_length(effects); k++) {
-                    if (effects[k] == chosenEffect) { effIndex = k; break; }
+                for (var eff_k = 0; eff_k < array_length(effects); eff_k++) {
+                    if (effects[eff_k] == chosenEffect) { effIndex = eff_k; break; }
                 }
             }
             
@@ -375,7 +380,7 @@ function activateSecretsOnMonsterSummon(summoned) {
     }
 }
 
-function activateSecretsOnSpellCast(spellCard) {
+function activateSecretsOnSpellCast(spellCard, spellContext = {}) {
     if (!instance_exists(spellCard)) return;
     var casterIsHero = variable_instance_exists(spellCard, "isHeroOwner") ? spellCard.isHeroOwner : true;
     var defendingIsHero = !casterIsHero;
@@ -405,6 +410,16 @@ function activateSecretsOnSpellCast(spellCard) {
                     requireOnSpell = e.secret_activation.on_spell_cast;
                 }
                 if (!requireOnSpell) continue;
+                if (variable_struct_exists(e, "secret_activation") && variable_struct_exists(e.secret_activation, "only_if_targeted_ally") && e.secret_activation.only_if_targeted_ally) {
+                    if (!variable_struct_exists(spellContext, "target") || spellContext.target == noone || !instance_exists(spellContext.target)) {
+                        continue;
+                    }
+                    var tgtSpell = spellContext.target;
+                    var targetIsAlly = (variable_instance_exists(tgtSpell, "isHeroOwner") && tgtSpell.isHeroOwner == defendingIsHero);
+                    if (!targetIsAlly) continue;
+                    var isMonT = object_is_ancestor(tgtSpell.object_index, oCardMonster) || (variable_instance_exists(tgtSpell, "type") && string_lower(tgtSpell.type) == "monster");
+                    if (!isMonT) continue;
+                }
                 chosenEffect = e; break;
             }
             if (chosenEffect == noone) continue;
@@ -428,6 +443,9 @@ function activateSecretsOnSpellCast(spellCard) {
             show_debug_message("### Secrets: activation '" + string(cardName) + "' sur cast '" + string(spellName) + "' (effet=" + string(etype) + ")");
             
             var ctx = { source: spellCard };
+            if (variable_struct_exists(spellContext, "target") && spellContext.target != noone && instance_exists(spellContext.target)) {
+                ctx.target = spellContext.target;
+            }
             
             var effIndex = -1;
             if (variable_instance_exists(self, "effects") && is_array(effects)) {
@@ -443,6 +461,14 @@ function activateSecretsOnSpellCast(spellCard) {
                 };
                 RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
             } else {
+                if (variable_struct_exists(chosenEffect, "negate_source_spell") && chosenEffect.negate_source_spell) {
+                    if (variable_instance_exists(spellCard, "effects") && is_array(spellCard.effects)) {
+                        for (var ni = 0; ni < array_length(spellCard.effects); ni++) {
+                            var se = spellCard.effects[ni];
+                            if (is_struct(se)) se.negated = true;
+                        }
+                    }
+                }
                 var ok = executeEffect(self, chosenEffect, ctx);
                 show_debug_message("### Secrets: effet exécuté=" + string(ok) + "; destruction");
                 
@@ -570,5 +596,62 @@ function activateSecretsOnDestroyAttempt(target, source) {
             return true;
         }
     }
+    return false;
+}
+
+function activateSecretsOnEnemyDeath(deadCard, source = noone) {
+    if (deadCard == noone || !instance_exists(deadCard)) return false;
+    var deadIsHero = (variable_instance_exists(deadCard, "isHeroOwner") ? deadCard.isHeroOwner : true);
+    var secretOwnerIsHero = !deadIsHero;
+    var secretList = secretOwnerIsHero ? global.activeSecretsHero : global.activeSecretsEnemy;
+    if (!ds_exists(secretList, ds_type_list)) return false;
+
+    var size = ds_list_size(secretList);
+    for (var k = 0; k < size; k++) {
+        var secretCard = ds_list_find_value(secretList, k);
+        if (!instance_exists(secretCard)) continue;
+
+        with (secretCard) {
+            if (!variable_instance_exists(self, "genre") || string_lower(genre) != string_lower("Secret")) continue;
+            if (!variable_instance_exists(self, "isHeroOwner") || isHeroOwner != secretOwnerIsHero) continue;
+            if (!variable_instance_exists(self, "effects") || array_length(effects) <= 0) continue;
+
+            var chosenEffect = noone;
+            for (var i = 0; i < array_length(effects); i++) {
+                var e = effects[i];
+                if (!is_struct(e)) continue;
+                if (variable_struct_exists(e, "secret_activation")
+                    && variable_struct_exists(e.secret_activation, "on_enemy_death")
+                    && e.secret_activation.on_enemy_death) {
+                    var onlyOpponent = (variable_struct_exists(e.secret_activation, "only_if_opponent") && e.secret_activation.only_if_opponent);
+                    if (onlyOpponent && instance_exists(game) && variable_instance_exists(game, "player") && variable_instance_exists(game, "player_current")) {
+                        var currentIsHero = (game.player_current == 0);
+                        if (isHeroOwner == currentIsHero) continue;
+                    }
+                    chosenEffect = e;
+                    break;
+                }
+            }
+            if (chosenEffect == noone) continue;
+
+            isFaceDown = false;
+            visible = true;
+            image_index = 0;
+            x = room_width / 2;
+            y = room_height / 2;
+            depth = -2000;
+
+            var ctx = { target: deadCard, source: source };
+            if (variable_struct_exists(chosenEffect, "effect_type")) {
+                executeEffect(self, chosenEffect, ctx);
+            }
+
+            var idx = ds_list_find_index(secretList, id);
+            if (idx != -1) ds_list_delete(secretList, idx);
+            destroyCard(id);
+            return true;
+        }
+    }
+
     return false;
 }

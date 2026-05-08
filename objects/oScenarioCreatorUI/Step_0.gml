@@ -6,11 +6,16 @@ if (variable_instance_exists(id, "export_notification_timer") && export_notifica
     export_notification_timer--;
 }
 
+// Position canonique de la textbox : forcee a chaque frame pour empecher tout drift
+// (ancien drag, anciens fichiers JSON, etc.). Synchronise avec la valeur des scenarios normalises.
+textbox.x = 1012;
+textbox.y = 967.4;
+
 var k = min(room_width / 1920, room_height / 1080);
 
 if (variable_instance_exists(id, "show_act_settings_window") && show_act_settings_window) {
     // Reuse window dimensions logic
-    var k = min(room_width / 1920, room_height / 1080);
+    k = min(room_width / 1920, room_height / 1080);
     var win_w = 600 * k;
     var win_h = 400 * k;
     var win_x = (room_width - win_w) / 2;
@@ -209,7 +214,7 @@ if (!anchor_locked && mouse_check_button_pressed(mb_left)) {
         if (sp1_enabled && rect_contains(speaker1, mouse_x, mouse_y)) { dragging = "speaker1"; offset_x = mouse_x - speaker1.x; offset_y = mouse_y - speaker1.y; current.speaker = 1; }
         else if (sp2_enabled && rect_contains(speaker2, mouse_x, mouse_y)) { dragging = "speaker2"; offset_x = mouse_x - speaker2.x; offset_y = mouse_y - speaker2.y; current.speaker = 2; }
         else if (sp3_enabled && rect_contains(speaker3, mouse_x, mouse_y)) { dragging = "speaker3"; offset_x = mouse_x - speaker3.x; offset_y = mouse_y - speaker3.y; current.speaker = 3; }
-        else if (textbox_enabled && rect_contains(textbox, mouse_x, mouse_y))  { dragging = "textbox";  offset_x = mouse_x - textbox.x;  offset_y = mouse_y - textbox.y; }
+        // Textbox volontairement non-draggable : position figee a (1012, 967.4) pour eviter tout micro-saut entre les repliques.
         else if (obj1_enabled && rect_contains(object1, mouse_x, mouse_y))  { dragging = "object1";  offset_x = mouse_x - object1.x;  offset_y = mouse_y - object1.y; }
         else if (obj2_enabled && rect_contains(object2, mouse_x, mouse_y))  { dragging = "object2";  offset_x = mouse_x - object2.x;  offset_y = mouse_y - object2.y; }
     }
@@ -420,15 +425,6 @@ if (field_focused != "") {
 
 if (field_focused != "" && keyboard_check_pressed(vk_enter)) { field_focused = ""; str_input = ""; }
 
-if (false) {
-    var line = { speaker: current.speaker, text: current.text, bg_name: current.bg_name, portrait1_name: current.portrait1_name, portrait2_name: current.portrait2_name, obj1_name: current.obj1_name, obj2_name: current.obj2_name };
-    array_push(timeline, line);
-    current.text = "";
-}
-
-if (false) { current = { speaker: current.speaker, text: "", bg_name: current.bg_name, bg_sound: (variable_struct_exists(current, "bg_sound") ? current.bg_sound : ""), portrait1_name: current.portrait1_name, portrait2_name: current.portrait2_name, obj1_name: current.obj1_name, obj2_name: current.obj2_name }; }
-
-if (false) {}
 
 if (mouse_check_button_pressed(mb_left)) {
     var mx = mouse_x; var my = mouse_y;

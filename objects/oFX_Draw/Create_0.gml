@@ -17,12 +17,13 @@
 
 start_x = x;
 start_y = y;
+var game_fps = game_get_speed(gamespeed_fps);
 
 // Durée par défaut ~0.45s
-var default_frames = 0.45 * room_speed;
+var default_frames = 0.45 * game_fps;
 duration = default_frames;
 if (variable_instance_exists(self, "duration_ms")) {
-    duration = max(1, (duration_ms / 1000.0) * room_speed);
+    duration = max(1, (duration_ms / 1000.0) * game_fps);
 }
 
 // Apparence initiale (ne pas forcer l’échelle, elle sera fixée au premier Step)
@@ -57,6 +58,6 @@ if (!variable_instance_exists(self, "target_y")) { target_y = y; }
 flip_before_move = (variable_instance_exists(self, "flip_before_move") && flip_before_move);
 flip_to_back     = (variable_instance_exists(self, "flip_to_back") && flip_to_back);
 flip_duration_ms = (variable_instance_exists(self, "flip_duration_ms") ? flip_duration_ms : 300);
-flip_frames      = max(1, round((flip_duration_ms / 1000.0) * room_speed));
+flip_frames      = max(1, round((flip_duration_ms / 1000.0) * game_fps));
 phase            = (flip_before_move ? 0 : 1); // 0=flip, 1=move
 flip_t           = 0;

@@ -1,13 +1,14 @@
 // FX_Invocation - Step
 // Phase 1: Interpolation vers l'emplacement désigné
 // Phase 2: Post-effet circuit imprimé autour de la carte posée
+var game_fps = game_get_speed(gamespeed_fps);
 
 if (!variable_instance_exists(self, "_post_fx_duration_applied")) {
     if (variable_instance_exists(self, "phase_duration_ms")) {
-        post_fx_duration = max(1, ((phase_duration_ms * 4) / 1000.0) * room_speed);
+        post_fx_duration = max(1, ((phase_duration_ms * 4) / 1000.0) * game_fps);
         _post_fx_duration_applied = true;
     } else if (variable_instance_exists(self, "post_fx_duration_ms")) {
-        post_fx_duration = max(1, (post_fx_duration_ms / 1000.0) * room_speed);
+        post_fx_duration = max(1, (post_fx_duration_ms / 1000.0) * game_fps);
         _post_fx_duration_applied = true;
     } else {
         _post_fx_duration_applied = true;
@@ -28,11 +29,11 @@ if (!finished_move) {
             if (si_local != -1) {
                 var total_frames_local = duration + post_fx_duration + flash_duration;
                 if (summon_mode == "SpecialSummon") {
-                    var pre_total_local2 = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * room_speed));
-                    var move_total_local2 = (variable_instance_exists(self, "ss_move_total_frames") ? ss_move_total_frames : round(1.0 * room_speed));
+                    var pre_total_local2 = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * game_fps));
+                    var move_total_local2 = (variable_instance_exists(self, "ss_move_total_frames") ? ss_move_total_frames : round(1.0 * game_fps));
                     total_frames_local = pre_total_local2 + move_total_local2 + post_fx_duration + flash_duration;
                 }
-                var total_ms_local = max(1, round((total_frames_local / room_speed) * 1000));
+                var total_ms_local = max(1, round((total_frames_local / game_fps) * 1000));
                 var snd_len_ms_local = 3000;
                 snd_invocation_id = audio_play_sound(si_local, 0, false);
                 if (snd_invocation_id != -1) { audio_sound_pitch(snd_invocation_id, clamp(snd_len_ms_local / total_ms_local, 0.5, 3.0)); }
@@ -49,8 +50,8 @@ if (!finished_move) {
         if (variable_instance_exists(self, "ss_portal_t") && variable_instance_exists(self, "ss_portal_total_frames")) {
             ss_portal_t = min(ss_portal_t + 1, ss_portal_total_frames);
         }
-        var pre_total = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * room_speed));
-        var move_total = (variable_instance_exists(self, "ss_move_total_frames") ? ss_move_total_frames : round(1.0 * room_speed));
+        var pre_total = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * game_fps));
+        var move_total = (variable_instance_exists(self, "ss_move_total_frames") ? ss_move_total_frames : round(1.0 * game_fps));
         move_t = max(0, _t - pre_total);
         duration = max(1, move_total);
     }
@@ -218,7 +219,7 @@ if (!finished_move) {
     post_fx_t++;
     // Sécurité: définir une courte durée de flash si absente (par défaut ~0.15s)
     if (!variable_instance_exists(self, "flash_duration")) {
-        flash_duration = max(1, (variable_instance_exists(self, "flash_duration_ms") ? (flash_duration_ms / 1000.0) : 0.15) * room_speed);
+        flash_duration = max(1, (variable_instance_exists(self, "flash_duration_ms") ? (flash_duration_ms / 1000.0) : 0.15) * game_fps);
     }
     if (post_fx_t >= post_fx_duration + flash_duration) {
         // Execute delayed quest notification

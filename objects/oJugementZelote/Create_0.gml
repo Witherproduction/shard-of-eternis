@@ -11,3 +11,13 @@ booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Lorsqu'un monstre adverse attaque, lui ifnlige 3 dégats avant le calcul des dommages."
+
+effects = [
+    {
+        id: 1,
+        secret_activation: { on_attack: true },
+        effect_type: EFFECT_DAMAGE_TARGET,
+        target_source: "attacker",
+        value: 3
+    }
+];

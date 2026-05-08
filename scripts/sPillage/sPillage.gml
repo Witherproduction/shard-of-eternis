@@ -1,4 +1,4 @@
-﻿function sPillage(card, effect, context) {
+function sPillage(card, effect, context) {
     if (card == noone || !instance_exists(card) || !is_struct(effect)) return false;
     var ownerIsHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
     if (variable_struct_exists(context, "owner_is_hero")) ownerIsHero = context.owner_is_hero;

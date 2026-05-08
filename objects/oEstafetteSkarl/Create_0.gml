@@ -1,8 +1,8 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Estafette Skarl"
-attack = 4;
+attack = 3;
 PV = 2;
 mana_cost = 3;
 genre = "Humanoïde"

@@ -1,4 +1,4 @@
-﻿// sAIConfig.gml — Profils d’archétypes et API de configuration des bots
+// sAIConfig.gml — Profils d’archétypes et API de configuration des bots
 
 // Crée un profil vide avec toutes les clés communes initialisées à des valeurs neutres
 function AI_Profile_New() {

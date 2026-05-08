@@ -10,6 +10,17 @@ function sEffectPoints(card, effect, context) {
         if (variable_instance_exists(att, "effective_attack")) baseAtk = att.effective_attack;
         var divisor = variable_struct_exists(effect, "attack_value_divisor") ? max(1, effect.attack_value_divisor) : 1;
         val = floor(baseAtk / divisor);
+    } else if (variable_struct_exists(effect, "use_defender_attack_as_value") && variable_struct_exists(context, "defender") && instance_exists(context.defender)) {
+        var def = context.defender;
+        var baseDefAtk = variable_instance_exists(def, "attack") ? def.attack : 0;
+        if (variable_instance_exists(def, "effective_attack")) baseDefAtk = def.effective_attack;
+        var divisorDef = variable_struct_exists(effect, "attack_value_divisor") ? max(1, effect.attack_value_divisor) : 1;
+        val = floor(baseDefAtk / divisorDef);
+    } else if (variable_struct_exists(effect, "use_target_defense_as_value") && variable_struct_exists(context, "target") && instance_exists(context.target)) {
+        var tgt = context.target;
+        var baseDef = variable_instance_exists(tgt, "PV") ? tgt.PV : 0;
+        if (variable_instance_exists(tgt, "effective_defense")) baseDef = tgt.effective_defense;
+        val = max(0, floor(baseDef));
     } else {
         if (variable_struct_exists(effect, "value")) val = effect.value; else if (variable_struct_exists(effect, "amount")) val = effect.amount; else if (variable_struct_exists(effect, "damage")) val = effect.damage; else if (variable_struct_exists(effect, "heal")) val = effect.heal;
     }
@@ -212,5 +223,4 @@ function sEffectPoints(card, effect, context) {
             }
         }
     }
-    return false;
 }

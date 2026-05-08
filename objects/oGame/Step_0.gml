@@ -124,7 +124,7 @@ if (instance_exists(LP_Hero) && instance_exists(LP_Enemy)) {
 
 // Gestion de la pioche automatique (Joueur)
 if (timerAutoDraw > 0 && timerAutoDrawEnabled) {
-    timerAutoDraw -= 1/room_speed;
+    timerAutoDraw -= 1 / game_get_speed(gamespeed_fps);
 } else if (timerAutoDrawEnabled) {
     timerAutoDrawEnabled = false;
     
@@ -456,7 +456,7 @@ if (variable_instance_exists(id, "story_pause_after_enemy_draw") && story_pause_
 }
 
 if(timerMulligan > 0 && timerEnabledMulligan) {
-	timerMulligan -= 1/room_speed;
+	timerMulligan -= 1 / game_get_speed(gamespeed_fps);
 }
 else if(timerEnabledMulligan) {
 	// Piocher pour le héros seulement s'il a moins de 4 cartes (HS style mulligan)
@@ -487,7 +487,7 @@ else if(timerEnabledMulligan) {
 
 if (!(timerEnabledIA && instance_exists(oStoryToast))) {
     if(timerIA > 0 && timerEnabledIA) {
-    	timerIA -= 1/room_speed;
+    	timerIA -= 1 / game_get_speed(gamespeed_fps);
     }
     else if(timerEnabledIA) {
 	
@@ -565,7 +565,7 @@ with (oCardParent) {
             var effect = effects[i];
             if (variable_struct_exists(effect, "trigger") && (effect.trigger == TRIGGER_CONTINUOUS || effect.trigger == TRIGGER_PASSIVE)) {
                 // Vérifier les conditions du trigger continu
-                if (checkTriggerConditions(self, effect)) {
+                if (checkTriggerConditions(self, effect, {})) {
                     // Exécuter l'effet continu
                     executeEffect(self, effect, {});
                 }

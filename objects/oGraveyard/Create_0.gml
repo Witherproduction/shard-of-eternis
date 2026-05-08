@@ -1,4 +1,4 @@
-﻿show_debug_message("### oGraveyard.create")
+show_debug_message("### oGraveyard.create")
 // Liste des cartes envoyées au cimetière (dernière carte = fin du tableau)
 cards = [];
 isHeroOwner = false; // false par défaut, sera true pour le cimetière héros dans la room
@@ -21,6 +21,7 @@ addToGraveyard = function(card, suppress_triggers = false) {
             image_index: 0, // Toujours face visible dans le cimetière
             name: cname,
             cardType: card.type,
+            race: (variable_instance_exists(card, "race") ? card.race : ""),
             archetype: (variable_instance_exists(card, "archetype") ? card.archetype : ""),
             genre: (variable_instance_exists(card, "genre") ? card.genre : ""),
             attack: card.attack,
@@ -35,6 +36,22 @@ addToGraveyard = function(card, suppress_triggers = false) {
         // Ajoute les données de la carte à la liste du cimetière
         array_push(cards, cardData);
         show_debug_message("### oGraveyard: count=" + string(array_length(cards)) + " owner=" + string(isHeroOwner));
+
+        // Marque de décomposition: si la carte marquée meurt ce tour, piocher 1 carte
+        if (instance_exists(game)
+            && variable_instance_exists(card, "mark_draw_on_death_turn")
+            && variable_instance_exists(card, "mark_draw_on_death_owner_is_hero")) {
+            var markedTurn = card.mark_draw_on_death_turn;
+            var drawOwnerIsHero = card.mark_draw_on_death_owner_is_hero;
+            if (markedTurn == game.nbTurn) {
+                var deckInst = drawOwnerIsHero ? deckHero : deckEnemy;
+                if (instance_exists(deckInst) && variable_instance_exists(deckInst, "pick")) {
+                    deckInst.pick();
+                }
+            }
+            card.mark_draw_on_death_turn = undefined;
+            card.mark_draw_on_death_owner_is_hero = undefined;
+        }
 
         // Déclenchements associés au cimetière sauf si suppression demandée
         if (!suppress_triggers) {

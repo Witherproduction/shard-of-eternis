@@ -205,8 +205,8 @@ for (var i = 0; i < array_length(slots); i++) {
         // REROLL BUTTON (pas Slot A)
         if (slot != "A") {
             var reroll_ok = qm.reroll_available;
-            var mx_btn = device_mouse_x_to_gui(0);
-            var my_btn = device_mouse_y_to_gui(0);
+            mx_btn = device_mouse_x_to_gui(0);
+            my_btn = device_mouse_y_to_gui(0);
             var hover_btn = point_in_rectangle(mx_btn, my_btn, btn_x, btn_y, btn_x + btn_w, btn_y + btn_h);
             
             var spr_btn = asset_get_index("sButton");

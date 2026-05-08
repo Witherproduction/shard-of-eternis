@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sLanceEclairSombreBranchie",
+    "path":"sprites/sLanceEclairSombreBranchie/sLanceEclairSombreBranchie.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

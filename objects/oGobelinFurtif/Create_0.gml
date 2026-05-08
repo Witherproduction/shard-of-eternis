@@ -1,6 +1,6 @@
 // Définit les stats spécifiques de ce monstre
 name = "Gobelin Furtif"
-attack = 5;
+attack = 4;
 PV = 3;
 mana_cost = 4;
 genre = "Humanoïde"

@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"sQuestSystem",
   "parent":{
-    "name":"progress",
-    "path":"folders/Scripts/progress.yy",
+    "name":"Scripts",
+    "path":"folders/Scripts.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

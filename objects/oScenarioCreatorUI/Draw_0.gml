@@ -303,9 +303,9 @@ if (msg != "") {
     var tw = max(600 * k, room_width * 0.82);
     var max_tw = room_width - btn_margin * 2;
     tw = min(tw, max_tw);
-    var sep = 22 * k;
+    var sep_msg = 22 * k;
     var text_w = max(10, tw - pad * 2);
-    var th = string_height_ext(msg, sep, text_w) + pad * 2;
+    var th = string_height_ext(msg, sep_msg, text_w) + pad * 2;
     
     var cx = room_width * 0.5;
     var cy = room_height * 0.5;
@@ -321,7 +321,7 @@ if (msg != "") {
     draw_set_color(c_white);
     draw_set_halign(fa_center);
     draw_set_valign(fa_top);
-    draw_text_ext(cx, ry1 + pad, msg, sep, text_w);
+    draw_text_ext(cx, ry1 + pad, msg, sep_msg, text_w);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
 }
@@ -734,10 +734,10 @@ var sp3_eff_hover = sp3_enabled && point_in_rectangle(mouse_x, mouse_y, sp3_eff_
 var obj1_eff_hover = obj1_enabled && point_in_rectangle(mouse_x, mouse_y, obj1_eff_btn_x1, obj1_eff_btn_y1, obj1_eff_btn_x2, obj1_eff_btn_y2);
 var obj2_eff_hover = obj2_enabled && point_in_rectangle(mouse_x, mouse_y, obj2_eff_btn_x1, obj2_eff_btn_y1, obj2_eff_btn_x2, obj2_eff_btn_y2);
 var text_eff_hover = textbox_enabled && point_in_rectangle(mouse_x, mouse_y, text_eff_btn_x1, text_eff_btn_y1, text_eff_btn_x2, text_eff_btn_y2);
-var sp1_flip_hover = point_in_rectangle(mouse_x, mouse_y, sp1_flip_btn_x1, sp1_flip_btn_y1, sp1_flip_btn_x2, sp1_flip_btn_y2);
-var sp2_flip_hover = point_in_rectangle(mouse_x, mouse_y, sp2_flip_btn_x1, sp2_flip_btn_y1, sp2_flip_btn_x2, sp2_flip_btn_y2);
-var obj1_flip_hover = point_in_rectangle(mouse_x, mouse_y, obj1_flip_btn_x1, obj1_flip_btn_y1, obj1_flip_btn_x2, obj1_flip_btn_y2);
-var obj2_flip_hover = point_in_rectangle(mouse_x, mouse_y, obj2_flip_btn_x1, obj2_flip_btn_y1, obj2_flip_btn_x2, obj2_flip_btn_y2);
+sp1_flip_hover = point_in_rectangle(mouse_x, mouse_y, sp1_flip_btn_x1, sp1_flip_btn_y1, sp1_flip_btn_x2, sp1_flip_btn_y2);
+sp2_flip_hover = point_in_rectangle(mouse_x, mouse_y, sp2_flip_btn_x1, sp2_flip_btn_y1, sp2_flip_btn_x2, sp2_flip_btn_y2);
+obj1_flip_hover = point_in_rectangle(mouse_x, mouse_y, obj1_flip_btn_x1, obj1_flip_btn_y1, obj1_flip_btn_x2, obj1_flip_btn_y2);
+obj2_flip_hover = point_in_rectangle(mouse_x, mouse_y, obj2_flip_btn_x1, obj2_flip_btn_y1, obj2_flip_btn_x2, obj2_flip_btn_y2);
 
 if (sp1_enabled) {
     draw_set_color(sp1_eff_hover ? make_color_rgb(60,45,25) : make_color_rgb(40,40,40));
@@ -943,7 +943,7 @@ draw_text((btn_objects_plus_x1+btn_objects_plus_x2)*0.5, (btn_objects_plus_y1+bt
 
 // --- DUEL WINDOW DRAWING ---
 if (variable_instance_exists(id, "show_duel_window") && show_duel_window) {
-    var k = min(room_width / 1920, room_height / 1080);
+    k = min(room_width / 1920, room_height / 1080);
     
     // Dim background
     draw_set_alpha(0.8);

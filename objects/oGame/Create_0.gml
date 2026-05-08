@@ -8,7 +8,14 @@ show_debug_message("### oGame.create")
 if (!variable_global_exists("options_loaded") || !global.options_loaded) {
     // Note: L'initialisation se fait désormais dans oGlobalManager (rAcceuil)
     // Ce bloc est gardé en secours si on lance le jeu directement depuis rDuel
-    progression_init();
+    if (script_exists(asset_get_index("progression_init"))) {
+        progression_init();
+    } else {
+        if (!variable_global_exists("progression_data")) global.progression_data = {};
+        if (!variable_struct_exists(global.progression_data, "unlocked_cards")) global.progression_data.unlocked_cards = [];
+        if (!variable_struct_exists(global.progression_data, "daily_quests")) global.progression_data.daily_quests = {};
+        show_debug_message("### progression_init introuvable (fallback oGame)");
+    }
     
     // Charger les decks de bots personnalisés
     load_bot_decks_from_file();

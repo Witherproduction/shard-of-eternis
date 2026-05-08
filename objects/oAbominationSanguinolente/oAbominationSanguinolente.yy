@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sAbominationSanguinolente",
+    "path":"sprites/sAbominationSanguinolente/sAbominationSanguinolente.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

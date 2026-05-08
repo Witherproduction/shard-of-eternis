@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sMoineSangPur",
+    "path":"sprites/sMoineSangPur/sMoineSangPur.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

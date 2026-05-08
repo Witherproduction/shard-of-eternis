@@ -1,7 +1,6 @@
 // === oStoryManager - Draw Event ===
 
-// Dessiner la vue du lieu (Transition Map -> Lieu)
-// NOTE: Logique déplacée vers oMapManager
+// Dessiner l'interface Histoire
 
 draw_set_valign(fa_middle);
 text_col = make_color_rgb(230, 200, 120);

@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sAvantGardeSangPur",
+    "path":"sprites/sAvantGardeSangPur/sAvantGardeSangPur.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

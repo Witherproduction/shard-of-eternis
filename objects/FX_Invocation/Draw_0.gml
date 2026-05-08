@@ -4,12 +4,13 @@
 
 var old_alpha = draw_get_alpha();
 var old_blend = gpu_get_blendmode();
+var game_fps = game_get_speed(gamespeed_fps);
 
 var _has_portal    = (variable_instance_exists(self, "ss_sprite_idx") && ss_sprite_idx != -1);
 var _draw_portal   = _has_portal && (variable_instance_exists(self, "ss_portal_t") && variable_instance_exists(self, "ss_portal_total_frames") && ss_portal_t < ss_portal_total_frames);
-var _zoom_total    = (variable_instance_exists(self, "ss_zoom_frames") ? ss_zoom_frames : round(0.5 * room_speed));
-var _pre_total     = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * room_speed));
-var _portal_total  = (variable_instance_exists(self, "ss_portal_total_frames") ? ss_portal_total_frames : _pre_total + round(1.0 * room_speed));
+var _zoom_total    = (variable_instance_exists(self, "ss_zoom_frames") ? ss_zoom_frames : round(0.5 * game_fps));
+var _pre_total     = (variable_instance_exists(self, "ss_pre_total_frames") ? ss_pre_total_frames : round(2.0 * game_fps));
+var _portal_total  = (variable_instance_exists(self, "ss_portal_total_frames") ? ss_portal_total_frames : _pre_total + round(1.0 * game_fps));
 
 if (_draw_portal) {
     var zoom_p = clamp(ss_portal_t / max(1, _zoom_total), 0, 1);
@@ -68,7 +69,7 @@ else {
     var has_elec = (variable_instance_exists(self, "electric_sprite_idx") && electric_sprite_idx != -1);
     if (has_elec) {
         var fc = sprite_get_number(electric_sprite_idx);
-        var delay_half = round(0.3 * room_speed);
+        var delay_half = round(0.3 * game_fps);
         var cos_a = dcos(circ_angle);
         var sin_a = dsin(circ_angle);
         var vx_x = cos_a; var vx_y = sin_a;

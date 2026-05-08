@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sMortNoye",
+    "path":"sprites/sMortNoye/sMortNoye.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

@@ -56,8 +56,9 @@ if (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_i
 ///////////////////////////////////////////////////////////////////////
 // Méthodes
 ///////////////////////////////////////////////////////////////////////
+var ia_fps = game_get_speed(gamespeed_fps);
 
-if (!variable_global_exists("IA_ACTION_DELAY_FRAMES")) global.IA_ACTION_DELAY_FRAMES = 1.5 * room_speed;
+if (!variable_global_exists("IA_ACTION_DELAY_FRAMES")) global.IA_ACTION_DELAY_FRAMES = 1.5 * ia_fps;
 if (!variable_instance_exists(id, "iaDelayFrames")) iaDelayFrames = 0;
 if (!variable_instance_exists(id, "iaNextPhasePending")) iaNextPhasePending = false;
 // File des actions manuelles (effets, sorts) et état de traitement
@@ -65,7 +66,7 @@ if (!variable_instance_exists(id, "manualEffectsQueue")) manualEffectsQueue = []
 if (!variable_instance_exists(id, "manualEffectProcessing")) manualEffectProcessing = false;
 if (!variable_instance_exists(id, "aiTurnState")) aiTurnState = "Idle"; // Idle, Summoning, Attacking
 
-scheduleNextPhase = function() { iaNextPhasePending = true; iaDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : room_speed); };
+scheduleNextPhase = function() { iaNextPhasePending = true; iaDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : game_get_speed(gamespeed_fps)); };
 
 startTurnLogic = function() {
     if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) show_debug_message("### oIA.startTurnLogic");
@@ -115,7 +116,7 @@ summon = function() {
         if (tutoMove != noone) {
              var success = AI_ExecuteMove(tutoMove);
              if (success) {
-                 iaDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : room_speed);
+                 iaDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : game_get_speed(gamespeed_fps));
                  aiMainPhaseActive = true; 
              } else {
                  aiMainPhaseActive = false;
@@ -136,7 +137,7 @@ summon = function() {
     if (bestMove != noone) {
         var success = AI_ExecuteMove(bestMove);
         if (success) {
-            iaDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : room_speed);
+            iaDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : game_get_speed(gamespeed_fps));
             aiMainPhaseActive = true; // On continue la boucle au prochain Step
         } else {
             // Echec execution
@@ -213,7 +214,7 @@ attack = function() {
         if (tutoMove != noone) {
              var success = AI_ExecuteMove(tutoMove);
              if (success) {
-                 attackDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : room_speed);
+                attackDelayFrames = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : game_get_speed(gamespeed_fps));
                  attackProcessing = true; // Continuer la boucle au prochain Step
                  return;
              }

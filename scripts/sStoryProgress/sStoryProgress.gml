@@ -18,7 +18,7 @@ function story_progress_read_chapter(chapter_id) {
     };
 }
 
-function story_progress_set_act_complete(chapter_id, act_num, hero_name_opt) {
+function story_progress_set_act_complete(chapter_id, act_num, hero_name_opt = undefined) {
     var sec = story_progress_section_name(chapter_id);
     ini_open("progress.ini");
     ini_write_real(sec, "act" + string(act_num) + "_complete", 1);

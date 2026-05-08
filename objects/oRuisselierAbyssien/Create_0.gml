@@ -1,4 +1,4 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Ruisselier Abyssien"

@@ -32,7 +32,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sNecropoleProfanee",
+    "path":"sprites/sNecropoleProfanee/sNecropoleProfanee.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

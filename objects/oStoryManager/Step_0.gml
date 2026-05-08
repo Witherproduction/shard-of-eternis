@@ -21,11 +21,6 @@ for (var i = 0; i < array_length(heroes); i++) {
             selected_hero_index = i;
             // Ne pas sélectionner de chapitre par défaut, l'utilisateur doit choisir
             selected_chapter_id = -1;
-            
-            // Reset Zoom si on change de héros via oMapManager
-            if (instance_exists(oMapManager)) {
-                oMapManager.map_zoom_state = "ZOOMING_OUT";
-            }
         }
     }
 }
@@ -70,24 +65,6 @@ if (selected_hero_index != -1) {
                 selected_chapter_id = ch_id;
                 global.current_chapter = selected_chapter_id;
                 update_resume_act();
-                
-                // Déclencher le zoom et afficher le lieu via oMapManager
-                if (instance_exists(oMapManager)) {
-                    oMapManager.map_zoom_state = "ZOOMING_IN";
-                    
-                    // Choix du sprite et du masque selon le chapitre
-                    oMapManager.location_sprite = -1;
-                    oMapManager.location_mask = -1;
-                    
-                    // Chapitre 1 de Kaelen
-                    if (selected_chapter_id == 1) {
-                        oMapManager.location_sprite = sForetDesVoleur;
-                        oMapManager.location_mask = sMasqueForetDesVoleur;
-                        
-                        // Définir les zones de révélation (Pochoirs) via le script dédié
-                        oMapManager.location_reveal_zones = region_get_zones_ForetDesVoleur();
-                    }
-                }
             }
         }
         
@@ -136,10 +113,10 @@ if (selected_hero_index != -1) {
                     
                     if (click) {
                         // --- Logique de lancement de chapitre ---
-                        var ch_id = global.current_chapter;
+                        var start_ch_id = global.current_chapter;
                         
                         // 1. Cas Spécial : Chapitre 0 (Tutoriel)
-                        if (ch_id == 0) {
+                        if (start_ch_id == 0) {
                              if (!room_exists(rDuel)) {
                                  show_debug_message("### ERROR: rDuel does not exist!");
                                  exit;

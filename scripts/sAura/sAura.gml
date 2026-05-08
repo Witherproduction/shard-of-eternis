@@ -76,6 +76,17 @@ function cleanupAuraSource(card, effect) {
                     }
                     self.damage_taken_bonus = sumDT;
                 }
+                if (variable_instance_exists(self, "damage_redirect_sources") && is_array(self.damage_redirect_sources)) {
+                    var filteredRD = [];
+                    for (var rdi = 0; rdi < array_length(self.damage_redirect_sources); rdi++) {
+                        var r0 = self.damage_redirect_sources[rdi];
+                        if (is_struct(r0) && variable_struct_exists(r0, "key") && string(r0.key) == srcKey) {
+                            continue;
+                        }
+                        array_push(filteredRD, r0);
+                    }
+                    self.damage_redirect_sources = filteredRD;
+                }
                 buffRecompute(id);
             }
         }

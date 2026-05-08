@@ -281,7 +281,12 @@ pick = function() { show_debug_message("### oDeck.pick");
         }
     } else {
         // Fallback si la main n'existe pas
-        (isHeroOwner ? handHero : handEnemy).addCard(cardToPick);
+        var fallbackHand = (isHeroOwner ? handHero : handEnemy);
+        if (instance_exists(fallbackHand) && variable_instance_exists(fallbackHand, "addCard")) {
+            fallbackHand.addCard(cardToPick);
+        } else {
+            cardToPick.zone = "Hand";
+        }
     }
 }
 #endregion

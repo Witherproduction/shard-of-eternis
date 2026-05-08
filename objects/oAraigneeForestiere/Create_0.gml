@@ -1,4 +1,4 @@
-﻿// Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
+// Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
 name = "Araignée forestière"
 attack = 2;
 PV = 1;

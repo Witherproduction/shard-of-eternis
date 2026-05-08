@@ -11,6 +11,13 @@ function sEffectDiscard(card, effect, context) {
     if (variable_struct_exists(effect, "owner")) {
         var ow = string_lower(effect.owner);
         if (ow == "hero") ownerIsHero = true; else if (ow == "enemy") ownerIsHero = false; // sinon: défaut = source
+        else if (ow == "target_controller" || ow == "target_owner") {
+            if (variable_struct_exists(context, "target_owner_is_hero")) {
+                ownerIsHero = context.target_owner_is_hero;
+            } else if (variable_struct_exists(context, "target") && instance_exists(context.target) && variable_instance_exists(context.target, "isHeroOwner")) {
+                ownerIsHero = context.target.isHeroOwner;
+            }
+        }
     }
 
     var handInst = ownerIsHero ? handHero : handEnemy;
@@ -77,7 +84,7 @@ function sEffectDiscard(card, effect, context) {
                         if (stepEffS.effect_type == EFFECT_TEMPO) {
                             var framesS = 0;
                             if (variable_struct_exists(stepEffS, "frames")) framesS = max(0, stepEffS.frames);
-                            else if (variable_struct_exists(stepEffS, "ms")) framesS = max(0, round((stepEffS.ms / 1000.0) * room_speed));
+                            else if (variable_struct_exists(stepEffS, "ms")) framesS = max(0, round((stepEffS.ms / 1000.0) * game_get_speed(gamespeed_fps)));
                             if (framesS > 0 && instance_exists(card)) {
                                 var was_pending_s = (variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending);
                                 if (was_pending_s) break;
@@ -198,7 +205,7 @@ function sEffectDiscard(card, effect, context) {
                     if (stepEff.effect_type == EFFECT_TEMPO) {
                         var frames = 0;
                         if (variable_struct_exists(stepEff, "frames")) frames = max(0, stepEff.frames);
-                        else if (variable_struct_exists(stepEff, "ms")) frames = max(0, round((stepEff.ms / 1000.0) * room_speed));
+                        else if (variable_struct_exists(stepEff, "ms")) frames = max(0, round((stepEff.ms / 1000.0) * game_get_speed(gamespeed_fps)));
                         if (frames > 0 && instance_exists(card)) {
                             var was_pending = (variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending);
                             if (was_pending) break;

@@ -20,10 +20,15 @@ if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_press
 
 // Reset Progression (Debug) : CTRL + ALT + R
 if (keyboard_check(vk_control) && keyboard_check(vk_alt) && keyboard_check_pressed(ord("R"))) {
-    progression_reset();
-    show_debug_message("### PROGRESSION RESET DEMANDÉ PAR L'UTILISATEUR");
-    show_message("Progression réinitialisée avec succès !");
-    room_restart();
+    if (script_exists(asset_get_index("progression_reset"))) {
+        progression_reset();
+        show_debug_message("### PROGRESSION RESET DEMANDÉ PAR L'UTILISATEUR");
+        show_message("Progression réinitialisée avec succès !");
+        room_restart();
+    } else {
+        show_debug_message("### progression_reset introuvable");
+        show_message("Script progression_reset introuvable.");
+    }
 }
 
 if (variable_global_exists("admin_mode") && global.admin_mode) {

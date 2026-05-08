@@ -108,7 +108,7 @@ if (unlocked) {
         
         for (var i = 0; i < 4; i++) {
             var act_num = i + 1;
-            var ay = y0 + i * line_gap;
+            var act_y = y0 + i * line_gap;
             
             // Si l'acte n'existe pas dans les données (cas du tuto qui n'a qu'un acte), on saute
             if (act_num > n_acts) continue;
@@ -136,7 +136,7 @@ if (unlocked) {
             if (is_unlocked) {
                 if (is_selected) {
                     col = c_lime; // Highlight selected act
-                } else if (point_in_rectangle(mouse_x, mouse_y, center_x - act_click_w * 0.5, ay - act_click_h * 0.5, center_x + act_click_w * 0.5, ay + act_click_h * 0.5)) {
+                } else if (point_in_rectangle(mouse_x, mouse_y, center_x - act_click_w * 0.5, act_y - act_click_h * 0.5, center_x + act_click_w * 0.5, act_y + act_click_h * 0.5)) {
                     col = c_yellow; // Hover
                 }
             } else {
@@ -144,7 +144,7 @@ if (unlocked) {
             }
             
             draw_set_color(col);
-            draw_text(center_x, ay, txt);
+            draw_text(center_x, act_y, txt);
         }
     
     draw_set_color(c_white);

@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sRoiNecromancien",
+    "path":"sprites/sRoiNecromancien/sRoiNecromancien.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

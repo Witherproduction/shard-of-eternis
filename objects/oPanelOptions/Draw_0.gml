@@ -319,14 +319,14 @@ if (spr != -1) {
 
     // Flèche déroulante
     draw_set_color(c_white);
-    var arrow_x = res_dropdown_x2_loc - 15;
-    var arrow_y = (res_dropdown_y1_loc + res_dropdown_y2_loc) * 0.5;
+    var res_arrow_x = res_dropdown_x2_loc - 15;
+    var res_arrow_y = (res_dropdown_y1_loc + res_dropdown_y2_loc) * 0.5;
     if (resolution_dropdown_open) {
         // Flèche vers le haut
-        draw_triangle(arrow_x - 4, arrow_y + 2, arrow_x + 4, arrow_y + 2, arrow_x, arrow_y - 3, false);
+        draw_triangle(res_arrow_x - 4, res_arrow_y + 2, res_arrow_x + 4, res_arrow_y + 2, res_arrow_x, res_arrow_y - 3, false);
     } else {
         // Flèche vers le bas
-        draw_triangle(arrow_x - 4, arrow_y - 2, arrow_x + 4, arrow_y - 2, arrow_x, arrow_y + 3, false);
+        draw_triangle(res_arrow_x - 4, res_arrow_y - 2, res_arrow_x + 4, res_arrow_y - 2, res_arrow_x, res_arrow_y + 3, false);
     }
 
     // Liste déroulante (si ouverte)
@@ -419,26 +419,26 @@ if (spr != -1) {
             draw_rectangle(content_x1, content_y1, content_x2, content_y2, false);
             draw_set_alpha(1);
 
-            var box_x1 = confirm_box_x1;
-            var box_y1 = confirm_box_y1;
-            var box_x2 = confirm_box_x2;
-            var box_y2 = confirm_box_y2;
+            var confirm_box_x1_loc = confirm_box_x1;
+            var confirm_box_y1_loc = confirm_box_y1;
+            var confirm_box_x2_loc = confirm_box_x2;
+            var confirm_box_y2_loc = confirm_box_y2;
 
             // Fond de la boîte
             draw_set_alpha(0.95);
             draw_set_color(make_color_rgb(35, 35, 35));
-            draw_roundrect(box_x1, box_y1, box_x2, box_y2, false);
+            draw_roundrect(confirm_box_x1_loc, confirm_box_y1_loc, confirm_box_x2_loc, confirm_box_y2_loc, false);
             // Bordure rouge
             draw_set_alpha(1);
             draw_set_color(c_red);
-            draw_roundrect(box_x1, box_y1, box_x2, box_y2, true);
+            draw_roundrect(confirm_box_x1_loc, confirm_box_y1_loc, confirm_box_x2_loc, confirm_box_y2_loc, true);
 
             // Message de confirmation
             draw_set_color(c_white);
             draw_set_halign(fa_center);
             draw_set_valign(fa_middle);
-            var msg_y = box_y1 + 30;
-            draw_text((box_x1 + box_x2) * 0.5, msg_y, "Voulez-vous abandonner ?");
+            var msg_y = confirm_box_y1_loc + 30;
+            draw_text((confirm_box_x1_loc + confirm_box_x2_loc) * 0.5, msg_y, "Voulez-vous abandonner ?");
             draw_set_halign(fa_left);
             draw_set_valign(fa_top);
 

@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sTisseEcarlateNocturne",
+    "path":"sprites/sTisseEcarlateNocturne/sTisseEcarlateNocturne.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

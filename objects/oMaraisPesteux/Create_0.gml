@@ -9,13 +9,13 @@ PV = 0;
 name = "Marais pesteux"
 mana_cost = 3;
 genre = "Terrain"
-race = "Ombre";
-tags = ["Ombre","Terrain"];
+race = "Eau";
+tags = ["Eau","Terrain"];
 rarity = "Rare"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Crépuscule adverse : Inflige 1 dégats à tous les serviteurs adverses blessés."
+description = "Crépuscule adverse : Inflige 1 dégâts à tous les serviteurs adverses blessés. Dure 3 tours."
 
 effects = [
     {

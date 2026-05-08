@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sSoldatCliquethorax",
+    "path":"sprites/sSoldatCliquethorax/sSoldatCliquethorax.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

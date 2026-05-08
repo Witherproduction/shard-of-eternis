@@ -68,8 +68,8 @@ draw_set_valign(fa_top);
 draw_text(frame_left + 20, frame_top + 10, "Cartes: " + string(total));
 
 // Clamp de sécurité pour le scroll
-var maxScrollLocal = max(0, total - visible_cards);
-scrollIndex = clamp(scrollIndex, 0, maxScrollLocal);
+maxScroll = max(0, total - visible_cards);
+scrollIndex = clamp(scrollIndex, 0, maxScroll);
 
 // Si le cimetière est vide, afficher un message
 if (total == 0) {
@@ -80,7 +80,7 @@ if (total == 0) {
     return;
 }
 
-var maxScroll = max(0, total - visible_cards);
+maxScroll = max(0, total - visible_cards);
 scrollIndex = clamp(scrollIndex, 0, maxScroll);
 var avail = max(0, total - scrollIndex);
 var count = min(avail, visible_cards);
@@ -120,13 +120,14 @@ for (var i = 0; i < count; i++) {
             var spr = sprLocal;
             var cw = cw_src * s;
             var ch = ch_src * s;
-            var name_x1 = 24,  name_y1 = 16;  var name_x2 = 387, name_y2 = 59;
-            var star_x1 = 388, star_y1 = 16;  var star_x2 = 438, star_y2 = 60;
-            var genre_x1 = 29, genre_y1 = 394; var genre_x2 = 223, genre_y2 = 419;
-            var arch_x1  = 228, arch_y1  = 394; var arch_x2  = 422, arch_y2  = 419;
-            var desc_x1  = 23,  desc_y1  = 438; var desc_x2  = 421, desc_y2  = 592;
-            var atk_x1   = 303, atk_y1   = 594; var atk_x2   = 348, atk_y2   = 609;
-            var def_x1   = 383, def_y1   = 594; var def_x2   = 421, def_y2   = 608;
+            var layout = global.card_layout;
+            var name_x1 = layout.name.x1,  name_y1 = layout.name.y1;  var name_x2 = layout.name.x2, name_y2 = layout.name.y2;
+            var star_x1 = layout.mana.x1, star_y1 = layout.mana.y1;  var star_x2 = layout.mana.x2, star_y2 = layout.mana.y2;
+            var genre_x1 = layout.genre.x1, genre_y1 = layout.genre.y1; var genre_x2 = layout.genre.x2, genre_y2 = layout.genre.y2;
+            var arch_x1  = layout.archetype.x1, arch_y1  = layout.archetype.y1; var arch_x2  = layout.archetype.x2, arch_y2  = layout.archetype.y2;
+            var desc_x1  = layout.description.x1,  desc_y1  = layout.description.y1; var desc_x2  = layout.description.x2, desc_y2  = layout.description.y2;
+            var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2;
+            var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2;
             var is_magic = (variable_struct_exists(cardData, "cardType") && string_lower(string(cardData.cardType)) == "magic");
             if (font_exists(fontText)) draw_set_font(fontText);
             draw_set_halign(fa_left);
@@ -157,27 +158,77 @@ for (var i = 0; i < count; i++) {
             var pad = 0;
             var rel = s / 0.6;
             var mar = 7;
+            var base_title_size = 16;
+            if (font_exists(fontTitle)) base_title_size = font_get_size(fontTitle);
+            var base_text_size = 14;
+            if (font_exists(fontText)) base_text_size = font_get_size(fontText);
+            var get_font = function(kind, size) {
+                if (variable_global_exists("get_runtime_font")) return global.get_runtime_font(kind, size);
+                if (kind == "title") {
+                    if (font_exists(fontTitle)) return fontTitle;
+                    if (font_exists(fontText)) return fontText;
+                    if (font_exists(fontUI)) return fontUI;
+                } else {
+                    if (font_exists(fontText)) return fontText;
+                    if (font_exists(fontTitle)) return fontTitle;
+                    if (font_exists(fontUI)) return fontUI;
+                }
+                return -1;
+            };
             var tlx = draw_x - cw * 0.5;
             var tly = draw_y - ch * 0.5;
             if (variable_struct_exists(cardData, "name")) {
-                var tx = string(cardData.name);
+                var tx = string_trim(string(cardData.name));
                 var rw = (name_x2 - name_x1) * s - pad * 2 - mar * 2;
                 var rh = (name_y2 - name_y1) * s - pad * 2;
                 var sc = fit_line(tx, 20 * rel, rw, rh);
+                var want_px = base_title_size * sc;
+                var want_size = max(6, floor(want_px));
+                var f = get_font("title", want_size);
+                while (want_size > 6 && f != -1) {
+                    draw_set_font(f);
+                    if (string_width(tx) <= rw && string_height("Ag") <= rh) break;
+                    want_size -= 1;
+                    f = get_font("title", want_size);
+                }
+                if (f != -1) draw_set_font(f);
+                if (string_width(tx) > rw) {
+                    var suffix = "...";
+                    while (string_length(tx) > 1 && string_width(tx + suffix) > rw) {
+                        tx = string_delete(tx, string_length(tx), 1);
+                    }
+                    tx += suffix;
+                }
                 var left = tlx + name_x1 * s + pad + mar;
                 var top  = tly + name_y1 * s + pad;
-                draw_text_transformed(left, top + 2, tx, sc, sc, 0);
+                draw_text_transformed(round(left), round(top + 2), tx, 1, 1, 0);
             }
-            if (!is_magic && variable_struct_exists(cardData, "mana_cost")) {
+            if (variable_struct_exists(cardData, "mana_cost")) {
                 var tx = string(cardData.mana_cost);
-                var rw = (star_x2 - star_x1) * s - pad * 2;
-                var rh = (star_y2 - star_y1) * s - pad * 2;
-                var sc = fit_line(tx, 20 * rel, rw, rh);
-                var left = tlx + star_x1 * s + pad;
-                var top  = tly + star_y1 * s + pad;
-                var wsc  = string_width(tx) * sc;
-                var cx   = left + max(0, (rw - wsc) * 0.5);
-                draw_text_transformed(cx, top + 2, tx, sc, sc, 0);
+                draw_set_halign(fa_center);
+                draw_set_valign(fa_middle);
+                var rw = (star_x2 - star_x1) * s;
+                var rh = (star_y2 - star_y1) * s;
+                var center_x = tlx + (star_x1 + (star_x2-star_x1)/2) * s;
+                var center_y = tly + (star_y1 + (star_y2-star_y1)/2) * s;
+                center_x -= 2;
+                center_x = round(center_x);
+                center_y = round(center_y);
+                if (font_exists(fontTitle)) draw_set_font(fontTitle);
+                var sc = fit_line(tx, 22 * rel, rw, rh);
+                var want_px = base_title_size * sc;
+                var want_size = max(6, floor(want_px));
+                var f = get_font("title", want_size);
+                while (want_size > 6 && f != -1) {
+                    draw_set_font(f);
+                    if (string_width(tx) <= rw && string_height("Ag") <= rh) break;
+                    want_size -= 1;
+                    f = get_font("title", want_size);
+                }
+                if (f != -1) draw_set_font(f);
+                draw_text_transformed(center_x, center_y, tx, 1, 1, 0);
+                draw_set_halign(fa_left);
+                draw_set_valign(fa_top);
             }
             if (variable_struct_exists(cardData, "genre")) {
                 var tx = string(cardData.genre);
@@ -193,88 +244,47 @@ for (var i = 0; i < count; i++) {
                 var sc = fit_line(tx, 16 * rel, rw, rh);
                 var left_g = tlx + genre_x1 * s + pad + mar;
                 var top_g  = tly + genre_y1 * s + pad;
-                draw_text_transformed(left_g, top_g + 0, tx, sc, sc, 0);
+                draw_text_transformed(left_g, top_g, tx, sc, sc, 0);
             }
-            if (variable_struct_exists(cardData, "race")) {
-                var tx = string(cardData.race);
+            var race_text = "";
+            if (variable_struct_exists(cardData, "race") && string_length(string(cardData.race)) > 0) {
+                race_text = string(cardData.race);
+            } else if (variable_struct_exists(cardData, "archetype") && string_length(string(cardData.archetype)) > 0) {
+                race_text = string(cardData.archetype);
+            } else if (variable_struct_exists(cardData, "genre") && string_pos(" - ", string(cardData.genre)) > 0) {
+                var gr_parts = string_split(string(cardData.genre), " - ");
+                if (array_length(gr_parts) > 1) race_text = string(gr_parts[1]);
+            }
+            if (race_text != "") {
+                var tx = race_text;
                 var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
                 var rh = (arch_y2 - arch_y1) * s - pad * 2;
                 var sc = fit_line(tx, 16 * rel, rw, rh);
                 var left_a = tlx + arch_x1 * s + pad + mar;
                 var top_a  = tly + arch_y1 * s + pad;
-                draw_text_transformed(left_a, top_a + 0, tx, sc, sc, 0);
+                draw_text_transformed(left_a, top_a, tx, sc, sc, 0);
             }
-            if (variable_struct_exists(cardData, "description")) {
-                var tx = string(cardData.description);
-                var rw = (desc_x2 - desc_x1) * s - pad * 2 - mar * 2;
-                var rh = (desc_y2 - desc_y1) * s - pad * 2;
-                var sc = fit_block(tx, 24 * rel, rw, rh);
-                var left = tlx + desc_x1 * s + pad + mar;
-                var top  = tly + desc_y1 * s + pad;
-                var base_h = string_height("Ag");
-                var line_h = base_h * sc;
-                var space_w = string_width(" ") * sc;
-                var dy = top + 2;
-                var paragraphs = string_split(tx, "\n");
-                for (var p_i2 = 0; p_i2 < array_length(paragraphs); p_i2++) {
-                    var words = string_split(paragraphs[p_i2], " ");
-                    var ii = 0;
-                    while (ii < array_length(words)) {
-                        var line_words = [];
-                        var line_count = 0;
-                        var line_w = 0;
-                        while (ii < array_length(words)) {
-                            var w = words[ii];
-                            var ww = string_width(w) * sc;
-                            var plus_space = (line_count > 0) ? space_w : 0;
-                            if (line_w + plus_space + ww <= rw) {
-                                line_words[line_count] = w;
-                                line_count += 1;
-                                line_w += plus_space + ww;
-                                ii += 1;
-                            } else {
-                                break;
-                            }
-                        }
-                        var gaps = max(0, line_count - 1);
-                        var extra_gap = 0;
-                        if (gaps > 0 && ii < array_length(words)) {
-                            var extra = rw - line_w;
-                            var extra_raw = (extra > 0) ? (extra / gaps) : 0;
-                            var max_extra_ratio = 0.5;
-                            extra_gap = min(extra_raw, string_width(" ") * sc * max_extra_ratio);
-                        }
-                        var dx = left;
-                        for (var j2 = 0; j2 < line_count; j2++) {
-                            var wj = line_words[j2];
-                            draw_text_transformed(dx, dy, wj, sc, sc, 0);
-                            var wjw = string_width(wj) * sc;
-                            if (j2 < line_count - 1) {
-                                dx += wjw + space_w + extra_gap;
-                            } else {
-                                dx += wjw;
-                            }
-                        }
-                        dy += line_h;
-                        if (dy + line_h > top + rh) break;
-                    }
-                }
-            }
+            // Terrain style: pas de description sur la carte.
 
             if (!is_magic && variable_struct_exists(cardData, "attack")) {
                 var txa = string(cardData.attack);
                 var rw_a = (atk_x2 - atk_x1) * s - pad * 2;
                 var rh_a = (atk_y2 - atk_y1) * s - pad * 2;
-                var base_line_h = string_height("Ag");
-                var sc_a = (base_line_h > 0) ? 7 / base_line_h : 1;
-                var left_a = tlx + atk_x1 * s + pad;
-                var top_a  = tly + atk_y1 * s + pad - 2;
-                var wsc_a  = string_width(txa) * sc_a;
-                var hsc_a  = base_line_h * sc_a;
-                var cx_a   = round(left_a + max(0, (rw_a - wsc_a) * 0.5));
-                var cy_a   = round(top_a  + max(0, (rh_a - hsc_a) * 0.5));
+                var cx_a   = round(tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s) - 4;
+                var cy_a   = round(tly + (atk_y1 + (atk_y2-atk_y1)/2) * s) - 5;
+                if (font_exists(fontTitle)) draw_set_font(fontTitle);
+                var want_px_a = base_title_size * (1.2 * rel);
+                var want_size_a = max(6, floor(want_px_a));
+                var f_a = get_font("title", want_size_a);
+                while (want_size_a > 6 && f_a != -1) {
+                    draw_set_font(f_a);
+                    if (string_width(txa) <= rw_a && string_height("Ag") <= rh_a) break;
+                    want_size_a -= 1;
+                    f_a = get_font("title", want_size_a);
+                }
+                if (f_a != -1) draw_set_font(f_a);
+                var sc_a = 1;
                 
-                // Outline (Black)
                 var o_dist = 2 * rel;
                 draw_set_color(c_black);
                 draw_text_transformed(cx_a - o_dist, cy_a, txa, sc_a, sc_a, 0);
@@ -282,7 +292,6 @@ for (var i = 0; i < count; i++) {
                 draw_text_transformed(cx_a, cy_a - o_dist, txa, sc_a, sc_a, 0);
                 draw_text_transformed(cx_a, cy_a + o_dist, txa, sc_a, sc_a, 0);
                 
-                // Text (Green)
                 draw_set_color(c_lime);
                 draw_text_transformed(cx_a, cy_a, txa, sc_a, sc_a, 0);
             }
@@ -291,16 +300,21 @@ for (var i = 0; i < count; i++) {
                 var txd = string(cardData.PV);
                 var rw_d = (def_x2 - def_x1) * s - pad * 2;
                 var rh_d = (def_y2 - def_y1) * s - pad * 2;
-                var base_line_h = string_height("Ag");
-                var sc_d = (base_line_h > 0) ? 7 / base_line_h : 1;
-                var left_d = tlx + def_x1 * s + pad;
-                var top_d  = tly + def_y1 * s + pad - 2;
-                var wsc_d  = string_width(txd) * sc_d;
-                var hsc_d  = base_line_h * sc_d;
-                var cx_d   = round(left_d + max(0, (rw_d - wsc_d) * 0.5));
-                var cy_d   = round(top_d  + max(0, (rh_d - hsc_d) * 0.5));
+                var cx_d   = round(tlx + (def_x1 + (def_x2-def_x1)/2) * s) - 5;
+                var cy_d   = round(tly + (def_y1 + (def_y2-def_y1)/2) * s) - 6;
+                if (font_exists(fontTitle)) draw_set_font(fontTitle);
+                var want_px_d = base_title_size * (1.2 * rel);
+                var want_size_d = max(6, floor(want_px_d));
+                var f_d = get_font("title", want_size_d);
+                while (want_size_d > 6 && f_d != -1) {
+                    draw_set_font(f_d);
+                    if (string_width(txd) <= rw_d && string_height("Ag") <= rh_d) break;
+                    want_size_d -= 1;
+                    f_d = get_font("title", want_size_d);
+                }
+                if (f_d != -1) draw_set_font(f_d);
+                var sc_d = 1;
                 
-                // Outline (Black)
                 var o_dist = 2 * rel;
                 draw_set_color(c_black);
                 draw_text_transformed(cx_d - o_dist, cy_d, txd, sc_d, sc_d, 0);
@@ -308,7 +322,6 @@ for (var i = 0; i < count; i++) {
                 draw_text_transformed(cx_d, cy_d - o_dist, txd, sc_d, sc_d, 0);
                 draw_text_transformed(cx_d, cy_d + o_dist, txd, sc_d, sc_d, 0);
                 
-                // Text (Green)
                 draw_set_color(c_lime);
                 draw_text_transformed(cx_d, cy_d, txd, sc_d, sc_d, 0);
             }
@@ -352,7 +365,7 @@ if (total > visible_cards) {
 }
 
 // Calcul du déplacement max possible
-var maxScroll = max(0, total - visible_cards);
+maxScroll = max(0, total - visible_cards);
 
 // Position verticale du curseur dans la barre
 var scroll_pos = 0;
@@ -492,24 +505,24 @@ if (selectedCard != noone) {
         }
     }
 
-    // --- Rectangle noir en fond (dessiné avant le texte) ---
+    // Terrain style: pas de panneau texte additionnel sous la carte preview.
+    // Ancien rendu du panneau de description conservé en commentaire pour réactivation éventuelle :
+    /*
     var preview_total_height = array_length(preview_lines) * preview_line_height;
     var preview_rect_x1 = preview_text_x - 15;
     var preview_rect_y1 = preview_text_y - preview_margin_top;
     var preview_rect_x2 = preview_draw_x + preview_sprite_w * 0.5 - preview_margin_side + 15;
     var preview_rect_y2 = preview_text_y + preview_total_height + preview_margin_bottom;
-
     draw_set_color(c_black);
     draw_set_alpha(0.75);
     draw_rectangle(preview_rect_x1, preview_rect_y1, preview_rect_x2, preview_rect_y2, false);
     draw_set_alpha(1);
-
-    // --- Affichage du texte ligne par ligne ---
     gpu_set_texfilter(false);
     draw_set_color(c_white);
     for (var i = 0; i < array_length(preview_lines); i++) {
         draw_text(preview_text_x, preview_text_y + i * preview_line_height, preview_lines[i]);
     }
+    */
 
     // --- Affiche la carte en grand (après pour qu’elle soit toujours visible) ---
     gpu_set_texfilter(true);
@@ -530,13 +543,14 @@ if (selectedCard != noone) {
         var ch = sprite_get_height(spr) * s;
         var tlx = preview_draw_x - cw * 0.5;
         var tly = preview_draw_y - ch * 0.5;
-        var name_x1 = 24,  name_y1 = 16;  var name_x2 = 387, name_y2 = 59;
-        var star_x1 = 388, star_y1 = 16;  var star_x2 = 438, star_y2 = 60;
-        var genre_x1 = 29, genre_y1 = 394; var genre_x2 = 223, genre_y2 = 419;
-        var arch_x1  = 228, arch_y1  = 394; var arch_x2  = 422, arch_y2  = 419;
-        var desc_x1  = 23,  desc_y1  = 438; var desc_x2  = 421, desc_y2  = 592;
-        var atk_x1   = 303, atk_y1   = 594; var atk_x2   = 348, atk_y2   = 609;
-        var def_x1   = 383, def_y1   = 594; var def_x2   = 421, def_y2   = 608;
+        var layout = global.card_layout;
+        var name_x1 = layout.name.x1,  name_y1 = layout.name.y1;  var name_x2 = layout.name.x2, name_y2 = layout.name.y2;
+        var star_x1 = layout.mana.x1, star_y1 = layout.mana.y1;  var star_x2 = layout.mana.x2, star_y2 = layout.mana.y2;
+        var genre_x1 = layout.genre.x1, genre_y1 = layout.genre.y1; var genre_x2 = layout.genre.x2, genre_y2 = layout.genre.y2;
+        var arch_x1  = layout.archetype.x1, arch_y1  = layout.archetype.y1; var arch_x2  = layout.archetype.x2, arch_y2  = layout.archetype.y2;
+        var desc_x1  = layout.description.x1,  desc_y1  = layout.description.y1; var desc_x2  = layout.description.x2, desc_y2  = layout.description.y2;
+        var atk_x1   = layout.atk.x1, atk_y1   = layout.atk.y1; var atk_x2   = layout.atk.x2, atk_y2   = layout.atk.y2;
+        var def_x1   = layout.hp.x1, def_y1   = layout.hp.y1; var def_x2   = layout.hp.x2, def_y2   = layout.hp.y2;
         var is_magic = object_is_ancestor(card.object_index, oCardMagic) || (variable_instance_exists(card, "type") && string_lower(string(card.type)) == "magic");
         if (font_exists(fontText)) draw_set_font(fontText);
         draw_set_halign(fa_left);
@@ -567,25 +581,56 @@ if (selectedCard != noone) {
         var pad = 0;
         var rel = s / 0.6;
         var mar = 7;
+        var base_title_size = 16;
+        if (font_exists(fontTitle)) base_title_size = font_get_size(fontTitle);
+        var base_text_size = 14;
+        if (font_exists(fontText)) base_text_size = font_get_size(fontText);
+        var get_font = function(kind, size) {
+            if (variable_global_exists("get_runtime_font")) return global.get_runtime_font(kind, size);
+            if (kind == "title") {
+                if (font_exists(fontTitle)) return fontTitle;
+                if (font_exists(fontText)) return fontText;
+                if (font_exists(fontUI)) return fontUI;
+            } else {
+                if (font_exists(fontText)) return fontText;
+                if (font_exists(fontTitle)) return fontTitle;
+                if (font_exists(fontUI)) return fontUI;
+            }
+            return -1;
+        };
+        var genre_font_size = -1;
+        var genre_scale_draw = 1;
         if (variable_instance_exists(card, "name")) {
-            var tx = string(card.name);
+            var tx = string_trim(string(card.name));
             var rw = (name_x2 - name_x1) * s - pad * 2 - mar * 2;
             var rh = (name_y2 - name_y1) * s - pad * 2;
-            var sc = fit_line(tx, 20 * rel, rw, rh);
+            var sc = fit_line(tx, 17 * rel, rw, rh);
+            var want_px = base_title_size * sc;
+            var want_size = max(8, floor(want_px));
+            var f = get_font("title", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
             var left = tlx + name_x1 * s + pad + mar;
             var top  = tly + name_y1 * s + pad;
-            draw_text_transformed(left, top + 2, tx, sc, sc, 0);
+            draw_text_transformed(round(left), round(top + 2), tx, sc2, sc2, 0);
         }
-        if (!is_magic && variable_instance_exists(card, "mana_cost")) {
+        if (variable_instance_exists(card, "mana_cost")) {
             var tx = string(card.mana_cost);
-            var rw = (star_x2 - star_x1) * s - pad * 2;
-            var rh = (star_y2 - star_y1) * s - pad * 2;
-            var sc = fit_line(tx, 20 * rel, rw, rh);
-            var left = tlx + star_x1 * s + pad;
-            var top  = tly + star_y1 * s + pad;
-            var wsc  = string_width(tx) * sc;
-            var cx   = left + max(0, (rw - wsc) * 0.5);
-            draw_text_transformed(cx, top + 2, tx, sc, sc, 0);
+            draw_set_halign(fa_center);
+            draw_set_valign(fa_middle);
+            var rw = (star_x2 - star_x1) * s;
+            var rh = (star_y2 - star_y1) * s;
+            var cx = tlx + (star_x1 + (star_x2-star_x1)/2) * s - 3;
+            var cy = tly + (star_y1 + (star_y2-star_y1)/2) * s;
+            var sc = fit_line(tx, 18 * rel, rw, rh);
+            var want_px = base_title_size * sc;
+            var want_size = max(8, floor(want_px));
+            var f = get_font("title", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
+            draw_text_transformed(round(cx), round(cy), tx, sc2, sc2, 0);
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_top);
         }
         if (variable_instance_exists(card, "genre")) {
             var tx = string(card.genre);
@@ -598,105 +643,94 @@ if (selectedCard != noone) {
             }
             var rw = (genre_x2 - genre_x1) * s - pad * 2 - mar * 2;
             var rh = (genre_y2 - genre_y1) * s - pad * 2;
-            var sc = fit_line(tx, 16 * rel, rw, rh);
+            var sc = fit_line(tx, 18 * rel, rw, rh);
+            var want_px = base_text_size * sc;
+            var want_size = max(8, floor(want_px));
+            genre_font_size = want_size;
+            var f = get_font("text", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
+            genre_scale_draw = sc2;
             var left_g = tlx + genre_x1 * s + pad + mar;
             var top_g  = tly + genre_y1 * s + pad;
-            draw_text_transformed(left_g, top_g + 0, tx, sc, sc, 0);
+            draw_text_transformed(round(left_g), round(top_g + 2), tx, sc2, sc2, 0);
         }
         if (variable_instance_exists(card, "race")) {
             var tx = string(card.race);
             var rw = (arch_x2 - arch_x1) * s - pad * 2 - mar * 2;
             var rh = (arch_y2 - arch_y1) * s - pad * 2;
-            var sc = fit_line(tx, 16 * rel, rw, rh);
+            var sc = fit_line(tx, 18 * rel, rw, rh);
+            var want_px = base_text_size * sc;
+            var want_size = max(8, floor(want_px));
+            if (genre_font_size > 0) want_size = genre_font_size;
+            var f = get_font("text", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = genre_scale_draw;
             var left_a = tlx + arch_x1 * s + pad + mar;
             var top_a  = tly + arch_y1 * s + pad;
-            draw_text_transformed(left_a, top_a + 0, tx, sc, sc, 0);
+            draw_text_transformed(round(left_a), round(top_a + 1), tx, sc2, sc2, 0);
         }
         if (variable_instance_exists(card, "description")) {
             var tx = string(card.description);
             var rw = (desc_x2 - desc_x1) * s - pad * 2 - mar * 2;
             var rh = (desc_y2 - desc_y1) * s - pad * 2;
-            var sc = fit_block(tx, 24 * rel, rw, rh);
+            var sc = fit_block(tx, 12 * rel, rw, rh);
+            var want_px = base_text_size * sc;
+            var want_size = max(6, floor(want_px));
+            var f = get_font("text", want_size);
+            if (f != -1) draw_set_font(f);
+            var sc2 = (want_size > 0) ? (want_px / want_size) : sc;
             var left = tlx + desc_x1 * s + pad + mar;
             var top  = tly + desc_y1 * s + pad;
-            var base_h = string_height("Ag");
-            var line_h = base_h * sc;
-            var space_w = string_width(" ") * sc;
-            var dy = top + 2;
-            var paragraphs = string_split(tx, "\n");
-            for (var p_i2 = 0; p_i2 < array_length(paragraphs); p_i2++) {
-                var words = string_split(paragraphs[p_i2], " ");
-                var ii = 0;
-                while (ii < array_length(words)) {
-                    var line_words = [];
-                    var line_count = 0;
-                    var line_w = 0;
-                    while (ii < array_length(words)) {
-                        var w = words[ii];
-                        var ww = string_width(w) * sc;
-                        var plus_space = (line_count > 0) ? space_w : 0;
-                        if (line_w + plus_space + ww <= rw) {
-                            line_words[line_count] = w;
-                            line_count += 1;
-                            line_w += plus_space + ww;
-                            ii += 1;
-                        } else {
-                            break;
-                        }
-                    }
-                    var gaps = max(0, line_count - 1);
-                    var extra_gap = 0;
-                    if (gaps > 0 && ii < array_length(words)) {
-                        var extra = rw - line_w;
-                        var extra_raw = (extra > 0) ? (extra / gaps) : 0;
-                        var max_extra_ratio = 0.5;
-                        extra_gap = min(extra_raw, string_width(" ") * sc * max_extra_ratio);
-                    }
-                    var dx = left;
-                    for (var j2 = 0; j2 < line_count; j2++) {
-                        var wj = line_words[j2];
-                        draw_text_transformed(dx, dy, wj, sc, sc, 0);
-                        var wjw = string_width(wj) * sc;
-                        if (j2 < line_count - 1) {
-                            dx += wjw + space_w + extra_gap;
-                        } else {
-                            dx += wjw;
-                        }
-                    }
-                    dy += line_h;
-                    if (dy + line_h > top + rh) break;
-                }
-            }
+            var sep = string_height("Ag");
+            var w_eff = max(1, round(rw));
+            draw_text_ext_transformed(round(left), round(top + 2), tx, sep, w_eff, sc2, sc2, 0);
         }
         if (!is_magic && variable_instance_exists(card, "attack")) {
-            draw_set_color(c_black);
+            draw_set_halign(fa_center);
+            draw_set_valign(fa_middle);
             var txA = string(card.attack);
             var rwA = (atk_x2 - atk_x1) * s - pad * 2;
             var rhA = (atk_y2 - atk_y1) * s - pad * 2;
-            var base_hA = string_height("Ag");
-            var scA = (base_hA > 0) ? 9 / base_hA : 1;
-            var leftA = tlx + atk_x1 * s + pad;
-            var topA  = tly + atk_y1 * s + pad - 1;
-            var wscA  = string_width(txA) * scA;
-            var hscA  = base_hA * scA;
-            var cxA   = round(leftA + max(0, (rwA - wscA) * 0.5));
-            var cyA   = round(topA  + max(0, (rhA - hscA) * 0.5));
-            draw_text_transformed(cxA, cyA, txA, scA, scA, 0);
+            var cxA = tlx + (atk_x1 + (atk_x2-atk_x1)/2) * s - 1;
+            var cyA = tly + (atk_y1 + (atk_y2-atk_y1)/2) * s;
+            var want_px = base_title_size * (0.8 * rel);
+            var want_size = max(8, floor(want_px));
+            var f = get_font("title", want_size);
+            if (f != -1) draw_set_font(f);
+            var scA = 1;
+            var o_dist = 2 * rel;
+            draw_set_color(c_black);
+            draw_text_transformed(round(cxA - o_dist), round(cyA), txA, scA, scA, 0);
+            draw_text_transformed(round(cxA + o_dist), round(cyA), txA, scA, scA, 0);
+            draw_text_transformed(round(cxA), round(cyA - o_dist), txA, scA, scA, 0);
+            draw_text_transformed(round(cxA), round(cyA + o_dist), txA, scA, scA, 0);
+            draw_set_color(c_lime);
+            draw_text_transformed(round(cxA), round(cyA), txA, scA, scA, 0);
         }
         if (!is_magic && variable_instance_exists(card, "PV")) {
-            draw_set_color(c_black);
+            draw_set_halign(fa_center);
+            draw_set_valign(fa_middle);
             var txD = string(card.PV);
             var rwD = (def_x2 - def_x1) * s - pad * 2;
             var rhD = (def_y2 - def_y1) * s - pad * 2;
-            var base_hD = string_height("Ag");
-            var scD = (base_hD > 0) ? 9 / base_hD : 1;
-            var leftD = tlx + def_x1 * s + pad;
-            var topD  = tly + def_y1 * s + pad - 1;
-            var wscD  = string_width(txD) * scD;
-            var hscD  = base_hD * scD;
-            var cxD   = round(leftD + max(0, (rwD - wscD) * 0.5));
-            var cyD   = round(topD  + max(0, (rhD - hscD) * 0.5));
-            draw_text_transformed(cxD, cyD, txD, scD, scD, 0);
+            var cxD = tlx + (def_x1 + (def_x2-def_x1)/2) * s - 1;
+            var cyD = tly + (def_y1 + (def_y2-def_y1)/2) * s - 1;
+            var want_px = base_title_size * (0.8 * rel);
+            var want_size = max(8, floor(want_px));
+            var f = get_font("title", want_size);
+            if (f != -1) draw_set_font(f);
+            var scD = 1;
+            var o_dist = 2 * rel;
+            draw_set_color(c_black);
+            draw_text_transformed(round(cxD - o_dist), round(cyD), txD, scD, scD, 0);
+            draw_text_transformed(round(cxD + o_dist), round(cyD), txD, scD, scD, 0);
+            draw_text_transformed(round(cxD), round(cyD - o_dist), txD, scD, scD, 0);
+            draw_text_transformed(round(cxD), round(cyD + o_dist), txD, scD, scD, 0);
+            draw_set_color(c_lime);
+            draw_text_transformed(round(cxD), round(cyD), txD, scD, scD, 0);
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_top);
         }
         gpu_set_texfilter(true);
     }

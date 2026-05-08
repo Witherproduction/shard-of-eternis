@@ -269,10 +269,10 @@ if (reveal_active && array_length(reveal_cards) > 0) {
     var spr_idx = asset_get_index("sPortailHeros");
     var sx = ix + panel_w * 0.10;
     var sy = iy + panel_h * 0.5;
-    var sc = max(0, portal_scale);
-    if (spr_idx != -1 && sc > 0) {
+    var portal_sc = max(0, portal_scale);
+    if (spr_idx != -1 && portal_sc > 0) {
         var frame = (reveal_anim_t div 3) mod max(1, sprite_get_number(spr_idx));
-        draw_sprite_ext(spr_idx, frame, sx, sy, sc, sc, 0, c_white, 1);
+        draw_sprite_ext(spr_idx, frame, sx, sy, portal_sc, portal_sc, 0, c_white, 1);
     }
     var card = reveal_cards[reveal_index];
     var card_spr = -1;
@@ -281,10 +281,10 @@ if (reveal_active && array_length(reveal_cards) > 0) {
     } else if (is_struct(card) && variable_struct_exists(card, "sprite")) {
         card_spr = asset_get_index(card.sprite);
     }
-    var cx = ix + iw * 0.5;
-    var cy = iy + panel_h * 0.5;
+    var card_cx = ix + iw * 0.5;
+    var card_cy = iy + panel_h * 0.5;
     var start_x = sx + 60;
-    var end_x = cx;
+    var end_x = card_cx;
     var cscale_y = 0.9;
     var cscale_x = 0.9;
     var slide_frames = 24;
@@ -298,9 +298,9 @@ if (reveal_active && array_length(reveal_cards) > 0) {
         if (card_spr != -1) {
             var use_face = cur_face_index;
             if (sprite_get_number(card_spr) <= 1 && back_spr != -1) {
-                draw_sprite_ext(back_spr, 0, cur_x, cy, cur_s, cur_s, 0, c_white, 1);
+                draw_sprite_ext(back_spr, 0, cur_x, card_cy, cur_s, cur_s, 0, c_white, 1);
             } else {
-                draw_sprite_ext(card_spr, use_face, cur_x, cy, cur_s, cur_s, 0, c_white, 1);
+                draw_sprite_ext(card_spr, use_face, cur_x, card_cy, cur_s, cur_s, 0, c_white, 1);
             }
         }
         if (reveal_t >= slide_frames) { reveal_stage = 1; reveal_t = 0; }
@@ -311,18 +311,18 @@ if (reveal_active && array_length(reveal_cards) > 0) {
         if (card_spr != -1) {
             if (face_now == 1) {
                 if (sprite_get_number(card_spr) <= 1 && back_spr != -1) {
-                    draw_sprite_ext(back_spr, 0, end_x, cy, xs * cscale_x, cscale_y, 0, c_white, 1);
+                    draw_sprite_ext(back_spr, 0, end_x, card_cy, xs * cscale_x, cscale_y, 0, c_white, 1);
                 } else {
-                    draw_sprite_ext(card_spr, 1, end_x, cy, xs * cscale_x, cscale_y, 0, c_white, 1);
+                    draw_sprite_ext(card_spr, 1, end_x, card_cy, xs * cscale_x, cscale_y, 0, c_white, 1);
                 }
             } else {
-                draw_sprite_ext(card_spr, 0, end_x, cy, xs * cscale_x, cscale_y, 0, c_white, 1);
+                draw_sprite_ext(card_spr, 0, end_x, card_cy, xs * cscale_x, cscale_y, 0, c_white, 1);
             }
         }
         if (reveal_t >= flip_frames) { reveal_stage = 2; reveal_t = 0; }
     } else if (reveal_stage == 2) {
         if (card_spr != -1) {
-            draw_sprite_ext(card_spr, 0, end_x, cy, cscale_x, cscale_y, 0, c_white, 1);
+            draw_sprite_ext(card_spr, 0, end_x, card_cy, cscale_x, cscale_y, 0, c_white, 1);
         }
         var rar = "commun";
         if (is_struct(card) && variable_struct_exists(card, "rarity")) {
@@ -343,14 +343,14 @@ if (reveal_active && array_length(reveal_cards) > 0) {
             }
             var spr = card_spr;
             var s = cscale_x;
-            var cw = sprite_get_width(spr) * s;
-            var ch = sprite_get_height(spr) * s;
-            var tlx2 = end_x - cw * 0.5;
-            var tly2 = cy - ch * 0.5;
+            var glow_w = sprite_get_width(spr) * s;
+            var glow_h = sprite_get_height(spr) * s;
+            var tlx2 = end_x - glow_w * 0.5;
+            var tly2 = card_cy - glow_h * 0.5;
             var pulse = 0.5 + 0.5 * sin(reveal_anim_t * 0.06);
             var m = 14 + 6 * pulse;
-            var rw = cw + m * 2;
-            var rh = ch + m * 2;
+            var rw = glow_w + m * 2;
+            var rh = glow_h + m * 2;
             var per = 2 * (rw + rh);
             var segs = 36;
             var seg_len = per / segs * 0.6;
@@ -365,14 +365,14 @@ if (reveal_active && array_length(reveal_cards) > 0) {
                 var x0, y0, x1, y1;
                 var dd0 = d0;
                 if (dd0 < rw) { x0 = tlx2 - m + dd0; y0 = tly2 - m; }
-                else if (dd0 < rw + rh) { x0 = tlx2 + cw + m; y0 = tly2 - m + (dd0 - rw); }
-                else if (dd0 < rw + rh + rw) { x0 = tlx2 + cw + m - (dd0 - (rw + rh)); y0 = tly2 + ch + m; }
-                else { x0 = tlx2 - m; y0 = tly2 + ch + m - (dd0 - (rw + rh + rw)); }
+                else if (dd0 < rw + rh) { x0 = tlx2 + glow_w + m; y0 = tly2 - m + (dd0 - rw); }
+                else if (dd0 < rw + rh + rw) { x0 = tlx2 + glow_w + m - (dd0 - (rw + rh)); y0 = tly2 + glow_h + m; }
+                else { x0 = tlx2 - m; y0 = tly2 + glow_h + m - (dd0 - (rw + rh + rw)); }
                 var dd1 = d1;
                 if (dd1 < rw) { x1 = tlx2 - m + dd1; y1 = tly2 - m; }
-                else if (dd1 < rw + rh) { x1 = tlx2 + cw + m; y1 = tly2 - m + (dd1 - rw); }
-                else if (dd1 < rw + rh + rw) { x1 = tlx2 + cw + m - (dd1 - (rw + rh)); y1 = tly2 + ch + m; }
-                else { x1 = tlx2 - m; y1 = tly2 + ch + m - (dd1 - (rw + rh + rw)); }
+                else if (dd1 < rw + rh) { x1 = tlx2 + glow_w + m; y1 = tly2 - m + (dd1 - rw); }
+                else if (dd1 < rw + rh + rw) { x1 = tlx2 + glow_w + m - (dd1 - (rw + rh)); y1 = tly2 + glow_h + m; }
+                else { x1 = tlx2 - m; y1 = tly2 + glow_h + m - (dd1 - (rw + rh + rw)); }
                 var use_col = (si mod 2 == 0) ? col1 : col2;
                 draw_set_color(use_col);
                 draw_line_width(x0, y0, x1, y1, 4);
@@ -398,7 +398,7 @@ if (reveal_active && array_length(reveal_cards) > 0) {
     if (!reveal_ready) {
         var arrow_h = 60;
         var arrow_w = 60;
-        var mid_y = cy;
+        var mid_y = card_cy;
         var left_center = end_x - 260;
         var right_center = end_x + 260;
         var left_ax1 = left_center - arrow_w * 0.5;
@@ -427,7 +427,7 @@ if (reveal_active && array_length(reveal_cards) > 0) {
     } else {
         var arrow_h = 60;
         var arrow_w = 60;
-        var mid_y = cy;
+        var mid_y = card_cy;
         var left_center = end_x - 260;
         var right_center = end_x + 260;
         var left_ax1 = left_center - arrow_w * 0.5;
@@ -463,7 +463,7 @@ if (reveal_active && array_length(reveal_cards) > 0) {
                 var pv_scale = 0.66;
                 var pv_w = sprite_get_width(next_spr) * pv_scale;
                 var pv_x = right_ax2 + 40 + pv_w * 0.5;
-                draw_sprite_ext(next_spr, 0, pv_x, cy, pv_scale, pv_scale, 0, c_white, 1);
+                draw_sprite_ext(next_spr, 0, pv_x, card_cy, pv_scale, pv_scale, 0, c_white, 1);
             }
         }
         var skip_w = 160;
@@ -485,10 +485,10 @@ if (reveal_active && array_length(reveal_cards) > 0) {
     if (card_spr != -1 && reveal_stage == 2) {
         var spr = card_spr;
         var s = cscale_x;
-        var cw = sprite_get_width(spr) * s;
-        var ch = sprite_get_height(spr) * s;
-        var tlx2 = end_x - cw * 0.5;
-        var tly2 = cy - ch * 0.5;
+        var card_w = sprite_get_width(spr) * s;
+        var card_h = sprite_get_height(spr) * s;
+        var tlx2 = end_x - card_w * 0.5;
+        var tly2 = card_cy - card_h * 0.5;
         var layout = global.card_layout;
         var name_x1 = layout.name.x1,  name_y1 = layout.name.y1;  var name_x2 = layout.name.x2, name_y2 = layout.name.y2;
         var star_x1 = layout.mana.x1, star_y1 = layout.mana.y1;  var star_x2 = layout.mana.x2, star_y2 = layout.mana.y2;
@@ -580,21 +580,21 @@ if (reveal_active && array_length(reveal_cards) > 0) {
             var topd  = tly2 + desc_y1 * s + pad2;
             var base_h = string_height("Ag");
             var sc0 = (base_h > 0) ? 20 / base_h : 1;
-            var sc = sc0;
+            var desc_sc = sc0;
             for (var ii = 0; ii < 8; ii++) {
-                var w_pre = (sc > 0) ? (rwd / sc) : rwd;
+                var w_pre = (desc_sc > 0) ? (rwd / desc_sc) : rwd;
                 var h_un = string_height_ext(txd, base_h, w_pre);
-                var h_sc = h_un * sc;
+                var h_sc = h_un * desc_sc;
                 if (h_sc <= rhd) break;
                 var k = rhd / max(1, h_sc);
-                sc *= max(0.6, min(0.95, k));
-                sc = min(sc, sc0);
+                desc_sc *= max(0.6, min(0.95, k));
+                desc_sc = min(desc_sc, sc0);
             }
-            sc = round(sc * 20) / 20;
+            desc_sc = round(desc_sc * 20) / 20;
             leftd = round(leftd);
             topd  = round(topd);
-            var w_eff = round(rwd / sc);
-            draw_text_ext_transformed(leftd, topd + 2, txd, base_h, w_eff, sc, sc, 0);
+            var w_eff = round(rwd / desc_sc);
+            draw_text_ext_transformed(leftd, topd + 2, txd, base_h, w_eff, desc_sc, desc_sc, 0);
         }
         var is_magic = variable_struct_exists(card, "type") && string_lower(string(card.type)) == "magic";
         if (!is_magic && variable_struct_exists(card, "attack")) {

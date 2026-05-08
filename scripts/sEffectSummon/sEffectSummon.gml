@@ -207,7 +207,11 @@ function activateSpellByCriteria(card, effect, context) {
             isSecret = isSecret || (string_lower(found.card.genre) == string_lower("Secret"));
         }
         UIManager.selectedSummonOrSet = isSecret ? "Set" : "Summon";
-        var summoned = (ownerIsHero ? handHero : handEnemy).summon(found.card, [X, Y, pos]);
+        var handInst = ownerIsHero ? handHero : handEnemy;
+        var summoned = false;
+        if (instance_exists(handInst) && variable_instance_exists(handInst, "summon")) {
+            summoned = handInst.summon(found.card, [X, Y, pos]);
+        }
         UIManager.selectedSummonOrSet = "";
         var ctx = { summon_mode: (isSecret ? "Set" : "Summon"), owner_is_hero: ownerIsHero };
         registerTriggerEvent(TRIGGER_ON_SUMMON, found.card, ctx);

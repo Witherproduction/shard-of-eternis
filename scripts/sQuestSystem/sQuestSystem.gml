@@ -1,4 +1,3 @@
-
 /// @function Quest(_id, _type, _desc, _target, _reward)
 /// @description Constructeur de quête
 function Quest(_id, _type, _desc, _target, _reward) constructor {

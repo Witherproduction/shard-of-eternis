@@ -317,7 +317,7 @@ if (confirm_open) {
         reveal_ready = false;
         portal_done = false;
         loading_active = true;
-        loading_timer = room_speed; // ~1s de chargement
+        loading_timer = game_get_speed(gamespeed_fps); // ~1s de chargement
         // Pré-charger les sprites pour limiter les lags à l'affichage
         for (var pre = 0; pre < array_length(reveal_cards); pre++) {
             var cc = reveal_cards[pre];
@@ -325,7 +325,7 @@ if (confirm_open) {
                 cc.cache_spr = asset_get_index(cc.sprite);
             }
         }
-        pack_timer = room_speed * 5;
+        pack_timer = game_get_speed(gamespeed_fps) * 5;
         exit;
     }
     if (mx >= cancel_x1 && mx <= cancel_x2 && my >= cancel_y1 && my <= cancel_y2) {

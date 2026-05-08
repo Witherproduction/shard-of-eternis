@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sMortPourrissant",
+    "path":"sprites/sMortPourrissant/sMortPourrissant.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

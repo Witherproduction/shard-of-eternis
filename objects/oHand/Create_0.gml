@@ -26,16 +26,18 @@ updateDisplay = function() {
     var cardWidth = 122.93;
     var spaceBetweenCards = 20;
     var nbCards = ds_list_size(cards);
+    var offset = 0;
+    var posXStart = 613;
+    var distanceBetweenCards = 0;
     
     if(nbCards <= 5) {
         var contentWidth = nbCards * cardWidth + (nbCards - 1) * spaceBetweenCards;
-        var offset = cardWidth / 2 + contentWidth / -2;
+        offset = cardWidth / 2 + contentWidth / -2;
     }
     else {
-        var posXStart = 613;
         var posXEnd = 1307;
         var contentWidth = posXEnd - posXStart;
-        var distanceBetweenCards = contentWidth / (nbCards - 1);
+        distanceBetweenCards = contentWidth / (nbCards - 1);
     }
     
     var reveal_now = (variable_instance_exists(self, "reveal_override") && reveal_override);
@@ -225,8 +227,8 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
         }
         
         // --- SECRET HANDLING (Hearthstone Style) ---
-        var isSecret = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "secret");
-        if (isSecret) {
+        var isSecretSpell = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "secret");
+        if (isSecretSpell) {
              card.visible = false;
              card.zone = "Secret";
              
@@ -485,8 +487,6 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
         // Fallback réussi: retourner true
         return true;
     }
-    // Si on atteint ce point, considérer l'opération comme réussie
-    return true;
 }
 #endregion
 

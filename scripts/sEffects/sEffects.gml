@@ -44,6 +44,9 @@
 #macro EFFECT_CLEAVE_ADJACENT "cleave_adjacent"
 #macro EFFECT_SET_SELF_ATTACK_PER_GRAVEYARD_COUNT "set_self_attack_per_graveyard_count"
 #macro EFFECT_COUNT_APPLY "count_apply"
+#macro EFFECT_MARK_DRAW_ON_DEATH_THIS_TURN "mark_draw_on_death_this_turn"
+#macro EFFECT_MARK_DRAW_ON_KILL_THIS_TURN "mark_draw_on_kill_this_turn"
+#macro EFFECT_MARK_DRAW_ON_DAMAGE "mark_draw_on_damage"
 
 // Effets de ciblage
 #macro EFFECT_DESTROY_TARGET "destroy_target"           // Détruire une cible
@@ -297,6 +300,8 @@ function executeEffect(card, effect, context = {}) {
             target = context.defender;
         } else if (tsrc == "summoned" && variable_struct_exists(context, "summoned") && instance_exists(context.summoned)) {
             target = context.summoned;
+        } else if (tsrc == "source" && variable_struct_exists(context, "source") && instance_exists(context.source)) {
+            target = context.source;
         }
     }
     
@@ -602,7 +607,7 @@ function executeEffect(card, effect, context = {}) {
                             if (variable_struct_exists(stepEff, "frames")) {
                                 frames = max(0, stepEff.frames);
                             } else if (variable_struct_exists(stepEff, "ms")) {
-                                frames = max(0, round((stepEff.ms / 1000.0) * room_speed));
+                                frames = max(0, round((stepEff.ms / 1000.0) * game_get_speed(gamespeed_fps)));
                             }
                             if (frames > 0) {
                                 var was_pending = (instance_exists(card) && variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending);
@@ -689,7 +694,7 @@ function executeEffect(card, effect, context = {}) {
                             if (variable_struct_exists(stepEff, "frames")) {
                                 frames = max(0, stepEff.frames);
                             } else if (variable_struct_exists(stepEff, "ms")) {
-                                frames = max(0, round((stepEff.ms / 1000.0) * room_speed));
+                                frames = max(0, round((stepEff.ms / 1000.0) * game_get_speed(gamespeed_fps)));
                             }
                             if (frames > 0) {
                                 // Garde: éviter de replanifier si une tempo est déjà en attente (par carte)
@@ -1310,6 +1315,15 @@ function executeEffect(card, effect, context = {}) {
                         else ok = true;
                     }
                 }
+                if (t == "target_genre") {
+                    if (!variable_struct_exists(context, "target") || context.target == noone || !instance_exists(context.target)) {
+                        ok = false;
+                    } else {
+                        var tg = variable_instance_exists(context.target, "genre") ? string(context.target.genre) : "";
+                        var wantg = variable_struct_exists(cond, "genre") ? string(cond.genre) : "";
+                        ok = (string_lower(tg) == string_lower(wantg));
+                    }
+                }
                 if (t == "tracker_flags") {
                     if (!variable_instance_exists(card, "tracker_flags") || !is_struct(card.tracker_flags)) ok = false;
                     var tk = variable_struct_exists(cond, "tracker_key") ? string(cond.tracker_key) : "";
@@ -1336,8 +1350,13 @@ function executeEffect(card, effect, context = {}) {
                     }
                 }
             }
-            if (!ok) return false;
-            var flow = variable_struct_exists(effect, "flow") ? effect.flow : noone;
+            var flow = noone;
+            if (ok) {
+                flow = variable_struct_exists(effect, "flow") ? effect.flow : noone;
+            } else {
+                flow = variable_struct_exists(effect, "else_flow") ? effect.else_flow : noone;
+                if (flow == noone) return false;
+            }
             var ctx2 = context;
             if (is_array(flow)) {
                 for (var f = 0; f < array_length(flow); f++) {
@@ -1414,6 +1433,54 @@ function executeEffect(card, effect, context = {}) {
                 }
             }
             if (!found) array_push(tgt.attack_damage_bonus_sources, { key: key, amount: amount, expire_turn: expireTurn });
+            return true;
+        }
+
+        case EFFECT_MARK_DRAW_ON_DEATH_THIS_TURN:
+        {
+            if (!instance_exists(game)) return false;
+            var tgt = noone;
+            if (variable_struct_exists(context, "target") && context.target != noone && instance_exists(context.target)) {
+                tgt = context.target;
+            }
+            if (tgt == noone || !instance_exists(tgt)) return false;
+
+            var ownerIsHeroMark = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
+                                : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+
+            tgt.mark_draw_on_death_turn = game.nbTurn;
+            tgt.mark_draw_on_death_owner_is_hero = ownerIsHeroMark;
+            return true;
+        }
+
+        case EFFECT_MARK_DRAW_ON_KILL_THIS_TURN:
+        {
+            if (!instance_exists(game)) return false;
+            var tgtKill = noone;
+            if (variable_struct_exists(context, "target") && context.target != noone && instance_exists(context.target)) {
+                tgtKill = context.target;
+            }
+            if (tgtKill == noone || !instance_exists(tgtKill)) return false;
+
+            var ownerIsHeroKill = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
+                                  : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+
+            tgtKill.mark_draw_on_kill_turn = game.nbTurn;
+            tgtKill.mark_draw_on_kill_owner_is_hero = ownerIsHeroKill;
+            return true;
+        }
+
+        case EFFECT_MARK_DRAW_ON_DAMAGE:
+        {
+            var tgtDmg = noone;
+            if (variable_struct_exists(context, "target") && context.target != noone && instance_exists(context.target)) {
+                tgtDmg = context.target;
+            }
+            if (tgtDmg == noone || !instance_exists(tgtDmg)) return false;
+
+            var ownerIsHeroDmg = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
+                                 : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
+            tgtDmg.mark_draw_on_damage_owner_is_hero = ownerIsHeroDmg;
             return true;
         }
         
@@ -1497,6 +1564,9 @@ function executeEffect(card, effect, context = {}) {
 
             var count = variable_struct_exists(effect, "count") ? effect.count
                        : (variable_struct_exists(effect, "projectiles") ? effect.projectiles : 1);
+            if (variable_struct_exists(effect, "use_context_def_value_as_count") && effect.use_context_def_value_as_count) {
+                if (variable_struct_exists(context, "def_value")) count = context.def_value;
+            }
             count = max(0, count);
             if (count <= 0) return true;
 
@@ -1615,11 +1685,11 @@ function executeEffect(card, effect, context = {}) {
             amount = max(0, amount);
             if (amount == 0) return true;
 
-            var target = ds_list_find_value(handInst.cards, irandom(sz - 1));
-            if (target == noone || !instance_exists(target)) return false;
+            var randomTarget = ds_list_find_value(handInst.cards, irandom(sz - 1));
+            if (randomTarget == noone || !instance_exists(randomTarget)) return false;
 
-            if (variable_instance_exists(target, "mana_cost")) target.mana_cost += amount;
-            if (variable_instance_exists(target, "cost")) target.cost = target.mana_cost;
+            if (variable_instance_exists(randomTarget, "mana_cost")) randomTarget.mana_cost += amount;
+            if (variable_instance_exists(randomTarget, "cost")) randomTarget.cost = randomTarget.mana_cost;
             if (variable_instance_exists(handInst, "updateDisplay")) handInst.updateDisplay();
             return true;
         }
@@ -1641,7 +1711,7 @@ function executeEffect(card, effect, context = {}) {
             else if (variable_struct_exists(effect, "amount")) amount = effect.amount;
             amount = max(0, amount);
             
-            var applyTo = function(tgtHero) {
+            var applyCostBonusTo = function(tgtHero) {
                 if (tgtHero) {
                     if (!variable_global_exists("next_played_monster_cost_bonus_hero")) global.next_played_monster_cost_bonus_hero = 0;
                     if (!variable_global_exists("next_played_monster_cost_bonus_hero_turn")) global.next_played_monster_cost_bonus_hero_turn = 0;
@@ -1660,11 +1730,11 @@ function executeEffect(card, effect, context = {}) {
             };
             
             if (ownerSide == "both") {
-                applyTo(true);
-                applyTo(false);
+                applyCostBonusTo(true);
+                applyCostBonusTo(false);
                 return true;
             }
-            applyTo(targetIsHero);
+            applyCostBonusTo(targetIsHero);
             return true;
         }
 
@@ -2003,6 +2073,9 @@ function executeEffect(card, effect, context = {}) {
                 if (variable_struct_exists(eff, "grant_camouflage") && eff.grant_camouflage) {
                     tgt2.isCamouflage = true;
                 }
+                if (variable_struct_exists(eff, "grant_poison") && eff.grant_poison) {
+                    tgt2.isPoisoner = true;
+                }
                 if (variable_struct_exists(eff, "keep_camouflage_this_turn") && eff.keep_camouflage_this_turn) {
                     if (instance_exists(tgt2)) {
                         var curT = (instance_exists(game) && variable_instance_exists(game, "nbTurn")) ? game.nbTurn : 0;
@@ -2019,6 +2092,9 @@ function executeEffect(card, effect, context = {}) {
                 }
                 if (variable_struct_exists(eff, "grant_camouflage") && eff.grant_camouflage) {
                     tgt2.isCamouflage = true;
+                }
+                if (variable_struct_exists(eff, "grant_poison") && eff.grant_poison) {
+                    tgt2.isPoisoner = true;
                 }
                 if (variable_struct_exists(eff, "keep_camouflage_this_turn") && eff.keep_camouflage_this_turn) {
                     if (instance_exists(tgt2)) {
@@ -2120,6 +2196,8 @@ function executeEffect(card, effect, context = {}) {
 
                 var resBuff = applyTo(tgt, effect, ownerSideB, srcHeroB, agg, scope, mode, atkVal, defVal, card);
                 if (resBuff) {
+                    // Exposer la cible réellement affectée pour les flows/consommateurs externes (ex: Secrets de redirection)
+                    context.target = tgt;
                     var owner_flag = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner"))
                                      ? card.isHeroOwner
                                      : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
@@ -2286,15 +2364,17 @@ function executeEffect(card, effect, context = {}) {
             if (target != noone) {
                 var ta = 0;
                 var td = 0;
+                var target_owner_dt = undefined;
                 if (instance_exists(target)) {
                     if (variable_instance_exists(target, "effective_attack")) ta = target.effective_attack; else if (variable_instance_exists(target, "attack")) ta = target.attack;
                     if (variable_instance_exists(target, "effective_defense")) td = target.effective_defense; else if (variable_instance_exists(target, "PV")) td = target.PV;
+                    if (variable_instance_exists(target, "isHeroOwner")) target_owner_dt = target.isHeroOwner;
                 }
                 if (card != noone && instance_exists(card) && variable_instance_exists(card, "isPoisoner") && card.isPoisoner) { spawnPoisonFX(target, card); }
                 var okdt = destroyCard(target);
                 if (okdt) {
                     var owner_flag_dt = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
-                    var ctx_dt = { owner_is_hero: owner_flag_dt, from_destroy_target: true, atk_value: ta, def_value: td };
+                    var ctx_dt = { owner_is_hero: owner_flag_dt, from_destroy_target: true, atk_value: ta, def_value: td, target_owner_is_hero: target_owner_dt };
                     if (variable_struct_exists(context, "attacker") && instance_exists(context.attacker)) { ctx_dt.attacker = context.attacker; }
                     if (variable_struct_exists(context, "defender") && instance_exists(context.defender)) { ctx_dt.defender = context.defender; }
                     if (variable_struct_exists(effect, "grant_destroyed_stats") && effect.grant_destroyed_stats && instance_exists(card)) {
@@ -2323,6 +2403,12 @@ function executeEffect(card, effect, context = {}) {
         case EFFECT_SACRIFICE_TARGET:
         {
             if (target == noone || !instance_exists(target)) return false;
+            var taSac = 0;
+            var tdSac = 0;
+            if (instance_exists(target)) {
+                if (variable_instance_exists(target, "effective_attack")) taSac = target.effective_attack; else if (variable_instance_exists(target, "attack")) taSac = target.attack;
+                if (variable_instance_exists(target, "effective_defense")) tdSac = target.effective_defense; else if (variable_instance_exists(target, "PV")) tdSac = target.PV;
+            }
             var srcHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner
                           : (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true);
             if (!(variable_instance_exists(target, "isHeroOwner") && target.isHeroOwner == srcHero)) {
@@ -2336,7 +2422,7 @@ function executeEffect(card, effect, context = {}) {
             }
             var okSac = destroyCard(target, card);
             if (okSac) {
-                var ctxSac = { owner_is_hero: srcHero, from_sacrifice_target: true };
+                var ctxSac = { owner_is_hero: srcHero, from_sacrifice_target: true, atk_value: taSac, def_value: tdSac };
                 if (variable_struct_exists(context, "attacker") && instance_exists(context.attacker)) { ctxSac.attacker = context.attacker; }
                 if (variable_struct_exists(context, "defender") && instance_exists(context.defender)) { ctxSac.defender = context.defender; }
                 
@@ -2417,6 +2503,23 @@ function executeEffect(card, effect, context = {}) {
             
             if (target != noone && instance_exists(target)) {
                 okAny = purgeUnit(target);
+            }
+            if (okAny) {
+                var flowCtxP = { owner_is_hero: (variable_struct_exists(context, "owner_is_hero") ? context.owner_is_hero : true) };
+                if (target != noone && instance_exists(target)) flowCtxP.target = target;
+                if (variable_struct_exists(context, "attacker")) flowCtxP.attacker = context.attacker;
+                if (variable_struct_exists(context, "defender")) flowCtxP.defender = context.defender;
+                if (variable_struct_exists(context, "source")) flowCtxP.source = context.source;
+
+                if (variable_struct_exists(effect, "flow") && is_array(effect.flow)) {
+                    for (var ip = 0; ip < array_length(effect.flow); ip++) {
+                        executeEffect(card, effect.flow[ip], flowCtxP);
+                    }
+                } else if (variable_struct_exists(effect, "flow") && is_struct(effect.flow)) {
+                    executeEffect(card, effect.flow, flowCtxP);
+                } else if (variable_struct_exists(effect, "flow_next") && is_struct(effect.flow_next)) {
+                    executeEffect(card, effect.flow_next, flowCtxP);
+                }
             }
             return okAny;
         }
@@ -2537,7 +2640,7 @@ function executeEffect(card, effect, context = {}) {
                                 if (variable_struct_exists(stepS, "frames")) {
                                     framesS = max(0, stepS.frames);
                                 } else if (variable_struct_exists(stepS, "ms")) {
-                                    framesS = max(0, round((stepS.ms / 1000.0) * room_speed));
+                                    framesS = max(0, round((stepS.ms / 1000.0) * game_get_speed(gamespeed_fps)));
                                 }
                                 if (framesS > 0 && instance_exists(card)) {
                                     var was_pending_s = (variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending);
@@ -2638,7 +2741,7 @@ function executeEffect(card, effect, context = {}) {
                                 if (variable_struct_exists(stepD, "frames")) {
                                     framesD = max(0, stepD.frames);
                                 } else if (variable_struct_exists(stepD, "ms")) {
-                                    framesD = max(0, round((stepD.ms / 1000.0) * room_speed));
+                                    framesD = max(0, round((stepD.ms / 1000.0) * game_get_speed(gamespeed_fps)));
                                 }
                                 if (framesD > 0 && instance_exists(card)) {
                                     var was_pending_d = (variable_instance_exists(card, "_flow_tempo_pending") && card._flow_tempo_pending);
@@ -2806,12 +2909,29 @@ function executeEffect(card, effect, context = {}) {
             var srcHero = (card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true;
             var crit = variable_struct_exists(effect, "criteria") ? effect.criteria : {};
             var srcKey = "aura:" + string(card.id);
+            var redirectDamageToSource = (variable_struct_exists(effect, "redirect_damage_to_source") && effect.redirect_damage_to_source);
             var applyProtect = function(tgt, _key) {
                 if (tgt == noone || !instance_exists(tgt)) return false;
                 if (!variable_instance_exists(tgt, "protection_sources")) tgt.protection_sources = [];
                 var hasKey = false;
                 for (var i = 0; i < array_length(tgt.protection_sources); i++) { if (string(tgt.protection_sources[i]) == _key) { hasKey = true; break; } }
                 if (!hasKey) { array_push(tgt.protection_sources, _key); }
+                if (redirectDamageToSource) {
+                    if (!variable_instance_exists(tgt, "damage_redirect_sources") || !is_array(tgt.damage_redirect_sources)) tgt.damage_redirect_sources = [];
+                    var hasRedirect = false;
+                    for (var ri = 0; ri < array_length(tgt.damage_redirect_sources); ri++) {
+                        var r0 = tgt.damage_redirect_sources[ri];
+                        if (is_struct(r0) && variable_struct_exists(r0, "key") && string(r0.key) == _key) {
+                            r0.source_id = card.id;
+                            tgt.damage_redirect_sources[ri] = r0;
+                            hasRedirect = true;
+                            break;
+                        }
+                    }
+                    if (!hasRedirect) {
+                        array_push(tgt.damage_redirect_sources, { key: _key, source_id: card.id });
+                    }
+                }
                 tgt.protection_from_destroy = true;
                 return true;
             };

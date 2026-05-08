@@ -85,7 +85,7 @@ function getEffectLabel(effect) {
         if (variable_struct_exists(effect, "conditions") && variable_struct_exists(effect.conditions, "summon_mode")) {
             var sm = effect.conditions.summon_mode;
             if (is_array(sm)) {
-                for (var i = 0; i < array_length_1d(sm); i++) {
+                for (var i = 0; i < array_length(sm); i++) {
                     if (sm[i] == "SpecialSummon") return "Eveil spécialisé";
                 }
             } else {

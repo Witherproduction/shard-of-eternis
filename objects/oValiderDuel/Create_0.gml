@@ -1,4 +1,4 @@
-﻿// === oValiderDuel - Create Event ===
+// === oValiderDuel - Create Event ===
 // Bouton pour valider le duel et aller vers rDuel
 
 show_debug_message("### oValiderDuel.Create_0 - Objet créé à la position (" + string(x) + ", " + string(y) + ")");

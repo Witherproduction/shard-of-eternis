@@ -56,12 +56,13 @@ if (mode == "one_shot") {
 // === MODE HALO (Legacy) ===
 start_x = x;
 start_y = y;
+var game_fps = game_get_speed(gamespeed_fps);
 
 // Durée par défaut ~0.6s
-var default_frames = 0.6 * room_speed;
+var default_frames = 0.6 * game_fps;
 duration = default_frames;
 if (variable_instance_exists(self, "duration_ms")) {
-    duration = max(1, (duration_ms / 1000.0) * room_speed);
+    duration = max(1, (duration_ms / 1000.0) * game_fps);
 }
 
 // Apparence
@@ -100,8 +101,8 @@ spr_yoff = 0;
 _t = 0;
 
 // Fondu
-fade_in_frames  = floor(0.15 * room_speed);
-fade_out_frames = floor(0.15 * room_speed);
+fade_in_frames  = floor(0.15 * game_fps);
+fade_out_frames = floor(0.15 * game_fps);
 // clamp pour éviter dépassement si duration trop courte
 var min_frames = fade_in_frames + fade_out_frames;
 if (duration < min_frames) {

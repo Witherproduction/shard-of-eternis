@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sCrocEntraveBrumes",
+    "path":"sprites/sCrocEntraveBrumes/sCrocEntraveBrumes.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

@@ -9,11 +9,12 @@ if (target != noone && instance_exists(target) && phase < 2) {
 }
 
 timer++;
+var progress = 0;
 
 // Machine à états
 switch (phase) {
     case 0: // Anticipation (Ombre)
-        var progress = timer / phase0_duration;
+        progress = timer / phase0_duration;
         shadow_alpha = lerp(0, 0.6, progress);
         shadow_radius = lerp(0, shadow_max_radius, progress);
         
@@ -26,7 +27,7 @@ switch (phase) {
         break;
 
     case 1: // Frappe (Pic)
-        var progress = timer / phase1_duration;
+        progress = timer / phase1_duration;
         // Easing cubic out pour impact violent
         var p = 1 - power(1 - progress, 3); 
         spike_height = lerp(0, spike_max_height, p);

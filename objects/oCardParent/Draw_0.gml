@@ -500,7 +500,8 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             return -1;
         };
         if (variable_instance_exists(self, "name")) {
-            var tx = string(name);
+            var tx = string_trim(string(name));
+            if (string_length(tx) <= 0) tx = object_get_name(object_index);
             var rw = (name_x2 - name_x1) * s - pad * 2 - mar * 2;
             var rh = (name_y2 - name_y1) * s - pad * 2;
             if (font_exists(fontTitle)) draw_set_font(fontTitle);
@@ -515,9 +516,22 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
                 f = get_font("title", want_size);
             }
             if (f != -1) draw_set_font(f);
+            // Anti-depassement: tronquer si le nom reste trop long pour la largeur disponible
+            if (string_width(tx) > rw) {
+                var suffix = "...";
+                while (string_length(tx) > 1 && string_width(tx + suffix) > rw) {
+                    tx = string_delete(tx, string_length(tx), 1);
+                }
+                tx += suffix;
+            }
             var sc2 = 1;
             var left = tlx + name_x1 * s + pad + mar;
             var top  = tly + name_y1 * s + pad;
+            // Ajustement specifique grille Collection: nom un peu plus haut et un peu plus a gauche
+            if (zone == "Collection") {
+                left -= 2;
+                top -= 2;
+            }
             left = round(left);
             top  = round(top);
             draw_text_transformed(left, top + 2, tx, sc2, sc2, angle_draw);
@@ -556,6 +570,14 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             var rh = (mana_y2 - mana_y1) * s;
             var center_x = tlx + (mana_x1 + (mana_x2-mana_x1)/2) * s;
             var center_y = tly + (mana_y1 + (mana_y2-mana_y1)/2) * s;
+            // Ajustement specifique grille Collection: mana un peu plus bas et a droite
+            if (zone == "Collection") {
+                center_x -= 3;
+                center_y -= 2;
+            } else if (zone == "Hand" || zone == "HandSelected" || (variable_instance_exists(self, "isTerrain") && isTerrain)) {
+                // Duel: main + terrains -> mana un peu plus a gauche
+                center_x -= 2;
+            }
             center_x = round(center_x);
             center_y = round(center_y);
             
@@ -602,7 +624,7 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             var top_g  = tly + genre_y1 * s + pad;
             left_g = round(left_g);
             top_g  = round(top_g);
-            draw_text_transformed(left_g, top_g + 2, tx, sc2, sc2, angle_draw);
+            draw_text_transformed(left_g, top_g, tx, sc2, sc2, angle_draw);
         }
         if (variable_instance_exists(self, "race")) {
             var tx = string(race);
@@ -619,7 +641,7 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
             var top_a  = tly + arch_y1 * s + pad;
             left_a = round(left_a);
             top_a  = round(top_a);
-            draw_text_transformed(left_a, top_a + 2, tx, sc2, sc2, angle_draw);
+            draw_text_transformed(left_a, top_a, tx, sc2, sc2, angle_draw);
         }
         // Description supprimée de l'affichage sur la carte (Terrain/Main/Collection)
         // if (variable_instance_exists(self, "description")) { ... }
@@ -754,6 +776,10 @@ if (variable_instance_exists(self, "zone") && (zone == "Hand" || zone == "HandSe
                 
                 var circleD_x = tlx + (def_x1 + (def_x2-def_x1)/2) * s;
                 var circleD_y = tly + (def_y1 + (def_y2-def_y1)/2) * s;
+                // Ajustement specifique grille Collection: vie un poil plus haute
+                if (zone == "Collection") {
+                    circleD_y -= 2;
+                }
                 circleD_x = round(circleD_x);
                 circleD_y = round(circleD_y);
                 

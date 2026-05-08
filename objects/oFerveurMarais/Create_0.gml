@@ -1,4 +1,4 @@
-﻿event_inherited();
+event_inherited();
 race = "Eau";
 
 name = "Ferveur du marais";

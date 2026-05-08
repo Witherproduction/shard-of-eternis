@@ -11,3 +11,17 @@ booster = "Retour des Archontes"
 is_player_card = true;
 
 description = "Lorsqu'un serviteur adverse meurt, ajoutez un monstre aléatoire de votre cimetière à votre main."
+
+effects = [
+    {
+        id: 1,
+        secret_activation: { on_enemy_death: true, only_if_opponent: true },
+        effect_type: EFFECT_SEARCH,
+        source_zone: "Graveyard",
+        destination: "hand",
+        owner: "ally",
+        select_mode: "random",
+        count: 1,
+        criteria: { type: "Monster" }
+    }
+];

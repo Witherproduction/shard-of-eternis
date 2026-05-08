@@ -1,4 +1,4 @@
-﻿// === oDeckBuilder - Create Event ===
+// === oDeckBuilder - Create Event ===
 // Initialisation du constructeur de deck
 
 // Décaler vers la gauche puis vers la droite

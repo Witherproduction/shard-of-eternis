@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sMatriarcheBoisNoir",
+    "path":"sprites/sMatriarcheBoisNoir/sMatriarcheBoisNoir.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

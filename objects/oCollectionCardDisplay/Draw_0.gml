@@ -155,6 +155,11 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         var ch = sprite_get_height(spr) * s;
         var tlx = display_x - cw * 0.5;
         var tly = display_y - ch * 0.5;
+        var layout = global.card_layout;
+        var name_x1 = layout.name.x1,  name_y1 = layout.name.y1;  var name_x2 = layout.name.x2, name_y2 = layout.name.y2;
+        var genre_x1 = layout.genre.x1, genre_y1 = layout.genre.y1; var genre_x2 = layout.genre.x2, genre_y2 = layout.genre.y2;
+        var arch_x1  = layout.archetype.x1, arch_y1  = layout.archetype.y1; var arch_x2  = layout.archetype.x2, arch_y2  = layout.archetype.y2;
+        var desc_x1  = layout.description.x1, desc_y1  = layout.description.y1; var desc_x2  = layout.description.x2, desc_y2  = layout.description.y2;
         // Détection carte magique pour masquer coût et ATK/PV
     var is_magic = object_is_ancestor(selectedCard.object_index, oCardMagic) || (variable_instance_exists(selectedCard, "type") && string_lower(string(selectedCard.type)) == "magic");
 
@@ -258,6 +263,9 @@ if (room == rCollection && selectedCard != noone && instance_exists(selectedCard
         var rh = (mana_y2 - mana_y1) * s;
         var center_x = tlx + (mana_x1 + (mana_x2-mana_x1)/2) * s;
         var center_y = tly + (mana_y1 + (mana_y2-mana_y1)/2) * s;
+        // Viewer droite: remonter legerement le cout mana
+        center_x -= 4;
+        center_y -= 4;
         center_x = round(center_x);
         center_y = round(center_y);
         

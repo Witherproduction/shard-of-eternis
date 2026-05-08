@@ -50,7 +50,9 @@ update_nav_buttons = function() {
 
 update_nav_buttons();
 
-auto_mode = true; // Par défaut activé
+// Mode Auto persistant entre les duels/scenes
+if (!variable_global_exists("story_auto_mode")) global.story_auto_mode = true;
+auto_mode = global.story_auto_mode;
 
 
 chapter_id = variable_global_exists("current_chapter") ? global.current_chapter : 1;
@@ -164,77 +166,13 @@ if (was_resume && array_length(scenes) > 0) {
     }
 }
 
-if (false) {
-    var merged_lines = [];
-    var mcount = 0;
-    var first_bg = "";
-    var first_bg_sound = "";
-    var first_bg_sound2 = "";
-    for (var si = 0; si < array_length(scenes); si++) {
-        var scx = scenes[si];
-        if (si == 0) {
-            if (variable_struct_exists(scx, "bg")) first_bg = scx.bg;
-            if (variable_struct_exists(scx, "bg_sound")) first_bg_sound = scx.bg_sound;
-            if (variable_struct_exists(scx, "bg_sound2")) first_bg_sound2 = scx.bg_sound2;
-        }
-        if (is_array(scx.lines)) {
-            for (var li = 0; li < array_length(scx.lines); li++) {
-                var ld = scx.lines[li];
-                var new_ld = { speaker: ld.speaker, text: ld.text };
-                if (variable_struct_exists(ld, "portrait1_name")) new_ld.portrait1_name = ld.portrait1_name;
-                if (variable_struct_exists(ld, "portrait2_name")) new_ld.portrait2_name = ld.portrait2_name;
-                if (variable_struct_exists(ld, "portrait3_name")) new_ld.portrait3_name = ld.portrait3_name;
-                if (variable_struct_exists(ld, "obj1_name")) new_ld.obj1_name = ld.obj1_name;
-                if (variable_struct_exists(ld, "obj2_name")) new_ld.obj2_name = ld.obj2_name;
-                if (variable_struct_exists(ld, "wait_after_ms")) new_ld.wait_after_ms = ld.wait_after_ms;
-                else if (variable_struct_exists(ld, "wait_after")) new_ld.wait_after_ms = ld.wait_after;
-                if (variable_struct_exists(scx, "bg")) new_ld.bg = scx.bg;
-                if (variable_struct_exists(scx, "bg_sound")) new_ld.bg_sound = scx.bg_sound;
-                if (variable_struct_exists(scx, "bg_sound2")) new_ld.bg_sound2 = scx.bg_sound2;
-                if (variable_struct_exists(scx, "portrait1_effect")) new_ld.portrait1_effect = scx.portrait1_effect;
-                if (variable_struct_exists(scx, "portrait2_effect")) new_ld.portrait2_effect = scx.portrait2_effect;
-                if (variable_struct_exists(scx, "obj1_effect")) new_ld.obj1_effect = scx.obj1_effect;
-                if (variable_struct_exists(scx, "obj2_effect")) new_ld.obj2_effect = scx.obj2_effect;
-                if (variable_struct_exists(scx, "text_effect")) new_ld.text_effect = scx.text_effect;
-                if (variable_struct_exists(scx, "speaker1_x")) new_ld.speaker1_x = scx.speaker1_x;
-                if (variable_struct_exists(scx, "speaker1_y")) new_ld.speaker1_y = scx.speaker1_y;
-                if (variable_struct_exists(scx, "speaker1_w")) new_ld.speaker1_w = scx.speaker1_w;
-                if (variable_struct_exists(scx, "speaker1_h")) new_ld.speaker1_h = scx.speaker1_h;
-                if (variable_struct_exists(scx, "speaker2_x")) new_ld.speaker2_x = scx.speaker2_x;
-                if (variable_struct_exists(scx, "speaker2_y")) new_ld.speaker2_y = scx.speaker2_y;
-                if (variable_struct_exists(scx, "speaker2_w")) new_ld.speaker2_w = scx.speaker2_w;
-                if (variable_struct_exists(scx, "speaker2_h")) new_ld.speaker2_h = scx.speaker2_h;
-                if (variable_struct_exists(scx, "obj1_x")) new_ld.obj1_x = scx.obj1_x;
-                if (variable_struct_exists(scx, "obj1_y")) new_ld.obj1_y = scx.obj1_y;
-                if (variable_struct_exists(scx, "obj1_w")) new_ld.obj1_w = scx.obj1_w;
-                if (variable_struct_exists(scx, "obj1_h")) new_ld.obj1_h = scx.obj1_h;
-                if (variable_struct_exists(scx, "obj2_x")) new_ld.obj2_x = scx.obj2_x;
-                if (variable_struct_exists(scx, "obj2_y")) new_ld.obj2_y = scx.obj2_y;
-                if (variable_struct_exists(scx, "obj2_w")) new_ld.obj2_w = scx.obj2_w;
-                if (variable_struct_exists(scx, "obj2_h")) new_ld.obj2_h = scx.obj2_h;
-                if (variable_struct_exists(scx, "textbox_x")) new_ld.textbox_x = scx.textbox_x;
-                if (variable_struct_exists(scx, "textbox_y")) new_ld.textbox_y = scx.textbox_y;
-                if (variable_struct_exists(scx, "speaker1_flip")) new_ld.speaker1_flip = scx.speaker1_flip;
-                if (variable_struct_exists(scx, "speaker2_flip")) new_ld.speaker2_flip = scx.speaker2_flip;
-                if (variable_struct_exists(scx, "speaker3_flip")) new_ld.speaker3_flip = scx.speaker3_flip;
-                if (variable_struct_exists(scx, "obj1_flip")) new_ld.obj1_flip = scx.obj1_flip;
-                if (variable_struct_exists(scx, "obj2_flip")) new_ld.obj2_flip = scx.obj2_flip;
-                merged_lines[mcount] = new_ld;
-                mcount += 1;
-            }
-        }
-    }
-    var merged_scene = { bg: first_bg, bg_sound: first_bg_sound, bg_sound2: first_bg_sound2, lines: merged_lines };
-    scenes = [merged_scene];
-    scene_index = 0;
-}
 
 line_index = 0;
 // OVERRIDE: Si une variable globale de reprise existe, l'utiliser
 if (variable_global_exists("sc_load_line_index") && global.sc_load_line_index >= 0) {
     line_index = global.sc_load_line_index;
     global.sc_load_line_index = -1; // Reset
-    auto_mode = false; // Disable auto mode on resume to prevent instant loop
+    auto_mode = global.story_auto_mode;
     show_debug_message("### oScenarioRunner: Reprise à la ligne " + string(line_index));
 }
 if (array_length(scenes) > 0) {
@@ -420,3 +358,9 @@ if (len0 == 0) line_auto_target_ms = current_time + anim_ms0 + wait_ms0; else li
 if (debug_auto_log) {
     show_debug_message("### Runner.InitTarget0: len0=" + string(len0) + " anim_ms0=" + string(anim_ms0) + " wait_ms0=" + string(wait_ms0) + " has_wait0=" + string(has_explicit_wait0) + " target0=" + string(line_auto_target_ms));
 }
+
+// Popup de fin d'acte (choix: acte suivant ou menu histoire)
+end_act_popup_active = false;
+end_act_popup_has_next = false;
+end_act_popup_next_act = act_num + 1;
+end_act_popup_title = "Fin d'acte";

@@ -556,7 +556,7 @@
         "Type":  "Monster",
         "Attack":  2.0,
         "PV":  5.0,
-        "Desc":  "Tant que cette carte est sur le terrain, \u0027Catherine Fumerol\u0027 ne peut pas Ãªtre dÃ©truit",
+        "Desc":  "Tant que cette carte est sur le terrain, les dÃ©gÃ¢ts que \u0027Catherine Fumerol\u0027 doit subir sont redirigÃ©s vers cette carte",
         "Race":  "Humain"
     },
     {

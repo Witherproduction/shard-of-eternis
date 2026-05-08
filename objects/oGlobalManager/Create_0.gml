@@ -30,7 +30,15 @@ if (!variable_global_exists("rng_initialized") || !global.rng_initialized) {
 
 // Initialisation de la progression
 if (!variable_global_exists("options_loaded") || !global.options_loaded) {
-    progression_init();
+    if (script_exists(asset_get_index("progression_init"))) {
+        progression_init();
+    } else {
+        // Fallback de sécurité si le script de progression est absent.
+        if (!variable_global_exists("progression_data")) global.progression_data = {};
+        if (!variable_struct_exists(global.progression_data, "unlocked_cards")) global.progression_data.unlocked_cards = [];
+        if (!variable_struct_exists(global.progression_data, "daily_quests")) global.progression_data.daily_quests = {};
+        show_debug_message("### progression_init introuvable: fallback progression_data appliqué");
+    }
     
     // Volume
     ini_open("options.ini");
@@ -140,17 +148,27 @@ if (!variable_global_exists("dev_force_db_cache_clear")) {
 // Coordonnées de base (Scale 1.0, coin haut-gauche 0,0)
 if (!variable_global_exists("card_layout")) {
     global.card_layout = {
-        name: { x1: 19, y1: 18, x2: 387, y2: 59 },
-        mana: { x1: 391, y1: 17, x2: 438, y2: 61 },
+        // Nouveau template:
+        // - mana en haut a gauche
+        // - nom decale vers la droite pour laisser la place au mana
+        // - ATK/DEF inverses (ATK a gauche, DEF/PV a droite)
+        name: { x1: 56, y1: 13, x2: 387, y2: 54 },
+        mana: { x1: 18, y1: 17, x2: 72, y2: 61 },
         genre: { x1: 21, y1: 394, x2: 227, y2: 418 },
         archetype: { x1: 222, y1: 395, x2: 426, y2: 419 },
         description: { x1: 23, y1: 437, x2: 421, y2: 572 },
-        atk: { x1: 394, y1: 580, x2: 436, y2: 630 },
-        hp: { x1: 8, y1: 580, x2: 70, y2: 623 }
+        atk: { x1: 8, y1: 580, x2: 70, y2: 623 },
+        hp: { x1: 394, y1: 580, x2: 436, y2: 630 }
     };
     
     // Si des fichiers de sauvegarde de layout existent, on pourrait les charger ici
 }
+
+// Ajustement visuel du nom de carte: plus haut et plus a gauche
+global.card_layout.name.x1 = 56;
+global.card_layout.name.y1 = 13;
+global.card_layout.name.x2 = 387;
+global.card_layout.name.y2 = 54;
 
 if (!variable_global_exists("get_runtime_font")) {
     global.__rtf_title_name = "Georgia";

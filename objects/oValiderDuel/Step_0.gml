@@ -1,4 +1,4 @@
-﻿// === oValiderDuel - Step Event ===
+// === oValiderDuel - Step Event ===
 // Détection manuelle des clics sur le bouton Valider
 
 // Hériter de la garde de oButtonBlock

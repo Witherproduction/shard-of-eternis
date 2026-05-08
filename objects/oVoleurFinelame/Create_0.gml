@@ -1,10 +1,10 @@
-﻿event_inherited();  // Hérite des variables et comportement de oCardMonster
+event_inherited();  // Hérite des variables et comportement de oCardMonster
 
 // Définit les stats spécifiques de ce monstre
 name = "Voleur Finelame"
 attack = 3;
 PV = 2;
-mana_cost = 3;
+mana_cost = 4;
 genre = "Humanoïde"
 booster = "Retour des Archontes"
 rarity = "epique"

@@ -1,4 +1,4 @@
-﻿/// @function get_bot_decks_tuto()
+/// @function get_bot_decks_tuto()
 /// @description Retourne la liste des decks bots pour le Tutoriel
 function get_bot_decks_tuto() {
     return [

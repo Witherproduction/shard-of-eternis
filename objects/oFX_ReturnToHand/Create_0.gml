@@ -14,7 +14,7 @@ start_x = x;
 start_y = y;
 
 // Durée de l'animation
-duration = 1.5 * room_speed; // 1500ms
+duration = 1.5 * game_get_speed(gamespeed_fps); // 1500ms
 _t = 0;
 
 // Echelle

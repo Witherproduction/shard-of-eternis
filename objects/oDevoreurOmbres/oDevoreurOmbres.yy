@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sDevoreurOmbres",
+    "path":"sprites/sDevoreurOmbres/sDevoreurOmbres.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

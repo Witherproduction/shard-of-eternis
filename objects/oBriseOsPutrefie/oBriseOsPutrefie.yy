@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"sBriseOsPutride",
+    "path":"sprites/sBriseOsPutride/sBriseOsPutride.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }
