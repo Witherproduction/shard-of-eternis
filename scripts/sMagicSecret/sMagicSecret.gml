@@ -2,6 +2,24 @@ function sMagicSecret() {
     // Initialisation du module des secrets
 }
 
+/// Garde commune : secret déclenché uniquement par une attaque adverse, pendant le tour adverse.
+function _secretPassesAttackActivationGuards(secretCard, attacker) {
+    if (secretCard == noone || !instance_exists(secretCard)) return false;
+    if (attacker == noone || !instance_exists(attacker)) return false;
+
+    var secretOwnerIsHero = (variable_instance_exists(secretCard, "isHeroOwner") && secretCard.isHeroOwner);
+    var attackerIsHero = (variable_instance_exists(attacker, "isHeroOwner") && attacker.isHeroOwner);
+
+    if (attackerIsHero == secretOwnerIsHero) return false;
+
+    if (instance_exists(game) && variable_instance_exists(game, "player_current")) {
+        var currentIsHero = (game.player_current == 0);
+        if (secretOwnerIsHero == currentIsHero) return false;
+    }
+
+    return true;
+}
+
 function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
     if (!instance_exists(attacker)) return noone;
     
@@ -56,6 +74,8 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
                 chosenEffect = e; break;
             }
             if (chosenEffect == noone) continue;
+
+            if (!_secretPassesAttackActivationGuards(self, attacker)) continue;
             
             // Check if secret blocks the attack
             if (variable_struct_exists(chosenEffect, "block_attack") && chosenEffect.block_attack) {
@@ -200,6 +220,8 @@ function activateSecretsOnAttack(attacker, defender) {
                 chosenEffect = e; break;
             }
             if (chosenEffect == noone) continue;
+
+            if (!_secretPassesAttackActivationGuards(self, attacker)) continue;
 
             // Check if secret blocks the attack
             if (variable_struct_exists(chosenEffect, "block_attack") && chosenEffect.block_attack) {

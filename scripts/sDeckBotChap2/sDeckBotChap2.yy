@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sDeckBotChap2",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sDeckBotChap2",
+  "parent":{
+    "name":"Chapitre2",
+    "path":"folders/Scripts/Deck/Chapitre2.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

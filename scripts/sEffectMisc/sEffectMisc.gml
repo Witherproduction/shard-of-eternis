@@ -100,6 +100,13 @@ function getTargetsByFilter(effect) {
             if (variable_struct_exists(effect, "type") && !variable_struct_exists(criteria, "type")) criteria.type = effect.type;
         }
     }
+    var sourceOwnerIsHero = undefined;
+    if (is_struct(effect) && variable_struct_exists(effect, "source_card")) {
+        var sc = effect.source_card;
+        if (instance_exists(sc) && variable_instance_exists(sc, "isHeroOwner")) {
+            sourceOwnerIsHero = sc.isHeroOwner;
+        }
+    }
     with (oCardMonster) {
         var isValidTarget = true;
         var zoneLower = variable_instance_exists(self, "zone") ? string_lower(zone) : "";
@@ -119,8 +126,14 @@ function getTargetsByFilter(effect) {
         if (!inZone) isValidTarget = false;
         if (isValidTarget && ownerFilter != "both") {
             var isHero = variable_instance_exists(self, "isHeroOwner") ? isHeroOwner : undefined;
-            if (ownerFilter == "hero" && !isHero) isValidTarget = false;
-            if (ownerFilter == "enemy" && isHero) isValidTarget = false;
+            if (sourceOwnerIsHero != undefined) {
+                var sameSide = (isHero == sourceOwnerIsHero);
+                if (ownerFilter == "ally" && !sameSide) isValidTarget = false;
+                if (ownerFilter == "enemy" && sameSide) isValidTarget = false;
+            } else {
+                if (ownerFilter == "hero" && !isHero) isValidTarget = false;
+                if (ownerFilter == "enemy" && isHero) isValidTarget = false;
+            }
         }
         if (isValidTarget && hasMonsterType) {
             if (!variable_instance_exists(self, "type") || string_lower(type) != monsterTypeLower) { isValidTarget = false; }
@@ -151,6 +164,10 @@ function getTargetsByFilter(effect) {
     if (checkField && !hasMonsterType) {
         var checkHero = (ownerFilter == "both" || ownerFilter == "hero");
         var checkEnemy = (ownerFilter == "both" || ownerFilter == "enemy");
+        if (sourceOwnerIsHero != undefined) {
+            if (ownerFilter == "ally") { checkHero = sourceOwnerIsHero; checkEnemy = !sourceOwnerIsHero; }
+            else if (ownerFilter == "enemy") { checkHero = !sourceOwnerIsHero; checkEnemy = sourceOwnerIsHero; }
+        }
         
         if (checkHero && instance_exists(oLP_Hero)) {
              var validH = true;

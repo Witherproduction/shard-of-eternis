@@ -16,6 +16,7 @@ if (s1 != -1) {
     var t1 = clamp((current_time - fx_sp1_start_ms) / dur1, 0, 1);
     var dx1 = 0; var dy1 = 0; var sc1 = 1; var ang1 = 0; var a1 = 1; var glow1 = false;
     if (current.portrait1_effect == "Fondu") { a1 = t1; }
+    else if (current.portrait1_effect == "FonduInverse" || current.portrait1_effect == "Fondu inversé") { a1 = 1 - t1; }
     else if (current.portrait1_effect == "DeplacementAB") { dx1 = (prev_speaker1_x - speaker1.x) * (1 - t1); dy1 = (prev_speaker1_y - speaker1.y) * (1 - t1); }
     else if (current.portrait1_effect == "SlideGauche" || current.portrait1_effect == "Slide gauche") { dx1 = -room_width * 0.3 * (1 - t1); }
     else if (current.portrait1_effect == "SlideDroite" || current.portrait1_effect == "Slide droite") { dx1 = room_width * 0.3 * (1 - t1); }
@@ -43,6 +44,7 @@ if (s2 != -1) {
     var t2 = clamp((current_time - fx_sp2_start_ms) / dur2, 0, 1);
     var dx2 = 0; var dy2 = 0; var scp2 = 1; var ang2 = 0; var a2 = 1; var glow2 = false;
     if (current.portrait2_effect == "Fondu") { a2 = t2; }
+    else if (current.portrait2_effect == "FonduInverse" || current.portrait2_effect == "Fondu inversé") { a2 = 1 - t2; }
     else if (current.portrait2_effect == "DeplacementAB") { dx2 = (prev_speaker2_x - speaker2.x) * (1 - t2); dy2 = (prev_speaker2_y - speaker2.y) * (1 - t2); }
     else if (current.portrait2_effect == "SlideGauche" || current.portrait2_effect == "Slide gauche") { dx2 = -room_width * 0.3 * (1 - t2); }
     else if (current.portrait2_effect == "SlideDroite" || current.portrait2_effect == "Slide droite") { dx2 = room_width * 0.3 * (1 - t2); }
@@ -71,6 +73,7 @@ if (s3 != -1) {
     var t3p = clamp((current_time - fx_sp3_start_ms) / dur3p, 0, 1);
     var dx3p = 0; var dy3p = 0; var scp3 = 1; var ang3p = 0; var a3p = 1; var glow3p = false;
     if (e3 == "fondu") { a3p = t3p; }
+    else if (e3 == "fonduinverse" || e3 == "fondu inversé" || e3 == "fondu inverse") { a3p = 1 - t3p; }
     else if (e3 == "deplacementab" || e3 == "déplacementab" || e3 == "deplacement ab" || e3 == "déplacement ab") { dx3p = (prev_speaker3_x - speaker3.x) * (1 - t3p); dy3p = (prev_speaker3_y - speaker3.y) * (1 - t3p); }
     else if (e3 == "slidegauche" || e3 == "slide gauche") { dx3p = -room_width * 0.3 * (1 - t3p); }
     else if (e3 == "slidedroite" || e3 == "slide droite") { dx3p = room_width * 0.3 * (1 - t3p); }
@@ -171,6 +174,7 @@ if (current.text_effect == "SlideGaucheInverse" || current.text_effect == "Slide
 var tt = clamp((current_time - fx_text_start_ms) / durt, 0, 1);
 var dxt = 0; var dyt = 0; var base_text_scale = 1; var sct = base_text_scale; var angt = 0; var at = 1;
 if (current.text_effect == "Fondu") { at = tt; }
+else if (current.text_effect == "FonduInverse" || current.text_effect == "Fondu inversé") { at = 1 - tt; }
 else if (current.text_effect == "SlideGauche") { dxt = -textbox.w * 0.6 * (1 - tt); }
 else if (current.text_effect == "SlideDroite") { dxt = textbox.w * 0.6 * (1 - tt); }
 else if (current.text_effect == "SlideHaut") { dyt = -textbox.h * 0.4 * (1 - tt); }

@@ -14,7 +14,7 @@ element = "Nature";
 effects = [
     {
         id: 1,
-        secret_activation: { direct_attack: true },
+        secret_activation: { direct_attack: true, only_if_opponent: true },
         effect_type: EFFECT_DAMAGE_ALL,
         value: 3,
         owner: "enemy",

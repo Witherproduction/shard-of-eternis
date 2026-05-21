@@ -12,18 +12,18 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"afbe7f8e-d067-4641-b3de-0ae670c80c56","name":"afbe7f8e-d067-4641-b3de-0ae670c80c56","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d1794c49-e5ba-4322-8359-34fecc04d9dc","name":"d1794c49-e5ba-4322-8359-34fecc04d9dc","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":1353,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"250a5fda-a77b-43bd-aaeb-b5f644a2349c","blendMode":0,"displayName":"default","isLocked":false,"name":"250a5fda-a77b-43bd-aaeb-b5f644a2349c","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"e027506e-3c1e-47b4-b108-c2fae5467c48","blendMode":0,"displayName":"default","isLocked":false,"name":"e027506e-3c1e-47b4-b108-c2fae5467c48","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"vespera_surprise",
   "nineSlice":null,
-  "origin":0,
+  "origin":4,
   "parent":{
     "name":"Vespera",
     "path":"folders/Sprites/Histoire/Heros/Vespera.yy",
@@ -69,14 +69,14 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"afbe7f8e-d067-4641-b3de-0ae670c80c56","path":"sprites/vespera_surprise/vespera_surprise.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"8cc3b4f7-49cc-4ae1-94b6-13868d5dbdec","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d1794c49-e5ba-4322-8359-34fecc04d9dc","path":"sprites/vespera_surprise/vespera_surprise.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"86e2bca2-a8b1-4a61-8f4e-3d389f706ff3","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":0,
-    "yorigin":0,
+    "xorigin":390,
+    "yorigin":676,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

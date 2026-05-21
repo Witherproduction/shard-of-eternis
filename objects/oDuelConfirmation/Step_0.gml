@@ -147,6 +147,9 @@ if (!variable_instance_exists(id, "setup_done")) {
                 } else {
                     preferred_deck_id = "rebellion_horde";
                 }
+            } else if (current_chapter == 2) {
+                // Chapitre 2 (Vespera) : un seul deck héros pour tous les duels, sauf override scénario
+                preferred_deck_id = "vespera_landes_sepulcre";
             }
             
             for (var i = 0; i < array_length(story_decks); i++) {
@@ -195,21 +198,13 @@ if (!variable_instance_exists(id, "setup_done")) {
          }
     }
     
-    // --- LEGACY ID REMAPPING (Fix for old saves/cache) ---
-    var check_id = selected_bot_deck_id;
-    
-    // Convert string numbers to reals for checking
-    if (is_string(check_id)) {
-        if (check_id == "1") check_id = 1;
-        else if (check_id == "2") check_id = 2;
-        else if (check_id == "3") check_id = 3;
+    // --- LEGACY ID REMAPPING (slots numériques → id string, via get_chapter_bot_order) ---
+    var remap_chapter = current_chapter;
+    if (remap_chapter < 0 && variable_global_exists("current_chapter")) {
+        remap_chapter = global.current_chapter;
     }
-    
-    if (current_chapter == 1 || (variable_global_exists("current_chapter") && global.current_chapter == 1)) {
-        if (check_id == 1) selected_bot_deck_id = "Invasion_Gueule_Roche";
-        if (check_id == 2) selected_bot_deck_id = "Essaim_Abyssien";
-        if (check_id == 3) selected_bot_deck_id = "Bandit_Grand_Chemin";
-        if (check_id == 4) selected_bot_deck_id = "Matriarche_Peau_Roc";
+    if (remap_chapter == 1 || remap_chapter == 2) {
+        selected_bot_deck_id = resolve_bot_deck_id_for_chapter(remap_chapter, selected_bot_deck_id);
     }
     
     // Final Assignment of Bot Deck ID to global

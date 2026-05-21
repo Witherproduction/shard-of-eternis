@@ -155,51 +155,50 @@ initializeGraveyards = function() {
 }
 
 // Fonction pour définir le fond d'écran du duel en fonction du bot
+// - Mode histoire (duel lancé depuis le scénario / rScenario) : bots 1–7 → sTerrain, bots 8–14 → sTerrain2
+// - Hors histoire (Contre IA, tuto depuis carousel, etc.) : aléatoire parmi sTerrain et sTerrain2
 setDuelBackground = function() {
-    if (variable_global_exists("selected_bot_deck_id")) {
-        // Par défaut, tout le monde utilise sTerrain1
-        var bg_sprite = asset_get_index("sTerrain1");
+    var spr_terrain = asset_get_index("sTerrain");
+    var spr_terrain2 = asset_get_index("sTerrain2");
+    var spr_fallback = asset_get_index("sTerrain1");
+    var bg_sprite = spr_fallback;
 
-        if (variable_global_exists("current_chapter") && global.current_chapter == 1) {
-            bg_sprite = asset_get_index("sTerrain");
+    var is_story_scenario = variable_global_exists("previous_room_before_duel") && global.previous_room_before_duel == rScenario;
+
+    if (is_story_scenario && variable_global_exists("selected_bot_deck_id")) {
+        var bid = global.selected_bot_deck_id;
+        var slot = 0;
+
+        slot = get_story_slot_for_bot_deck_id(bid);
+
+        if (slot >= 1 && slot <= 7) {
+            bg_sprite = spr_terrain;
+        } else if (slot >= 8 && slot <= 14) {
+            bg_sprite = spr_terrain2;
         } else {
-        
-            // Configuration: Groupes de bots avec des fonds spécifiques
-            // Format: { sprite: "NomSprite", bots: [id1, id2, id3...] }
-            var bg_groups = [
-                {
-                    sprite: "sTerrain",
-                    bots: [1, 2, 3, "Invasion_Gueule_Roche", "Essaim_Abyssien", "Bandit_Grand_Chemin"]
-                }
-                // Ajoutez d'autres groupes ici pour d'autres exceptions
-            ];
-            
-            // Recherche si le bot actuel fait partie d'une exception
-            for (var i = 0; i < array_length(bg_groups); i++) {
-                var group = bg_groups[i];
-                var bot_list = group.bots;
-                
-                // Vérifie si l'ID du bot est dans la liste de ce groupe
-                for (var j = 0; j < array_length(bot_list); j++) {
-                    if (bot_list[j] == global.selected_bot_deck_id) {
-                        bg_sprite = asset_get_index(group.sprite);
-                        break;
-                    }
-                }
-            }
+            if (spr_terrain != -1) bg_sprite = spr_terrain;
         }
-        
-        if (bg_sprite != -1) {
-            var lay_id = layer_get_id("Background");
-            if (lay_id != -1) {
-                var back_id = layer_background_get_id(lay_id);
-                if (back_id != -1) {
-                    layer_background_sprite(back_id, bg_sprite);
-                    layer_background_stretch(back_id, true);
-                    
-                    if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
-                        show_debug_message("### Background défini pour bot " + string(global.selected_bot_deck_id) + ": " + sprite_get_name(bg_sprite));
-                    }
+    } else {
+        var pool = [];
+        if (spr_terrain != -1) array_push(pool, spr_terrain);
+        if (spr_terrain2 != -1) array_push(pool, spr_terrain2);
+        if (array_length(pool) > 0) {
+            bg_sprite = pool[irandom(array_length(pool) - 1)];
+        } else if (spr_fallback != -1) {
+            bg_sprite = spr_fallback;
+        }
+    }
+
+    if (bg_sprite != -1) {
+        var lay_id = layer_get_id("Background");
+        if (lay_id != -1) {
+            var back_id = layer_background_get_id(lay_id);
+            if (back_id != -1) {
+                layer_background_sprite(back_id, bg_sprite);
+                layer_background_stretch(back_id, true);
+
+                if (variable_global_exists("VERBOSE_LOGS") && global.VERBOSE_LOGS) {
+                    show_debug_message("### Background duel: story=" + string(is_story_scenario) + " bot=" + string(global.selected_bot_deck_id) + " -> " + sprite_get_name(bg_sprite));
                 }
             }
         }

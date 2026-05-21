@@ -516,30 +516,24 @@ if (auto_mode && !await_scene_click) {
                     var bid = sc.duel_bot_id;
                     var is_valid = (bid != 0 && string(bid) != "0" && bid != noone);
                     
-                    // HOTFIX: Handle numeric IDs (Legacy)
-                    if (is_real(bid)) {
-                        if (bid == 1) {
-                            if (scene_index > 0) {
-                                show_debug_message("### Step_0 V2: Legacy ID 1 detected at scene " + string(scene_index) + ". Converting to Invasion_Gueule_Roche.");
-                                sc.duel_bot_id = "Invasion_Gueule_Roche";
-                                bid = "Invasion_Gueule_Roche";
+                    // Slots numériques legacy → id string (get_chapter_bot_order, comme Ch.1)
+                    var is_legacy_slot = is_real(bid);
+                    if (!is_legacy_slot && is_string(bid)) {
+                        var bs = string(bid);
+                        is_legacy_slot = (string_digits(bs) == bs && bs != "");
+                    }
+                    if (is_legacy_slot) {
+                        if (chapter_id == 1 && floor(real(bid)) == 1 && scene_index == 0) {
+                            show_debug_message("### Step_0 V2: BLOCKED LEGACY duel_bot_id: 1 at Scene 0");
+                            is_valid = false;
+                        } else {
+                            var resolved = resolve_bot_deck_id_for_chapter(chapter_id, bid);
+                            if (resolved != bid) {
+                                show_debug_message("### Step_0 V2: Legacy slot " + string(bid) + " (Ch" + string(chapter_id) + ") -> " + string(resolved));
+                                sc.duel_bot_id = resolved;
+                                bid = resolved;
                                 is_valid = true;
-                            } else {
-                                show_debug_message("### Step_0 V2: BLOCKED LEGACY duel_bot_id: 1 at Scene 0");
-                                is_valid = false;
                             }
-                        }
-                        else if (bid == 2) {
-                            show_debug_message("### Step_0 V2: Legacy ID 2 detected. Converting to Essaim_Abyssien.");
-                            sc.duel_bot_id = "Essaim_Abyssien";
-                            bid = "Essaim_Abyssien";
-                            is_valid = true;
-                        }
-                        else if (bid == 3) {
-                            show_debug_message("### Step_0 V2: Legacy ID 3 detected. Converting to Bandit_Grand_Chemin.");
-                            sc.duel_bot_id = "Bandit_Grand_Chemin";
-                            bid = "Bandit_Grand_Chemin";
-                            is_valid = true;
                         }
                     }
 

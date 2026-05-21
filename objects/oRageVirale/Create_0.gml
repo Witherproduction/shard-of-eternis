@@ -10,7 +10,7 @@ rarity = "Rare"
 booster = "Retour des Archontes"
 is_player_card = true;
 
-description = "Donne +4 ATK à une Bête alliée jusqu'a la fin du tour. Elle subis 2 dégats après avoir attaquer."
+description = "Donne +3 ATK à une Bête alliée jusqu'a la fin du tour. Elle subis 2 dégats après avoir attaquer."
 
 effects = [
     {
@@ -22,7 +22,7 @@ effects = [
         owner: "ally",
         target_zone: "field",
         criteria: { type: "Monster", genre: "Bête" },
-        atk: 4,
+        atk: 3,
         temporary: true,
         flow: [
             {

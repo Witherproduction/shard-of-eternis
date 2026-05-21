@@ -10,18 +10,18 @@ booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Crépuscule : inflige 1 dégât à vos autres serviteurs."
+description = "Crépuscule : inflige 1 dégât à un serviteur adverse aléatoire."
 effects = [
     {
         id: 1,
         trigger: TRIGGER_END_TURN,
-        effect_type: EFFECT_DAMAGE_ALL,
+        effect_type: EFFECT_DAMAGE_TARGET,
         value: 1,
         conditions: { owner_turn: true },
-        owner: "ally",
+        owner: "enemy",
         target_zone: "field",
-        monster_type: "Monster",
-        criteria: { exclude_self: true },
+        criteria: { type: "Monster" },
+        select_mode: "random",
         label: "Crépuscule"
     }
 ]

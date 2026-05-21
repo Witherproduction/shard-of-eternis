@@ -12,18 +12,18 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"63f04555-7720-42cb-a5ce-a45931c6b0f1","name":"63f04555-7720-42cb-a5ce-a45931c6b0f1","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d0673240-97fb-4835-a927-a2a257e9fceb","name":"d0673240-97fb-4835-a927-a2a257e9fceb","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":1174,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"939d463e-a611-4755-bb9f-ca0071f355cd","blendMode":0,"displayName":"default","isLocked":false,"name":"939d463e-a611-4755-bb9f-ca0071f355cd","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"e408bc4f-c5e9-43e4-9b35-e75f5676e7d8","blendMode":0,"displayName":"default","isLocked":false,"name":"e408bc4f-c5e9-43e4-9b35-e75f5676e7d8","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"roi_necromancien",
   "nineSlice":null,
-  "origin":0,
+  "origin":4,
   "parent":{
     "name":"monstre",
     "path":"folders/Sprites/Histoire/chapitre 2/monstre.yy",
@@ -69,14 +69,14 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"63f04555-7720-42cb-a5ce-a45931c6b0f1","path":"sprites/roi_necromancien/roi_necromancien.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"b387a8ca-dae7-40e7-a2ad-e3d63ff3736d","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d0673240-97fb-4835-a927-a2a257e9fceb","path":"sprites/roi_necromancien/roi_necromancien.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"64e60eab-2d5f-461d-ac60-b72525e344ec","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":0,
-    "yorigin":0,
+    "xorigin":447,
+    "yorigin":587,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

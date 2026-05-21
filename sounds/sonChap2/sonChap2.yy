@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"sonChap2",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":284.48,
+  "exportDir":"",
+  "name":"sonChap2",
+  "parent":{
+    "name":"chapitre2",
+    "path":"folders/Sons/histoire/chapitre2.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"sonChap2.mp3",
+  "volume":1.0,
+}

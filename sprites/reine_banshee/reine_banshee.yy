@@ -12,18 +12,18 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"5d024220-2158-4e57-8c50-0915231d6ea9","name":"5d024220-2158-4e57-8c50-0915231d6ea9","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"67d8b082-8316-41ce-85c6-6a0cce46f0f6","name":"67d8b082-8316-41ce-85c6-6a0cce46f0f6","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":1279,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"06c85f97-f8f9-4421-812d-36d5a569c9f3","blendMode":0,"displayName":"default","isLocked":false,"name":"06c85f97-f8f9-4421-812d-36d5a569c9f3","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"7d129da0-99ad-410c-acf4-57fd31a6c807","blendMode":0,"displayName":"default","isLocked":false,"name":"7d129da0-99ad-410c-acf4-57fd31a6c807","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"reine_banshee",
   "nineSlice":null,
-  "origin":0,
+  "origin":4,
   "parent":{
     "name":"réprouvé",
     "path":"folders/Sprites/Histoire/chapitre 2/réprouvé.yy",
@@ -69,14 +69,14 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"5d024220-2158-4e57-8c50-0915231d6ea9","path":"sprites/reine_banshee/reine_banshee.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"8bac5079-0a3b-4052-ae51-e28c39c2e3a8","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"67d8b082-8316-41ce-85c6-6a0cce46f0f6","path":"sprites/reine_banshee/reine_banshee.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"2e0699cd-b605-4b8f-bd91-75337741e0cc","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":0,
-    "yorigin":0,
+    "xorigin":456,
+    "yorigin":639,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

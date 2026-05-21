@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"foret des voleur",
-    "path":"folders/Sprites/interface/map/region/foret des voleur.yy",
+    "name":"acte1",
+    "path":"folders/Sprites/Histoire/Chapitre 1/acte1.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

@@ -1,5 +1,5 @@
 // Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
-name = "Bries-os putréfié"
+name = "Brise-os putréfié"
 attack = 3;
 PV = 4;
 mana_cost = 3;

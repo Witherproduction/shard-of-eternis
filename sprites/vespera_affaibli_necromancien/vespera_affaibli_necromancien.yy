@@ -12,18 +12,18 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"597023bb-11b7-4f5f-a3bd-97def3dba1ea","name":"597023bb-11b7-4f5f-a3bd-97def3dba1ea","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"9ffe6193-1fbb-43ee-b52f-a15a23bd5b3e","name":"9ffe6193-1fbb-43ee-b52f-a15a23bd5b3e","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":1333,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"b8133d3a-3a6b-4c7c-afa2-5f1194ca71db","blendMode":0,"displayName":"default","isLocked":false,"name":"b8133d3a-3a6b-4c7c-afa2-5f1194ca71db","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"3975dbc6-51cb-4276-8e6b-7ce981e6f474","blendMode":0,"displayName":"default","isLocked":false,"name":"3975dbc6-51cb-4276-8e6b-7ce981e6f474","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"vespera_affaibli_necromancien",
   "nineSlice":null,
-  "origin":0,
+  "origin":4,
   "parent":{
     "name":"Vespera",
     "path":"folders/Sprites/Histoire/Heros/Vespera.yy",
@@ -69,14 +69,14 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"597023bb-11b7-4f5f-a3bd-97def3dba1ea","path":"sprites/vespera_affaibli_necromancien/vespera_affaibli_necromancien.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"3d48587a-1c16-457a-8174-c57672c4bc48","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"9ffe6193-1fbb-43ee-b52f-a15a23bd5b3e","path":"sprites/vespera_affaibli_necromancien/vespera_affaibli_necromancien.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"58ee00b8-22db-4c47-ab5d-abea3858efc9","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":0,
-    "yorigin":0,
+    "xorigin":726,
+    "yorigin":666,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

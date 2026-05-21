@@ -1,6 +1,6 @@
 // Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
 name = "Patriarche putrescent"
-attack = 0;
+attack = 2;
 PV = 15;
 mana_cost = 7;
 genre = "Mort-vivant"

@@ -36,16 +36,9 @@ for (var i = 0; i < array_length(all_available_decks); i++) {
     var deck = all_available_decks[i];
     var bot_id = deck.id; // L'ID du deck détermine la position dans la grille
     
-    // Mapping manuel des nouveaux IDs string vers les anciens slots numériques
-    if (is_string(bot_id)) {
-        if (bot_id == "Invasion_Gueule_Roche") bot_id = 1;
-        else if (bot_id == "Essaim_Abyssien") bot_id = 2;
-        else if (bot_id == "Bandit_Grand_Chemin") bot_id = 3;
-        else if (bot_id == "Matriarche_Peau_Roc") bot_id = 4;
-        else if (bot_id == "Recolteur_Recolte_Sournoise") bot_id = 5;
-        else if (bot_id == "Armee_des_Skarls") bot_id = 6;
-        else if (bot_id == "Terreur_de_la_foret") bot_id = 7;
-    }
+    // Slot grille Contre IA = slot histoire (Ch.1 : 1–7, Ch.2 : 8–14)
+    var grid_slot = get_story_slot_for_bot_deck_id(bot_id);
+    if (grid_slot > 0) bot_id = grid_slot;
     
     // Vérification du type de bot_id pour éviter le crash (ex: "tuto_deck_bot" est une string)
     if (is_real(bot_id) && bot_id < total_cells) {

@@ -1,7 +1,7 @@
 // Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
 name = "Ours pestiféré des Landes du Sépulcre"
 attack = 2;
-PV = 17;
+PV = 12;
 mana_cost = 8;
 genre = "Bête"
 race = "Ours";

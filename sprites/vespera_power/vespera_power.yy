@@ -12,18 +12,18 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"1b258b88-e791-4fff-a068-c769e513e37e","name":"1b258b88-e791-4fff-a068-c769e513e37e","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"02b14960-3b8e-4b48-ae33-eded4be12a3c","name":"02b14960-3b8e-4b48-ae33-eded4be12a3c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":1390,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"7c6a0754-e312-47e5-8cc0-080f88c153ac","blendMode":0,"displayName":"default","isLocked":false,"name":"7c6a0754-e312-47e5-8cc0-080f88c153ac","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"30a8844c-6678-46fd-b719-a5ee6063cd01","blendMode":0,"displayName":"default","isLocked":false,"name":"30a8844c-6678-46fd-b719-a5ee6063cd01","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"vespera_power",
   "nineSlice":null,
-  "origin":0,
+  "origin":4,
   "parent":{
     "name":"Vespera",
     "path":"folders/Sprites/Histoire/Heros/Vespera.yy",
@@ -69,14 +69,14 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"1b258b88-e791-4fff-a068-c769e513e37e","path":"sprites/vespera_power/vespera_power.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"b7adb755-91a0-4fb0-b68a-fc9071fd6fd5","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"02b14960-3b8e-4b48-ae33-eded4be12a3c","path":"sprites/vespera_power/vespera_power.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"d9bc6cfb-287f-4873-8ef0-630498a290df","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":0,
-    "yorigin":0,
+    "xorigin":397,
+    "yorigin":695,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

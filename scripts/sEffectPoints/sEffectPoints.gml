@@ -181,6 +181,16 @@ function sEffectPoints(card, effect, context) {
         else if (selectMode == "target") {
             if (variable_struct_exists(context, "target") && instance_exists(context.target)) { targetLocal = context.target; }
             else if (variable_struct_exists(effect, "target") && instance_exists(effect.target)) { targetLocal = effect.target; }
+        } else if (selectMode == "random") {
+            var effOwnerR = ownerSide;
+            if (effOwnerR == "ally") {
+                if (srcHero) effect.owner = "hero"; else effect.owner = "enemy";
+            } else if (effOwnerR == "enemy") {
+                if (srcHero) effect.owner = "enemy"; else effect.owner = "hero";
+            }
+            var candidatesR = getTargetsByFilter(effect);
+            if (array_length(candidatesR) <= 0) { return false; }
+            targetLocal = candidatesR[irandom(array_length(candidatesR) - 1)];
         }
         if (targetLocal != noone) {
             if (op == "damage") { 

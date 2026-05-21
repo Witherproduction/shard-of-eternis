@@ -12,18 +12,18 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"7041f4c3-e6bb-409f-b8e7-f3af77a760d3","name":"7041f4c3-e6bb-409f-b8e7-f3af77a760d3","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"714f73fa-9a27-4966-8949-cb272c16fc74","name":"714f73fa-9a27-4966-8949-cb272c16fc74","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":644,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"1c90cbfe-a03d-4138-85fa-d86f4c068f96","blendMode":0,"displayName":"default","isLocked":false,"name":"1c90cbfe-a03d-4138-85fa-d86f4c068f96","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"3251361a-50ad-4f3b-97f9-f308e81d19d6","blendMode":0,"displayName":"default","isLocked":false,"name":"3251361a-50ad-4f3b-97f9-f308e81d19d6","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"vespera_portail",
   "nineSlice":null,
-  "origin":0,
+  "origin":4,
   "parent":{
     "name":"Vespera",
     "path":"folders/Sprites/Histoire/Heros/Vespera.yy",
@@ -69,14 +69,14 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7041f4c3-e6bb-409f-b8e7-f3af77a760d3","path":"sprites/vespera_portail/vespera_portail.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"ccf25592-01e0-4a29-936d-a956cfca4125","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"714f73fa-9a27-4966-8949-cb272c16fc74","path":"sprites/vespera_portail/vespera_portail.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"4e1d56a1-70fd-420d-9419-02764272720f","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":0,
-    "yorigin":0,
+    "xorigin":310,
+    "yorigin":322,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

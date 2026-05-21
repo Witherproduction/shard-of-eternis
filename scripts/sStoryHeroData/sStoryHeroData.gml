@@ -20,7 +20,7 @@ function get_story_heroes() {
             id: "vespera",
             name: "Vespera",
             description: "",
-            portrait: "sPortraitIntro",
+            portrait: "sPortraitVespera",
             chapters: [2] // Chapitre 1 de Vespera (considéré comme chapitre 2 en jeu)
         }
     ];
@@ -43,7 +43,7 @@ function get_chapter_data(chapter_id) {
         {
             id: 2,
             title: "Les landes du sépulcre",
-            acts: ["Acte 1"]
+            acts: ["Le réveil"]
         },
         {
             id: 3,

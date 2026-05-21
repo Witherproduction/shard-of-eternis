@@ -62,14 +62,22 @@ var advance_to_next_scene = function() {
 
     var is_valid_duel = (bot_id != 0 && string(bot_id) != "0" && bot_id != noone);
     
-    if (is_real(bot_id) && bot_id == 1) {
-        if (scene_index > 0) {
-            show_debug_message("### CHECK DUEL V2: Legacy ID 1 detected at scene " + string(scene_index) + ". Converting to Invasion_Gueule_Roche.");
-            bot_id = "Invasion_Gueule_Roche";
-            is_valid_duel = true;
-        } else {
+    var is_legacy_slot = is_real(bot_id);
+    if (!is_legacy_slot && is_string(bot_id)) {
+        var bs = string(bot_id);
+        is_legacy_slot = (string_digits(bs) == bs && bs != "");
+    }
+    if (is_legacy_slot) {
+        if (chapter_id == 1 && floor(real(bot_id)) == 1 && scene_index == 0) {
             show_debug_message("### CHECK DUEL V2: BLOCKED LEGACY bot_id: 1 at Scene 0");
             is_valid_duel = false;
+        } else {
+            var resolved = resolve_bot_deck_id_for_chapter(chapter_id, bot_id);
+            if (resolved != bot_id) {
+                show_debug_message("### CHECK DUEL V2: Legacy slot " + string(bot_id) + " (Ch" + string(chapter_id) + ") -> " + string(resolved));
+                bot_id = resolved;
+                is_valid_duel = true;
+            }
         }
     }
 
@@ -123,6 +131,32 @@ var advance_to_next_scene = function() {
             if (variable_struct_exists(line_data2, "portrait3_name")) current.portrait3_name = line_data2.portrait3_name;
             if (variable_struct_exists(line_data2, "obj1_name")) current.obj1_name = line_data2.obj1_name;
             if (variable_struct_exists(line_data2, "obj2_name")) current.obj2_name = line_data2.obj2_name;
+            // Apply per-line geometry from the first line of the new scene so that
+            // sizes/positions match the line being shown, not those carried over
+            // from the previous scene's last line.
+            var kref2 = 1;
+            if (variable_struct_exists(line_data2, "speaker1_x")) speaker1.x = line_data2.speaker1_x * kref2;
+            if (variable_struct_exists(line_data2, "speaker1_y")) speaker1.y = line_data2.speaker1_y * kref2;
+            if (variable_struct_exists(line_data2, "speaker1_w")) speaker1.w = line_data2.speaker1_w * kref2;
+            if (variable_struct_exists(line_data2, "speaker1_h")) speaker1.h = line_data2.speaker1_h * kref2;
+            if (variable_struct_exists(line_data2, "speaker2_x")) speaker2.x = line_data2.speaker2_x * kref2;
+            if (variable_struct_exists(line_data2, "speaker2_y")) speaker2.y = line_data2.speaker2_y * kref2;
+            if (variable_struct_exists(line_data2, "speaker2_w")) speaker2.w = line_data2.speaker2_w * kref2;
+            if (variable_struct_exists(line_data2, "speaker2_h")) speaker2.h = line_data2.speaker2_h * kref2;
+            if (variable_struct_exists(line_data2, "speaker3_x")) speaker3.x = line_data2.speaker3_x * kref2;
+            if (variable_struct_exists(line_data2, "speaker3_y")) speaker3.y = line_data2.speaker3_y * kref2;
+            if (variable_struct_exists(line_data2, "speaker3_w")) speaker3.w = line_data2.speaker3_w * kref2;
+            if (variable_struct_exists(line_data2, "speaker3_h")) speaker3.h = line_data2.speaker3_h * kref2;
+            if (variable_struct_exists(line_data2, "obj1_x")) object1.x = line_data2.obj1_x * kref2;
+            if (variable_struct_exists(line_data2, "obj1_y")) object1.y = line_data2.obj1_y * kref2;
+            if (variable_struct_exists(line_data2, "obj1_w")) object1.w = line_data2.obj1_w * kref2;
+            if (variable_struct_exists(line_data2, "obj1_h")) object1.h = line_data2.obj1_h * kref2;
+            if (variable_struct_exists(line_data2, "obj2_x")) object2.x = line_data2.obj2_x * kref2;
+            if (variable_struct_exists(line_data2, "obj2_y")) object2.y = line_data2.obj2_y * kref2;
+            if (variable_struct_exists(line_data2, "obj2_w")) object2.w = line_data2.obj2_w * kref2;
+            if (variable_struct_exists(line_data2, "obj2_h")) object2.h = line_data2.obj2_h * kref2;
+            if (variable_struct_exists(line_data2, "textbox_x")) textbox.x = line_data2.textbox_x * kref2;
+            if (variable_struct_exists(line_data2, "textbox_y")) textbox.y = line_data2.textbox_y * kref2;
             var len2 = string_length(string(current.text));
             var cps2 = max(1, text_reveal_cps);
             var reveal_ms2 = ceil(len2 * 1000 / cps2);

@@ -10,7 +10,7 @@ booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Brisé : invoque trois Soldats squelettes aléatoires sur votre terrain."
+description = "Brisé : invoque deux Soldats squelettes aléatoires sur votre terrain."
 effects = [
     {
         id: 1,
@@ -32,16 +32,7 @@ effects = [
         placement_criteria: { relative_role: "random" },
         label: "Brisé"
     },
-    {
-        id: 3,
-        trigger: TRIGGER_ON_DESTROY,
-        effect_type: EFFECT_SUMMON,
-        summon_mode: "named",
-        object_name: "oSoldatSquelette",
-        allowed_sources: [],
-        placement_criteria: { relative_role: "random" },
-        label: "Brisé"
-    }
+    
 ]
 
 event_inherited();  // Hérite des variables et comportement de oCardMonster

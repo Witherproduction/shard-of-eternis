@@ -12,18 +12,18 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"14c5a9b1-7aa3-47c4-acdd-91f86b237f2b","name":"14c5a9b1-7aa3-47c4-acdd-91f86b237f2b","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"babc6cd9-7dd5-4eef-a1f2-69b13c3ce3a3","name":"babc6cd9-7dd5-4eef-a1f2-69b13c3ce3a3","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":2088,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"8f9585c0-9557-4232-b363-3da41b839722","blendMode":0,"displayName":"default","isLocked":false,"name":"8f9585c0-9557-4232-b363-3da41b839722","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"dd7f67ac-2d63-4f93-a297-747579d84895","blendMode":0,"displayName":"default","isLocked":false,"name":"dd7f67ac-2d63-4f93-a297-747579d84895","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"generalissime",
   "nineSlice":null,
-  "origin":0,
+  "origin":4,
   "parent":{
     "name":"ordre sang pur",
     "path":"folders/Sprites/Histoire/chapitre 2/ordre sang pur.yy",
@@ -69,14 +69,14 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"14c5a9b1-7aa3-47c4-acdd-91f86b237f2b","path":"sprites/generalissime/generalissime.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"26733500-2ee1-4b73-85b9-0d019481243b","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"babc6cd9-7dd5-4eef-a1f2-69b13c3ce3a3","path":"sprites/generalissime/generalissime.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"c3e9e363-e176-4c9b-90c3-1cbe9364a68e","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":0,
-    "yorigin":0,
+    "xorigin":456,
+    "yorigin":1044,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

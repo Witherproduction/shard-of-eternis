@@ -2910,26 +2910,27 @@ function executeEffect(card, effect, context = {}) {
             var crit = variable_struct_exists(effect, "criteria") ? effect.criteria : {};
             var srcKey = "aura:" + string(card.id);
             var redirectDamageToSource = (variable_struct_exists(effect, "redirect_damage_to_source") && effect.redirect_damage_to_source);
-            var applyProtect = function(tgt, _key) {
+            var applyProtect = function(tgt, _key, _redirectToSource, _sourceCard) {
                 if (tgt == noone || !instance_exists(tgt)) return false;
                 if (!variable_instance_exists(tgt, "protection_sources")) tgt.protection_sources = [];
                 var hasKey = false;
                 for (var i = 0; i < array_length(tgt.protection_sources); i++) { if (string(tgt.protection_sources[i]) == _key) { hasKey = true; break; } }
                 if (!hasKey) { array_push(tgt.protection_sources, _key); }
-                if (redirectDamageToSource) {
+                if (_redirectToSource) {
                     if (!variable_instance_exists(tgt, "damage_redirect_sources") || !is_array(tgt.damage_redirect_sources)) tgt.damage_redirect_sources = [];
                     var hasRedirect = false;
+                    var _sourceId = (_sourceCard != noone && instance_exists(_sourceCard)) ? _sourceCard.id : noone;
                     for (var ri = 0; ri < array_length(tgt.damage_redirect_sources); ri++) {
                         var r0 = tgt.damage_redirect_sources[ri];
                         if (is_struct(r0) && variable_struct_exists(r0, "key") && string(r0.key) == _key) {
-                            r0.source_id = card.id;
+                            r0.source_id = _sourceId;
                             tgt.damage_redirect_sources[ri] = r0;
                             hasRedirect = true;
                             break;
                         }
                     }
                     if (!hasRedirect) {
-                        array_push(tgt.damage_redirect_sources, { key: _key, source_id: card.id });
+                        array_push(tgt.damage_redirect_sources, { key: _key, source_id: _sourceId });
                     }
                 }
                 tgt.protection_from_destroy = true;
@@ -2937,7 +2938,7 @@ function executeEffect(card, effect, context = {}) {
             };
             if (scope == "single") {
                 var tgt = (variable_struct_exists(context, "target") && instance_exists(context.target)) ? context.target : card;
-                return applyProtect(tgt, srcKey);
+                return applyProtect(tgt, srcKey, redirectDamageToSource, card);
             } else if (scope == "aura" || scope == "all") {
                 var applied = false;
                 var heroArr = fieldMonsterHero.cards;
@@ -2957,7 +2958,7 @@ function executeEffect(card, effect, context = {}) {
                             if (!okOwnH) { continue; }
                             var okCritH = true;
                             if (script_exists(_cardMatchesCriteria) && is_struct(crit)) { okCritH = _cardMatchesCriteria(ch, crit); }
-                            if (okCritH) { if (applyProtect(ch, srcKey)) applied = true; }
+                            if (okCritH) { if (applyProtect(ch, srcKey, redirectDamageToSource, card)) applied = true; }
                         }
                     }
                 }
@@ -2978,7 +2979,7 @@ function executeEffect(card, effect, context = {}) {
                             if (!okOwnE) { continue; }
                             var okCritE = true;
                             if (script_exists(_cardMatchesCriteria) && is_struct(crit)) { okCritE = _cardMatchesCriteria(ce, crit); }
-                            if (okCritE) { if (applyProtect(ce, srcKey)) applied = true; }
+                            if (okCritE) { if (applyProtect(ce, srcKey, redirectDamageToSource, card)) applied = true; }
                         }
                     }
                 }

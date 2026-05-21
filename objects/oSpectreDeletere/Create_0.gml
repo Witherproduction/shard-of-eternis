@@ -1,7 +1,7 @@
 // Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
 name = "Spectre délétère"
-attack = 5;
-PV = 3;
+attack = 4;
+PV = 2;
 mana_cost = 3;
 genre = "Mort-vivant"
 race = "Fantôme";

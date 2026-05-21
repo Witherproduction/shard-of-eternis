@@ -12,18 +12,18 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"27cab564-67e2-4699-bbd4-f24d5edd5185","name":"27cab564-67e2-4699-bbd4-f24d5edd5185","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"74547256-5002-4ee8-a393-4c2598d2c00f","name":"74547256-5002-4ee8-a393-4c2598d2c00f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":1193,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"9718fdf9-04ea-4325-b9b5-91d1f34d7ac4","blendMode":0,"displayName":"default","isLocked":false,"name":"9718fdf9-04ea-4325-b9b5-91d1f34d7ac4","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"b9712036-2701-4d96-8668-9ba7c498a382","blendMode":0,"displayName":"default","isLocked":false,"name":"b9712036-2701-4d96-8668-9ba7c498a382","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"reine_forme_spectrale",
   "nineSlice":null,
-  "origin":0,
+  "origin":4,
   "parent":{
     "name":"réprouvé",
     "path":"folders/Sprites/Histoire/chapitre 2/réprouvé.yy",
@@ -69,14 +69,14 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"27cab564-67e2-4699-bbd4-f24d5edd5185","path":"sprites/reine_forme_spectrale/reine_forme_spectrale.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"c3561ecc-6e87-4125-b1db-d5d37eb828c0","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"74547256-5002-4ee8-a393-4c2598d2c00f","path":"sprites/reine_forme_spectrale/reine_forme_spectrale.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"1d227fcd-0951-478a-99d0-bdaf38042d5d","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":0,
-    "yorigin":0,
+    "xorigin":805,
+    "yorigin":596,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

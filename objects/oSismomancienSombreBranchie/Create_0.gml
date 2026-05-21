@@ -1,7 +1,7 @@
 // Définit les stats spécifiques de ce monstre (AVANT inherited pour que oCardParent initialise bien current_hp)
 name = "Sismomancien Sombre-branchie"
 attack = 2;
-PV = 7;
+PV = 5;
 mana_cost = 4;
 genre = "Humanoïde"
 race = "Abyssien";
