@@ -166,6 +166,42 @@ function AI_GetCardScore(card) {
     return currentScoreVal;
 }
 
+/// @function AI_GetBoardPresenceCounts()
+/// @description Compte les serviteurs (hors Terrain) sur chaque plateau.
+/// @return {Struct} { ally, enemy, ally_front, enemy_front }
+function AI_GetBoardPresenceCounts() {
+    var ally = 0;
+    var enemy = 0;
+    var ally_front = 0;
+    var enemy_front = 0;
+
+    if (instance_exists(oFieldMonsterEnemy)) {
+        var myM = oFieldMonsterEnemy.cards;
+        for (var i = 0; i < array_length(myM); i++) {
+            var c = myM[i];
+            if (c == 0 || !instance_exists(c)) continue;
+            if (variable_instance_exists(c, "isTerrain") && c.isTerrain) continue;
+            ally++;
+            var fp = variable_instance_exists(c, "fieldPosition") ? c.fieldPosition : -1;
+            if (fp >= 0 && fp <= 3) ally_front++;
+        }
+    }
+
+    if (instance_exists(oFieldMonsterHero)) {
+        var enM = oFieldMonsterHero.cards;
+        for (var j = 0; j < array_length(enM); j++) {
+            var c2 = enM[j];
+            if (c2 == 0 || !instance_exists(c2)) continue;
+            if (variable_instance_exists(c2, "isTerrain") && c2.isTerrain) continue;
+            enemy++;
+            var fp2 = variable_instance_exists(c2, "fieldPosition") ? c2.fieldPosition : -1;
+            if (fp2 >= 0 && fp2 <= 3) enemy_front++;
+        }
+    }
+
+    return { ally: ally, enemy: enemy, ally_front: ally_front, enemy_front: enemy_front };
+}
+
 /// @function AI_GetCardScore_Predicted(card)
 /// @description Estime la valeur d'une carte (monstre) avant qu'elle ne soit sur le terrain.
 function AI_GetCardScore_Predicted(card) {
@@ -182,6 +218,9 @@ function AI_GetCardScore_Predicted(card) {
     currentScoreVal += atk * SCORE_PER_ATK * p_atk;
     currentScoreVal += PV * SCORE_PER_DEF * p_def;
     
+    var boardCounts = AI_GetBoardPresenceCounts();
+    var behindOnBoard = (boardCounts.enemy > boardCounts.ally);
+
     // Analyse board pour prédiction
     var strongestEnemyAtk = 0;
     if (instance_exists(oFieldMonsterHero)) {
@@ -189,6 +228,7 @@ function AI_GetCardScore_Predicted(card) {
          for(var e=0; e<array_length(enemies); e++) {
              var en = enemies[e];
              if (en!=0 && instance_exists(en)) {
+                 if (variable_instance_exists(en, "isTerrain") && en.isTerrain) continue;
                  var eAtk = variable_instance_exists(en, "attack") ? en.attack : 0;
                  if (eAtk > strongestEnemyAtk) strongestEnemyAtk = eAtk;
              }
@@ -202,10 +242,17 @@ function AI_GetCardScore_Predicted(card) {
     var scoreAttack = currentScoreVal + (200 * p_atk);
     var scoreDefense = currentScoreVal + (200 * p_def);
     
-    // Pénalités contextuelles
-    if (atk < strongestEnemyAtk) {
-        // Attaquer est risqué/suicidaire
-        scoreAttack -= 500; 
+    // Pénalité agressive seulement si on a déjà la main sur le plateau (sinon il faut invoquer pour défendre)
+    if (!behindOnBoard && atk < strongestEnemyAtk) {
+        scoreAttack -= 500;
+    }
+
+    // En retard : toute présence sur le plateau est prioritaire
+    if (behindOnBoard) {
+        currentScoreVal += 350;
+        if (boardCounts.enemy_front > boardCounts.ally_front) {
+            currentScoreVal += 200;
+        }
     }
     
     // Si PV > ATK, on est naturellement bon en défense, mais ça ne doit pas interdire l'attaque

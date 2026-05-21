@@ -12,7 +12,10 @@ function cardStatModGetDeltas(_card) {
 
     if (variable_instance_exists(_card, "effective_attack")) {
         var baseA = _card.attack;
-        if (variable_instance_exists(_card, "original_attack")) baseA = _card.original_attack;
+        // original_* = stats imprimées ; si 0 (Create avant stats enfant), utiliser attack
+        if (variable_instance_exists(_card, "original_attack") && _card.original_attack > 0) {
+            baseA = _card.original_attack;
+        }
         var effA = _card.effective_attack;
         if (effA == 0 && baseA > 0) effA = baseA;
         out.atk = effA - baseA;
@@ -21,7 +24,9 @@ function cardStatModGetDeltas(_card) {
 
     if (variable_instance_exists(_card, "effective_defense")) {
         var baseD = _card.PV;
-        if (variable_instance_exists(_card, "original_PV")) baseD = _card.original_PV;
+        if (variable_instance_exists(_card, "original_PV") && _card.original_PV > 0) {
+            baseD = _card.original_PV;
+        }
         var effD = _card.effective_defense;
         if (effD == 0 && baseD > 0) effD = baseD;
         out.def = effD - baseD;

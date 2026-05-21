@@ -360,12 +360,22 @@ function get_bot_decks_chap1() {
                     placement_priority: {
                         "oSkarlChetif": "front",
                         "oEstafetteSkarl": "front",
+                        "oPortefaix": "front",
+                        "oBandit": "front",
+                        "oBanditGuerrier": "front",
+                        "oFourrageurAbyssien": "front",
+                        "oCoureurAbyssien": "front",
+                        "oTunnelin": "front",
+                        "oMineurTunnelin": "front",
+                        "oBougimencienTunnelin": "front",
+                        "oLoupGrisForet": "front",
+                        "oTortueVagabonde": "front",
+                        "oSanglierPeauRoc": "front",
                         "oLieutenantGorrak": "back",
                         "oFrereGorrak": "back",
                         "oRuisselierAbyssien": "back",
-                        "oTortueVagabonde": "front",
-                        "oSanglierPeauRoc": "front",
-                        "oPortefaix": "front"
+                        "oGeomancienTunnelin": "back",
+                        "oVieilOurs": "back"
                     }
                 }
             },
@@ -420,11 +430,21 @@ function get_bot_decks_chap1() {
                 target_spell_policy: "tempo",
                 synergy_focus: ["Skarl", "Humain"],
                 custom_rules: {
-                    placement_strategy: "tank_front_dps_back",
+                    placement_strategy: "swarm_front_support_back",
                     placement_priority: {
+                        "oSkarlChetif": "front",
+                        "oEstafetteSkarl": "front",
+                        "oPortefaix": "front",
+                        "oBandit": "front",
+                        "oBanditGuerrier": "front",
+                        "oVideGousset": "front",
+                        "oVoleurFinelame": "front",
+                        "oTunnelin": "front",
+                        "oMineurTunnelin": "front",
                         "oLieutenantGorrak": "back",
                         "oSorcierVoleur": "back",
-                        "oMaitrePasse": "back"
+                        "oMaitrePasse": "back",
+                        "oGeomancienTunnelin": "back"
                     }
                 }
             },
@@ -637,9 +657,6 @@ function chap1_bot_events_on_progress(game_inst) {
                 
                 if (isTurn8) {
                     game_inst.story_pending_add_to_hand_asset = "oVoleurFinelame";
-                    game_inst.story_pending_cast_spell_asset = "oMainFurtive";
-                    game_inst.story_pending_cast_spell_cost = 1;
-                    game_inst.story_pending_cast_spell_force_cost = true;
                 } else {
                     var canSummonB5P3 = (getLeftmostFreeMonsterSlot(false) != noone);
                     if (canSummonB5P3) {
@@ -651,9 +668,6 @@ function chap1_bot_events_on_progress(game_inst) {
                     } else {
                         game_inst.story_pending_add_to_hand_asset = "oVoleurFinelame";
                     }
-                    game_inst.story_pending_cast_spell_asset = "oMainFurtive";
-                    game_inst.story_pending_cast_spell_cost = 1;
-                    game_inst.story_pending_cast_spell_force_cost = true;
                 }
                 
                 if (instance_exists(oStoryToast)) return true;
@@ -666,39 +680,18 @@ function chap1_bot_events_on_progress(game_inst) {
         
         if (!variable_instance_exists(game_inst, "bot5_script_phase4_done")) game_inst.bot5_script_phase4_done = false;
         if (!game_inst.bot5_script_phase4_done && game_inst.bot5_script_phase3_done) {
-            var lp5c = instance_find(oLP_Enemy, 0);
-            var lpv5c = (lp5c != noone && variable_instance_exists(lp5c, "nbLP")) ? lp5c.nbLP : 0;
             var isTurn18 = (game_inst.nbTurn == 18);
             if (isTurn18) {
                 game_inst.bot5_script_phase4_done = true;
                 
-                game_inst.story_pending_cast_spell_asset = "oMainFurtive";
-                game_inst.story_pending_cast_spell_cost = 1;
-                game_inst.story_pending_cast_spell_force_cost = true;
-                
-                if (lpv5c >= 20) {
-                    var canSummonAny = (getLeftmostFreeMonsterSlot(false) != noone);
-                    if (canSummonAny) {
-                        game_inst.story_pending_summon_asset = "oRecolteur";
-                        game_inst.story_pending_summon_cost = 8;
-                        game_inst.story_pending_summon_force_cost = true;
-                        game_inst.story_pending_summon_count = 1;
-                        game_inst.story_pending_summon_prefer_back = true;
-                        
-                        game_inst.story_pending_summon_asset2 = "oCatherineFumerol";
-                        game_inst.story_pending_summon_cost2 = 4;
-                        game_inst.story_pending_summon_force_cost2 = true;
-                        game_inst.story_pending_summon_count2 = 1;
-                        game_inst.story_pending_summon_prefer_back2 = true;
-                        
-                        game_inst.story_pending_summon_asset3 = "oYvanCostaud";
-                        game_inst.story_pending_summon_cost3 = 4;
-                        game_inst.story_pending_summon_force_cost3 = true;
-                        game_inst.story_pending_summon_count3 = 1;
-                        game_inst.story_pending_summon_prefer_front3 = true;
-                    } else {
-                        game_inst.story_pending_add_to_hand_asset = "oRecolteur";
-                    }
+                var canSummonB5P4 = (getLeftmostFreeMonsterSlot(false) != noone);
+                if (canSummonB5P4) {
+                    game_inst.story_pending_summon_asset = "oRecolteur";
+                    game_inst.story_pending_summon_cost = 8;
+                    game_inst.story_pending_summon_force_cost = true;
+                    game_inst.story_pending_summon_count = 1;
+                    game_inst.story_pending_summon_prefer_back = true;
+                    game_inst.story_pending_summon_trigger_as_summon = true;
                 } else {
                     game_inst.story_pending_add_to_hand_asset = "oRecolteur";
                 }
@@ -718,93 +711,63 @@ function chap1_bot_events_on_progress(game_inst) {
         var lp7 = instance_find(oLP_Enemy, 0);
         var lpv7 = (lp7 != noone && variable_instance_exists(lp7, "nbLP")) ? lp7.nbLP : 999999;
         
+        // Réactions PV (les vagues par tour sont dans chap1_bot_events_on_enemy_draw)
         if (!variable_instance_exists(game_inst, "bot7_script_phase2_done")) game_inst.bot7_script_phase2_done = false;
-        if (!game_inst.bot7_script_phase2_done) {
-            var mustTriggerB7P2 = (lpv7 <= 40) || (game_inst.nbTurn == 6);
-            if (mustTriggerB7P2) {
-                game_inst.bot7_script_phase2_done = true;
-                
-                if (game_inst.nbTurn == 6) {
-                    game_inst.story_pending_add_to_hand_asset = "oSkarlChetif";
-                } else {
-                    var canSummonB7P2 = (getLeftmostFreeMonsterSlot(false) != noone);
-                    if (canSummonB7P2) {
-                        game_inst.story_pending_summon_asset = "oSkarlChetif";
-                        game_inst.story_pending_summon_cost = 3;
-                        game_inst.story_pending_summon_force_cost = true;
-                        game_inst.story_pending_summon_count = 1;
-                    } else {
-                        game_inst.story_pending_add_to_hand_asset = "oSkarlChetif";
-                    }
-                }
-                
-                if (instance_exists(oStoryToast)) return true;
-                var toastB7P2 = instance_create_layer(0, 0, "UI", oStoryToast);
-                toastB7P2.setPortrait("sPortraitGorrak", 96);
-                toastB7P2.setText("Mes enfants, venez m'aider !");
-                return true;
+        if (!game_inst.bot7_script_phase2_done && lpv7 <= 40) {
+            game_inst.bot7_script_phase2_done = true;
+            
+            if (getLeftmostFreeMonsterSlot(false) != noone) {
+                game_inst.story_pending_summon_asset = "oSkarlChetif";
+                game_inst.story_pending_summon_cost = 3;
+                game_inst.story_pending_summon_force_cost = true;
+                game_inst.story_pending_summon_count = 1;
+                game_inst.story_pending_summon_prefer_front = true;
             }
+            
+            if (instance_exists(oStoryToast)) return true;
+            var toastB7P2 = instance_create_layer(0, 0, "UI", oStoryToast);
+            toastB7P2.setPortrait("sPortraitGorrak", 96);
+            toastB7P2.setText("Mes enfants, venez m'aider !");
+            return true;
         }
         
         if (!variable_instance_exists(game_inst, "bot7_script_phase3_done")) game_inst.bot7_script_phase3_done = false;
-        if (!game_inst.bot7_script_phase3_done && game_inst.bot7_script_phase2_done) {
-            var mustTriggerB7P3 = (lpv7 <= 30) || (game_inst.nbTurn == 12);
-            if (mustTriggerB7P3) {
-                game_inst.bot7_script_phase3_done = true;
-                
-                if (game_inst.nbTurn == 12) {
-                    game_inst.story_pending_add_to_hand_asset = "oEstafetteSkarl";
-                    game_inst.story_pending_add_to_hand_asset2 = "oEstafetteSkarl";
-                } else {
-                    var canSummonB7P3 = (getLeftmostFreeMonsterSlot(false) != noone);
-                    if (canSummonB7P3) {
-                        game_inst.story_pending_summon_asset = "oEstafetteSkarl";
-                        game_inst.story_pending_summon_cost = 3;
-                        game_inst.story_pending_summon_force_cost = true;
-                        game_inst.story_pending_summon_count = 2;
-                    } else {
-                        game_inst.story_pending_add_to_hand_asset = "oEstafetteSkarl";
-                        game_inst.story_pending_add_to_hand_asset2 = "oEstafetteSkarl";
-                    }
-                }
-                
-                if (instance_exists(oStoryToast)) return true;
-                var toastB7P3 = instance_create_layer(0, 0, "UI", oStoryToast);
-                toastB7P3.setPortrait("sPortraitGorrak", 96);
-                toastB7P3.setText("Skarls ! Rapportez-moi sa tête !");
-                return true;
+        if (!game_inst.bot7_script_phase3_done && game_inst.bot7_script_phase2_done && lpv7 <= 30) {
+            game_inst.bot7_script_phase3_done = true;
+            
+            if (getLeftmostFreeMonsterSlot(false) != noone) {
+                game_inst.story_pending_summon_asset = "oEstafetteSkarl";
+                game_inst.story_pending_summon_cost = 3;
+                game_inst.story_pending_summon_force_cost = true;
+                game_inst.story_pending_summon_count = 2;
+                game_inst.story_pending_summon_prefer_front = true;
             }
+            
+            if (instance_exists(oStoryToast)) return true;
+            var toastB7P3 = instance_create_layer(0, 0, "UI", oStoryToast);
+            toastB7P3.setPortrait("sPortraitGorrak", 96);
+            toastB7P3.setText("Skarls ! Rapportez-moi sa tête !");
+            return true;
         }
         
         if (!variable_instance_exists(game_inst, "bot7_script_phase4_done")) game_inst.bot7_script_phase4_done = false;
-        if (!game_inst.bot7_script_phase4_done && game_inst.bot7_script_phase3_done) {
-            var mustTriggerB7P4 = (lpv7 <= 20) || (game_inst.nbTurn == 18);
-            if (mustTriggerB7P4) {
-                game_inst.bot7_script_phase4_done = true;
-                
-                if (game_inst.nbTurn == 18) {
-                    game_inst.story_pending_add_to_hand_asset = "oGorrak";
-                } else {
-                    var canSummonB7P4 = (getLeftmostFreeMonsterSlot(false) != noone);
-                    if (canSummonB7P4) {
-                        game_inst.story_pending_summon_asset = "oGorrak";
-                        game_inst.story_pending_summon_cost = 8;
-                        game_inst.story_pending_summon_force_cost = true;
-                        game_inst.story_pending_summon_count = 1;
-                        
-                        game_inst.story_pending_summon_asset2 = "oEstafetteSkarl";
-                        game_inst.story_pending_summon_count2 = 2;
-                    } else {
-                        game_inst.story_pending_add_to_hand_asset = "oGorrak";
-                    }
-                }
-                
-                if (instance_exists(oStoryToast)) return true;
-                var toastB7P4 = instance_create_layer(0, 0, "UI", oStoryToast);
-                toastB7P4.setPortrait("sPortraitGorrak", 96);
-                toastB7P4.setText("Je vais te broyer, petit homme !");
-                return true;
+        if (!game_inst.bot7_script_phase4_done && game_inst.bot7_script_phase3_done && lpv7 <= 20) {
+            game_inst.bot7_script_phase4_done = true;
+            
+            if (getLeftmostFreeMonsterSlot(false) != noone) {
+                game_inst.story_pending_summon_asset = "oGorrak";
+                game_inst.story_pending_summon_cost = 8;
+                game_inst.story_pending_summon_force_cost = true;
+                game_inst.story_pending_summon_count = 1;
+                game_inst.story_pending_summon_prefer_back = true;
+                game_inst.story_pending_summon_trigger_as_summon = true;
             }
+            
+            if (instance_exists(oStoryToast)) return true;
+            var toastB7P4 = instance_create_layer(0, 0, "UI", oStoryToast);
+            toastB7P4.setPortrait("sPortraitGorrak", 96);
+            toastB7P4.setText("Je vais te broyer, petit homme !");
+            return true;
         }
         
         return false;
@@ -1257,6 +1220,100 @@ function chap1_bot_events_on_enemy_draw(game_inst) {
             var toastB2W4 = instance_create_layer(0, 0, "UI", oStoryToast);
             toastB2W4.setPortrait("sPortraitAbyssien", 96);
             toastB2W4.setText("BLOP-GURGL-AARGH !!!");
+            return true;
+        }
+    }
+    
+    if (botID == "Terreur_de_la_foret") {
+        // Jalons scriptés : 6 / 8 / 12 / 14 / 18 — invocation terrain + mana
+        if (game_inst.nbTurn == 6) {
+            if (!variable_instance_exists(game_inst, "bot7_wave_t6_done")) game_inst.bot7_wave_t6_done = false;
+            if (game_inst.bot7_wave_t6_done) return false;
+            game_inst.bot7_wave_t6_done = true;
+            
+            game_inst.story_pending_summon_asset = "oSkarlChetif";
+            game_inst.story_pending_summon_cost = 3;
+            game_inst.story_pending_summon_force_cost = true;
+            game_inst.story_pending_summon_count = 1;
+            game_inst.story_pending_summon_prefer_front = true;
+            
+            if (instance_exists(oStoryToast)) return true;
+            var toastB7T6 = instance_create_layer(0, 0, "UI", oStoryToast);
+            toastB7T6.setPortrait("sPortraitGorrak", 96);
+            toastB7T6.setText("Mes enfants, venez m'aider !");
+            return true;
+        }
+        
+        if (game_inst.nbTurn == 8) {
+            if (!variable_instance_exists(game_inst, "bot7_wave_t8_done")) game_inst.bot7_wave_t8_done = false;
+            if (game_inst.bot7_wave_t8_done) return false;
+            game_inst.bot7_wave_t8_done = true;
+            
+            game_inst.story_pending_summon_asset = "oEstafetteSkarl";
+            game_inst.story_pending_summon_cost = 3;
+            game_inst.story_pending_summon_force_cost = true;
+            game_inst.story_pending_summon_count = 1;
+            game_inst.story_pending_summon_prefer_front = true;
+            
+            if (instance_exists(oStoryToast)) return true;
+            var toastB7T8 = instance_create_layer(0, 0, "UI", oStoryToast);
+            toastB7T8.setPortrait("sPortraitGorrak", 96);
+            toastB7T8.setText("Encore des Skarls ! Tenez la ligne !");
+            return true;
+        }
+        
+        if (game_inst.nbTurn == 12) {
+            if (!variable_instance_exists(game_inst, "bot7_wave_t12_done")) game_inst.bot7_wave_t12_done = false;
+            if (game_inst.bot7_wave_t12_done) return false;
+            game_inst.bot7_wave_t12_done = true;
+            
+            game_inst.story_pending_summon_asset = "oEstafetteSkarl";
+            game_inst.story_pending_summon_cost = 3;
+            game_inst.story_pending_summon_force_cost = true;
+            game_inst.story_pending_summon_count = 2;
+            game_inst.story_pending_summon_prefer_front = true;
+            
+            if (instance_exists(oStoryToast)) return true;
+            var toastB7T12 = instance_create_layer(0, 0, "UI", oStoryToast);
+            toastB7T12.setPortrait("sPortraitGorrak", 96);
+            toastB7T12.setText("Skarls ! Rapportez-moi sa tête !");
+            return true;
+        }
+        
+        if (game_inst.nbTurn == 14) {
+            if (!variable_instance_exists(game_inst, "bot7_wave_t14_done")) game_inst.bot7_wave_t14_done = false;
+            if (game_inst.bot7_wave_t14_done) return false;
+            game_inst.bot7_wave_t14_done = true;
+            
+            game_inst.story_pending_summon_asset = "oSkarlChetif";
+            game_inst.story_pending_summon_cost = 3;
+            game_inst.story_pending_summon_force_cost = true;
+            game_inst.story_pending_summon_count = 2;
+            game_inst.story_pending_summon_prefer_front = true;
+            
+            if (instance_exists(oStoryToast)) return true;
+            var toastB7T14 = instance_create_layer(0, 0, "UI", oStoryToast);
+            toastB7T14.setPortrait("sPortraitGorrak", 96);
+            toastB7T14.setText("La meute se resserre !");
+            return true;
+        }
+        
+        if (game_inst.nbTurn == 18) {
+            if (!variable_instance_exists(game_inst, "bot7_wave_t18_done")) game_inst.bot7_wave_t18_done = false;
+            if (game_inst.bot7_wave_t18_done) return false;
+            game_inst.bot7_wave_t18_done = true;
+            
+            game_inst.story_pending_summon_asset = "oGorrak";
+            game_inst.story_pending_summon_cost = 8;
+            game_inst.story_pending_summon_force_cost = true;
+            game_inst.story_pending_summon_count = 1;
+            game_inst.story_pending_summon_prefer_back = true;
+            game_inst.story_pending_summon_trigger_as_summon = true;
+            
+            if (instance_exists(oStoryToast)) return true;
+            var toastB7T18 = instance_create_layer(0, 0, "UI", oStoryToast);
+            toastB7T18.setPortrait("sPortraitGorrak", 96);
+            toastB7T18.setText("Je vais te broyer, petit homme !");
             return true;
         }
     }

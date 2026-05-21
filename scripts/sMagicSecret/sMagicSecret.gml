@@ -20,6 +20,52 @@ function _secretPassesAttackActivationGuards(secretCard, attacker) {
     return true;
 }
 
+/// @function secretCardIsSecret(card)
+function secretCardIsSecret(_card) {
+    if (_card == noone || !instance_exists(_card)) return false;
+    if (variable_instance_exists(_card, "genre") && string_lower(_card.genre) == "secret") return true;
+    if (variable_instance_exists(_card, "zone") && string_lower(_card.zone) == "secret") return true;
+    return false;
+}
+
+/// @function secretPrepareActivationPresentation(card)
+/// @description Visible pour le halo, mais face cachée (le joueur ne doit pas voir quel secret c'est).
+function secretPrepareActivationPresentation(_card) {
+    if (_card == noone || !instance_exists(_card)) return;
+    with (_card) {
+        visible = true;
+        depth = -2000;
+        isFaceDown = true;
+        image_index = 1;
+        orientation = "Attack";
+        image_angle = 0;
+    }
+}
+
+/// @function secretCommitActivationReveal(card)
+/// @description Révélation après le halo / résolution de l'effet.
+function secretCommitActivationReveal(_card) {
+    if (_card == noone || !instance_exists(_card)) return;
+    if (!secretCardIsSecret(_card)) return;
+    with (_card) {
+        isFaceDown = false;
+        image_index = 0;
+        image_angle = 0;
+        x = room_width * 0.5;
+        y = room_height * 0.5;
+    }
+}
+
+/// @function secretExecuteEffectWithReveal(card, effect, ctx)
+function secretExecuteEffectWithReveal(_card, _effect, _ctx) {
+    var ok = executeEffect(_card, _effect, _ctx);
+    var deferred = (is_struct(_ctx) && variable_struct_exists(_ctx, "fx_aura_deferred") && _ctx.fx_aura_deferred);
+    if (ok && !deferred) {
+        secretCommitActivationReveal(_card);
+    }
+    return ok;
+}
+
 function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
     if (!instance_exists(attacker)) return noone;
     
@@ -94,14 +140,7 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
             }
             array_push(activatedNames, cardName);
             
-            // Révéler la carte
-            isFaceDown = false;
-            visible = true; // Make visible for reveal
-            image_index = 0;
-            // Center the card for effect if it was hidden/offscreen
-            x = room_width / 2;
-            y = room_height / 2;
-            depth = -2000;
+            secretPrepareActivationPresentation(id);
             
             // Calcul des dégâts et préparation du contexte
             var useAtkVal = (variable_struct_exists(chosenEffect, "use_attacker_attack_as_value") && chosenEffect.use_attacker_attack_as_value);
@@ -145,7 +184,7 @@ function activateSecretsOnDirectAttack(attacker, targetSecretCard = noone) {
                  }
                  RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
             } else {
-                executeEffect(self, chosenEffect, ctx);
+                secretExecuteEffectWithReveal(id, chosenEffect, ctx);
                 if (variable_struct_exists(chosenEffect, "redirect_attack_to_target") && chosenEffect.redirect_attack_to_target) {
                     if (variable_struct_exists(ctx, "target") && ctx.target != noone && instance_exists(ctx.target)) {
                         redirectDefender = ctx.target;
@@ -237,12 +276,7 @@ function activateSecretsOnAttack(attacker, defender) {
             if (alreadyActivated) continue;
             array_push(activatedNames, cardName);
 
-            isFaceDown = false;
-            visible = true;
-            image_index = 0;
-            x = room_width / 2;
-            y = room_height / 2;
-            depth = -2000;
+            secretPrepareActivationPresentation(id);
 
             var useAtkVal2 = (variable_struct_exists(chosenEffect, "use_attacker_attack_as_value") && chosenEffect.use_attacker_attack_as_value);
             var dmg = 0;
@@ -284,7 +318,7 @@ function activateSecretsOnAttack(attacker, defender) {
                  }
                  RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
             } else {
-                executeEffect(self, chosenEffect, ctx);
+                secretExecuteEffectWithReveal(id, chosenEffect, ctx);
                 
                 // Remove from active list to update overlay counter
                  var _idx = ds_list_find_index(secretList, id);
@@ -348,12 +382,7 @@ function activateSecretsOnMonsterSummon(summoned) {
             if (alreadyActivated) continue;
             array_push(activatedNames, cardName);
 
-            isFaceDown = false;
-            visible = true;
-            image_index = 0;
-            x = room_width / 2;
-            y = room_height / 2;
-            depth = -2000;
+            secretPrepareActivationPresentation(id);
 
             var etype = variable_struct_exists(chosenEffect, "effect_type") ? chosenEffect.effect_type : "unknown";
             show_debug_message("### Secrets: activation '" + string(cardName) + "' sur '" + string(summonedName) + "' (effet=" + string(etype) + ")");
@@ -381,7 +410,7 @@ function activateSecretsOnMonsterSummon(summoned) {
                  }
                  RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
             } else {
-                var ok = executeEffect(self, chosenEffect, ctx);
+                var ok = secretExecuteEffectWithReveal(id, chosenEffect, ctx);
                 show_debug_message("### Secrets: effet exécuté=" + string(ok) + "; destruction");
                 
                 // Remove from active list to update overlay counter
@@ -454,12 +483,7 @@ function activateSecretsOnSpellCast(spellCard, spellContext = {}) {
             if (alreadyActivated) continue;
             array_push(activatedNames, cardName);
             
-            isFaceDown = false;
-            visible = true;
-            image_index = 0;
-            x = room_width / 2;
-            y = room_height / 2;
-            depth = -2000;
+            secretPrepareActivationPresentation(id);
             
             var etype = variable_struct_exists(chosenEffect, "effect_type") ? chosenEffect.effect_type : "unknown";
             show_debug_message("### Secrets: activation '" + string(cardName) + "' sur cast '" + string(spellName) + "' (effet=" + string(etype) + ")");
@@ -491,7 +515,7 @@ function activateSecretsOnSpellCast(spellCard, spellContext = {}) {
                         }
                     }
                 }
-                var ok = executeEffect(self, chosenEffect, ctx);
+                var ok = secretExecuteEffectWithReveal(id, chosenEffect, ctx);
                 show_debug_message("### Secrets: effet exécuté=" + string(ok) + "; destruction");
                 
                 var _idx = ds_list_find_index(secretList, id);
@@ -582,16 +606,11 @@ function activateSecretsOnDestroyAttempt(target, source) {
             }
             if (chosenEffect == noone) continue;
 
-            isFaceDown = false;
-            visible = true;
-            image_index = 0;
-            x = room_width / 2;
-            y = room_height / 2;
-            depth = -2000;
+            secretPrepareActivationPresentation(id);
             
             var ctx = { target: target, source: source };
             if (variable_struct_exists(chosenEffect, "effect_type")) {
-                executeEffect(self, chosenEffect, ctx);
+                secretExecuteEffectWithReveal(id, chosenEffect, ctx);
             }
             show_debug_message("### SecretActivated: consuming secret id=" + string(id));
             
@@ -656,16 +675,11 @@ function activateSecretsOnEnemyDeath(deadCard, source = noone) {
             }
             if (chosenEffect == noone) continue;
 
-            isFaceDown = false;
-            visible = true;
-            image_index = 0;
-            x = room_width / 2;
-            y = room_height / 2;
-            depth = -2000;
+            secretPrepareActivationPresentation(id);
 
             var ctx = { target: deadCard, source: source };
             if (variable_struct_exists(chosenEffect, "effect_type")) {
-                executeEffect(self, chosenEffect, ctx);
+                secretExecuteEffectWithReveal(id, chosenEffect, ctx);
             }
 
             var idx = ds_list_find_index(secretList, id);

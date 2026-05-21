@@ -221,6 +221,21 @@ function AI_SelectBestMove(moves) {
                 moveScoreVal += effectScore;
             }
             
+            // Bonus si l'adversaire domine le plateau (remplir / défendre la front line)
+            if (script_exists(asset_get_index("AI_GetBoardPresenceCounts"))) {
+                var bp = AI_GetBoardPresenceCounts();
+                if (bp.enemy > bp.ally) {
+                    var gap = bp.enemy - bp.ally;
+                    moveScoreVal += min(900, 120 * gap);
+                    if (bp.enemy_front > bp.ally_front) {
+                        moveScoreVal += 250;
+                    }
+                }
+                if (bp.ally == 0 && bp.enemy > 0) {
+                    moveScoreVal += 400;
+                }
+            }
+
             // Petit bonus pour inciter à jouer si c'est positif, pondéré par summon_weight
             if (moveScoreVal > 0) moveScoreVal += 10 * p_summon; 
             
@@ -239,6 +254,17 @@ function AI_SelectBestMove(moves) {
             var target = move.target;
             
             moveScoreVal = 0;
+
+            // Adversaire domine le plateau : privilégier les invocations aux sorts situational
+            if (script_exists(asset_get_index("AI_GetBoardPresenceCounts"))) {
+                var bpAct = AI_GetBoardPresenceCounts();
+                if (bpAct.enemy > bpAct.ally) {
+                    moveScoreVal -= 180;
+                }
+                if (bpAct.ally == 0 && bpAct.enemy > 0) {
+                    moveScoreVal -= 120;
+                }
+            }
             
             // --- CUSTOM SPELL RULES (Added for Bot 2) ---
             var spellRules = (profile != undefined && variable_struct_exists(profile, "custom_rules") && variable_struct_exists(profile.custom_rules, "spell_rules")) ? profile.custom_rules.spell_rules : undefined;
@@ -901,10 +927,26 @@ function AI_SelectBestMove(moves) {
 
     // Seuil minimal pour agir (éviter les moves négatifs)
     if (bestScore < 0 && bestMove != noone) {
-        // Parfois ne rien faire est mieux
-        // Sauf si on veut être agressif.
-        // Pour l'instant on filtre les très mauvais coups
-        if (bestScore < -100) return noone;
+        var blockPass = (bestScore < -100);
+        // En retard sur le plateau : ne pas passer le tour si une invocation est possible
+        if (blockPass && script_exists(asset_get_index("AI_GetBoardPresenceCounts"))) {
+            var bpEnd = AI_GetBoardPresenceCounts();
+            if (bpEnd.enemy > bpEnd.ally) {
+                for (var mi = 0; mi < array_length(moves); mi++) {
+                    if (moves[mi].type == "summon" && moves[mi] != bestMove) {
+                        var altScore = AI_GetCardScore_Predicted(moves[mi].card);
+                        if (altScore > bestScore) {
+                            bestMove = moves[mi];
+                            bestScore = altScore;
+                        }
+                    }
+                }
+                if (bestMove.type == "summon" && bestScore > -200) {
+                    blockPass = false;
+                }
+            }
+        }
+        if (blockPass) return noone;
     }
 
     return bestMove;

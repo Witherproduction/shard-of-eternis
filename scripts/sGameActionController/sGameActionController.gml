@@ -807,6 +807,10 @@ function _execute_ActivateEffect(payload) {
         if (script_exists(asset_get_index("markEffectAsUsed"))) {
             markEffectAsUsed(card, effect);
         }
+
+        if (script_exists(asset_get_index("secretCommitActivationReveal"))) {
+            secretCommitActivationReveal(card);
+        }
         
         // FIX: Cache properties before potential destruction
         var isSecret = (variable_instance_exists(card, "genre") && string_lower(card.genre) == "secret");

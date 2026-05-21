@@ -101,6 +101,49 @@ getCardPositionAvailableIA = function(card) {show_debug_message("### oFieldMonst
             }
         }
 
+        // Retard plateau : bloquer la front line adverse
+        if (preferredPosition == -1 && script_exists(asset_get_index("AI_GetBoardPresenceCounts"))) {
+            var bpPlace = AI_GetBoardPresenceCounts();
+            if (bpPlace.enemy > bpPlace.ally || bpPlace.enemy_front > bpPlace.ally_front) {
+                for (var kbf = 0; kbf < ds_list_size(positionAvailable); kbf++) {
+                    var valbf = ds_list_find_value(positionAvailable, kbf);
+                    if (valbf <= 3) { preferredPosition = valbf; break; }
+                }
+            }
+        }
+
+        if (preferredPosition == -1 && strategy == "swarm_front_support_back") {
+            var hpSw = variable_instance_exists(card, "effective_defense") ? card.effective_defense : (variable_instance_exists(card, "PV") ? card.PV : 0);
+            var atkSw = variable_instance_exists(card, "effective_attack") ? card.effective_attack : (variable_instance_exists(card, "attack") ? card.attack : 0);
+            var costSw = variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0;
+            var wantsBackSw = (hpSw > atkSw + 1) || (costSw >= 6);
+            var wantsFrontSw = !wantsBackSw;
+
+            if (wantsFrontSw) {
+                for (var ksw = 0; ksw < ds_list_size(positionAvailable); ksw++) {
+                    var valsw = ds_list_find_value(positionAvailable, ksw);
+                    if (valsw <= 3) { preferredPosition = valsw; break; }
+                }
+                if (preferredPosition == -1) {
+                    for (var ksw2 = 0; ksw2 < ds_list_size(positionAvailable); ksw2++) {
+                        var valsw2 = ds_list_find_value(positionAvailable, ksw2);
+                        if (valsw2 > 3) { preferredPosition = valsw2; break; }
+                    }
+                }
+            } else {
+                for (var kswb = 0; kswb < ds_list_size(positionAvailable); kswb++) {
+                    var valswb = ds_list_find_value(positionAvailable, kswb);
+                    if (valswb > 3) { preferredPosition = valswb; break; }
+                }
+                if (preferredPosition == -1) {
+                    for (var kswb2 = 0; kswb2 < ds_list_size(positionAvailable); kswb2++) {
+                        var valswb2 = ds_list_find_value(positionAvailable, kswb2);
+                        if (valswb2 <= 3) { preferredPosition = valswb2; break; }
+                    }
+                }
+            }
+        }
+
         if (preferredPosition == -1 && strategy == "tank_front_dps_back") {
             // FIX: Use effective stats if available (consistent with AI Scoring), fallback to PV/attack
             var hp = variable_instance_exists(card, "effective_defense") ? card.effective_defense : (variable_instance_exists(card, "PV") ? card.PV : 0);
@@ -108,6 +151,15 @@ getCardPositionAvailableIA = function(card) {show_debug_message("### oFieldMonst
             
             var wantsFront = (hp > atk); // Tank -> Front (0-3)
             var wantsBack = (atk >= hp); // DPS -> Back (4-7)
+
+            // En retard : les serviteurs vont en front pour défendre (les profils aggro ne doivent pas reculer)
+            if (script_exists(asset_get_index("AI_GetBoardPresenceCounts"))) {
+                var bpTank = AI_GetBoardPresenceCounts();
+                if (bpTank.enemy > bpTank.ally) {
+                    wantsFront = true;
+                    wantsBack = false;
+                }
+            }
             
             if (wantsFront) {
                 // Try to find empty slot in 0-3

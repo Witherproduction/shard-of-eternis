@@ -133,6 +133,7 @@ function fxAuraShouldPresentEffect(_card, _effect, _context) {
         case EFFECT_SET_SELF_BUFF_CONTRIB:
         case EFFECT_COUNT_APPLY:
         case EFFECT_BUFF:
+        case EFFECT_CAMOUFLAGE:
             return false;
     }
 
@@ -190,8 +191,16 @@ function requestFXAura(spriteGhost, imageGhost, xscale, yscale, angle, duration_
     }
 }
 
+/// @function fxAuraCardIsSecret(card)
+function fxAuraCardIsSecret(_card) {
+    if (_card == noone || !instance_exists(_card)) return false;
+    if (variable_instance_exists(_card, "genre") && string_lower(_card.genre) == "secret") return true;
+    if (variable_instance_exists(_card, "zone") && string_lower(_card.zone) == "secret") return true;
+    return false;
+}
+
 /// @function fxAuraGetPresentationGhost(card)
-/// @description Face visible + échelle centre (évite dos main ennemie / mini-carte)
+/// @description Face visible + échelle centre (évite dos main ennemie / mini-carte). Les secrets restent cachés.
 function fxAuraGetPresentationGhost(_card) {
     var ghost = {
         sprite: -1,
@@ -209,11 +218,18 @@ function fxAuraGetPresentationGhost(_card) {
     ghost.xscale = DUEL_FX_AURA_CARD_SCALE;
     ghost.yscale = DUEL_FX_AURA_CARD_SCALE;
 
+    // Secrets : toujours le dos pendant le halo (même si l'IA joue / déclenche)
+    if (fxAuraCardIsSecret(_card)) {
+        ghost.image = 1;
+        ghost.angle = 0;
+        return ghost;
+    }
+
     if (variable_instance_exists(_card, "isFaceDown") && _card.isFaceDown) {
         ghost.image = 1;
     }
 
-    // Sorts / magies : face visible (bot / main)
+    // Sorts / magies (hors secrets) : face visible (bot / main)
     if (variable_instance_exists(_card, "type") && _card.type == "Magic") {
         ghost.image = 0;
         ghost.angle = 0;
@@ -309,6 +325,9 @@ function fxAuraApplyQueuedItem(_item) {
                 }
                 if (script_exists(asset_get_index("consumeSpellIfNeeded"))) {
                     consumeSpellIfNeeded(card, effect);
+                }
+                if (script_exists(asset_get_index("secretCommitActivationReveal"))) {
+                    secretCommitActivationReveal(card);
                 }
             }
             break;

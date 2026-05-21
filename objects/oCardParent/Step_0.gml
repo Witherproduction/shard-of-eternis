@@ -18,6 +18,14 @@ if (!variable_instance_exists(id, "stats_initialized")) {
         }
     }
 
+    // Stats imprimées : beaucoup de cartes définissent attack/PV après event_inherited()
+    if (variable_instance_exists(id, "original_attack") && original_attack == 0 && variable_instance_exists(id, "attack") && attack > 0) {
+        original_attack = attack;
+    }
+    if (variable_instance_exists(id, "original_PV") && original_PV == 0 && variable_instance_exists(id, "PV") && PV > 0) {
+        original_PV = PV;
+    }
+
     // 2. Effective Stats Sync (Attack/Defense)
     // Ensures stats are correct even if assigned after Create event (e.g. in Child object)
     var has_buffs = (variable_instance_exists(id, "buff_contribs") && is_array(buff_contribs) && array_length(buff_contribs) > 0);
