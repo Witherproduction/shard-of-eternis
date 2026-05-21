@@ -22,7 +22,8 @@ if (!variable_instance_exists(id, "limited")) limited = 3;
 if (!variable_instance_exists(id, "max_hp")) max_hp = PV; // Default to PV
 if (!variable_instance_exists(id, "current_hp")) current_hp = max_hp;
 if (!variable_instance_exists(id, "has_taunt")) has_taunt = false;
-if (!variable_instance_exists(id, "has_charge")) has_charge = false; 
+if (!variable_instance_exists(id, "has_charge")) has_charge = false;
+if (!variable_instance_exists(id, "is_purged")) is_purged = false; 
 // ----------------------------------------------
 
 // --- BUFF SYSTEM INITIALIZATION ---
@@ -42,6 +43,7 @@ isTargetableForFloraison = false;
 isComboActive = false; // Indicateur visuel pour Combo/Condition remplie
 comboCheckTimer = 0;   // Timer pour ne pas vérifier à chaque frame
 comboAnimTimer = 0;    // Timer pour l'animation visuelle
+statModAnimTimer = 0;  // Particules bonus/malus de stats (terrain)
 ambidextrousAnimTimer = 0; // Timer pour l'effet visuel Ambidextrie
 
 if (!variable_global_exists("nextCardInstanceUID")) global.nextCardInstanceUID = 1;

@@ -217,13 +217,15 @@ resolveAttackMonster = function(cardHero, cardEnemy) {
 
     // 1. Dégâts simultanés (Persistent Damage)
     // On utilise damageCard qui gère current_hp -= amount et la destruction si <= 0
+    var bonusDmgE = (!is_undefined(getAttackDamageTakenBonus)) ? getAttackDamageTakenBonus(cardEnemy) : 0;
+    var bonusDmgH = (!is_undefined(getAttackDamageTakenBonus)) ? getAttackDamageTakenBonus(cardHero) : 0;
+    var dmgToDef = (effHeroAtk > 0) ? effHeroAtk + bonusDmgE : 0;
+    var dmgToAtk = (effEnemyAtk > 0) ? effEnemyAtk + bonusDmgH : 0;
     if (effHeroAtk > 0) {
-        var bonusDmgE = (!is_undefined(getAttackDamageTakenBonus)) ? getAttackDamageTakenBonus(cardEnemy) : 0;
-        damageCard(cardEnemy, effHeroAtk + bonusDmgE, cardHero);
+        damageCard(cardEnemy, dmgToDef, cardHero);
     }
     if (effEnemyAtk > 0) {
-        var bonusDmgH = (!is_undefined(getAttackDamageTakenBonus)) ? getAttackDamageTakenBonus(cardHero) : 0;
-        damageCard(cardHero, effEnemyAtk + bonusDmgH, cardEnemy);
+        damageCard(cardHero, dmgToAtk, cardEnemy);
     }
 
     // Repoussement: si l'attaquant a le mot-clé, décale la cible de la front line vers la ligne de retrait (même colonne) si un slot est libre

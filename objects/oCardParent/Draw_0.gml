@@ -180,6 +180,16 @@ if (variable_instance_exists(id, "isComboActive") && isComboActive) {
 }
 // --------------------------------------------------
 
+// --- BONUS / MALUS STATS (particules ou orbes ATK/PV) ---
+if (script_exists(asset_get_index("drawCardStatModifierVisual"))) {
+    drawCardStatModifierVisual(id);
+}
+// --- Icône centrale : purge / combat / brisé ---
+if (script_exists(asset_get_index("drawCardAbilityIcon"))) {
+    drawCardAbilityIcon(id);
+}
+// --------------------------------------------------
+
 // --- TAUNT / STEALTH VISUALS (Hearthstone Style) ---
 var hasTaunt = (variable_instance_exists(self, "has_taunt") && has_taunt);
 var isStealth = (variable_instance_exists(self, "isCamouflage") && isCamouflage);

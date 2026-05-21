@@ -21,6 +21,45 @@ instanceEffectButton = "";
 ///////////////////////////////////////////////////////////////////////
 
 //----------------------------------
+// Mana (affichage boutons Play/Summon)
+//----------------------------------
+
+#region Function canAffordCardMana
+canAffordCardMana = function(card) {
+    if (card == noone || !instance_exists(card)) return false;
+
+    var ownerIsHero = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+    var currentMana = ownerIsHero ? global.mana_hero : global.mana_enemy;
+    var cost = variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0;
+
+    // Bonus coût monstre depuis la main (aligné sur sGameActionController SUMMON)
+    if (variable_instance_exists(card, "type") && string_lower(card.type) == "monster") {
+        var z = variable_instance_exists(card, "zone") ? string_lower(string(card.zone)) : "";
+        var fromHand = (z == "hand" || z == "handselected");
+        if (fromHand && instance_exists(game) && variable_instance_exists(game, "nbTurn")) {
+            var bonus = 0;
+            var bonusTurn = -1;
+            var bonusUsed = true;
+            if (ownerIsHero) {
+                bonus = variable_global_exists("next_played_monster_cost_bonus_hero") ? global.next_played_monster_cost_bonus_hero : 0;
+                bonusTurn = variable_global_exists("next_played_monster_cost_bonus_hero_turn") ? global.next_played_monster_cost_bonus_hero_turn : -1;
+                bonusUsed = variable_global_exists("next_played_monster_cost_bonus_hero_used") ? global.next_played_monster_cost_bonus_hero_used : true;
+            } else {
+                bonus = variable_global_exists("next_played_monster_cost_bonus_enemy") ? global.next_played_monster_cost_bonus_enemy : 0;
+                bonusTurn = variable_global_exists("next_played_monster_cost_bonus_enemy_turn") ? global.next_played_monster_cost_bonus_enemy_turn : -1;
+                bonusUsed = variable_global_exists("next_played_monster_cost_bonus_enemy_used") ? global.next_played_monster_cost_bonus_enemy_used : true;
+            }
+            if (bonus > 0 && bonusTurn == game.nbTurn && !bonusUsed) {
+                cost += bonus;
+            }
+        }
+    }
+
+    return currentMana >= cost;
+}
+#endregion
+
+//----------------------------------
 // Summon et Set
 //----------------------------------
 
@@ -51,7 +90,8 @@ displaySummonSetAction = function(card) {show_debug_message("### oUIManager.disp
             canNormalSummon = (game.phase[game.phase_current] == "Main"
                                && game.is_local_turn
                                // && !game.hasSummonedThisTurn[game.local_player_index] // Pas de limite en HS
-                               && hasFreeSlot);
+                               && hasFreeSlot
+                               && canAffordCardMana(card));
         }
     }
 
@@ -286,6 +326,10 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
         // Carte Magie en main -> afficher le bouton "Activer" (Play)
         // (Remplaçant l'ancien bouton Summon pour les magies)
         if (card.type == "Magic" && isInHand && isOwnerHero && isHeroTurn && currentPhase == "Main") {
+            if (!canAffordCardMana(card)) {
+                show_debug_message("### oUIManager.displayEffectButton: mana insuffisant -> bouton Play masqué");
+                return;
+            }
              // Position centrée (comme l'ancien bouton Summon) car c'est le seul bouton
             if (instanceEffectButton == "" || !instance_exists(instanceEffectButton)) {
                 instanceEffectButton = instance_create_layer(card.x, card.y - 280, layer_get_id("Instances"), oEffectButton);
@@ -300,6 +344,10 @@ displayEffectButton = function(card) {show_debug_message("### oUIManager.display
 
         // Carte Magie en main avec effet continu (Legacy/Backup si condition ci-dessus échoue pour une raison quelconque)
         if (card.type == "Magic" && isInHand && isOwnerHero && hasContinuous && isHeroTurn) {
+            if (!canAffordCardMana(card)) {
+                show_debug_message("### oUIManager.displayEffectButton: mana insuffisant (continu) -> bouton masqué");
+                return;
+            }
             // OBSOLÈTE: La logique Artéfact a été supprimée
             /*
             // Si la carte est un Artéfact avec sélection de cible, n'afficher le bouton que s'il existe une cible valide

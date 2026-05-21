@@ -487,6 +487,8 @@ function purgeUnit(targetUnit) {
     if (targetUnit == noone || !instance_exists(targetUnit)) return false;
     
     show_debug_message("Purge de l'unité : " + string(targetUnit.id));
+
+    targetUnit.is_purged = true;
     
     // 1. Annuler les effets actifs dans la liste
     if (variable_instance_exists(targetUnit, "effects") && is_array(targetUnit.effects)) {

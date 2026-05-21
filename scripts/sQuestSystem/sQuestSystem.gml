@@ -56,14 +56,12 @@ function get_quest_database() {
         "minion_dmg_20": { type: "B", desc: "Infliger des dégâts avec des serviteurs 20 fois", target: 20, reward: 25 },
         "survive_25_turns": { type: "B", desc: "Survivre à 25 tours cumulés", target: 25, reward: 25 },
         
-        "trigger_eveil_10": { type: "B", desc: "Jouer 10 cartes avec Eveil", target: 10, reward: 25 },
+        "play_10_eveil": { type: "B", desc: "Jouer 10 cartes avec le tag Eveil", target: 10, reward: 25 },
+        "play_10_illusion": { type: "B", desc: "Jouer 10 cartes avec le tag Illusion", target: 10, reward: 25 },
         "ally_death_10": { type: "B", desc: "Faire mourir 10 serviteur allié", target: 10, reward: 25 },
         
         "entrave_8": { type: "B", desc: "Entraver 8 serviteur adverse", target: 8, reward: 25 },
         "attack_entraved_5": { type: "B", desc: "Attaquer une cible entraver 5 fois", target: 5, reward: 25 },
-        
-        "summon_illusion_6": { type: "B", desc: "Invoquer 6 serviteur avec illusion", target: 6, reward: 25 },
-        "trigger_illusion_6": { type: "B", desc: "Activer l'effet illusion 6 fois", target: 6, reward: 25 },
         
         "attack_ambidextrie_10": { type: "B", desc: "Attaquer 10 fois avec ambidextrie", target: 10, reward: 25 },
         "dmg_ambidextrie_40": { type: "B", desc: "Infliger 40 dégats avec ambidextrie", target: 40, reward: 25 },
@@ -73,15 +71,24 @@ function get_quest_database() {
         "spend_mana_60": { type: "B", desc: "Dépenser 60 mana", target: 60, reward: 25 },
         "draw_15_cards": { type: "B", desc: "Piocher 15 cartes", target: 15, reward: 25 },
         
-        // QUETES C (Genres/Noms)
-        "play_15_spells": { type: "C", desc: "Jouer 15 cartes Sort", target: 15, reward: 25 },
+        "play_10_charge": { type: "B", desc: "Jouer 10 cartes avec le tag Charge", target: 10, reward: 25 },
+        "play_10_camouflage": { type: "B", desc: "Jouer 10 cartes avec le tag Camouflage", target: 10, reward: 25 },
+        "play_8_brise": { type: "B", desc: "Jouer 8 cartes avec le tag Brisé", target: 8, reward: 25 },
+        "heal_40": { type: "B", desc: "Soigner 40 points de vie (alliés)", target: 40, reward: 25 },
         
+        // QUETES C — genres : objectif 15 (sauf Terrain, peu de cartes)
+        "play_15_spells": { type: "C", desc: "Jouer 15 cartes Sort", target: 15, reward: 25 },
         "play_15_beasts": { type: "C", desc: "Jouer 15 cartes Bête", target: 15, reward: 25 },
         "play_15_humanoids": { type: "C", desc: "Jouer 15 cartes Humanoïde", target: 15, reward: 25 },
+        "play_15_undead": { type: "C", desc: "Jouer 15 cartes Mort-vivant", target: 15, reward: 25 },
+        "play_15_secrets": { type: "C", desc: "Poser 15 cartes Secret", target: 15, reward: 25 },
+        "play_5_terrain": { type: "C", desc: "Jouer 5 cartes Terrain", target: 5, reward: 25 },
         
-        "play_15_abyssians": { type: "C", desc: "Jouer 15 cartes Abyssien", target: 15, reward: 25 },
-        "play_15_tunnelins": { type: "C", desc: "Jouer 15 cartes Tunnelin", target: 15, reward: 25 },
-        "play_15_skarls": { type: "C", desc: "Jouer 15 cartes Skarl", target: 15, reward: 25 }
+        // QUETES C — races jouables (pas Ombre/Nature : magies spécifiques)
+        "play_10_humans": { type: "C", desc: "Jouer 10 cartes Humain", target: 10, reward: 25 },
+        "play_10_skarls": { type: "C", desc: "Jouer 10 cartes Skarl", target: 10, reward: 25 },
+        "play_10_abyssians": { type: "C", desc: "Jouer 10 cartes Abyssien", target: 10, reward: 25 },
+        "play_10_tunnelins": { type: "C", desc: "Jouer 10 cartes Tunnelin", target: 10, reward: 25 }
     };
 }
 
@@ -164,6 +171,38 @@ function quest_helper_check_tag_prop(ctx, tag_to_check) {
     return false;
 }
 
+/// @function quest_helper_match_play_filter(ctx, genre_keys, race_keys, tag_keys)
+/// @description Vrai si la carte jouée correspond à un genre, une race ou un tag (tableaux de clés normalisées)
+function quest_helper_match_play_filter(_ctx, _genre_keys, _race_keys, _tag_keys) {
+    if (_ctx == undefined) return false;
+    var card_genre = quest_helper_normalize_str(quest_helper_get_context_prop(_ctx, "genre"));
+    var card_race = quest_helper_normalize_str(quest_helper_get_context_prop(_ctx, "race"));
+    var card_type = quest_helper_normalize_str(quest_helper_get_context_prop(_ctx, "type"));
+    
+    if (is_array(_genre_keys)) {
+        for (var gi = 0; gi < array_length(_genre_keys); gi++) {
+            if (card_genre == _genre_keys[gi]) return true;
+        }
+    }
+    if (is_array(_race_keys)) {
+        for (var ri = 0; ri < array_length(_race_keys); ri++) {
+            if (card_race == _race_keys[ri]) return true;
+        }
+    }
+    if (is_array(_tag_keys)) {
+        for (var ti = 0; ti < array_length(_tag_keys); ti++) {
+            if (quest_helper_check_tag_prop(_ctx, _tag_keys[ti])) return true;
+        }
+    }
+    // Secret : genre ou type dédié
+    if (is_array(_genre_keys)) {
+        for (var si = 0; si < array_length(_genre_keys); si++) {
+            if (_genre_keys[si] == "secret" && (card_type == "secret" || card_genre == "secret")) return true;
+        }
+    }
+    return false;
+}
+
 /// @function check_quest_match(quest, type, context)
 function check_quest_match(_q, _t, _c) {
     var q = _q;
@@ -216,13 +255,6 @@ function check_quest_match(_q, _t, _c) {
         
         if (_t == "end_turn" && q.id == "survive_25_turns") match = true;
         
-        if (_t == "trigger_keyword") {
-            var kw = "";
-            if (_c != undefined && variable_struct_exists(_c, "keyword")) kw = _c.keyword;
-            
-            if (q.id == "trigger_illusion_6" && kw == "Illusion") match = true;
-        }
-        
         if (_t == "ally_minion_death" && q.id == "ally_death_10") match = true;
         
         if (_t == "apply_effect") {
@@ -236,19 +268,27 @@ function check_quest_match(_q, _t, _c) {
         
         if (_t == "summon") {
             if (q.id == "summon_15_minions") match = true; // Assuming only minions trigger "summon" usually
-            
-            if (q.id == "summon_illusion_6") {
-                if (quest_helper_check_tag_prop(_c, "illusion")) match = true;
-                if (quest_helper_get_context_prop(_c, "has_illusion") == true) match = true;
-                // Check illusion property
-                var illVal = quest_helper_get_context_prop(_c, "illusion");
-                if (illVal != undefined && illVal > 0) match = true;
-            }
         }
         
         if (_t == "play_card") {
             if (q.id == "play_20_cards") match = true;
-            if (q.id == "trigger_eveil_10" && quest_helper_check_tag_prop(_c, "eveil")) match = true;
+            if (q.id == "play_10_eveil" && quest_helper_check_tag_prop(_c, "eveil")) match = true;
+            if (q.id == "play_10_illusion") {
+                if (quest_helper_check_tag_prop(_c, "illusion")) match = true;
+                if (quest_helper_get_context_prop(_c, "has_illusion") == true) match = true;
+                var illVal = quest_helper_get_context_prop(_c, "illusion");
+                if (illVal != undefined && illVal > 0) match = true;
+            }
+            if (q.id == "play_10_charge") {
+                if (quest_helper_check_tag_prop(_c, "charge")) match = true;
+                if (quest_helper_get_context_prop(_c, "has_charge") == true) match = true;
+            }
+            if (q.id == "play_10_camouflage" && quest_helper_check_tag_prop(_c, "camouflage")) match = true;
+            if (q.id == "play_8_brise" && quest_helper_check_tag_prop(_c, "brisé")) match = true;
+        }
+        
+        if (_t == "heal" && q.id == "heal_40") {
+            if (_c != undefined && variable_struct_exists(_c, "owner_is_hero") && _c.owner_is_hero) match = true;
         }
         
         if (_t == "spend_mana" && q.id == "spend_mana_60") match = true;
@@ -258,25 +298,23 @@ function check_quest_match(_q, _t, _c) {
 
     // Type C (Spécifique)
     if (_t == "play_card" && q.type == "C") {
-        // Check context (card data)
         if (_c != undefined) {
             var card_genre = quest_helper_normalize_str(quest_helper_get_context_prop(_c, "genre"));
             var card_race = quest_helper_normalize_str(quest_helper_get_context_prop(_c, "race"));
             var card_type = quest_helper_normalize_str(quest_helper_get_context_prop(_c, "type"));
             
-            // Sort
             if (q.id == "play_15_spells" && (card_type == "spell" || card_type == "sort" || card_type == "magic" || quest_helper_check_tag_prop(_c, "sort") || quest_helper_check_tag_prop(_c, "spell"))) match = true;
+            if (q.id == "play_15_beasts" && quest_helper_match_play_filter(_c, ["bete"], ["bete"], ["bete"])) match = true;
+            if (q.id == "play_15_humanoids" && quest_helper_match_play_filter(_c, ["humanoide"], ["humanoide"], ["humanoide"])) match = true;
+            if (q.id == "play_15_undead" && quest_helper_match_play_filter(_c, ["mort-vivant"], ["zombie", "goule", "squelette", "fantome", "banshee"], ["mort-vivant"])) match = true;
             
-            // Genres / Families (Genre or Race)
-            // Bête
-            if (q.id == "play_15_beasts" && (card_genre == "bête" || card_genre == "bete" || card_race == "bête" || card_race == "bete" || quest_helper_check_tag_prop(_c, "bête"))) match = true;
-            // Humanoïde
-            if (q.id == "play_15_humanoids" && (card_genre == "humanoïde" || card_genre == "humanoide" || card_race == "humanoïde" || card_race == "humanoide" || quest_helper_check_tag_prop(_c, "humanoïde"))) match = true;
+            if (q.id == "play_10_abyssians" && quest_helper_match_play_filter(_c, noone, ["abyssien"], ["abyssien"])) match = true;
+            if (q.id == "play_10_tunnelins" && quest_helper_match_play_filter(_c, noone, ["tunnelin"], ["tunnelin"])) match = true;
+            if (q.id == "play_10_skarls" && quest_helper_match_play_filter(_c, noone, ["skarl"], ["skarl"])) match = true;
+            if (q.id == "play_10_humans" && quest_helper_match_play_filter(_c, noone, ["humain"], ["humain"])) match = true;
             
-            // Specific Races
-            if (q.id == "play_15_abyssians" && (card_race == "abyssien" || quest_helper_check_tag_prop(_c, "abyssien"))) match = true;
-            if (q.id == "play_15_tunnelins" && (card_race == "tunnelin" || quest_helper_check_tag_prop(_c, "tunnelin"))) match = true;
-            if (q.id == "play_15_skarls" && (card_race == "skarl" || quest_helper_check_tag_prop(_c, "skarl"))) match = true;
+            if (q.id == "play_15_secrets" && quest_helper_match_play_filter(_c, ["secret"], noone, ["secret"])) match = true;
+            if (q.id == "play_5_terrain" && quest_helper_match_play_filter(_c, ["terrain"], noone, ["terrain"])) match = true;
         }
     }
     

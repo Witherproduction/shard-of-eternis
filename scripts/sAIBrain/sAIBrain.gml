@@ -1044,26 +1044,31 @@ function AI_ExecuteMove(move) {
                 RequestGameAction(ACTION_ACTIVATE_EFFECT, payload);
                 return true;
             } else {
-                var context = { 
+                var context = {
                     target: target,
-                    owner_is_hero: false 
+                    owner_is_hero: false
                 };
-                
+
                 var resolved = executeEffect(card, effect, context);
-                
-                if (resolved) {
+                var wasDeferred = (variable_struct_exists(context, "fx_aura_deferred") && context.fx_aura_deferred);
+
+                if (resolved && !wasDeferred) {
                      var genre = (variable_instance_exists(card, "genre") ? card.genre : "");
                      var isDirect = (genre == "Sort" || genre == "Direct");
                      if (isDirect && !is_undefined(consumeSpellIfNeeded)) {
                          consumeSpellIfNeeded(card, effect);
                      }
-                     
+
                      if (!is_undefined(markEffectAsUsed)) {
                          markEffectAsUsed(card, effect);
                      }
                      return true;
                  }
-                 
+
+                if (resolved && wasDeferred) {
+                     return true;
+                 }
+
                  if (!isOnField) return true;
                  return false;
             }

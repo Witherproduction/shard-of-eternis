@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sDuelFeedback",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sDuelFeedback",
+  "parent":{
+    "name":"Duel",
+    "path":"folders/Scripts/Duel.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

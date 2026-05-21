@@ -14,7 +14,7 @@ function buffEnsure(target) {
     return true;
 }
 
-function buffSetContribution(target, source_key, atk_delta, def_delta) {
+function buffSetContribution(target, source_key, atk_delta, def_delta, source_name = undefined) {
     if (target == noone || !instance_exists(target)) return false;
     buffEnsure(target);
     var idxFound = -1;
@@ -25,6 +25,15 @@ function buffSetContribution(target, source_key, atk_delta, def_delta) {
         }
     }
     var entry = { key: source_key, atk: atk_delta, PV: def_delta };
+    if (idxFound >= 0) {
+        var prev = target.buff_contribs[idxFound];
+        if (is_struct(prev) && variable_struct_exists(prev, "source_name")) {
+            entry.source_name = prev.source_name;
+        }
+    }
+    if (!is_undefined(source_name) && is_string(source_name) && source_name != "") {
+        entry.source_name = source_name;
+    }
     if (idxFound >= 0) {
         target.buff_contribs[idxFound] = entry;
     } else {

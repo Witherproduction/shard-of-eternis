@@ -63,6 +63,14 @@ if (variable_instance_exists(id, "coin_toss_active") && coin_toss_active) {
     return;
 }
 
+// Cadre explicatif (duel Grande prêtresse)
+if (variable_instance_exists(id, "ch2_duel_rules_blocking") && ch2_duel_rules_blocking) {
+    if (!instance_exists(oChap2DuelRulesPanel)) {
+        instance_create_layer(0, 0, "UI", oChap2DuelRulesPanel);
+    }
+    return;
+}
+
 // Sync HP (Host Only) - Synchronisation d'autorité des PV
 if (variable_global_exists("NET_IS_HOST") && global.NET_IS_HOST && instance_exists(LP_Hero) && instance_exists(LP_Enemy)) {
     if (!variable_instance_exists(id, "last_sync_hp_hero")) last_sync_hp_hero = -999;
@@ -185,12 +193,19 @@ if (variable_global_exists("current_chapter") && global.current_chapter == 0) {
 if (variable_instance_exists(id, "gameEnded") && gameEnded) return;
 
 if ((!variable_instance_exists(id, "story_pause_after_enemy_draw") || !story_pause_after_enemy_draw) && !instance_exists(oStoryToast)) {
-    if (is_callable(chap1_bot_events_on_progress)) {
-        var pause_story_anytime = chap1_bot_events_on_progress(id);
-        if (pause_story_anytime) {
-            story_pause_after_enemy_draw = true;
-            exit;
-        }
+    var pause_story_anytime = false;
+    if (is_callable(chap2_bot_events_on_hero_start)) {
+        pause_story_anytime = chap2_bot_events_on_hero_start(id);
+    }
+    if (!pause_story_anytime && is_callable(chap2_bot_events_on_progress)) {
+        pause_story_anytime = chap2_bot_events_on_progress(id);
+    }
+    if (!pause_story_anytime && is_callable(chap1_bot_events_on_progress)) {
+        pause_story_anytime = chap1_bot_events_on_progress(id);
+    }
+    if (pause_story_anytime) {
+        story_pause_after_enemy_draw = true;
+        exit;
     }
 }
 
@@ -260,6 +275,11 @@ if (variable_instance_exists(id, "story_pause_after_enemy_draw") && story_pause_
             if (variable_instance_exists(id, "story_pending_summon_prefer_back")) story_pending_summon_prefer_back = false;
             if (variable_instance_exists(id, "story_pending_summon_prefer_front")) story_pending_summon_prefer_front = false;
             if (variable_instance_exists(id, "story_pending_summon_trigger_as_summon")) story_pending_summon_trigger_as_summon = false;
+            if (is_callable(chap2_bot_grande_pretresse_apply_boss_link)) {
+                if (chap2_bot_grande_pretresse_apply_boss_link()) {
+                    ch2_gp_field_setup_done = true;
+                }
+            }
         }
         
         if (variable_instance_exists(id, "story_pending_summon_asset2") && story_pending_summon_asset2 != "") {
@@ -382,6 +402,28 @@ if (variable_instance_exists(id, "story_pause_after_enemy_draw") && story_pause_
             if (variable_instance_exists(id, "story_pending_summon_prefer_front3")) story_pending_summon_prefer_front3 = false;
         }
         
+        if (variable_instance_exists(id, "story_pending_add_to_hero_hand_asset") && story_pending_add_to_hero_hand_asset != "") {
+            var handHeroInst = handHero;
+            if (instance_exists(handHeroInst)) {
+                var capH = (variable_global_exists("MAX_HAND_SIZE") ? global.MAX_HAND_SIZE : 10);
+                var handCountH = ds_list_size(handHeroInst.cards);
+                if (handCountH < capH) {
+                    var objIdxHeroHand = asset_get_index(story_pending_add_to_hero_hand_asset);
+                    if (objIdxHeroHand != -1) {
+                        var newHeroCard = instance_create_layer(handHeroInst.x, handHeroInst.y, layer_get_id("Instances"), objIdxHeroHand);
+                        if (newHeroCard != noone) {
+                            newHeroCard.isHeroOwner = true;
+                            newHeroCard.image_angle = 0;
+                            newHeroCard.zone = "Hand";
+                            handHeroInst.addCard(newHeroCard);
+                            registerTriggerEvent(TRIGGER_ENTER_HAND, newHeroCard, { owner_is_hero: true });
+                        }
+                    }
+                }
+            }
+            story_pending_add_to_hero_hand_asset = "";
+        }
+
         if (variable_instance_exists(id, "story_pending_add_to_hand_asset") && story_pending_add_to_hand_asset != "") {
             var handInst = handEnemy;
             if (instance_exists(handInst)) {
@@ -451,7 +493,16 @@ if (variable_instance_exists(id, "story_pause_after_enemy_draw") && story_pause_
         }
     }
     story_pause_after_enemy_draw = false;
-    if (player_current == 1 && phase[phase_current] == "Start") nextPhase();
+    if (variable_instance_exists(id, "ch2_gp_pending_start_turn") && ch2_gp_pending_start_turn) {
+        ch2_gp_pending_start_turn = false;
+        nextPhase();
+        timerAutoDraw = 0.5;
+        timerAutoDrawEnabled = true;
+        if (instance_exists(nextStep)) nextStep.image_index = 0;
+    } else if (phase[phase_current] == "Start") {
+        if (player_current == 1) nextPhase();
+        else if (variable_instance_exists(id, "local_player_index") && player_current == local_player_index) nextPhase();
+    }
     exit;
 }
 
@@ -474,6 +525,12 @@ else if(timerEnabledMulligan) {
 		timerMulligan = 0.5;
 	} else {
 		timerEnabledMulligan = false;
+
+        if (is_callable(chap2_bot_grande_pretresse_try_field_setup)) {
+            if (chap2_bot_grande_pretresse_try_field_setup(id)) {
+                exit;
+            }
+        }
         
         // Transitionner vers le Tour 1 (Phase Start)
         nextPhase();
@@ -504,7 +561,10 @@ if (!(timerEnabledIA && instance_exists(oStoryToast))) {
     		case "Start": 
                 IA.pick(); 
                 var pause_story = false;
-                if (is_callable(chap1_bot_events_on_enemy_draw)) {
+                if (is_callable(chap2_bot_events_on_enemy_draw)) {
+                    pause_story = chap2_bot_events_on_enemy_draw(id);
+                }
+                if (!pause_story && is_callable(chap1_bot_events_on_enemy_draw)) {
                     pause_story = chap1_bot_events_on_enemy_draw(id);
                 }
                 if (pause_story) {

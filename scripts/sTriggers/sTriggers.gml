@@ -823,74 +823,13 @@ function activateTrigger(card, triggerType, context = {}) {
 
                 
 
-                // Aura uniquement pour activation manuelle/phases visibles (éviter destruction/cimetière/dégâts)
-
-                var allowAura = (triggerType == TRIGGER_MAIN_PHASE 
-
-                    || triggerType == TRIGGER_START_TURN 
-
-                    || triggerType == TRIGGER_END_TURN 
-
-                    || triggerType == TRIGGER_QUICK_EFFECT);
-
-                // Contexte peut demander la suppression explicite
-
-                if (variable_struct_exists(context, "suppress_fx_aura") && context.suppress_fx_aura) {
-
-                    allowAura = false;
-
-                }
-
-                // Option d'effet pour contrôler l'aura (forcer ou supprimer)
-                if (variable_struct_exists(effect, "show_aura")) {
-                    allowAura = effect.show_aura;
-                }
-
-                
-
-                if (allowAura) {
-
-                    requestFXAura(
-
-                        card.sprite_index,
-
-                        card.image_index,
-
-                        card.image_xscale,
-
-                        card.image_yscale,
-
-                        card.image_angle,
-
-                        600,
-
-                        18,
-
-                        10,
-
-                        1.50, // ovalisation largeur, légèrement moins marqué
-
-                        0.80, // ovalisation hauteur, légèrement moins aplati
-
-                        card.x,
-
-                        card.y
-
-                    );
-
-                }
-
-                // Activer l'effet et savoir s'il a réussi
                 var effectSucceeded = executeEffect(card, effect, context);
-                // Marquer l'effet comme utilisé si la résolution a réussi
-                if (effectSucceeded) {
+                var wasDeferred = (is_struct(context) && variable_struct_exists(context, "fx_aura_deferred") && context.fx_aura_deferred);
+                if (effectSucceeded && !wasDeferred) {
                     markEffectAsUsed(card, effect);
                 }
-
-                // Consommer les sorts Direct (non-continus) uniquement si la résolution a réussi
-                if (effectSucceeded && !is_undefined(consumeSpellIfNeeded)) {
+                if (effectSucceeded && !wasDeferred && !is_undefined(consumeSpellIfNeeded)) {
                     consumeSpellIfNeeded(card, effect);
-                    // Si la consommation a détruit la carte, arrêter l'itération pour éviter les accès invalides
                     if (!instance_exists(card)) { break; }
                 }
 

@@ -128,6 +128,14 @@ if (variable_instance_exists(id, "position_anim_active") && position_anim_active
     }
 }
 
+// --- Stat mod / icônes capacités (terrain + main joueur) ---
+if (variable_instance_exists(id, "type") && type == "Monster") {
+    var _statVisZone = (zone == "Field" || zone == "FieldSelected"
+        || ((zone == "Hand" || zone == "HandSelected") && variable_instance_exists(id, "isHeroOwner") && isHeroOwner));
+    if (_statVisZone) statModAnimTimer += 1;
+    else if (variable_instance_exists(id, "statModAnimTimer")) statModAnimTimer = 0;
+}
+
 // --- COMBO CHECK (Spell Alert Logic) ---
 if (variable_instance_exists(id, "zone") && zone == "Hand") {
     comboAnimTimer += 1;
@@ -190,10 +198,8 @@ if (variable_instance_exists(id, "position_anim_active") && position_anim_active
 } else {
     // Restreindre le survol aux cartes de la main et du terrain uniquement
     var zone_exists = variable_instance_exists(id, "zone");
-    var hover_zone_allowed = zone_exists && (zone == "Hand" || zone == "Field");
-    // Ne pas appliquer l'effet si la carte est sélectionnée (états HandSelected/FieldSelected)
-    var selected_by_zone = zone_exists && (zone == "HandSelected" || zone == "FieldSelected");
-    if (selected_by_zone || !hover_zone_allowed) {
+    var hover_zone_allowed = zone_exists && (zone == "Hand" || zone == "Field" || zone == "HandSelected" || zone == "FieldSelected");
+    if (!hover_zone_allowed) {
         isHovered = false;
     } else {
         // Calculer un rectangle englobant la carte en tenant compte de l'échelle et de la rotation

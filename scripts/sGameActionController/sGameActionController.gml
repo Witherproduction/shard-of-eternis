@@ -211,6 +211,9 @@ function _execute_Draw(payload) {
         // C'est MOI (ou le Héros offline) qui pioche
         if (instance_exists(deckHero)) {
             deckHero.pick();
+            if (script_exists(asset_get_index("duelLogDraw"))) {
+                duelLogDraw(true, 1);
+            }
             
             if (instance_exists(oQuestManager)) {
                 oQuestManager.notify_event("draw", 1);
@@ -226,6 +229,9 @@ function _execute_Draw(payload) {
         if (instance_exists(deckEnemy)) {
              // deckEnemy.pick() ajoute à handEnemy
              deckEnemy.pick();
+             if (script_exists(asset_get_index("duelLogDraw"))) {
+                duelLogDraw(false, 1);
+             }
              
              if (variable_struct_exists(payload, "trigger_next_phase") && payload.trigger_next_phase) {
                 if (instance_exists(oGame)) oGame.nextPhase();
@@ -280,6 +286,10 @@ function _execute_NextPhase(payload) {
         // On désélectionne tout visuellement (UI pure)
         if (instance_exists(selectManager)) {
             selectManager.unSelectAll();
+        }
+
+        if (script_exists(asset_get_index("duelLogPhaseChange"))) {
+            duelLogPhaseChange(phase[phase_current]);
         }
     }
 }
@@ -439,6 +449,10 @@ function _execute_Summon(payload) {
         if (ui_overridden && ui != noone && instance_exists(ui)) {
             ui.selectedSummonOrSet = ui_prev_mode;
         }
+
+        if (script_exists(asset_get_index("duelLogPlayCard"))) {
+            duelLogPlayCard(card);
+        }
         
         // Quest System Notification moved to oHand/FX_Invocation to avoid timing conflicts
         /*
@@ -523,6 +537,10 @@ function _execute_Attack(payload) {
         return;
     }
     
+    if (script_exists(asset_get_index("duelLogAttackStart"))) {
+        duelLogAttackStart(attacker, target, isDirect);
+    }
+
     if (attackerIsHero) {
         if (isDirect) {
             var enemyHasBlockingMonsters = false;
@@ -726,6 +744,10 @@ function _execute_ActivateEffect(payload) {
         return;
     }
 
+    if (script_exists(asset_get_index("duelLogPlayCard"))) {
+        duelLogPlayCard(card);
+    }
+
     if (!variable_instance_exists(card, "effects") || !is_array(card.effects) || effectIndex < 0 || effectIndex >= array_length(card.effects)) {
         show_debug_message("ERREUR: Index d'effet invalide pour ACTIVATE_EFFECT");
         return;
@@ -770,12 +792,17 @@ function _execute_ActivateEffect(payload) {
         context.summon_mode = payload.summon_mode;
     }
 
+    if (variable_struct_exists(payload, "fx_aura_skip") && payload.fx_aura_skip) {
+        context.fx_aura_skip = true;
+    }
+
     // Exécution de l'effet
     // Note: executeEffect gère la logique interne. Si le ciblage est requis et manquant, il retournera false.
     // Mais ici, via Command Pattern, on suppose que le ciblage est déjà fait (si présent dans payload).
     var resolved = executeEffect(card, effect, context);
+    var wasDeferred = (variable_struct_exists(context, "fx_aura_deferred") && context.fx_aura_deferred);
     
-    if (resolved) {
+    if (resolved && !wasDeferred) {
         // Gestion des conséquences post-résolution (marquage, consommation)
         if (script_exists(asset_get_index("markEffectAsUsed"))) {
             markEffectAsUsed(card, effect);

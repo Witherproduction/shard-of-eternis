@@ -5,6 +5,7 @@ show_debug_message("### oSelectManager.create");
 ///////////////////////////////////////////////////////////////////////
 
 selected = noone;
+inspected = noone;              // carte affichée dans le viewer (clic droit), indépendante de selected
 targetingEffect = false;        // indique si on est en mode ciblage d'effet
 targetingEffectId = noone;      // instance de la carte magique ou oEffectManager qui cible
 attackMode = false;             // indique si on est en mode attaque (monstre sélectionné, en attente de cible)
@@ -37,6 +38,116 @@ initAttackDirectInstance();
 
 // Initialise la référence à l'instance du bouton oAttack
 // Les boutons d'attaque sont maintenant gérés par UIManager
+
+// Met à jour le viewer gauche (inspection, pas la sélection gameplay)
+updateCardViewer = function(card) {
+    if (card == noone || !instance_exists(card)) {
+        clearInspection();
+        return;
+    }
+    inspected = card;
+    var preview = instance_find(oSelectedCardDisplay, 0);
+    if (preview != noone) {
+        preview.selected = card;
+    } else {
+        var newPreview = instance_create_layer(150, 250, "Instances", oSelectedCardDisplay);
+        newPreview.selected = card;
+        newPreview.depth = -100000;
+    }
+}
+
+clearInspection = function() {
+    inspected = noone;
+    var preview = instance_find(oSelectedCardDisplay, 0);
+    if (preview != noone) {
+        preview.selected = noone;
+    }
+}
+
+// Retourne la carte oCardParent la plus au premier plan sous la souris
+findCardUnderMouse = function() {
+    var topCard = noone;
+    var topDepth = 999999;
+    with (oCardParent) {
+        if (!visible) continue;
+        if (sprite_index == -1) continue;
+        var sw = sprite_get_width(sprite_index) * abs(image_xscale);
+        var sh = sprite_get_height(sprite_index) * abs(image_yscale);
+        if (sw <= 0 || sh <= 0) continue;
+        if (mouse_x < x - sw * 0.5 || mouse_x > x + sw * 0.5) continue;
+        if (mouse_y < y - sh * 0.5 || mouse_y > y + sh * 0.5) continue;
+        if (depth < topDepth) {
+            topDepth = depth;
+            topCard = id;
+        }
+    }
+    return topCard;
+}
+
+// Carte inspectable au clic droit (viewer)
+canInspectCard = function(card) {
+    if (card == noone || !instance_exists(card)) return false;
+    if (room != rDuel) return false;
+
+    var z = string_lower(string(card.zone));
+    var onBoard = (z == "hand" || z == "handselected" || z == "field" || z == "fieldselected");
+    var isOwner = (variable_instance_exists(card, "isHeroOwner") && card.isHeroOwner);
+
+    if (isOwner) {
+        if (onBoard) return true;
+        // Mulligan / Pick : cartes encore marquées Deck sur le deck héros
+        if (z == "deck" && instance_exists(game) && variable_instance_exists(game, "phase")
+            && game.phase[game.phase_current] == "Pick") {
+            return true;
+        }
+        return false;
+    }
+
+    if (z == "field" || z == "fieldselected") {
+        return !(variable_instance_exists(card, "isFaceDown") && card.isFaceDown);
+    }
+    if ((z == "hand" || z == "handselected")
+        && instance_exists(handEnemy)
+        && variable_instance_exists(handEnemy, "reveal_override")
+        && handEnemy.reveal_override) {
+        return true;
+    }
+    return false;
+}
+
+tryInspect = function(card) {
+    if (!canInspectCard(card)) return false;
+    if (inspected == card) {
+        clearInspection();
+        return true;
+    }
+    updateCardViewer(card);
+    return true;
+}
+
+// Gestion centralisée du clic droit (une seule carte par clic)
+handleRightClickInspection = function() {
+    if (room != rDuel) return;
+    if (!mouse_check_button_pressed(mb_right)) return;
+
+    if (instance_exists(oPanelOptions)) return;
+    if (instance_exists(oTutorielManager) && !oTutorielManager.isClickAllowed(mouse_x, mouse_y)) return;
+    if (variable_global_exists("isGraveyardViewerOpen") && global.isGraveyardViewerOpen) return;
+    if (variable_global_exists("isSacrificeSelectorOpen") && global.isSacrificeSelectorOpen) return;
+    if (instance_exists(oIndicatorParent) || (instance_exists(oUIManager) && UIManager.selectedSummonOrSet != "")) return;
+
+    if (variable_global_exists("last_ui_click_time") && (current_time - global.last_ui_click_time) < 200) return;
+    if (instance_exists(oSummon) && instance_position(mouse_x, mouse_y, oSummon) != noone) return;
+    if (instance_exists(oAttack) && instance_position(mouse_x, mouse_y, oAttack) != noone) return;
+    if (instance_exists(oEffectButton) && instance_position(mouse_x, mouse_y, oEffectButton) != noone) return;
+
+    var card = findCardUnderMouse();
+    if (card == noone) {
+        if (inspected != noone) clearInspection();
+        return;
+    }
+    tryInspect(card);
+}
 
 // Définit la carte sélectionnée
 set = function(card) {
@@ -165,63 +276,11 @@ trySelect = function(card) {
             destroyTargetingArrow();
             // Continuer vers la sélection normale pour la nouvelle carte (ne pas retourner)
         } else {
-            // Carte du héros: autoriser viewer-only
-            if (card.isHeroOwner) {
-                // Si la carte est déjà en état sélectionné, déléguer à tryUnselect
-                if (selected == card && (card.zone == "HandSelected" || card.zone == "FieldSelected")) {
-                    show_debug_message("### Action menu ouvert: carte déjà sélectionnée -> déléguer à tryUnselect");
-                    return false;
-                }
-                show_debug_message("### Action menu ouvert: soft-select pour viewer (carte héros)");
-                // Ne pas modifier la zone/échelle/position de la carte, juste mettre à jour le viewer
-                set(card);
-                var preview = instance_find(oSelectedCardDisplay, 0);
-                if (preview != noone) {
-                    preview.selected = card;
-                } else {
-                    var newPreview = instance_create_layer(150, 250, "Instances", oSelectedCardDisplay);
-                    newPreview.selected = card;
-                    newPreview.depth = -100000;
-                }
-                // Afficher la flèche d'équipement en mode viewer-only si applicable (OBSOLÈTE)
-                /*
-                if (card.type == "Magic" && variable_instance_exists(card, "genre") && string_lower(card.genre) == string_lower("Artéfact")) {
-                    showEquipLinkArrowFor(card);
-                } else {
-                    destroyTargetingArrow();
-                }
-                */
-                destroyTargetingArrow();
-                // Afficher le bouton effet même en mode viewer-only si carte FD héros sur terrain
-                if (card.isHeroOwner && card.isFaceDown && (card.zone == "Field" || card.zone == "FieldSelected")) {
-                    UIManager.displayEffectButton(card);
-                }
-                return true;
+            if (card.isHeroOwner && selected == card && (card.zone == "HandSelected" || card.zone == "FieldSelected")) {
+                show_debug_message("### Action menu ouvert: carte déjà sélectionnée -> déléguer à tryUnselect");
+                return false;
             }
-            // Carte adverse: autoriser viewer-only si sur le terrain face visible ou en main révélée
-            if (!card.isHeroOwner && ((card.zone == "Field" && !card.isFaceDown) || (card.zone == "Hand" && instance_exists(handEnemy) && variable_instance_exists(handEnemy, "reveal_override") && handEnemy.reveal_override))) {
-                show_debug_message("### Action menu ouvert: soft-select pour viewer (carte adverse visible)");
-                set(card);
-                var preview_enemy = instance_find(oSelectedCardDisplay, 0);
-                if (preview_enemy != noone) {
-                    preview_enemy.selected = card;
-                } else {
-                    var newPreviewEnemy = instance_create_layer(150, 250, "Instances", oSelectedCardDisplay);
-                    newPreviewEnemy.selected = card;
-                    newPreviewEnemy.depth = -100000;
-                }
-                // Afficher la flèche d'équipement en mode viewer-only si applicable (OBSOLÈTE)
-                /*
-                if (card.type == "Magic" && variable_instance_exists(card, "genre") && string_lower(card.genre) == string_lower("Artéfact")) {
-                    showEquipLinkArrowFor(card);
-                } else {
-                    destroyTargetingArrow();
-                }
-                */
-                destroyTargetingArrow();
-                return true;
-            }
-            show_debug_message("### Action menu ouvert: blocage de trySelect (carte non autorisée)");
+            show_debug_message("### Action menu ouvert: blocage trySelect (clic droit pour inspecter)");
             return false;
         }
     }
@@ -343,15 +402,10 @@ trySelect = function(card) {
     }
     }
 
-    // Sélection côté ennemi: autoriser le viewer-only si la carte est visible ou main révélée
-    if(!card.isHeroOwner && ((card.zone == "Field" && !card.isFaceDown) || (card.zone == "Hand" && instance_exists(handEnemy) && variable_instance_exists(handEnemy, "reveal_override") && handEnemy.reveal_override))) {
-        show_debug_message("### Sélection d'une carte ennemie visible (viewer-only)");
-        unSelectAll();
-        select(card);
-        UIManager.hideSummonAndSet();
-        if (attackDirectInstance != noone) attackDirectInstance.image_alpha = 0;
-        show_debug_message("### Viewer mis à jour pour carte ennemie visible");
-        return true;
+    // Cartes ennemies visibles : inspection au clic droit uniquement (pas de sélection gameplay)
+    if (!card.isHeroOwner && canInspectCard(card)) {
+        show_debug_message("### trySelect: carte ennemie ignorée (clic droit pour inspecter)");
+        return false;
     }
 
     // Autoriser à toutes les phases la sélection des cartes face cachée du héros sur le terrain
@@ -418,14 +472,6 @@ select = function(card) {
         card.image_xscale = 0.5;
         card.image_yscale = 0.5;
         card.y -= 80;
-    }
-    var preview = instance_find(oSelectedCardDisplay, 0);
-    if (preview != noone) {
-        preview.selected = card;
-    } else {
-        var newPreview = instance_create_layer(150, 250, "Instances", oSelectedCardDisplay);
-        newPreview.selected = card;
-        newPreview.depth = -100000;
     }
 }
 
@@ -512,3 +558,5 @@ startTargeting = function(effectInstance) {
         createTargetingArrow(src);
     }
 }
+
+clearInspection();

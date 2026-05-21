@@ -10,6 +10,14 @@ if (variable_global_exists("isSacrificeSelectorOpen") && global.isSacrificeSelec
 // Bloque si le tutoriel restreint les clics
 if (instance_exists(oTutorielManager) && !oTutorielManager.isClickAllowed(mouse_x, mouse_y)) exit;
 
+// Garde-fou : ne pas lancer le placement si le mana est insuffisant
+if (variable_instance_exists(self, "parentCard") && parentCard != "" && instance_exists(parentCard)
+    && instance_exists(UIManager) && !UIManager.canAffordCardMana(parentCard)) {
+    show_debug_message("### oSummon: mana insuffisant -> annulation");
+    UIManager.hideSummonAndSet();
+    exit;
+}
+
 UIManager.selectedSummonOrSet = "Summon";
 
 // Affiche les indicateurs de placement

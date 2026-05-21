@@ -40,6 +40,10 @@ tail_to_enemy = true;
 function setText(_text) {
     text = string(_text);
     start_ms = current_time;
+    if (room == rDuel && script_exists(asset_get_index("duelLogBotScriptHeader"))) {
+        var gi = instance_find(oGame, 0);
+        if (gi != noone) duelLogBotScriptHeader(gi, text);
+    }
 }
 
 function setTiming(_hold_ms, _fade_in_ms = 250, _fade_out_ms = 250) {

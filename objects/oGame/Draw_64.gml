@@ -185,3 +185,11 @@ if (!(variable_instance_exists(id, "coin_toss_active") && coin_toss_active)) {
         draw_deck_tooltip(false, mx_gui, my_gui, deckHeroInst, deckEnemyInst);
     }
 }
+
+// --- Infobulle états / bonus-malus (carte survolée) ---
+if (room == rDuel && script_exists(asset_get_index("cardStatusTooltipFindHoveredCard"))) {
+    var tipCard = cardStatusTooltipFindHoveredCard();
+    if (tipCard != noone && script_exists(asset_get_index("drawCardStatusTooltipGUI"))) {
+        drawCardStatusTooltipGUI(tipCard, device_mouse_x_to_gui(0), device_mouse_y_to_gui(0));
+    }
+}

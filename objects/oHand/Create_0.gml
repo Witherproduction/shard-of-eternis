@@ -73,6 +73,89 @@ updateDisplay = function() {
 }
 #endregion
 
+/// Résolution d'un sort depuis la main (après halo de présentation)
+finishSpellPlayAfterAura = function(_card, _effectTarget, _isHeroOwner, _removedIndex, _mode_resolved) {
+    var card = _card;
+    if (card == noone || !instance_exists(card)) return false;
+
+    var effectTarget = _effectTarget;
+    var isHeroOwner = _isHeroOwner;
+    var removedIndex = _removedIndex;
+    var mode_resolved = _mode_resolved;
+
+    var executed = false;
+    var targetingStarted = false;
+
+    if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
+        for (var i = 0; i < array_length(card.effects); i++) {
+            var eff = card.effects[i];
+            var trig = variable_struct_exists(eff, "trigger") ? eff.trigger : "";
+            var isActivationEffect = (trig == "" || trig == "main_phase" || trig == "on_spell_cast" || trig == "on_summon");
+            if (isActivationEffect) {
+                var res = executeEffect(card, eff, { target: effectTarget, owner_is_hero: isHeroOwner, fx_aura_skip: true });
+                if (instance_exists(oSelectManager) && oSelectManager.targetingEffect) {
+                    targetingStarted = true;
+                    executed = true;
+                    break;
+                }
+                if (res) executed = true;
+            }
+        }
+    }
+
+    if (!executed && !targetingStarted && variable_instance_exists(card, "effect")) {
+        var res2 = executeEffect(card, card.effect, { target: effectTarget, owner_is_hero: isHeroOwner, fx_aura_skip: true });
+        if (instance_exists(oSelectManager) && oSelectManager.targetingEffect) {
+            targetingStarted = true;
+        }
+        if (res2) executed = true;
+    }
+
+    if (targetingStarted) {
+        card.visible = true;
+        card.zone = "Hand";
+        if (removedIndex != -1) {
+            ds_list_insert(cards, removedIndex, card);
+        } else {
+            ds_list_add(cards, card);
+        }
+        updateDisplay();
+        return true;
+    }
+
+    if (!executed) {
+        if (removedIndex != -1) {
+            ds_list_insert(cards, removedIndex, card);
+        } else {
+            ds_list_add(cards, card);
+        }
+        updateDisplay();
+        card.visible = true;
+        card.zone = "Hand";
+        var cost = variable_instance_exists(card, "_last_mana_paid") ? card._last_mana_paid : (variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0);
+        if (isHeroOwner) global.mana_hero += cost;
+        else global.mana_enemy += cost;
+        if (variable_instance_exists(card, "_last_mana_paid")) card._last_mana_paid = undefined;
+        return false;
+    }
+
+    card.visible = false;
+    card.zone = "Graveyard";
+    var ctxSummon = { summon_mode: mode_resolved, owner_is_hero: isHeroOwner, target: effectTarget };
+    registerTriggerEvent(TRIGGER_ON_SUMMON, card, ctxSummon);
+    if (script_exists(asset_get_index("consumeSpellIfNeeded"))) {
+        consumeSpellIfNeeded(card, undefined);
+    } else {
+        var grave = isHeroOwner ? global.graveyardHero : global.graveyardEnemy;
+        if (grave != noone && instance_exists(grave)) grave.addToGraveyard(card);
+        if (instance_exists(card)) instance_destroy(card);
+    }
+    if (isHeroOwner && instance_exists(oQuestManager)) {
+        oQuestManager.notify_event("play_card", 1, { card: card });
+    }
+    return true;
+};
+
 #region Function summon
 summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
     show_debug_message("### oHand.summon");
@@ -259,117 +342,20 @@ summon = function(card, XYPos, desiredOrientation = "", effectTarget = noone) {
              return true;
         }
         
-        // --- FIX EFFECT: Exécuter l'effet principal de la carte Magie ---
-        // Les cartes magiques "Sort" doivent exécuter leurs effets immédiatement.
-        var executed = false;
-        var targetingStarted = false;
+        // Sort avec ciblage manuel : pas de halo avant la flèche (halo après la cible via executeEffect)
+        var spellNeedsTarget = (script_exists(asset_get_index("cardSpellPlayNeedsManualTargeting"))
+            && cardSpellPlayNeedsManualTargeting(card, effectTarget, isHeroOwner));
 
-        if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
-            for (var i = 0; i < array_length(card.effects); i++) {
-                var eff = card.effects[i];
-                var trig = variable_struct_exists(eff, "trigger") ? eff.trigger : "";
-                
-                // Exécuter si pas de trigger spécifique (défaut) OU si trigger d'activation standard
-                // On exclut les triggers de mort/cimetière/tour
-                var isActivationEffect = (trig == "" || trig == "main_phase" || trig == "on_spell_cast" || trig == "on_summon");
-                
-                if (isActivationEffect) {
-                     var res = executeEffect(card, eff, { target: effectTarget, owner_is_hero: isHeroOwner });
-                     
-                     // Check if targeting started
-                     if (instance_exists(oSelectManager) && oSelectManager.targetingEffect) {
-                         targetingStarted = true;
-                         executed = true; // Handled
-                         break;
-                     }
-                     
-                     if (res) executed = true;
-                }
+        if (!spellNeedsTarget) {
+            card.visible = false;
+            if (script_exists(asset_get_index("fxAuraEnqueueSpellHandPlay"))) {
+                fxAuraEnqueueSpellHandPlay(id, card, effectTarget, isHeroOwner, removedIndex, mode_resolved);
+                fxAuraStartPresentationIfIdle(card);
+                return true;
             }
-        } 
-        
-        if (!executed && !targetingStarted && variable_instance_exists(card, "effect")) {
-             // Cas simple: un seul effet (fallback)
-             var res = executeEffect(card, card.effect, { target: effectTarget, owner_is_hero: isHeroOwner });
-             if (instance_exists(oSelectManager) && oSelectManager.targetingEffect) {
-                 targetingStarted = true;
-             }
-             if (res) executed = true;
-        }
-        
-        if (targetingStarted) {
-            show_debug_message("### oHand.summon: Targeting started for " + string(card.name) + " -> Pausing graveyard logic.");
-            card.visible = true; // Keep visible for targeting
-            card.zone = "Hand"; // Keep as Hand temporarily
-            
-            // Re-add to hand list temporarily so it doesn't disappear from UI if updateDisplay called?
-            // Actually, if we return true, the card is "played" but waiting.
-            // If we want it to stay in hand VISUALLY, we might need to re-add it?
-            // "card.visible = true" makes the instance visible.
-            // But if it's not in "cards" list, updateDisplay won't position it.
-            // So it might sit at its current position (where user dropped it?).
-            // For targeting, usually we want to see the card.
-            // Let's re-add it to the list so updateDisplay manages it.
-            if (removedIndex != -1) {
-                 ds_list_insert(cards, removedIndex, card);
-            } else {
-                 ds_list_add(cards, card);
-            }
-            updateDisplay();
-            
-            return true;
         }
 
-        if (!executed) {
-             show_debug_message("### oHand.summon: Effect execution failed (Condition not met) -> Cancel Play & Refund");
-             
-             // Restore Card to Hand
-             if (removedIndex != -1) {
-                 ds_list_insert(cards, removedIndex, card);
-             } else {
-                 ds_list_add(cards, card);
-             }
-             updateDisplay();
-             
-             card.visible = true;
-             card.zone = "Hand";
-             
-             // Refund Mana
-             var cost = variable_instance_exists(card, "_last_mana_paid") ? card._last_mana_paid : (variable_instance_exists(card, "mana_cost") ? card.mana_cost : 0);
-             if (isHeroOwner) {
-                 global.mana_hero += cost;
-             } else {
-                 global.mana_enemy += cost;
-             }
-             if (variable_instance_exists(card, "_last_mana_paid")) { card._last_mana_paid = undefined; }
-             
-             return false;
-        }
-        
-        card.visible = false;
-        card.zone = "Graveyard";
-        
-        // Trigger Effect (Execute Spell) - Pour les réactions d'autres cartes
-        var ctxSummon = { summon_mode: mode_resolved, owner_is_hero: isHeroOwner, target: effectTarget };
-        registerTriggerEvent(TRIGGER_ON_SUMMON, card, ctxSummon);
-        
-        // Send to Graveyard via consumeSpellIfNeeded (handles Tempo flows correctly)
-        if (script_exists(asset_get_index("consumeSpellIfNeeded"))) {
-             consumeSpellIfNeeded(card, undefined);
-        } else {
-             var grave = isHeroOwner ? global.graveyardHero : global.graveyardEnemy;
-             if (grave != noone && instance_exists(grave)) {
-                 grave.addToGraveyard(card);
-             }
-             if (instance_exists(card)) instance_destroy(card);
-        }
-        
-        // Quest Notification (Spell)
-        if (isHeroOwner && instance_exists(oQuestManager)) {
-             oQuestManager.notify_event("play_card", 1, { card: card });
-        }
-
-        return true;
+        return finishSpellPlayAfterAura(card, effectTarget, isHeroOwner, removedIndex, mode_resolved);
     }
 
     // Crée l'effet d'invocation (glissade vers le terrain) sur le layer UI

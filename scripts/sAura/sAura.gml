@@ -184,7 +184,11 @@ function applyAllMonstersAuraDebuff(card, effect) {
                     }
                 }
                 if (excluded) continue;
-                buffSetContribution(id, srcKey, atk, PV);
+                var auraSrcName = "";
+                if (card != noone && instance_exists(card) && variable_instance_exists(card, "name")) {
+                    auraSrcName = string(card.name);
+                }
+                buffSetContribution(id, srcKey, atk, PV, auraSrcName);
                 buffRecompute(id);
             }
         }

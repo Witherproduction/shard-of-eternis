@@ -43,7 +43,12 @@ function get_chapter_data(chapter_id) {
         {
             id: 2,
             title: "Les landes du sépulcre",
-            acts: ["Le réveil"]
+            acts: [
+                "Le réveil",
+                "Des cendres et le remède",
+                "Le Don de l'Ombre",
+                "Le siège de la lumière"
+            ]
         },
         {
             id: 3,

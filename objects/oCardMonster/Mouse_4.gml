@@ -31,13 +31,7 @@ if ((instance_exists(oSummon) && instance_position(mouse_x, mouse_y, oSummon) !=
 if (room == rDuel && variable_global_exists("isActionMenuOpen") && global.isActionMenuOpen) {
     var allowDeckPick = false; // Legacy "Pick" phase removed
     var allowUnselectClick = instance_exists(oSelectManager) && selectManager.selected == id;
-    // Autoriser viewer-only pour cartes visibles (héros et adversaire)
-    var allowHeroViewerClick = instance_exists(oSelectManager) && isHeroOwner && (zone == "Hand" || zone == "Field");
-    var allowEnemyViewerClick = instance_exists(oSelectManager) && !isHeroOwner && (
-        ((zone == "Field") && !isFaceDown) ||
-        ((zone == "Hand") && instance_exists(handEnemy) && variable_instance_exists(handEnemy, "reveal_override") && handEnemy.reveal_override)
-    );
-    if (!(allowDeckPick || allowUnselectClick || allowHeroViewerClick || allowEnemyViewerClick)) {
+    if (!(allowDeckPick || allowUnselectClick)) {
         return;
     }
 }

@@ -14,7 +14,11 @@ if (!variable_instance_exists(id, "attackDelayFrames")) attackDelayFrames = 0;
 var delay_cfg = (variable_global_exists("IA_ACTION_DELAY_FRAMES") ? global.IA_ACTION_DELAY_FRAMES : 30);
 
 // --- Gestion de l'attente des animations (Globale) ---
-var fx_active = (instance_exists(FX_Invocation) || instance_exists(FX_Combat) || instance_exists(FX_Destruction) || instance_exists(FX_Effect) || instance_exists(FX_Poison) || instance_exists(oFX_Draw) || instance_exists(oFX_Discard));
+// FX_Effect projectile/one_shot ne doivent pas bloquer l'IA (seul le halo de présentation)
+var fx_active = (instance_exists(FX_Invocation) || instance_exists(FX_Combat) || instance_exists(FX_Destruction) || instance_exists(FX_Poison) || instance_exists(oFX_Draw) || instance_exists(oFX_Discard));
+if (script_exists(asset_get_index("fxAuraIsBusy")) && fxAuraIsBusy()) {
+    fx_active = true;
+}
 
 if (fx_active) {
     // Tant qu'une animation est active, on maintient les délais à leur valeur initiale

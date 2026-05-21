@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sCardStatVisual",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sCardStatVisual",
+  "parent":{
+    "name":"utils",
+    "path":"folders/Scripts/Duel/effet/utils.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

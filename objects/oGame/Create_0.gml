@@ -208,6 +208,12 @@ setDuelBackground = function() {
 // Appliquer le fond d'écran au démarrage
 setDuelBackground();
 
+// Journal de duel + nombres flottants
+if (script_exists(asset_get_index("duelFeedbackInit"))) {
+    duelFeedbackInit();
+    duelFeedbackEnsureUI();
+}
+
 phase = ["Start", "Main", "End"];
 player = ["Hero", "Enemy"];
 phase_current = 2; // Start at End so nextPhase() cycles to Start
@@ -219,6 +225,26 @@ timerEnabledIA = false;
 
 local_player_index = 0;
 remote_player_index = 1;
+
+// Bonus mana Vespera (affichage HUD duel Kelthazar)
+vespera_mana_boost_active = false;
+vespera_mana_boost_per_turn = 1;
+if (is_callable(chap2_hero_mana_boost_is_active) && chap2_hero_mana_boost_is_active()) {
+    vespera_mana_boost_active = true;
+    if (is_callable(chap2_hero_mana_per_turn_total)) {
+        vespera_mana_boost_per_turn = chap2_hero_mana_per_turn_total();
+    }
+}
+
+// Duel Grande prêtresse — cadre de règles avant la partie
+ch2_duel_rules_blocking = false;
+ch2_gp_field_setup_done = false;
+ch2_gp_enrage_toast_done = false;
+ch2_gp_intro_done = false;
+ch2_gp_pending_start_turn = false;
+if (is_callable(chap2_bot_grande_pretresse_is_duel) && chap2_bot_grande_pretresse_is_duel()) {
+    ch2_duel_rules_blocking = true;
+}
 
 // Vérification du mode Bot/Histoire pour forcer le mode hors-ligne
 var isBotDuel = (variable_global_exists("selected_bot_deck_id") && global.selected_bot_deck_id != noone);
@@ -329,9 +355,25 @@ nextPhase = function() {
             // C'est pas idéal. Généralement T1 = Tour complet.
             // On va simplifier: mana_max += 1 à chaque début de MON tour.
             
-            global.mana_max_hero = min(global.mana_max_hero + 1, 10);
-            global.mana_hero = global.mana_max_hero;
-            show_debug_message("### Mana Hero: " + string(global.mana_hero) + "/" + string(global.mana_max_hero));
+            if (is_callable(chap2_hero_uses_flat_mana_ten) && chap2_hero_uses_flat_mana_ten()) {
+                global.mana_max_hero = 10;
+                global.mana_hero = 10;
+                show_debug_message("### Mana Hero (duel Grande prêtresse): 10/10");
+            } else {
+                var heroManaRamp = 1;
+                if (is_callable(chap2_hero_mana_ramp_bonus)) {
+                    heroManaRamp += chap2_hero_mana_ramp_bonus();
+                }
+                global.mana_max_hero = min(global.mana_max_hero + heroManaRamp, 10);
+                global.mana_hero = global.mana_max_hero;
+                show_debug_message("### Mana Hero: " + string(global.mana_hero) + "/" + string(global.mana_max_hero) + " (ramp+" + string(heroManaRamp) + ")");
+            }
+
+            if (is_callable(chap2_bot_try_show_mana_boost_toast)) {
+                if (chap2_bot_try_show_mana_boost_toast(id)) {
+                    story_pause_after_enemy_draw = true;
+                }
+            }
             
         } else { // Enemy
             global.mana_max_enemy = min(global.mana_max_enemy + 1, 10);

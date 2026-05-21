@@ -6,5 +6,6 @@ visible = true;
 // Dessiner au-dessus des autres instances (si layers actifs, crée une layer dynamique)
 depth = -100000;
 
-// Initialisation de la variable selected
+// Initialisation de la variable selected (viewer = inspection uniquement)
 selected = noone;
+prev_card = noone;

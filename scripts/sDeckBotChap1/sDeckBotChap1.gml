@@ -609,7 +609,8 @@ function chap1_bot_events_on_progress(game_inst) {
         if (!game_inst.bot5_script_phase2_done) {
             var lp5 = instance_find(oLP_Enemy, 0);
             var lpv5 = (lp5 != noone && variable_instance_exists(lp5, "nbLP")) ? lp5.nbLP : 999999;
-            var mustTriggerB5P2 = (lpv5 <= 40) || (game_inst.nbTurn == 4);
+            // 50 PV de départ : seuil <= 30 = blessé, pas <= 40 (toujours vrai au début)
+            var mustTriggerB5P2 = (lpv5 <= 30) || (game_inst.nbTurn == 4);
             if (mustTriggerB5P2) {
                 game_inst.bot5_script_phase2_done = true;
                 game_inst.story_pending_cast_spell_asset = "oMainFurtive";
@@ -625,25 +626,25 @@ function chap1_bot_events_on_progress(game_inst) {
         }
         
         if (!variable_instance_exists(game_inst, "bot5_script_phase3_done")) game_inst.bot5_script_phase3_done = false;
-        if (!game_inst.bot5_script_phase3_done) {
+        if (!game_inst.bot5_script_phase3_done && game_inst.bot5_script_phase2_done) {
             var lp5b = instance_find(oLP_Enemy, 0);
-            var lpv5b = (lp5b != noone && variable_instance_exists(lp5b, "nbLP")) ? lp5b.nbLP : 0;
+            var lpv5b = (lp5b != noone && variable_instance_exists(lp5b, "nbLP")) ? lp5b.nbLP : 999999;
             var isTurn8 = (game_inst.nbTurn == 8);
-            var lpHigh = (lpv5b >= 30);
+            var lpWounded = (lpv5b <= 20);
             
-            if (isTurn8 || lpHigh) {
+            if (isTurn8 || lpWounded) {
                 game_inst.bot5_script_phase3_done = true;
                 
                 if (isTurn8) {
                     game_inst.story_pending_add_to_hand_asset = "oVoleurFinelame";
                     game_inst.story_pending_cast_spell_asset = "oMainFurtive";
-                    game_inst.story_pending_cast_spell_cost = 0;
+                    game_inst.story_pending_cast_spell_cost = 1;
                     game_inst.story_pending_cast_spell_force_cost = true;
                 } else {
                     var canSummonB5P3 = (getLeftmostFreeMonsterSlot(false) != noone);
                     if (canSummonB5P3) {
                         game_inst.story_pending_summon_asset = "oVoleurFinelame";
-                        game_inst.story_pending_summon_cost = 0;
+                        game_inst.story_pending_summon_cost = 4;
                         game_inst.story_pending_summon_force_cost = true;
                         game_inst.story_pending_summon_count = 1;
                         game_inst.story_pending_summon_prefer_back = true;
@@ -651,7 +652,7 @@ function chap1_bot_events_on_progress(game_inst) {
                         game_inst.story_pending_add_to_hand_asset = "oVoleurFinelame";
                     }
                     game_inst.story_pending_cast_spell_asset = "oMainFurtive";
-                    game_inst.story_pending_cast_spell_cost = 0;
+                    game_inst.story_pending_cast_spell_cost = 1;
                     game_inst.story_pending_cast_spell_force_cost = true;
                 }
                 
@@ -664,7 +665,7 @@ function chap1_bot_events_on_progress(game_inst) {
         }
         
         if (!variable_instance_exists(game_inst, "bot5_script_phase4_done")) game_inst.bot5_script_phase4_done = false;
-        if (!game_inst.bot5_script_phase4_done) {
+        if (!game_inst.bot5_script_phase4_done && game_inst.bot5_script_phase3_done) {
             var lp5c = instance_find(oLP_Enemy, 0);
             var lpv5c = (lp5c != noone && variable_instance_exists(lp5c, "nbLP")) ? lp5c.nbLP : 0;
             var isTurn18 = (game_inst.nbTurn == 18);
@@ -672,26 +673,26 @@ function chap1_bot_events_on_progress(game_inst) {
                 game_inst.bot5_script_phase4_done = true;
                 
                 game_inst.story_pending_cast_spell_asset = "oMainFurtive";
-                game_inst.story_pending_cast_spell_cost = 0;
+                game_inst.story_pending_cast_spell_cost = 1;
                 game_inst.story_pending_cast_spell_force_cost = true;
                 
                 if (lpv5c >= 20) {
                     var canSummonAny = (getLeftmostFreeMonsterSlot(false) != noone);
                     if (canSummonAny) {
                         game_inst.story_pending_summon_asset = "oRecolteur";
-                        game_inst.story_pending_summon_cost = 0;
+                        game_inst.story_pending_summon_cost = 8;
                         game_inst.story_pending_summon_force_cost = true;
                         game_inst.story_pending_summon_count = 1;
                         game_inst.story_pending_summon_prefer_back = true;
                         
                         game_inst.story_pending_summon_asset2 = "oCatherineFumerol";
-                        game_inst.story_pending_summon_cost2 = 0;
+                        game_inst.story_pending_summon_cost2 = 4;
                         game_inst.story_pending_summon_force_cost2 = true;
                         game_inst.story_pending_summon_count2 = 1;
                         game_inst.story_pending_summon_prefer_back2 = true;
                         
                         game_inst.story_pending_summon_asset3 = "oYvanCostaud";
-                        game_inst.story_pending_summon_cost3 = 0;
+                        game_inst.story_pending_summon_cost3 = 4;
                         game_inst.story_pending_summon_force_cost3 = true;
                         game_inst.story_pending_summon_count3 = 1;
                         game_inst.story_pending_summon_prefer_front3 = true;

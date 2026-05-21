@@ -181,6 +181,23 @@ if (variable_instance_exists(self, "mode") && mode == "one_shot") {
 }
 
 // === MODE HALO (Legacy) ===
+// duration_ms est assigné après Create : réappliquer au premier step
+if (!variable_instance_exists(self, "_halo_duration_applied")) {
+    _halo_duration_applied = true;
+    if (variable_instance_exists(self, "duration_ms") && duration_ms > 0) {
+        var __fps = game_get_speed(gamespeed_fps);
+        duration = max(1, (duration_ms / 1000.0) * __fps);
+        fade_in_frames = floor(0.15 * __fps);
+        fade_out_frames = floor(0.15 * __fps);
+        var __min = fade_in_frames + fade_out_frames;
+        if (duration < __min) {
+            fade_in_frames = max(1, floor(0.5 * duration));
+            fade_out_frames = max(1, duration - fade_in_frames);
+        }
+        _t = 0;
+    }
+}
+
 _t++;
 var progress = clamp(_t / duration, 0, 1);
 
@@ -219,45 +236,16 @@ halo_expand_current = expand;
 // Fin
 // Lorsque le halo est terminé, enchaîner la file ou libérer le verrou
 if (progress >= 1) {
-    // Exécuter l'action de fin, si fournie pour CE halo
     if (variable_instance_exists(self, "on_complete_action") && is_callable(on_complete_action)) {
         var __fn = on_complete_action;
         on_complete_action = noone;
         __fn();
     }
-
-    // Vérifier la présence d'une queue valide et non vide
-    var __has_queue = variable_global_exists("fx_aura_queue") && (global.fx_aura_queue != undefined) && (ds_queue_size(global.fx_aura_queue) > 0);
-    if (__has_queue) {
-        var cfg = ds_queue_dequeue(global.fx_aura_queue);
-        var px = room_width * 0.5;
-        var py = room_height * 0.5;
-        var fx = instance_create_depth(px, py, -100000, FX_Effect);
-        if (fx != noone) {
-            // Aura centrée: ne pas forcer la position carte
-            fx.display_at_center = true;
-            // Paramètres visuels
-            if (variable_struct_exists(cfg, "spriteGhost")) {
-                fx.spriteGhost = cfg.spriteGhost;
-            }
-            fx.imageGhost     = cfg.imageGhost;
-            fx.image_xscale   = cfg.image_xscale;
-            fx.image_yscale   = cfg.image_yscale;
-            fx.image_angle    = cfg.image_angle;
-            fx.duration_ms    = cfg.duration_ms;
-            fx.halo_pad_px    = cfg.halo_pad_px;
-            fx.halo_thickness = cfg.halo_thickness;
-            fx.halo_oval_xmul = cfg.halo_oval_xmul;
-            fx.halo_oval_ymul = cfg.halo_oval_ymul;
-            // Propager une éventuelle action de fin associée à cet item de queue
-            if (variable_struct_exists(cfg, "on_complete_action")) {
-                fx.on_complete_action = cfg.on_complete_action;
-            }
-        }
-        global.fx_aura_instance = fx;
+    if (script_exists(asset_get_index("fxAuraOnPresentationFinished"))) {
+        fxAuraOnPresentationFinished();
     } else {
         global.fx_aura_lock = false;
         global.fx_aura_instance = noone;
-        instance_destroy();
     }
+    instance_destroy();
 }

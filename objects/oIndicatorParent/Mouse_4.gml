@@ -86,35 +86,17 @@ else {
         // Si l'effet est différé pour un sort Sort, exécuter immédiatement après la pose
         if (hasPending && isDirect) {
             var effd = selectManager.pendingEffect;
-            // Aura d'activation
-            requestFXAura(
-                placed.sprite_index,
-                placed.image_index,
-                placed.image_xscale,
-                placed.image_yscale,
-                placed.image_angle,
-                600,
-                18,
-                10,
-                1.50,
-                0.80,
-                placed.x,
-                placed.y
-            );
-            
-            // Phase 1.5: Command Pattern
             var idxD = selectManager.pendingEffectIndex;
             if (idxD != -1 && variable_instance_exists(placed, "instance_uid")) {
                 RequestGameAction(ACTION_ACTIVATE_EFFECT, {
                     source_uid: placed.instance_uid,
                     effect_index: idxD
                 });
-                // On laisse le contrôleur gérer la consommation/marquage
             } else {
-                // Fallback
-                var resolved = executeEffect(placed, effd, {});
-                if (resolved) {
-                    // Marquer l'effet comme utilisé et consommer le sort Direct immédiatement
+                var ctxInd = {};
+                var resolved = executeEffect(placed, effd, ctxInd);
+                var wasDeferred = (resolved && variable_struct_exists(ctxInd, "fx_aura_deferred") && ctxInd.fx_aura_deferred);
+                if (resolved && !wasDeferred) {
                     if (!is_undefined(markEffectAsUsed)) { markEffectAsUsed(placed, effd); }
                     if (!is_undefined(consumeSpellIfNeeded)) { consumeSpellIfNeeded(placed, effd); }
                 }

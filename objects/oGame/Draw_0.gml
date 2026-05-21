@@ -154,6 +154,16 @@ if (spr_mana != -1) {
     draw_text_transformed_color(mana_spr_x + 1, mana_spr_y + text_y_offset + 1, mana_hero_str, text_scale, text_scale, 0, c_black, c_black, c_black, c_black, 1);
     // Texte blanc
     draw_text_transformed_color(mana_spr_x, mana_spr_y + text_y_offset, mana_hero_str, text_scale, text_scale, 0, c_white, c_white, c_white, c_white, 1);
+
+    // Indicateur bonus mana Vespera (duel Kelthazar)
+    if (variable_instance_exists(id, "vespera_mana_boost_active") && vespera_mana_boost_active) {
+        var boostLabel = "Don de la reine";
+        var boostScale = 0.12;
+        var boostY = mana_spr_y + spr_h * 0.55;
+        draw_set_font(fontUI);
+        draw_text_transformed_color(mana_spr_x + 1, boostY + 1, boostLabel, boostScale, boostScale, 0, c_black, c_black, c_black, c_black, 1);
+        draw_text_transformed_color(mana_spr_x, boostY, boostLabel, boostScale, boostScale, 0, c_lime, c_lime, c_lime, c_lime, 1);
+    }
     
     // --- ADVERSAIRE ---
     // Placer à GAUCHE du deck de l'adversaire

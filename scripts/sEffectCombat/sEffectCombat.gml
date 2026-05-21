@@ -332,6 +332,9 @@ function damageCard(card, amount, source = noone, _ignore_redirect = false) {
         var oldLP = card.nbLP;
         card.nbLP = max(0, card.nbLP - amount);
         var newLP = card.nbLP;
+        if (amount > 0 && script_exists(asset_get_index("duelLogDamage"))) {
+            duelLogDamage(card, amount, source);
+        }
         
         var ownerIsHero = (card.object_index == oLP_Hero); // Determine owner based on object type
         if (variable_instance_exists(card, "isHeroOwner")) ownerIsHero = card.isHeroOwner;
@@ -362,6 +365,9 @@ function damageCard(card, amount, source = noone, _ignore_redirect = false) {
              // Handle Victory/Defeat if needed, usually handled by Game Manager check
              show_debug_message("### Victory/Defeat via damageCard on LP Object");
         }
+        if (!ownerIsHero && amount > 0 && is_callable(chap2_bot_sync_linked_boss_hp_from_lp)) {
+            chap2_bot_sync_linked_boss_hp_from_lp();
+        }
         return true;
     }
     
@@ -370,7 +376,16 @@ function damageCard(card, amount, source = noone, _ignore_redirect = false) {
     if (!has_current_hp && instance_exists(card)) has_current_hp = variable_instance_exists(card, "current_hp");
     
     if (has_current_hp) {
+        if (amount > 0 && instance_exists(card) && variable_instance_exists(card, "ch2_boss_lp_linked") && card.ch2_boss_lp_linked) {
+            var lpLinked = instance_find(oLP_Enemy, 0);
+            if (lpLinked != noone) {
+                return damageCard(lpLinked, amount, source, _ignore_redirect);
+            }
+        }
         card.current_hp -= amount;
+        if (amount > 0 && script_exists(asset_get_index("duelLogDamage"))) {
+            duelLogDamage(card, amount, source);
+        }
         if (amount > 0 && variable_instance_exists(card, "mark_draw_on_damage_owner_is_hero")) {
             var drawOwnerOnDamageCHP = card.mark_draw_on_damage_owner_is_hero;
             var deckInstOnDamageCHP = drawOwnerOnDamageCHP ? deckHero : deckEnemy;
@@ -394,6 +409,9 @@ function damageCard(card, amount, source = noone, _ignore_redirect = false) {
         
         if (has_pv) {
             card.PV -= amount;
+            if (amount > 0 && script_exists(asset_get_index("duelLogDamage"))) {
+                duelLogDamage(card, amount, source);
+            }
             if (amount > 0 && variable_instance_exists(card, "mark_draw_on_damage_owner_is_hero")) {
                 var drawOwnerOnDamagePV = card.mark_draw_on_damage_owner_is_hero;
                 var deckInstOnDamagePV = drawOwnerOnDamagePV ? deckHero : deckEnemy;
@@ -440,6 +458,19 @@ function healCard(card, amount) {
         if (has_pv && has_def) {
             card.PV = min(card.original_defense, card.PV + amount);
         }
+    }
+    
+    if (instance_exists(oQuestManager) && amount > 0) {
+        var healOwnerHero = true;
+        if (instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) {
+            healOwnerHero = card.isHeroOwner;
+        } else if (is_struct(card) && variable_struct_exists(card, "isHeroOwner")) {
+            healOwnerHero = card.isHeroOwner;
+        }
+        oQuestManager.notify_event("heal", amount, { target: card, owner_is_hero: healOwnerHero });
+    }
+    if (amount > 0 && script_exists(asset_get_index("duelLogHeal"))) {
+        duelLogHeal(card, amount);
     }
     return true;
 }
@@ -531,6 +562,10 @@ function destroyCard(card, source = noone) {
         }
     }
     registerTriggerEvent(TRIGGER_ON_DESTROY, card, ctx);
+
+    if (script_exists(asset_get_index("duelLogDestroy"))) {
+        duelLogDestroy(card, source);
+    }
 
     // QUEST SYSTEM NOTIFICATION (Destruction)
     if (instance_exists(oQuestManager) && instance_exists(card)) {

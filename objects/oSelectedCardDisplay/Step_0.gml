@@ -11,9 +11,20 @@ if (instance_exists(selectManager)) {
     }
 }
 
-// Met à jour uniquement si on a un SelectManager valide
+// Viewer = inspection (clic droit), pas la sélection gameplay (clic gauche)
 if (sm != noone && instance_exists(sm)) {
-    selected = sm.selected;
+    if (variable_instance_exists(sm, "inspected")) {
+        if (sm.inspected != noone && !instance_exists(sm.inspected)) {
+            if (variable_instance_exists(sm, "clearInspection")) {
+                sm.clearInspection();
+            } else {
+                sm.inspected = noone;
+            }
+        }
+        selected = sm.inspected;
+    } else {
+        selected = noone;
+    }
 }
 
 // Note: La gestion des boutons d'attaque est maintenant entièrement gérée par oUIManager

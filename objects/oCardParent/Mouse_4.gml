@@ -36,14 +36,7 @@ if (room == rDuel && variable_global_exists("isGraveyardViewerOpen") && global.i
 if (room == rDuel && variable_global_exists("isActionMenuOpen") && global.isActionMenuOpen) {
     var allowDeckPick = false; // Legacy "Pick" phase removed
     var allowUnselectClick = instance_exists(oSelectManager) && selectManager.selected == id;
-    // Autoriser un clic de carte héros pour afficher le viewer, même avec le menu ouvert
-    var allowViewerClick = instance_exists(oSelectManager) && isHeroOwner && (zone == "Hand" || zone == "Field");
-    // Autoriser un clic viewer-only sur carte adverse face visible (terrain)
-    var allowEnemyViewerClick = instance_exists(oSelectManager) && !isHeroOwner && (
-        ((zone == "Field") && !isFaceDown) ||
-        ((zone == "Hand") && instance_exists(handEnemy) && variable_instance_exists(handEnemy, "reveal_override") && handEnemy.reveal_override)
-    );
-    if (!(allowDeckPick || allowUnselectClick || allowViewerClick || allowEnemyViewerClick)) {
+    if (!(allowDeckPick || allowUnselectClick)) {
         return;
     }
 }

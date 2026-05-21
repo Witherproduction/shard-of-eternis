@@ -193,38 +193,21 @@ if (isFaceDown && isOnField) {
 // Suppression logique de placement différé (Artéfact/Continu) - Tout passe par le mode Direct (HS Style)
 // Le code ci-dessous est désactivé/supprimé car toutes les magies sont jouées directement via isMagicInHand
 
-// Demande de halo doré (file d’attente, un par un)
-requestFXAura(
-    card.sprite_index,
-    card.image_index,
-    card.image_xscale,
-    card.image_yscale,
-    card.image_angle,
-    600,   // durée ~0.6s
-    18,    // padding
-    10,    // épaisseur
-    1.50,  // scale multiplier
-    0.80,  // alpha start
-    card.x,
-    card.y
-);
-
-// Pour les cartes déjà sur le terrain (y compris Artéfacts), exécuter l'effet manuel s'il existe
+// Résolution via executeEffect (halo centralisé dans sEffects)
 var effectResolved = false;
 if (effect != noone) {
-    // Phase 1.5: Command Pattern
     if (effectIndex != -1 && variable_instance_exists(card, "instance_uid")) {
-        RequestGameAction(ACTION_ACTIVATE_EFFECT, {
+        var payloadAct = {
             source_uid: card.instance_uid,
             effect_index: effectIndex
-        });
-        // Note: effectResolved n'est plus pertinent ici car l'action est asynchrone/centralisée.
-        // On suppose que l'action s'exécutera.
-        effectResolved = true; // Pour déclencher le nettoyage UI ci-dessous si besoin
+        };
+        RequestGameAction(ACTION_ACTIVATE_EFFECT, payloadAct);
+        effectResolved = true;
     } else {
-        // Fallback
-        effectResolved = executeEffect(card, effect, {});
-        if (effectResolved) {
+        var ctxBtn = {};
+        effectResolved = executeEffect(card, effect, ctxBtn);
+        var wasDeferred = (effectResolved && variable_struct_exists(ctxBtn, "fx_aura_deferred") && ctxBtn.fx_aura_deferred);
+        if (effectResolved && !wasDeferred) {
             markEffectAsUsed(card, effect);
         }
     }

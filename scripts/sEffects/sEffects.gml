@@ -258,6 +258,77 @@ function getEffectIndex(card, effect) {
     return -1;
 }
 
+/// @function effectWillRequestManualTargeting(card, effect, context)
+/// @description Vrai si l'effet va ouvrir le ciblage manuel (halo doit attendre la cible)
+function effectWillRequestManualTargeting(card, effect, context = {}) {
+    if (!is_struct(effect) || !variable_struct_exists(effect, "effect_type")) return false;
+
+    var effectType = effect.effect_type;
+    var target = variable_struct_exists(context, "target") ? context.target : noone;
+
+    if (variable_struct_exists(effect, "target_source")) {
+        var tsrc = effect.target_source;
+        if (tsrc == "attacker" && variable_struct_exists(context, "attacker") && instance_exists(context.attacker)) {
+            target = context.attacker;
+        } else if (tsrc == "defender" && variable_struct_exists(context, "defender") && instance_exists(context.defender)) {
+            target = context.defender;
+        } else if (tsrc == "summoned" && variable_struct_exists(context, "summoned") && instance_exists(context.summoned)) {
+            target = context.summoned;
+        } else if (tsrc == "source" && variable_struct_exists(context, "source") && instance_exists(context.source)) {
+            target = context.source;
+        }
+    }
+
+    var scope_for_target = string_lower(variable_struct_exists(effect, "scope") ? effect.scope : "single");
+    var needsTarget = (
+        effectType == EFFECT_DESTROY_TARGET
+        || effectType == EFFECT_SACRIFICE_TARGET
+        || effectType == EFFECT_BANISH_TARGET
+        || effectType == EFFECT_DAMAGE_TARGET
+        || effectType == EFFECT_RETURN_TO_HAND
+        || effectType == EFFECT_EQUIP_SELECT_TARGET
+        || effectType == EFFECT_MARK_ATTACK_DAMAGE
+        || (effectType == EFFECT_SUMMON && string_lower(variable_struct_exists(effect, "summon_mode") ? effect.summon_mode : "") == "copy_target")
+        || (effectType == EFFECT_BUFF && scope_for_target == "single")
+        || (effectType == EFFECT_ENTRAVE && scope_for_target == "single")
+        || (effectType == EFFECT_POINTS && string_lower(variable_struct_exists(effect, "scope") ? effect.scope : "lp") == "card" && string_lower(variable_struct_exists(effect, "select_mode") ? effect.select_mode : "filter") == "target")
+        || effectType == EFFECT_PURGE
+    );
+
+    if ((effectType == EFFECT_BUFF) && (scope_for_target == "single") && !variable_struct_exists(effect, "owner") && !variable_struct_exists(effect, "criteria")) {
+        return false;
+    }
+    if (!needsTarget || target != noone) return false;
+
+    var isManualActivation = (!variable_struct_exists(effect, "trigger")
+        || effect.trigger == TRIGGER_MAIN_PHASE
+        || effect.trigger == TRIGGER_QUICK_EFFECT
+        || effect.trigger == TRIGGER_ON_SUMMON);
+    var ownerIsHero_ctx = (variable_struct_exists(context, "owner_is_hero")) ? context.owner_is_hero
+        : ((card != noone && instance_exists(card) && variable_instance_exists(card, "isHeroOwner")) ? card.isHeroOwner : true);
+
+    return (isManualActivation && ownerIsHero_ctx && instance_exists(oSelectManager));
+}
+
+/// @function cardSpellPlayNeedsManualTargeting(card, effectTarget, isHeroOwner)
+function cardSpellPlayNeedsManualTargeting(card, effectTarget, isHeroOwner) {
+    if (effectTarget != noone && instance_exists(effectTarget)) return false;
+    var ctx = { target: effectTarget, owner_is_hero: isHeroOwner };
+
+    if (variable_instance_exists(card, "effects") && is_array(card.effects)) {
+        for (var i = 0; i < array_length(card.effects); i++) {
+            var eff = card.effects[i];
+            var trig = variable_struct_exists(eff, "trigger") ? eff.trigger : "";
+            var isActivationEffect = (trig == "" || trig == "main_phase" || trig == "on_spell_cast" || trig == "on_summon");
+            if (isActivationEffect && effectWillRequestManualTargeting(card, eff, ctx)) return true;
+        }
+    }
+    if (variable_instance_exists(card, "effect") && is_struct(card.effect)) {
+        if (effectWillRequestManualTargeting(card, card.effect, ctx)) return true;
+    }
+    return false;
+}
+
 /// @function executeEffect(card, effect, context)
 /// @description Exécute un effet spécifique
 /// @param {struct} card - La carte qui active l'effet
@@ -285,7 +356,7 @@ function executeEffect(card, effect, context = {}) {
             return false;
         }
     }
-    
+
     var effectType = effect.effect_type;
     // Utiliser la valeur du contexte si elle existe, sinon celle de l'effet
     var value = variable_struct_exists(context, "value") ? context.value 
@@ -344,6 +415,9 @@ function executeEffect(card, effect, context = {}) {
     // Réduire le spam: ignorer les logs pour les effets continus
     if (effTrigger != TRIGGER_CONTINUOUS) {
         show_debug_message("### Effet: type=" + string(effectType) + " trig=" + string(effTrigger) + " card=" + string(cardName) + " zone=" + string(cardZone) + " " + valueStr + " cible=" + string(targetDesc));
+    }
+    if (script_exists(asset_get_index("duelLogEffect"))) {
+        duelLogEffect(card, effect, context);
     }
     
     // Ciblage manuel si aucune cible fournie pour les effets ciblés
@@ -579,6 +653,17 @@ function executeEffect(card, effect, context = {}) {
             // Le processus est lancé; l'application se fera après la sélection
             // Important: ne pas signaler une réussite immédiate pour éviter la consommation prématurée des sorts Direct
             return false;
+        }
+    }
+
+    // Halo après ciblage : pas avant la sélection de cible manuelle
+    if (script_exists(asset_get_index("fxAuraShouldPresentEffect")) && fxAuraShouldPresentEffect(card, effect, context)) {
+        if (script_exists(asset_get_index("fxAuraPresentThenExecuteEffect"))) {
+            if (is_struct(context)) {
+                context.fx_aura_deferred = true;
+            }
+            fxAuraPresentThenExecuteEffect(card, effect, context);
+            return true;
         }
     }
     
@@ -2065,7 +2150,11 @@ function executeEffect(card, effect, context = {}) {
                 var srcKeyB = "effect:" + string(eff.effect_type) + ":" + string(srcId) + ":" + string(variable_struct_exists(eff, "id") ? eff.id : -1);
                 if (scopeP == "equip") { srcKeyB = "equip:" + string(srcId); }
                 else if (scopeP == "aura") { srcKeyB = "aura:" + string(srcId); }
-                buffSetContribution(tgt2, srcKeyB, laAtk, laDef);
+                var srcNameB = "";
+                if (srcCard != noone && instance_exists(srcCard) && variable_instance_exists(srcCard, "name")) {
+                    srcNameB = string(srcCard.name);
+                }
+                buffSetContribution(tgt2, srcKeyB, laAtk, laDef, srcNameB);
                 buffRecompute(tgt2);
                 if (variable_struct_exists(eff, "grant_ambidextrous") && eff.grant_ambidextrous) {
                     tgt2.isAmbidextrous = true;
@@ -2324,7 +2413,11 @@ function executeEffect(card, effect, context = {}) {
                 if (agg) {
                     var srcKeyG = "effect:" + string(effect.effect_type) + ":" + string(card.id) + ":" + string(variable_struct_exists(effect, "id") ? effect.id : -1);
                     if (object_is_ancestor(card.object_index, oCardMagic)) { srcKeyG = "equip:" + string(card.id); }
-                    buffSetContribution(tgtG, srcKeyG, atkVal, defVal);
+                    var srcNameG = "";
+                    if (card != noone && instance_exists(card) && variable_instance_exists(card, "name")) {
+                        srcNameG = string(card.name);
+                    }
+                    buffSetContribution(tgtG, srcKeyG, atkVal, defVal, srcNameG);
                     buffRecompute(tgtG);
                     return true;
                 } else {

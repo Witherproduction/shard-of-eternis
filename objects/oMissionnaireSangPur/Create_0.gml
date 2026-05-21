@@ -10,7 +10,7 @@ booster = "Retour des Archontes"
 rarity = "rare"
 lastTurnAttack = 0;
 is_player_card = true; // Définit explicitement cette carte comme appartenant au joueur
-description = "Eveil : Inflige 2 déggâts à une cible ennemie."
+description = "Eveil : Inflige 2 dégâts à une cible ennemie."
 effects = [
     {
         id: 1,
